@@ -1,6 +1,7 @@
 includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/nesbot/carbon/extension.neon
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
 
 parameters:
     paths:
@@ -11,3 +12,62 @@ parameters:
         - routes/
 
     level: 7
+
+    # Rules locked by PHPStan (spaze/phpstan-disallowed-calls). Each entry says
+    # what to call instead. Never widen allowIn to make business code pass: move
+    # the code to where it belongs. Settings controllers are starter kit
+    # scaffolding (see ARCHITECTURE.md).
+    filesRootDir: %rootDir%/../../..
+
+    disallowedMethodCalls:
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Model::save()'
+                - 'Illuminate\Database\Eloquent\Model::update()'
+                - 'Illuminate\Database\Eloquent\Model::delete()'
+                - 'Illuminate\Database\Eloquent\Model::forceDelete()'
+                - 'Illuminate\Database\Eloquent\Model::increment()'
+                - 'Illuminate\Database\Eloquent\Model::decrement()'
+                - 'Illuminate\Database\Eloquent\Model::push()'
+                - 'Illuminate\Database\Eloquent\Builder::create()'
+                - 'Illuminate\Database\Eloquent\Builder::forceCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::update()'
+                - 'Illuminate\Database\Eloquent\Builder::delete()'
+                - 'Illuminate\Database\Eloquent\Builder::updateOrCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::firstOrCreate()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::create()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::save()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::attach()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::detach()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::sync()'
+            message: 'writes belong in an Action'
+            errorTip: 'Move the write into app/Actions/{Domain}/{Verb}{Noun}.php and call the Action from here. See ARCHITECTURE.md.'
+            allowIn:
+                - app/Actions/*
+                - database/*
+                - app/Http/Controllers/Settings/*
+
+    disallowedStaticCalls:
+        -
+            method:
+                - 'App\Models\*::create()'
+                - 'App\Models\*::forceCreate()'
+                - 'App\Models\*::destroy()'
+                - 'App\Models\*::updateOrCreate()'
+                - 'App\Models\*::firstOrCreate()'
+            message: 'writes belong in an Action'
+            errorTip: 'Move the write into app/Actions/{Domain}/{Verb}{Noun}.php and call the Action from here. See ARCHITECTURE.md.'
+            allowIn:
+                - app/Actions/*
+                - database/*
+        -
+            method:
+                - 'App\Enums\*::from()'
+                - 'App\Enums\*::tryFrom()'
+            message: 'turn input into an enum only where input arrives'
+            errorTip: 'FormRequests, Actions and console commands may call from() on input. In a controller use $request->enum(). To get one enum from another, call a method on the enum (for example $role->locationType()); never rely on two enums sharing the same values.'
+            allowIn:
+                - app/Enums/*
+                - app/Http/Requests/*
+                - app/Actions/*
+                - app/Console/*

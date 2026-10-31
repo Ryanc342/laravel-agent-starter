@@ -1,0 +1,51 @@
+# Frontend (React + Inertia) and the data contract
+
+Applies to `resources/js/**` and `app/Http/Resources/**`.
+
+## React displays; the backend decides
+
+React never calculates business results. Anything that is a rule (price, total, status, deadline, permission, "can this button be pressed?") is calculated in PHP and arrives as a prop.
+
+```tsx
+// Wrong: business rule calculated in React
+const isOverdue = task.status === 'open' && new Date(task.due_on) < new Date();
+{user.id === task.user_id && <Button>Edit</Button>}
+
+// Correct: the backend sent the answers
+{task.is_overdue && <Badge variant="destructive">Overdue</Badge>}
+{task.can.complete && <Button>Complete</Button>}
+```
+
+Pure display logic is fine in React: formatting a date, toggling a dialog, filtering a list the user is looking at.
+
+Combining stored fields into a status is a business rule, not formatting: `status === 'done' && outcome === 'partial' ? 'warning' : status` belongs in the Model, and the Resource sends the result. Dividing integer cents by 100 inside a currency formatter is display; totals, discounts, taxes and eligibility are not.
+
+## The Resource is the contract
+
+- Every model sent to React goes through a JsonResource in `app/Http/Resources/`. Never pass a raw model or a hand-built array from a controller.
+- `toArray()` lists each field by name. Never return the whole model (`parent::toArray()`, `attributesToArray()`) or spread an arbitrary array.
+- The Resource includes the derived flags (`is_overdue`) and permissions (`can: { update, delete, complete }`).
+- Each flag and each `can.*` only calls existing owners (Policy abilities, model and enum methods); it never writes a condition. Each `can.*` has a consistency test (docs/rules/tests.md).
+- Collections arrive wrapped in `data`: pass `TaskResource::collection($tasks)->response($request)->getData(true)` as the prop, read it as `tasks.data`, and type it with `ResourceCollection<T>` from `@/types/resource`.
+- Each Resource has a matching TypeScript type in `resources/js/types/{model}.ts` with the same field names. When you change one, change the other in the same edit.
+
+## Forms and routes
+
+- Use Inertia's `<Form>` component with Wayfinder: `<Form {...TaskController.store.form()}>`.
+- Never hard-code URLs. Import routes from `@/routes/...` or controller actions from `@/actions/...`.
+- Show server errors with `<InputError message={errors.field} />`. Do not duplicate server validation in React beyond simple HTML attributes (`required`, `maxLength`).
+
+## Files and boundaries
+
+- Page: `resources/js/pages/{domain}/{page}.tsx` (matches `Inertia::render('{domain}/{page}')`).
+- Domain components: `resources/js/components/{domain}/`. Components used by several domains: `resources/js/components/shared/`.
+- A domain's components never import another domain's components, and nothing imports a page. `.dependency-cruiser.cjs` enforces this.
+- Before creating a component, hook or page section, look for an existing one in the shared folders (`components`, `components/ui`, `components/shared`, `hooks`) **and in the other pages** (`grep -rn` in `resources/js/pages` for the same fields, table headers or labels).
+- A UI block that appears on a second page becomes one shared component, and every page uses it. Example: `docs/reference/tasks/resources/js/components/tasks/task-fields.tsx`, used by the create and the edit form.
+- Files stay under 250 lines. A page that grows is split into components in `components/{domain}/`.
+- Use the shadcn components in `components/ui`; do not install another UI library.
+- If a `DESIGN.md` exists in the project root, also follow docs/rules/visual-design.md.
+
+## Breadcrumbs and layout
+
+Set breadcrumbs with `Page.layout = { breadcrumbs: [...] }` like `pages/dashboard.tsx`. Show flash messages with `Inertia::flash('toast', [...])` in the controller; the layout already displays them.

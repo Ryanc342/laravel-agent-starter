@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# Usage: scripts/worktree-up <name> [port]
+#
+# Creates a git worktree next to this project (../<project>-<name>) on a new
+# branch <name>, with its own .env, database and port, so several AI sessions
+# can work in parallel without touching each other.
+#
+set -euo pipefail
+
+name="${1:?usage: scripts/worktree-up <name> [port]}"
+port="${2:-}"
+
+root="$(git rev-parse --show-toplevel)"
+dir="$(dirname "$root")/$(basename "$root")-${name}"
+
+if [ -z "$port" ]; then
+    count="$(git -C "$root" worktree list | wc -l | tr -d ' ')"
+    port=$((8000 + count))
+fi
+
+git -C "$root" worktree add "$dir" -b "$name"
+cd "$dir"
+
+new_key=false
+if [ -f "$root/.env" ]; then
+    cp "$root/.env" .env
+else
+    cp .env.example .env
+    new_key=true
+fi
+
+# Own URL and port; own database: a separate SQLite file, or <database>_<name> for MySQL.
+php -r '
+    [$file, $port, $name] = [".env", $argv[1], $argv[2]];
+    $env = file_get_contents($file);
+    $env = preg_replace("/^APP_URL=.*$/m", "APP_URL=http://localhost:{$port}", $env);
+    if (preg_match("/^DB_CONNECTION=mysql/m", $env) && preg_match("/^DB_DATABASE=(.*)$/m", $env, $m)) {
+        $database = trim($m[1]) . "_" . preg_replace("/[^A-Za-z0-9_]/", "_", $name);
+        $env = preg_replace("/^DB_DATABASE=.*$/m", "DB_DATABASE={$database}", $env);
+        fwrite(STDERR, "MySQL: create the database {$database} before running migrations.\n");
+    }
+    file_put_contents($file, $env);
+' "$port" "$name"
+
+touch database/database.sqlite
+
+composer install --no-interaction --quiet
+if [ "$new_key" = true ]; then
+    php artisan key:generate --no-interaction
+fi
+npm install --silent
+php artisan migrate --force --no-interaction
+npm run build
+
+echo
+echo "Worktree ready: $dir (branch $name)"
+echo "Run the app:   cd \"$dir\" && php artisan serve --port=$port"
+echo "Remove later:  git worktree remove \"$dir\""

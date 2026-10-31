@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#
+# Usage: composer check:reference
+#
+# Copies the project into a temporary folder, adds the reference feature
+# (docs/reference/tasks) to that copy as if it were real code, and runs every
+# check there. The real project is not changed. Run it after changing rules,
+# checks or dependencies, so the example the AI copies stays correct.
+#
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+echo "Copying the project to $tmp ..."
+rsync -a --exclude .git --exclude 'storage/logs/*' "$root/" "$tmp/"
+rsync -a --exclude README.md "$root/docs/reference/tasks/" "$tmp/"
+echo "require __DIR__.'/tasks.php';" >> "$tmp/routes/web.php"
+
+cd "$tmp"
+composer dump-autoload --quiet
+rm -f public/hot
+echo "Building the frontend (also regenerates the Wayfinder routes) ..."
+npm run build > /dev/null
+
+echo "Running composer check on the copy with the reference feature ..."
+composer check

@@ -1,4 +1,4 @@
-name: tests
+name: check
 
 on:
   push:
@@ -34,5 +34,5 @@ jobs:
       - name: Setup Application
         run: composer setup
 
-      - name: Run CI Checks
-        run: composer ci:check
+      - name: Run all checks
+        run: composer check
