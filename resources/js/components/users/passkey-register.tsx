@@ -44,10 +44,6 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!name.trim()) {
-            return;
-        }
-
         await register(name);
     };
 
