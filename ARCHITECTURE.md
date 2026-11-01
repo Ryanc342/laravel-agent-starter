@@ -20,18 +20,19 @@ A layer may use the layers below it, never the ones above it. Side folders:
 - `app/Concerns/`: validation rule traits shared by FormRequests (`PasswordValidationRules`).
 - `app/Notifications/`: messages to a user (`PasswordChanged`). Only Actions send them, with `$user->notify()`.
 
-The machine checks live in these files, and `composer check` runs them all:
+Almost every rule is checked by a linter: a tool that reads the code without running it and stops a broken rule with a message that says what to do instead. `composer check` runs them all:
 
-| Check                                 | What it stops                                                         |
-| ------------------------------------- | --------------------------------------------------------------------- |
-| `tests/Arch/LayersTest.php`           | a layer using a layer above it (principle 2)                          |
-| `tests/Arch/ClassesTest.php`          | a class doing another class's job, wrong names, extra layers          |
-| `phpstan.neon` (disallowed calls)     | writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources |
-| `tests/Structure/ConventionsTest.php` | an Action without a test, a `can.*` Resource without a buttons test, a model without a factory, a `scopeFoo()` method, a model method comparing a column its scope filters on |
-| `.dependency-cruiser.cjs`             | a domain component importing another domain's components              |
-| `tests/Structure/DocsTest.php`        | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section |
-| `tests/PHPStan/` (custom PHPStan rules) | a model field or enum case compared outside the model and enum; a model sent to React without a Resource |
-| `tests/Structure/FrontendTest.php`    | React checking permissions, statuses, dates or money; hard-coded URLs; a TypeScript type out of step with its Resource |
+| Check                                        | What it stops                                                         |
+| -------------------------------------------- | --------------------------------------------------------------------- |
+| `phpstan.neon` (disallowed calls and namespaces) | a layer using a layer above it, writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources, HTTP or permission checks in Actions |
+| `lint/phpstan/ClassShapeRule.php`, `lint/phpstan/TraitPlacementRule.php` | an Action that is not final or has more than `handle()`, extra controller methods, `authorize()` in a FormRequest, non-enums in app/Enums, traits in app/Enums or app/Actions, interfaces, Service/Repository/DTO classes, wrong class names |
+| `lint/phpstan/ModelScopesRule.php`           | a `scopeFoo()` method, a model method comparing a column its scope filters on |
+| `lint/phpstan/ConditionsLiveInModelsRule.php` | a model field or enum value compared outside the model and enum      |
+| `lint/phpstan/PagePropsUseResourcesRule.php` | a model sent to React without a Resource                             |
+| `lint/phpstan/CompanionFilesRule.php`        | an Action without a test, a model without a factory, a `can.*` Resource without a buttons test |
+| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | React checking permissions, statuses, dates or money; hard-coded URLs, `fetch`, `axios`; another UI library; a component importing another domain's components or a page; circular imports |
+| `tests/Structure/ResourceTypesTest.php`      | a TypeScript type out of step with its Resource (a test until Wayfinder generates the types) |
+| `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section |
 
 ## Where each rule goes
 

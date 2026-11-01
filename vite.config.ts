@@ -40,6 +40,41 @@ export default defineConfig({
         },
     },
     lint: {
+        // The default plugins plus import (for import/no-cycle). Setting
+        // plugins replaces the default list, so every plugin is named here.
+        plugins: ['typescript', 'unicorn', 'oxc', 'import'],
+        // Ezdev's own rules, docs/golden-principles.md principles 4 and 7.
+        jsPlugins: ['./lint/oxlint/ezdev.js'],
+        rules: {
+            'ezdev/no-permission-checks': 'error',
+            'ezdev/no-business-comparisons': 'error',
+            'ezdev/no-date-math': 'error',
+            'ezdev/no-money-math': 'error',
+            'ezdev/no-direct-backend-calls': 'error',
+            'ezdev/component-boundaries': 'error',
+            'import/no-cycle': 'error',
+            // Only no-cycle is wanted from the import plugin; these two are
+            // its rules that oxlint turns on by default.
+            'import/default': 'off',
+            'import/namespace': 'off',
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            regex: '^(antd|bootstrap|react-bootstrap|primereact|semantic-ui-react|flowbite|flowbite-react|@headlessui/react)(/.*)?$',
+                            message:
+                                'No other UI library: build the interface from resources/js/components/ui (shadcn). See docs/rules/frontend.md.',
+                        },
+                        {
+                            regex: '^@(mui|chakra-ui|mantine|nextui-org|heroui|ant-design)/',
+                            message:
+                                'No other UI library: build the interface from resources/js/components/ui (shadcn). See docs/rules/frontend.md.',
+                        },
+                    ],
+                },
+            ],
+        },
         ignorePatterns: [
             'vendor/**',
             'node_modules/**',

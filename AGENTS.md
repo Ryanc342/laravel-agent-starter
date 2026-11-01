@@ -1,11 +1,11 @@
-# Ezdev v2: agent guide
+# Ezdev Template: agent guide
 
 This file is a map, not a manual. It stays under 100 lines (tests/Structure checks it).
 Details live in the files it points to; read them when the task needs them.
 
 ## Commands
 
-- `composer check`: every check (Pint, PHPStan, Pest incl. Arch and Structure, tsc, lint, dependency-cruiser). It must pass before you say "done".
+- `composer check`: every check (Pint, PHPStan with Ezdev's rules, oxlint with Ezdev's rules, tsc, Pest). It must pass before you say "done".
 - `php artisan test --compact --filter=<Name>`: one test.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
 - `composer check:reference`: the reference feature still passes every check. Run it after changing rules or tooling.
@@ -45,7 +45,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 
 - Fix the code, not the test. Change an assertion only when the user changed the requirement, and say why.
 - Build only what the plan lists. Anything else is a new question for the user.
-- Never silence a check: no PHPStan ignores, no wider allowIn, no skipped tests. The error says what to do instead.
+- Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
 - Do not change AGENTS.md, ARCHITECTURE.md, docs/rules/, docs/golden-principles.md or check configs without the user's approval.
 - Do not add or upgrade dependencies without the user's approval.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.

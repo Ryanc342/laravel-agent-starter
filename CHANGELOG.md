@@ -2,6 +2,23 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.5.0] - 2026-11-01
+
+Every machine check is now a linter rule: PHPStan for PHP, oxlint for React. A linter reads the code without running it, gives its error with what to do instead, and also runs in the editor. The template is renamed Ezdev Template (folder `Ezdev-Template`); versions live in git tags only.
+
+### Changed
+
+- The Pest architecture tests (`tests/Arch/`) became PHPStan rules: the layer rules are `disallowedNamespaces` in `phpstan.neon`; the class shapes, names and extra-layer rules are `lint/phpstan/ClassShapeRule.php` and `lint/phpstan/TraitPlacementRule.php`.
+- The PHP Structure tests (`tests/Structure/ConventionsTest.php`) became PHPStan rules: `lint/phpstan/ModelScopesRule.php` (`#[Scope]`, a condition written once inside a model) and `lint/phpstan/CompanionFilesRule.php` (a test per Action, a factory per model, a buttons test per `can.*` Resource). The rule tells the result cache which files it looked for (PHPStan 2.3+).
+- The frontend Structure tests became oxlint rules in `lint/oxlint/ezdev.js`, loaded by the `lint` block in `vite.config.ts`. They read the syntax tree instead of lines of text, and also catch `switch`, `.includes()` and `+=`. The UI-library check now looks at imports (`no-restricted-imports`) instead of package.json; a UI library that comes in through CSS only (daisyui) is a review rule.
+- The custom PHPStan rules moved from `tests/PHPStan/` to `lint/phpstan/` (namespace `Lint\PHPStan`).
+- Actions also may not use the `request()`, `response()`, `redirect()`, `back()`, `to_route()` and `inertia()` helpers or call `can()`.
+- The Resource and TypeScript type comparison stays a test, `tests/Structure/ResourceTypesTest.php`, until Wayfinder generates the types (`docs/exec-plans/tech-debt.md`).
+
+### Removed
+
+- dependency-cruiser (`.dependency-cruiser.cjs`, `npm run depcruise`): its rules are `ezdev/component-boundaries` and `import/no-cycle` in oxlint.
+
 ## [2.4.0] - 2026-11-01
 
 ### Removed

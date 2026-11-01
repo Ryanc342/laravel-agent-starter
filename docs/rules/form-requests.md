@@ -34,7 +34,7 @@ public function rules(): array
 
 ## Authorization
 
-Do not write `authorize()` (the Arch test rejects it). Authorization happens in the controller through the Policy, so there is one place to look.
+Do not write `authorize()` (PHPStan rejects it). Authorization happens in the controller through the Policy, so there is one place to look.
 
 ## Sharing rules
 

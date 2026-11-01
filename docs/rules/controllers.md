@@ -70,7 +70,7 @@ To read an enum from the request in a controller, use `$request->enum('type', Sh
 
 ## Non-CRUD operations get their own controller
 
-An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. The Arch test allows only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`.
+An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. PHPStan allows only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`.
 
 ## Routes
 

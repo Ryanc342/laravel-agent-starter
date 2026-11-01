@@ -8,8 +8,7 @@
         "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
-        "types:check": "tsc --noEmit",
-        "depcruise": "depcruise resources/js --config .dependency-cruiser.cjs"
+        "types:check": "tsc --noEmit"
     },
     "dependencies": {
         "@inertiajs/react": "^3.0.0",
@@ -52,7 +51,6 @@
         "@rolldown/plugin-babel": "^0.2.3",
         "@types/node": "^22.13.5",
         "babel-plugin-react-compiler": "^1.0.0",
-        "dependency-cruiser": "^16.10.0",
         "vite-plus": "1.4.0"
     },
     "optionalDependencies": {

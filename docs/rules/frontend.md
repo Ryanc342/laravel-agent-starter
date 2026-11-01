@@ -18,7 +18,7 @@ const isOverdue = task.status === 'open' && new Date(task.due_on) < new Date();
 
 Pure display logic is fine in React: formatting a date, toggling a dialog, filtering a list the user is looking at. Date and money formatting for display goes in `resources/js/lib/format.ts`.
 
-tests/Structure/FrontendTest.php reads the React code and fails on permission checks (`auth.user`), status, role and type comparisons, date comparisons and subtraction, money arithmetic and summing `reduce`, hard-coded URLs, `fetch` and `axios`, other UI libraries, and a TypeScript type whose fields differ from its Resource. PHPStan fails when a page prop holds a model. If a check matches code that is really display logic, ask the user to adjust the check; never rename fields to slip past it.
+oxlint (the `lint` block in vite.config.ts, Ezdev's rules in lint/oxlint/ezdev.js) fails on permission checks (`auth.user`), status, role and type comparisons, date comparisons and subtraction, money arithmetic and summing `reduce`, hard-coded URLs, `fetch` and `axios`, and imports of other UI libraries. tests/Structure/ResourceTypesTest.php fails on a TypeScript type whose fields differ from its Resource. PHPStan fails when a page prop holds a model. If a rule matches code that is really display logic, ask the user to adjust the rule; never rename fields to slip past it.
 
 Combining stored fields into a status is a business rule, not formatting: `status === 'done' && outcome === 'partial' ? 'warning' : status` belongs in the Model, and the Resource sends the result. Dividing integer cents by 100 inside a currency formatter is display; totals, discounts, taxes and eligibility are not.
 
@@ -41,7 +41,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 
 - Page: `resources/js/pages/{domain}/{page}.tsx` (matches `Inertia::render('{domain}/{page}')`).
 - Domain components: `resources/js/components/{domain}/`. Components used by several domains: `resources/js/components/shared/`.
-- A domain's components never import another domain's components, and nothing imports a page. `.dependency-cruiser.cjs` enforces this.
+- A domain's components never import another domain's components, and nothing imports a page. oxlint enforces this (`ezdev/component-boundaries`, and `import/no-cycle` for circular imports).
 - Before creating a component, hook or page section, look for an existing one in the shared folders (`components`, `components/ui`, `components/shared`, `hooks`) **and in the other pages** (`grep -rn` in `resources/js/pages` for the same fields, table headers or labels).
 - A UI block that appears on a second page becomes one shared component, and every page uses it. Example: `docs/reference/tasks/resources/js/components/tasks/task-fields.tsx`, used by the create and the edit form.
 - Split a page by job, not by size: when a page holds several parts (a list, a form, a summary), each part becomes a component in `components/{domain}/`. A file over 300 lines is a signal to check this.

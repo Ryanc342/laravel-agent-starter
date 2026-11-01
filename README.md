@@ -1,11 +1,11 @@
-# Ezdev v2
+# Ezdev Template
 
 A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects where AI (Codex or Claude Code) writes the code.
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
 
 1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
 2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in eight principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
-3. **Machine checks.** Pest architecture and structure tests, PHPStan (with custom rules in `tests/PHPStan`) and dependency-cruiser enforce the architecture. One command runs everything: `composer check`.
+3. **Machine checks.** Two linters enforce the architecture: PHPStan for PHP (with Ezdev's rules in `lint/phpstan/`) and oxlint for React (with Ezdev's rules in `lint/oxlint/`). Two small tests check the docs and the Resource types. One command runs everything: `composer check`.
 
 The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
 
@@ -40,8 +40,9 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | `docs/rules/`                             | Detailed rules per folder (actions, controllers, models, frontend, tests) |
 | `docs/reference/tasks/`                   | A complete reference feature the AI copies the structure from            |
 | `docs/golden-principles.md`, `QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
-| `tests/Arch/`, `tests/Structure/`         | Architecture tests; conventions and docs checks                          |
-| `phpstan.neon`, `.dependency-cruiser.cjs` | Forbidden calls (with what to call instead); frontend boundaries         |
+| `phpstan.neon`, `lint/phpstan/`           | PHP linter rules: forbidden calls and layers, class shapes, scopes, companion files |
+| `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter rules: React never does the backend's job, component boundaries |
+| `tests/Structure/`                        | Docs checks; Resource and TypeScript type comparison                     |
 | `.codex/`, `.claude/`, `.mcp.json`        | Subagents (explorer, reviewer) and MCP servers (Boost, Playwright)       |
 | `scripts/worktree-up`                     | A git worktree with its own .env, database and port for parallel work    |
 
@@ -49,7 +50,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 | Command                    | Does                                                                  |
 | -------------------------- | --------------------------------------------------------------------- |
-| `composer check`           | Pint, PHPStan, Pest (Feature, Arch, Structure), tsc, lint, dependency-cruiser |
+| `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Pest (Feature, Structure) |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
 | `composer lint`            | Format PHP                                                            |
 | `npm run check:fix`        | Format and lint the frontend                                          |
@@ -57,7 +58,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 ## Changing the rules
 
-The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (a test checks it): add details to `docs/`, not to the map. When a rule is broken twice, turn it into a check (`tests/Arch/LayersTest.php` or `phpstan.neon`) with an error message that says what to do instead. After changing rules or tooling, run `composer check:reference`.
+The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (a test checks it): add details to `docs/`, not to the map. When a rule is broken twice, turn it into a linter rule (`phpstan.neon`, `lint/phpstan/` or `lint/oxlint/ezdev.js`) with an error message that says what to do instead. After changing rules or tooling, run `composer check:reference`.
 
 ## Optional: DESIGN.md
 

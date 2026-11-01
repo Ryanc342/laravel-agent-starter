@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\PHPStan;
+namespace Lint\PHPStan;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;

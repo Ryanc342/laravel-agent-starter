@@ -14,7 +14,7 @@ test('every docs path that AGENTS.md and ARCHITECTURE.md mention exists: fix the
     $missing = [];
 
     foreach (['AGENTS.md', 'ARCHITECTURE.md'] as $doc) {
-        preg_match_all('#(?:docs|tests|scripts)/[\w./-]*[\w/]#', file_get_contents("{$root}/{$doc}"), $matches);
+        preg_match_all('#(?:docs|tests|scripts|lint)/[\w./-]*[\w/]#', file_get_contents("{$root}/{$doc}"), $matches);
 
         foreach (array_unique($matches[0]) as $path) {
             if (! file_exists("{$root}/{$path}")) {

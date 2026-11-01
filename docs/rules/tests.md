@@ -12,7 +12,7 @@ Write tests with Pest. Follow `docs/reference/tasks/tests/Feature/Tasks/` as the
 | `tests/Feature/{Domain}/{Model}ControllerTest.php` | Each endpoint: guest redirected, owner allowed, other user forbidden (403), invalid input rejected, success redirects |
 | `tests/Feature/{Domain}/{Model}ButtonsTest.php`    | Consistency: each `can.*` button and each form's choices agree with what the endpoint accepts                         |
 
-tests/Structure checks that every Action has its test file and every Resource with `can.*` has its buttons test. `tests/Arch/` and `tests/Structure/` belong to the template. Do not edit them without the user's approval.
+PHPStan checks that every Action has its test file and every Resource with `can.*` has its buttons test (lint/phpstan/CompanionFilesRule.php). `lint/` and `tests/Structure/` belong to the template. Do not edit them without the user's approval.
 
 ## Consistency tests
 

@@ -3,10 +3,14 @@ includes:
     - vendor/nesbot/carbon/extension.neon
     - vendor/spaze/phpstan-disallowed-calls/extension.neon
 
-# Custom rules for docs/golden-principles.md, in tests/PHPStan/.
+# Ezdev's own rules for docs/golden-principles.md, in lint/phpstan/.
 rules:
-    - Tests\PHPStan\ConditionsLiveInModelsRule
-    - Tests\PHPStan\PagePropsUseResourcesRule
+    - Lint\PHPStan\ClassShapeRule
+    - Lint\PHPStan\CompanionFilesRule
+    - Lint\PHPStan\ConditionsLiveInModelsRule
+    - Lint\PHPStan\ModelScopesRule
+    - Lint\PHPStan\PagePropsUseResourcesRule
+    - Lint\PHPStan\TraitPlacementRule
 
 parameters:
     paths:
@@ -28,6 +32,94 @@ parameters:
     # Eloquent Builder (query() and destroy() on Model), so the entries name
     # those classes, never App\Models\*.
     filesRootDir: %rootDir%/../../..
+
+    # Principle 2: layers only depend downwards. A class may not use (import,
+    # type-hint, call or extend) anything from the namespaces listed.
+    disallowedNamespaces:
+        -
+            namespace:
+                - 'App\Models\*'
+                - 'App\Policies\*'
+                - 'App\Actions\*'
+                - 'App\Http\*'
+            message: 'enums are the bottom layer'
+            errorTip: 'An enum only knows its own cases, labels and small decisions about itself. Move this logic into the model, Policy or Action that owns it. See ARCHITECTURE.md.'
+            allowExceptIn:
+                - app/Enums/*
+        -
+            namespace:
+                - 'App\Policies\*'
+                - 'App\Actions\*'
+                - 'App\Http\*'
+            message: 'models use no policies, actions or http'
+            errorTip: 'A model holds fields, relations, scopes and is*/can* methods. Move the work into an Action. See ARCHITECTURE.md.'
+            allowExceptIn:
+                - app/Models/*
+        -
+            namespace:
+                - 'App\Actions\*'
+                - 'App\Http\*'
+            message: 'policies only ask models and enums'
+            errorTip: 'A Policy answers yes or no from the model (isOwnedBy(), canBeCompleted()). See docs/rules/models.md.'
+            allowExceptIn:
+                - app/Policies/*
+        -
+            namespace:
+                - 'App\Actions\*'
+                - 'App\Http\*'
+            message: 'notifications only describe a message'
+            errorTip: 'An Action decides when to send a notification; the notification only builds its text. See ARCHITECTURE.md.'
+            allowExceptIn:
+                - app/Notifications/*
+        -
+            namespace: 'App\Actions\*'
+            message: 'resources and form requests only read'
+            errorTip: 'A Resource asks the Policy for can.*; a FormRequest checks the shape of the input. The controller calls the Action. See ARCHITECTURE.md.'
+            allowExceptIn:
+                - app/Http/Resources/*
+                - app/Http/Requests/*
+        -
+            namespace: 'Illuminate\Support\Facades\DB'
+            message: 'controllers do not use the database directly'
+            errorTip: 'Put the work, and any transaction, in an Action. See docs/rules/actions.md.'
+            allowExceptIn:
+                - app/Http/Controllers/*
+        -
+            namespace:
+                - 'App\Http\*'
+                - 'Inertia\*'
+                - 'Illuminate\Http\*'
+                - 'Symfony\Component\HttpFoundation\*'
+                - 'Illuminate\Support\Facades\Request'
+                - 'Illuminate\Support\Facades\Response'
+            message: 'actions do not depend on http'
+            errorTip: 'An Action takes plain values (the validated array, models, enums). The controller reads the request and returns the response. See docs/rules/actions.md.'
+            allowExceptIn:
+                - app/Actions/*
+        -
+            namespace:
+                - 'Illuminate\Support\Facades\Gate'
+                - 'Illuminate\Contracts\Auth\Access\Gate'
+                - 'Illuminate\Auth\Access\AuthorizationException'
+            message: 'actions do not ask for permission again'
+            errorTip: 'The controller authorizes once with Gate::authorize(). A business state the Action needs is checked with a model method and ValidationException. See docs/rules/actions.md.'
+            allowExceptIn:
+                - app/Actions/*
+        -
+            namespace: 'App\Integrations\*'
+            message: 'integrations are called only from actions'
+            errorTip: 'Call the integration from an Action, and call that Action from here. See ARCHITECTURE.md.'
+            allowIn:
+                - app/Actions/*
+                - app/Integrations/*
+        -
+            namespace:
+                - 'Illuminate\Support\Facades\Http'
+                - 'Illuminate\Http\Client\*'
+            message: 'the http client is used only in app/Integrations'
+            errorTip: 'Wrap the external service in app/Integrations/{Service}.php and call it from an Action. See ARCHITECTURE.md.'
+            allowIn:
+                - app/Integrations/*
 
     disallowedMethodCalls:
         -
@@ -85,7 +177,16 @@ parameters:
             errorTip: 'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.'
             allowExceptIn:
                 - app/Http/Resources/*
-
+        -
+            method:
+                - 'Illuminate\Foundation\Auth\Access\Authorizable::can()'
+                - 'Illuminate\Foundation\Auth\Access\Authorizable::canAny()'
+                - 'Illuminate\Foundation\Auth\Access\Authorizable::cannot()'
+                - 'Illuminate\Foundation\Auth\Access\Authorizable::cant()'
+            message: 'actions do not ask for permission again'
+            errorTip: 'The controller authorizes once with Gate::authorize(). A business state the Action needs is checked with a model method and ValidationException. See docs/rules/actions.md.'
+            allowExceptIn:
+                - app/Actions/*
         -
             method:
                 - 'Illuminate\Database\Eloquent\Builder::where*()'
@@ -169,6 +270,18 @@ parameters:
                 - database/*
 
     disallowedFunctionCalls:
+        -
+            function:
+                - 'request()'
+                - 'response()'
+                - 'redirect()'
+                - 'back()'
+                - 'to_route()'
+                - 'inertia()'
+            message: 'actions do not depend on http'
+            errorTip: 'An Action takes plain values (the validated array, models, enums). The controller reads the request and returns the response. See docs/rules/actions.md.'
+            allowExceptIn:
+                - app/Actions/*
         -
             function: 'validator()'
             message: 'validate input in a FormRequest'

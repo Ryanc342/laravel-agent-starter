@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\PHPStan;
+namespace Lint\PHPStan;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -102,6 +102,7 @@ final class ConditionsLiveInModelsRule implements Rule
 
         if ($node instanceof Expr\FuncCall
             && $node->name instanceof Node\Name
+            && ! $node->isFirstClassCallable()
             && in_array($node->name->toLowerString(), ['in_array', 'array_search'], true)) {
             $args = $node->getArgs();
 

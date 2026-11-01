@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "ezdev/ezdev-v2",
+    "name": "ezdev/ezdev-template",
     "type": "project",
-    "description": "Ezdev v2: a Laravel + Inertia + React starter kit where AI writes the code and machine checks keep the architecture.",
+    "description": "Ezdev Template: a Laravel + Inertia + React starter kit where AI writes the code and machine checks keep the architecture.",
     "keywords": [
         "laravel",
         "react",
@@ -42,6 +42,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Lint\\PHPStan\\": "lint/phpstan/",
             "Tests\\": "tests/"
         }
     },
@@ -71,7 +72,6 @@
             "@types:check",
             "npm run check",
             "npm run types:check",
-            "npm run depcruise",
             "@php artisan test --compact"
         ],
         "ci:check": [
