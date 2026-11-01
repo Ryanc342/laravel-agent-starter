@@ -103,3 +103,9 @@ test('the profile page does not ask a verified user to verify again', function (
         ->get(route('profile.edit'))
         ->assertInertia(fn (Assert $page) => $page->where('emailNeedsVerification', false));
 });
+
+test('the settings address opens the profile page', function () {
+    $this->actingAs(User::factory()->create())
+        ->get(route('settings'))
+        ->assertRedirect(route('profile.edit'));
+});
