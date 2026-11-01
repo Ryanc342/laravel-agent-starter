@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.8.4] - 2026-11-01
+
+### Fixed
+
+- `tests/Support/VirtualPasskey.php` pads the key's x and y to 32 bytes. OpenSSL drops leading zero bytes, so about 0.7% of test keys were too short and a passkey test failed now and then. Found by two experiments while clearing their tech debt.
+
 ## [2.8.3] - 2026-11-01
 
 Decisions on the template problems still listed in the experiments' tech debt after 2.8.2.

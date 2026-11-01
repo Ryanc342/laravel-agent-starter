@@ -32,8 +32,9 @@ final class VirtualPasskey
             ->add(UnsignedIntegerObject::create(1), UnsignedIntegerObject::create(2))
             ->add(UnsignedIntegerObject::create(3), NegativeIntegerObject::create(-7))
             ->add(NegativeIntegerObject::create(-1), UnsignedIntegerObject::create(1))
-            ->add(NegativeIntegerObject::create(-2), ByteStringObject::create($details['ec']['x']))
-            ->add(NegativeIntegerObject::create(-3), ByteStringObject::create($details['ec']['y']));
+            // OpenSSL drops leading zero bytes; COSE needs both coordinates at their full 32 bytes.
+            ->add(NegativeIntegerObject::create(-2), ByteStringObject::create(str_pad($details['ec']['x'], 32, "\0", STR_PAD_LEFT)))
+            ->add(NegativeIntegerObject::create(-3), ByteStringObject::create(str_pad($details['ec']['y'], 32, "\0", STR_PAD_LEFT)));
         // UP + UV + attested credential data, with the credential's ES256 public key.
         $data = hash('sha256', 'localhost', true).chr(0x45).pack('N', 0)
             .str_repeat("\0", 16).pack('n', strlen($this->id)).$this->id.(string) $publicKey;
