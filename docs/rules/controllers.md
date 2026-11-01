@@ -37,18 +37,20 @@ public function store(Request $request): RedirectResponse
 
 ## Always use a FormRequest for input
 
-Do not call `$request->validate()`, `Validator::make()` or `validator()` in a controller, even for one field (PHPStan rejects them). Every write endpoint takes a FormRequest.
+Do not call `$request->validate()`, `Validator::make()` or `validator()` in a controller, even for one field (PHPStan rejects them). Every write endpoint that receives input takes a FormRequest; one with no input (mark all as read) needs none.
 
 ## Reads
 
 ```php
-// Query through model scopes, shape through a Resource
-$tasks = Task::query()->ownedBy($request->user())->listOrder()->get();
+// Query through model scopes, page it, shape through a Resource
+$tasks = Task::query()->ownedBy($request->user())->listOrder()->paginate(20);
 
 return Inertia::render('tasks/index', [
     'tasks' => TaskResource::collection($tasks)->response($request)->getData(true),
 ]);
 ```
+
+A list page is paginated (`paginate(20)`, never `take()`), and the page renders `<Pagination collection={tasks} />` from `components/shared`. Form choices below are not a list page: a select gets the whole list with `get()`.
 
 Conditions are written only in model scopes: PHPStan rejects `where…` and `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 

@@ -2,6 +2,7 @@ import { Form, Head } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
 import TaskController from '@/actions/App/Http/Controllers/TaskController';
 import Heading from '@/components/heading';
+import Pagination from '@/components/shared/pagination';
 import TaskFields from '@/components/tasks/task-fields';
 import TaskRow from '@/components/tasks/task-row';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,12 @@ import type { Task } from '@/types/task';
 
 type TasksPageProps = {
     tasks: ResourceCollection<Task>;
-    overdueCount: number;
+    can: {
+        complete_overdue: boolean;
+    };
 };
 
-export default function Tasks({ tasks, overdueCount }: TasksPageProps) {
+export default function Tasks({ tasks, can }: TasksPageProps) {
     return (
         <>
             <Head title="Tasks" />
@@ -40,7 +43,7 @@ export default function Tasks({ tasks, overdueCount }: TasksPageProps) {
                     )}
                 </Form>
 
-                {overdueCount > 0 && (
+                {can.complete_overdue && (
                     <Form
                         {...OverdueTaskCompletionController.store.form()}
                         options={{ preserveScroll: true }}
@@ -51,7 +54,7 @@ export default function Tasks({ tasks, overdueCount }: TasksPageProps) {
                                 variant="outline"
                                 disabled={processing}
                             >
-                                Complete {overdueCount} overdue
+                                Complete overdue tasks
                             </Button>
                         )}
                     </Form>
@@ -62,6 +65,7 @@ export default function Tasks({ tasks, overdueCount }: TasksPageProps) {
                         <TaskRow key={task.id} task={task} />
                     ))}
                 </ul>
+                <Pagination collection={tasks} />
             </div>
         </>
     );

@@ -61,6 +61,14 @@ class Task extends Model
     }
 
     /**
+     * Whether the user has any overdue task. Asks the scopes, so the rule is written once.
+     */
+    public static function hasOverdueFor(User $user): bool
+    {
+        return self::query()->ownedBy($user)->overdue()->exists();
+    }
+
+    /**
      * Only open tasks can be completed.
      */
     public function canBeCompleted(): bool

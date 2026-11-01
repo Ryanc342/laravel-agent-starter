@@ -4,10 +4,14 @@ namespace App\Actions\Tasks;
 
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Completes every overdue task of a user. It calls CompleteTask for each one
- * instead of copying its checks and writes.
+ * instead of copying its checks and writes, all in one transaction. With
+ * nothing overdue it refuses, so the button (can.complete_overdue) shows
+ * exactly when pressing it succeeds.
  */
 final class CompleteOverdueTasks
 {
@@ -18,10 +22,18 @@ final class CompleteOverdueTasks
      */
     public function handle(User $user): int
     {
-        $tasks = Task::query()->ownedBy($user)->overdue()->get();
+        if (! Task::hasOverdueFor($user)) {
+            throw ValidationException::withMessages([
+                'tasks' => __('You have no overdue tasks.'),
+            ]);
+        }
 
-        $tasks->each(fn (Task $task) => $this->completeTask->handle($task));
+        return DB::transaction(function () use ($user): int {
+            $tasks = Task::query()->ownedBy($user)->overdue()->get();
 
-        return $tasks->count();
+            $tasks->each(fn (Task $task) => $this->completeTask->handle($task));
+
+            return $tasks->count();
+        });
     }
 }

@@ -5,6 +5,7 @@ use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
@@ -22,9 +23,12 @@ test('every overdue task of the user is completed, and nothing else', function (
         ->and($someoneElses->refresh()->status)->toBe(TaskStatus::Open);
 });
 
-test('nothing happens when the user has no overdue tasks', function () {
+test('with nothing overdue it refuses and changes nothing', function () {
     $user = User::factory()->create();
-    Task::factory()->for($user)->create();
+    $notDueYet = Task::factory()->for($user)->create(['due_on' => today()->addDay()]);
+    $someoneElses = Task::factory()->overdue()->create();
 
-    expect(app(CompleteOverdueTasks::class)->handle($user))->toBe(0);
+    expect(fn () => app(CompleteOverdueTasks::class)->handle($user))->toThrow(ValidationException::class);
+    expect($notDueYet->refresh()->status)->toBe(TaskStatus::Open)
+        ->and($someoneElses->refresh()->status)->toBe(TaskStatus::Open);
 });

@@ -22,8 +22,20 @@ test('the list shows only the user\'s own tasks', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('tasks/index')
-            ->has('tasks.data', 2)
-            ->where('overdueCount', 0));
+            ->has('tasks.data', 2));
+});
+
+test('the list shows 20 tasks per page', function () {
+    $user = User::factory()->create();
+    Task::factory()->for($user)->count(21)->create();
+
+    $this->actingAs($user)
+        ->get(route('tasks.index', ['page' => 2]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('tasks.data', 1)
+            ->where('tasks.meta.current_page', 2)
+            ->where('tasks.meta.total', 21));
 });
 
 test('a user can create a task', function () {

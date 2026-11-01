@@ -18,20 +18,24 @@ use Inertia\Response;
 class TaskController extends Controller
 {
     /**
-     * Show the user's tasks.
+     * Show the user's tasks, 20 per page.
      */
     public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Task::class);
 
+        $user = $request->user();
+
         $tasks = Task::query()
-            ->ownedBy($request->user())
+            ->ownedBy($user)
             ->listOrder()
-            ->get();
+            ->paginate(20);
 
         return Inertia::render('tasks/index', [
             'tasks' => TaskResource::collection($tasks)->response($request)->getData(true),
-            'overdueCount' => Task::query()->ownedBy($request->user())->overdue()->count(),
+            'can' => [
+                'complete_overdue' => $user->can('completeOverdue', Task::class) && Task::hasOverdueFor($user),
+            ],
         ]);
     }
 
