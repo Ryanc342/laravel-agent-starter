@@ -4,7 +4,7 @@ A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects 
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
 
 1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
-2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. See `ARCHITECTURE.md`.
+2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in eight principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
 3. **Machine checks.** Pest architecture tests, PHPStan rules and dependency-cruiser enforce the architecture. One command runs everything: `composer check`.
 
 The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
@@ -40,7 +40,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | `docs/rules/`                             | Detailed rules per folder (actions, controllers, models, frontend, tests) |
 | `docs/reference/tasks/`                   | A complete reference feature the AI copies the structure from            |
 | `docs/golden-principles.md`, `QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
-| `tests/Arch/`, `tests/Structure/`         | Architecture tests; file size and docs checks                            |
+| `tests/Arch/`, `tests/Structure/`         | Architecture tests; conventions and docs checks                          |
 | `phpstan.neon`, `.dependency-cruiser.cjs` | Forbidden calls (with what to call instead); frontend boundaries         |
 | `.codex/`, `.claude/`, `.mcp.json`        | Subagents (explorer, reviewer) and MCP servers (Boost, Playwright)       |
 | `scripts/worktree-up`                     | A git worktree with its own .env, database and port for parallel work    |

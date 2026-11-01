@@ -61,7 +61,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 - docs/PLANS.md: how to write an ExecPlan
 - docs/exec-plans/active/: work in progress. docs/exec-plans/completed/: finished plans
 - docs/exec-plans/tech-debt.md: known debt, oldest first
-- docs/golden-principles.md: what review and the weekly cleanup check
+- docs/golden-principles.md: every rule, grouped in eight principles, and the check that stops each one
 - docs/QUALITY.md: quality grade per domain
 - docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
 - docs/reference/tasks/: the reference feature
@@ -83,5 +83,6 @@ Report P0 and P1 only:
 - behaviour that is not in the plan, or an agreed decision that is missing
 - an existing test assertion edited or deleted
 - an Action or endpoint without a feature test
+- a changed file over 300 lines that does more than one job
 
 Skip style and naming.

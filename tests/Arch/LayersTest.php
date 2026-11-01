@@ -1,8 +1,8 @@
 <?php
 
 /*
-| Architecture rules (ARCHITECTURE.md). Each test name says what to do instead,
-| because Pest prints the name when a rule breaks.
+| Principle 2 in docs/golden-principles.md: layers only depend downwards.
+| Each test name says what to do instead, because Pest prints it when a rule breaks.
 |
 | Every class in app/ follows these rules, the starter kit's auth and settings
 | code included. Never add ->ignoring() to make a check pass; change the code.
@@ -35,19 +35,6 @@ arch('policies only ask models and enums: they use no actions, http or integrati
     ->expect('App\Policies')
     ->not->toUse(['App\Actions', 'App\Http', 'App\Integrations']);
 
-arch('actions are final classes')
-    ->expect('App\Actions')
-    ->classes()
-    ->toBeFinal();
-
-arch('actions expose a handle() method')
-    ->expect('App\Actions')
-    ->toHaveMethod('handle');
-
-arch('actions have no public methods besides the constructor and handle(): one operation per Action')
-    ->expect('App\Actions')
-    ->not->toHavePublicMethodsBesides(['__construct', 'handle']);
-
 arch('actions do not depend on http: take plain values, the controller handles the request')
     ->expect('App\Actions')
     ->not->toUse($http);
@@ -79,11 +66,3 @@ arch('integrations are called only from actions')
 arch('the http client is used only in app/Integrations: wrap the external service there')
     ->expect('Illuminate\Support\Facades\Http')
     ->toOnlyBeUsedIn('App\Integrations');
-
-arch('no service classes: write an Action instead')
-    ->expect('App')
-    ->not->toHaveSuffix('Service');
-
-arch('no repositories: query through model scopes instead')
-    ->expect('App')
-    ->not->toHaveSuffix('Repository');

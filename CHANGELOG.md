@@ -2,6 +2,30 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.2.0] - 2026-11-01
+
+The rules are reorganized under eight principles in `docs/golden-principles.md`, the one list of every rule and the check that stops it. Twelve rules that were review-only are now machine checks.
+
+### Added
+
+- `tests/Arch/ClassesTest.php`: controllers have only the standard methods; FormRequests have no `authorize()`; app/Enums holds enums only; no interfaces or DTO classes; `*Controller`, `*Request`, `*Resource`, `*Policy` names. The Action shape and no-Service/Repository rules moved here from LayersTest.
+- `tests/Structure/ConventionsTest.php`: every Action has a test file; every Resource with `can.*` has a buttons test; every model has a factory; scopes use `#[Scope]`.
+- PHPStan: no `$request->validate()`, `Validator::make()` or `validator()` outside FormRequests (Fortify adapters excepted); no database queries in FormRequests or app/Concerns; no `toArray()`, `attributesToArray()` or `parent::toArray()` in Resources.
+- First-run M6 proves five more checks bite.
+
+### Fixed
+
+- Static model writes such as `User::create()` and `User::destroy()` outside Actions were not caught. The PHPStan entries named `App\Models\*`, but Larastan reports these methods as declared on the Eloquent Builder and Model, which is what spaze matches. The entries now name those classes.
+
+### Changed
+
+- `docs/golden-principles.md` rewritten: eight principles, each rule tagged with the check that stops it or `[review]`. ARCHITECTURE.md points to it instead of keeping its own rule table and rule list.
+- The reviewer also flags a changed file over 300 lines that does more than one job.
+
+### Removed
+
+- The 250-line file limit (`tests/Structure/FileSizeTest.php`). Files are split by job, not by size.
+
 ## [2.1.0] - 2026-11-01
 
 The starter kit's own code now follows the v2 rules, so no check has an exception for it. In-app notifications are added as a live example of the patterns the starter kit cannot show.

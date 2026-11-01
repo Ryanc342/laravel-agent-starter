@@ -24,14 +24,14 @@ public function isOverdue(): bool
 
 ## Enums
 
-- Every fixed set of values is a backed enum in `app/Enums/` with TitleCase cases.
+- Every fixed set of values is a backed enum in `app/Enums/` with TitleCase cases. app/Enums holds nothing else (Arch test).
 - Facts about a value are enum methods (`label()`, `isOpen()`, `requiresAddress()`). Queries use a static helper derived from those methods (`TaskStatus::openValues()`), so cases are never listed twice.
 - To get one enum from another, call a method on the enum (`$role->locationType()`). Never rely on two enums sharing the same values. `from()` and `tryFrom()` are allowed only where input arrives (PHPStan enforces this).
 
 ## Models
 
 - Use `#[Fillable([...])]` and `casts()`, as in `app/Models/User.php`. Cast enums, dates and money.
-- Scopes use the `#[Scope]` attribute on a protected method with a typed `Builder<self>` parameter.
+- Scopes use the `#[Scope]` attribute on a protected method with a typed `Builder<self>` parameter. tests/Structure rejects `scopeFoo()` methods.
 - Relationships have return types with generics (`@return BelongsTo<User, $this>`).
 - A model may extend a framework model to add scopes, as `App\Models\Notification` extends `DatabaseNotification`. Then ask its scopes, not the framework's instance methods that compare the same column again (`unread()`).
 - Models never call Actions, Policies or HTTP classes (Arch test).
@@ -45,4 +45,4 @@ public function isOverdue(): bool
 ## Database
 
 - Migrations: foreign keys with `foreignId()->constrained()`, money as unsigned integers in cents, statuses as strings cast to enums.
-- Every model has a factory with states for the cases tests need (`completed()`, `overdue()`). Tests never insert rows by hand.
+- Every model has a factory with states for the cases tests need (`completed()`, `overdue()`); tests/Structure checks that the factory exists. Tests never insert rows by hand.

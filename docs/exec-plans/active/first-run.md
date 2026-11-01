@@ -18,14 +18,14 @@ Install the dependencies, finish the Laravel Boost setup and prove that every ch
 - [ ] M3 Format: `composer lint`, then `npm run check:fix`. Commit.
 - [ ] M4 Checks: `composer check` passes. Log every template-level fix in the Decision Log. Commit.
 - [ ] M5 Reference: `composer check:reference` passes. Commit any fix to docs/reference/tasks.
-- [ ] M6 Prove the checks bite, on a throwaway branch: a controller that calls `$request->user()->update([...])` must fail PHPStan with "writes belong in an Action"; a component in resources/js/components/a importing one from resources/js/components/b must fail dependency-cruiser; an Action calling `Gate::authorize()` must fail the Arch test; a controller calling `$request->user()->notify(new PasswordChanged)` must fail PHPStan with "writes belong in an Action". Delete the branch afterwards.
+- [ ] M6 Prove the checks bite, on a throwaway branch: a controller that calls `$request->user()->update([...])` must fail PHPStan with "writes belong in an Action"; a component in resources/js/components/a importing one from resources/js/components/b must fail dependency-cruiser; an Action calling `Gate::authorize()` must fail the Arch test; a controller calling `$request->user()->notify(new PasswordChanged)` must fail PHPStan with "writes belong in an Action"; a controller calling `$request->validate([...])` must fail PHPStan with "validate input in a FormRequest"; a FormRequest calling `User::find(1)` must fail PHPStan with "a FormRequest checks the shape of the input only"; a controller calling `User::create([...])` must fail PHPStan with "writes belong in an Action"; a controller with a public `approve()` method must fail the Arch test; a new Action without a test file must fail the Structure test. Delete the branch afterwards.
 - [ ] M7 Look at it: start the app with `composer dev` in the background, then with Playwright register a new user, verify the email (read the link from `storage/logs/laravel.log`, MAIL_MAILER is log), open /notifications and check the welcome notification and the sidebar badge, press "Mark as read" and see the badge go away, then change the password on /settings/security and see a new notification. Take screenshots.
 
 ## Validation
 - `composer check` and `composer check:reference` pass.
 - composer.lock, package-lock.json, boost.json and the generated skills folders are committed.
 - `git diff 301f330 -- AGENTS.md CLAUDE.md` shows only the template's own edits, nothing from Boost.
-- M6 shows each of the four failures with its message.
+- M6 shows each of the nine failures with its message.
 - M7 screenshots show the notifications page before and after "Mark as read", and the badge in the sidebar.
 
 ## Progress
@@ -36,6 +36,7 @@ Install the dependencies, finish the Laravel Boost setup and prove that every ch
 - None yet.
 
 ## Decision Log
+- 2026-11-01 The 250-line file limit (tests/Structure/FileSizeTest.php) was removed at the user's request. A file over 300 lines is now a review signal; the class-shape rules in tests/Arch/ClassesTest.php and the conventions in tests/Structure/ConventionsTest.php replace it.
 - 2026-11-01 tests/Feature/Settings/SecurityTest.php: two assertions changed from `passkeys` to `passkeys.data`. The user asked for the starter kit code to follow the v2 rules, and the rule in docs/rules/frontend.md sends every collection wrapped in `data`.
 
 ## Outcomes & Retrospective

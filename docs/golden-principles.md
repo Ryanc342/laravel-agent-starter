@@ -1,14 +1,86 @@
 # Golden principles
 
-The reviewer and the weekly cleanup check the code against this list. Keep it short; each line must be checkable.
+Every rule of this template, grouped under eight principles. The reviewer and the weekly cleanup check the code against this list. Details and examples are in ARCHITECTURE.md and docs/rules/.
 
-1. Every business rule is written once, in its owner (ARCHITECTURE.md). Every other place calls it.
-2. One write is one Action. Two entry points doing the same thing call the same Action.
-3. React only displays and submits. Prices, totals, statuses, deadlines, permissions and eligibility come from the backend.
-4. Input is parsed at the edge: FormRequests and `$request->enum()`. Nothing deeper re-validates raw input.
-5. Permission is checked once, in the controller, through the Policy.
-6. Money is stored as integer cents and multiplied with `Brick\Math\BigDecimal`.
-7. No Service, Repository or DTO layers. Use Actions, scopes and Resources.
-8. Use what PHP, Laravel and installed packages already provide. Do not hand-write dates, money, parsing or formatting.
-9. Every Action and every endpoint has a feature test; buttons and form choices have a consistency test.
-10. Files stay small (under 250 lines). A page that grows is split into components.
+Each rule says who stops it:
+
+- `[Arch]` tests/Arch, `[PHPStan]` phpstan.neon, `[Structure]` tests/Structure, `[depcruise]` .dependency-cruiser.cjs: a machine check in `composer check`. The change cannot be committed until it passes.
+- `[review]`: no machine can check it. The `reviewer` subagent looks for it in every change and the weekly cleanup looks for it in the whole repository.
+
+## 1. Every business rule is written once
+
+- `[review]` A condition on records is a model scope. One record asks the same scope with `whereKey()->exists()`; never a second PHP comparison.
+- `[review]` Buttons (`can.*`), form choices, Policies and factories call the rule's owner; they never restate the condition.
+- `[review]` Two entry points that do the same thing call the same Action.
+
+## 2. Layers only depend downwards
+
+- `[Arch]` Enums use no models, policies, actions, http or integrations.
+- `[Arch]` Models use no policies, actions, http or integrations.
+- `[Arch]` Policies use no actions, http or integrations.
+- `[Arch]` Actions use no HTTP classes (request, response, Inertia).
+- `[Arch]` Resources and FormRequests call no Actions or integrations.
+- `[Arch]` Notifications use no actions, http or integrations.
+- `[Arch]` Controllers use no integrations and no `DB` facade.
+- `[Arch]` Integrations are used only by Actions; `Http::` only inside app/Integrations.
+
+## 3. Every class does only its own job
+
+- `[Arch]` An Action is final, has one public method, `handle()`, and does one operation.
+- `[review]` An Action has no mode switches (a boolean or nullable parameter that changes what it does). Two behaviours are two Actions.
+- `[review]` A bulk operation loops over the single-record Action instead of copying its checks and writes.
+- `[review]` Writes that must succeed together run in one `DB::transaction()`.
+- `[review]` A controller method authorizes, calls one Action (or runs a scoped query into a Resource) and returns. No business `if`.
+- `[Arch]` Controllers have only the standard methods (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`, `__invoke`). Any other operation gets its own controller.
+- `[PHPStan]` Only Actions write: `save`, `update`, `delete`, `create`, `notify()`, `markAsRead()` and the rest are rejected everywhere else (seeders and factories in database/ excepted).
+- `[Structure]` Model scopes use the `#[Scope]` attribute, not `scopeFoo()` methods.
+- `[review]` Policy abilities call model and enum methods.
+- `[Arch]` app/Enums holds enums only. Facts about a value are enum methods.
+- `[PHPStan]` A Resource never calls `parent::toArray()` or `attributesToArray()`.
+- `[review]` A Resource lists each field by name and never sends the whole model in any other way (`$this->resource->toArray()`, spreading an array).
+- `[review]` A file over 300 lines is a signal, not an error: check whether it does more than one job, and split it by job, never by size alone.
+
+## 4. The frontend never does the backend's job
+
+- `[review]` React never calculates prices, totals, statuses, deadlines, permissions or eligibility. The Resource sends the results (`is_*`, `can.*`).
+- `[review]` Buttons are shown from `can.*`; select options come from the list the backend sends.
+- `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`).
+- `[review]` No hard-coded URLs: routes and controller actions come from Wayfinder.
+- `[review]` Every model reaches React through a JsonResource, never as a raw model or a hand-built array.
+- `[review]` Each Resource has a TypeScript type with the same field names.
+- `[review]` UI is built from components/ui (shadcn); no other UI library.
+
+## 5. Input is checked once, at the edge
+
+- `[review]` Every write endpoint takes a FormRequest.
+- `[PHPStan]` `$request->validate()`, `Validator::make()` and `validator()` are rejected outside FormRequests (Fortify adapters excepted).
+- `[PHPStan]` A FormRequest checks the shape of the input only: no database queries in FormRequests or app/Concerns, apart from the `exists` and `unique` rules.
+- `[Arch]` FormRequests have no `authorize()`. Permission is checked in the controller.
+- `[PHPStan]` `Enum::from()` and `tryFrom()` only where input arrives (FormRequests, Actions, console commands, the enum itself).
+- `[Arch]` Permission is checked once, in the controller, through the Policy. Actions never call the Gate.
+
+## 6. Keep it simple
+
+- `[Arch]` No Service, Repository or DTO classes and no interfaces, unless the user asks for them.
+- `[review]` No events or listeners unless the user asks for them. An Action may call another Action.
+- `[review]` Money is stored as integer cents and multiplied with `Brick\Math\BigDecimal`.
+- `[review]` Use what PHP, Laravel and installed packages already provide. Do not hand-write dates, money, parsing or formatting.
+
+## 7. Files go where the conventions say
+
+- `[Arch]` Class names end in `Controller`, `Request`, `Resource` and `Policy` in their folders.
+- `[Structure]` Every model has a factory in database/factories with the states tests need.
+- `[review]` Actions live in `app/Actions/{Domain}/{Verb}{Noun}.php`.
+- `[review]` One route file per domain. Every route is named and uses route model binding; fixed paths come before wildcard paths.
+- `[review]` Pages live in `resources/js/pages/{domain}/`, components in `resources/js/components/{domain}/` or `components/shared/`.
+- `[depcruise]` Domain components never import another domain's components; shared components never import domain components; nothing imports a page; no circular imports.
+- `[Structure]` AGENTS.md stays under 100 lines and every path it names exists. Every ExecPlan has the sections docs/PLANS.md requires.
+
+## 8. Every feature is tested
+
+- `[Structure]` Every Action has `tests/Feature/{Domain}/{Action}Test.php`.
+- `[Structure]` Every Resource that sends `can.*` has a `{Model}ButtonsTest.php` consistency test.
+- `[review]` Every form's choices have a consistency test: a value is accepted exactly when it is in the list the page receives.
+- `[review]` Every endpoint is tested for guests, other users (403), invalid input and success.
+- `[review]` Test data comes from factories; tests never insert rows by hand.
+- `[review]` When a test fails, fix the code, not the test.

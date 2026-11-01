@@ -13,9 +13,15 @@ parameters:
 
     level: 7
 
-    # Rules locked by PHPStan (spaze/phpstan-disallowed-calls). Each entry says
-    # what to call instead. Never widen allowIn to make code pass: move the code
-    # to where it belongs.
+    # Rules locked by PHPStan (spaze/phpstan-disallowed-calls), from
+    # docs/golden-principles.md. Each entry says what to do instead. Never widen
+    # allowIn or narrow allowExceptIn to make code pass: move the code to where
+    # it belongs.
+    #
+    # spaze matches the class that declares a method. Larastan reports static
+    # model calls such as User::create() and User::find() as declared on the
+    # Eloquent Builder (query() and destroy() on Model), so the entries name
+    # those classes, never App\Models\*.
     filesRootDir: %rootDir%/../../..
 
     disallowedMethodCalls:
@@ -50,15 +56,39 @@ parameters:
             allowIn:
                 - app/Actions/*
                 - database/*
+        -
+            method:
+                - 'Illuminate\Http\Request::validate()'
+                - 'Illuminate\Http\Request::validateWithBag()'
+            message: 'validate input in a FormRequest'
+            errorTip: 'Create app/Http/Requests/{Domain}/{Verb}{Model}Request.php with the rules and type-hint it in the controller method. See docs/rules/form-requests.md.'
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Builder::*()'
+                - 'Illuminate\Database\Query\Builder::*()'
+                - 'Illuminate\Database\Eloquent\Relations\Relation::*()'
+            message: 'a FormRequest checks the shape of the input only'
+            errorTip: 'Business state (stock, status, ownership, limits) is checked in the Action, which throws ValidationException::withMessages(). For "this record exists" use the exists and unique rules. See docs/rules/form-requests.md.'
+            allowExceptIn:
+                - app/Http/Requests/*
+                - app/Concerns/*
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Model::toArray()'
+                - 'Illuminate\Database\Eloquent\Model::attributesToArray()'
+            message: 'list each field by name'
+            errorTip: 'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.'
+            allowExceptIn:
+                - app/Http/Resources/*
 
     disallowedStaticCalls:
         -
             method:
-                - 'App\Models\*::create()'
-                - 'App\Models\*::forceCreate()'
-                - 'App\Models\*::destroy()'
-                - 'App\Models\*::updateOrCreate()'
-                - 'App\Models\*::firstOrCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::create()'
+                - 'Illuminate\Database\Eloquent\Builder::forceCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::updateOrCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::firstOrCreate()'
+                - 'Illuminate\Database\Eloquent\Model::destroy()'
                 - 'Illuminate\Support\Facades\Notification::send()'
                 - 'Illuminate\Support\Facades\Notification::sendNow()'
             message: 'writes belong in an Action'
@@ -77,3 +107,36 @@ parameters:
                 - app/Http/Requests/*
                 - app/Actions/*
                 - app/Console/*
+        -
+            method:
+                - 'Illuminate\Support\Facades\Validator::make()'
+            message: 'validate input in a FormRequest'
+            errorTip: 'Create app/Http/Requests/{Domain}/{Verb}{Model}Request.php with the rules and type-hint it in the controller method. See docs/rules/form-requests.md.'
+            allowIn:
+                - app/Http/Fortify/*
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Model::*()'
+                - 'Illuminate\Database\Eloquent\Builder::*()'
+                - 'Illuminate\Database\Query\Builder::*()'
+                - 'Illuminate\Support\Facades\DB::*()'
+            message: 'a FormRequest checks the shape of the input only'
+            errorTip: 'Business state (stock, status, ownership, limits) is checked in the Action, which throws ValidationException::withMessages(). For "this record exists" use the exists and unique rules. See docs/rules/form-requests.md.'
+            allowExceptIn:
+                - app/Http/Requests/*
+                - app/Concerns/*
+        -
+            method:
+                - 'Illuminate\Http\Resources\Json\JsonResource::toArray()'
+            message: 'list each field by name'
+            errorTip: 'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.'
+            allowExceptIn:
+                - app/Http/Resources/*
+
+    disallowedFunctionCalls:
+        -
+            function: 'validator()'
+            message: 'validate input in a FormRequest'
+            errorTip: 'Create app/Http/Requests/{Domain}/{Verb}{Model}Request.php with the rules and type-hint it in the controller method. See docs/rules/form-requests.md.'
+            allowIn:
+                - app/Http/Fortify/*

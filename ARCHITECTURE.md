@@ -1,7 +1,7 @@
 # Architecture
 
 Goal: every business rule lives in exactly one place, so a change is made once and nothing drifts.
-The rules below are enforced by machines where possible; the last column of each table says how.
+Every rule, and the check that stops it, is listed once in docs/golden-principles.md. This file explains the layers and where each kind of rule goes.
 
 ## Layers
 
@@ -13,29 +13,23 @@ Models                            app/Models/                   scopes and facts
 Enums                             app/Enums/                    fixed values and facts about them
 ```
 
-A layer may use the layers below it, never the ones above it. Two side folders:
+A layer may use the layers below it, never the ones above it. Side folders:
 
 - `app/Integrations/`: the only entry for external services (payment, SMS, maps). Only Actions call it.
 - `app/Support/`: small helpers any layer may use (money with `Brick\Math\BigDecimal`, dates).
 - `app/Concerns/`: validation rule traits shared by FormRequests (`PasswordValidationRules`).
 - `app/Notifications/`: messages to a user (`PasswordChanged`). Only Actions send them, with `$user->notify()`.
 
-| Rule                                                                | Enforced by                           |
-| ------------------------------------------------------------------- | ------------------------------------- |
-| Enums use no models, policies, actions, http or integrations        | `tests/Arch/LayersTest.php`           |
-| Models use no policies, actions, http or integrations               | `tests/Arch/LayersTest.php`           |
-| Policies use no actions, http or integrations                       | `tests/Arch/LayersTest.php`           |
-| Actions are final, expose only `handle()`, use no HTTP and no Gate  | `tests/Arch/LayersTest.php`           |
-| Resources and FormRequests call no Actions                          | `tests/Arch/LayersTest.php`           |
-| Controllers use no integrations and no `DB` facade                  | `tests/Arch/LayersTest.php`           |
-| `Http::` only in app/Integrations; integrations only from Actions   | `tests/Arch/LayersTest.php`           |
-| Notifications use no actions, http or integrations                  | `tests/Arch/LayersTest.php`           |
-| No `*Service` or `*Repository` classes                              | `tests/Arch/LayersTest.php`           |
-| Model writes (`save`, `update`, `delete`, `create`, `markAsRead`, ...) only in Actions | `phpstan.neon` (disallowed calls) |
-| Notifications are sent (`notify()`, `Notification::send()`) only in Actions | `phpstan.neon` (disallowed calls) |
-| `Enum::from()` only where input arrives                             | `phpstan.neon` (disallowed calls)     |
-| Domain components do not import other domains' components          | `.dependency-cruiser.cjs`             |
-| Files stay under 250 lines                                          | `tests/Structure/FileSizeTest.php`    |
+The machine checks live in these files, and `composer check` runs them all:
+
+| Check                                 | What it stops                                                         |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| `tests/Arch/LayersTest.php`           | a layer using a layer above it (principle 2)                          |
+| `tests/Arch/ClassesTest.php`          | a class doing another class's job, wrong names, extra layers          |
+| `phpstan.neon` (disallowed calls)     | writes outside Actions, validation outside FormRequests, queries in FormRequests, whole models in Resources |
+| `tests/Structure/ConventionsTest.php` | an Action without a test, a `can.*` Resource without a buttons test, a model without a factory |
+| `.dependency-cruiser.cjs`             | a domain component importing another domain's components              |
+| `tests/Structure/DocsTest.php`        | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section |
 
 ## Where each rule goes
 
@@ -58,14 +52,18 @@ Before writing a business rule, decide what it is about, then write it once, in 
 - Form choices, `can.*` flags, Policies and factories call the owner. They never restate the condition.
 - To change existing behaviour, find the owner, change it there, update its tests, and check that nothing else re-implements it.
 
-## Non-negotiable rules
+## The eight principles
 
-1. One write is one Action. Controllers, commands, jobs and listeners never write models directly. Two entry points doing the same thing call the same Action.
-2. React never decides business rules. The backend sends results (`is_overdue`, `can.complete`) through the Resource.
-3. A FormRequest checks shape, not business state. "Is there enough stock?" belongs in the Action, which throws `ValidationException::withMessages([...])`.
-4. Controllers stay thin: authorize once, call one Action (or run a scoped query and wrap it in a Resource), return.
-5. Keep it simple: no Service classes, Repositories, DTO layers, interfaces or events unless the user asks. An Action may call another Action. Use what PHP, Laravel and installed packages provide. Store money as integer cents.
-6. Every Action and every endpoint has a feature test. Buttons and form choices have a consistency test (docs/rules/tests.md).
+The rules are grouped under eight principles. docs/golden-principles.md lists every rule under them and says which check stops it.
+
+1. Every business rule is written once.
+2. Layers only depend downwards.
+3. Every class does only its own job.
+4. The frontend never does the backend's job.
+5. Input is checked once, at the edge.
+6. Keep it simple: no Service, Repository or DTO layers.
+7. Files go where the conventions say.
+8. Every feature is tested.
 
 ## Request flow
 

@@ -7,7 +7,7 @@ Applies to `app/Http/Requests/**`.
 A FormRequest answers one question: _is this input well-formed?_
 Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, enum values.
 
-It does **not** check business state. Those checks go in the Action.
+It does **not** check business state. Those checks go in the Action. PHPStan rejects database queries (`Model::query()`, `->where()`, `DB::`) in FormRequests and in app/Concerns.
 
 `exists` only means "this record exists", not "this record is eligible". Do not chain business conditions onto `Rule::exists` or `Rule::unique`: active or expired state, ownership and remaining stock belong in the Action (or the Policy for who may act). This also applies to shared validation traits.
 
@@ -34,7 +34,7 @@ public function rules(): array
 
 ## Authorization
 
-Leave `authorize()` returning `true` (or omit it). Authorization happens in the controller through the Policy, so there is one place to look.
+Do not write `authorize()` (the Arch test rejects it). Authorization happens in the controller through the Policy, so there is one place to look.
 
 ## Sharing rules
 

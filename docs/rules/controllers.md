@@ -37,7 +37,7 @@ public function store(Request $request): RedirectResponse
 
 ## Always use a FormRequest for input
 
-Do not call `$request->validate()` inline, even for one field. Every write endpoint takes a FormRequest.
+Do not call `$request->validate()`, `Validator::make()` or `validator()` in a controller, even for one field (PHPStan rejects them). Every write endpoint takes a FormRequest.
 
 ## Reads
 
@@ -70,7 +70,7 @@ To read an enum from the request in a controller, use `$request->enum('type', Sh
 
 ## Non-CRUD operations get their own controller
 
-An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`) instead of a custom method on the resource controller.
+An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. The Arch test allows only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`.
 
 ## Routes
 

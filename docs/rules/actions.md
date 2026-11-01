@@ -10,7 +10,7 @@ An Action is one business operation: it checks the business conditions and makes
 - One public method, `handle()`, with plain typed parameters: models, validated arrays, enums, values. Never a `Request`.
 - Other Actions are injected through the constructor and called through their `handle()`.
 
-`tests/Arch/LayersTest.php` enforces: final, only `__construct` and `handle` are public, no HTTP classes, no Gate.
+`tests/Arch/ClassesTest.php` enforces final and only `__construct` and `handle` public; `tests/Arch/LayersTest.php` enforces no HTTP classes and no Gate.
 
 ```php
 final class CompleteTask
@@ -51,4 +51,4 @@ final class CompleteTask
 
 ## Tests
 
-Each Action has `tests/Feature/{Domain}/{Action}Test.php` that calls `handle()` directly: the happy path and every refusal. A refusal test also checks that the database did not change.
+Each Action has `tests/Feature/{Domain}/{Action}Test.php` (tests/Structure checks that the file exists) that calls `handle()` directly: the happy path and every refusal. A refusal test also checks that the database did not change.

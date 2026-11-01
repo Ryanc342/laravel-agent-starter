@@ -23,7 +23,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 ## The Resource is the contract
 
 - Every model sent to React goes through a JsonResource in `app/Http/Resources/`. Never pass a raw model or a hand-built array from a controller.
-- `toArray()` lists each field by name. Never return the whole model (`parent::toArray()`, `attributesToArray()`) or spread an arbitrary array.
+- `toArray()` lists each field by name. Never return the whole model (`parent::toArray()`, `attributesToArray()`) or spread an arbitrary array. PHPStan rejects the first two in Resources.
 - The Resource includes the derived flags (`is_overdue`) and permissions (`can: { update, delete, complete }`).
 - Each flag and each `can.*` only calls existing owners (Policy abilities, model and enum methods); it never writes a condition. Each `can.*` has a consistency test (docs/rules/tests.md).
 - Collections arrive wrapped in `data`: pass `TaskResource::collection($tasks)->response($request)->getData(true)` as the prop, read it as `tasks.data`, and type it with `ResourceCollection<T>` from `@/types/resource`.
@@ -42,7 +42,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 - A domain's components never import another domain's components, and nothing imports a page. `.dependency-cruiser.cjs` enforces this.
 - Before creating a component, hook or page section, look for an existing one in the shared folders (`components`, `components/ui`, `components/shared`, `hooks`) **and in the other pages** (`grep -rn` in `resources/js/pages` for the same fields, table headers or labels).
 - A UI block that appears on a second page becomes one shared component, and every page uses it. Example: `docs/reference/tasks/resources/js/components/tasks/task-fields.tsx`, used by the create and the edit form.
-- Files stay under 250 lines. A page that grows is split into components in `components/{domain}/`.
+- Split a page by job, not by size: when a page holds several parts (a list, a form, a summary), each part becomes a component in `components/{domain}/`. A file over 300 lines is a signal to check this.
 - Use the shadcn components in `components/ui`; do not install another UI library.
 - If a `DESIGN.md` exists in the project root, also follow docs/rules/visual-design.md.
 
