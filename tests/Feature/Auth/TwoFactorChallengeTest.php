@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+use PragmaRX\Google2FA\Google2FA;
 
 uses(RefreshDatabase::class);
 
@@ -58,4 +59,27 @@ test('an invalid recovery code does not complete login or replace codes', functi
 
     $this->assertGuest();
     expect($user->refresh()->recoveryCodes())->toBe(['recovery-code-1']);
+});
+
+test('an authenticator code completes login and keeps the recovery codes', function () {
+    $user = User::factory()->withTwoFactor()->create();
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password']);
+
+    $code = app(Google2FA::class)->getCurrentOtp(decrypt($user->two_factor_secret));
+
+    $this->post(route('two-factor.login.store'), ['code' => $code])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertAuthenticatedAs($user);
+    expect($user->refresh()->recoveryCodes())->toBe(['recovery-code-1']);
+});
+
+test('a wrong authenticator code does not complete login', function () {
+    $user = User::factory()->withTwoFactor()->create();
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password']);
+
+    $this->post(route('two-factor.login.store'), ['code' => 'invalid'])
+        ->assertSessionHasErrors('code');
+
+    $this->assertGuest();
 });
