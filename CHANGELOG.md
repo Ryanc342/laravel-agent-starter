@@ -2,6 +2,21 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.8.3] - 2026-11-01
+
+Decisions on the template problems still listed in the experiments' tech debt after 2.8.2.
+
+### Added
+
+- A toast on every page when a request cannot reach the server (`use-network-error-toast`).
+- Frontend tests: `vp test` (Vitest, part of Vite+) runs `tests/js` in `composer check`, with jsdom and Testing Library. A hook with timing or ordering logic and every money or date formatter get a test.
+
+### Changed
+
+- Tests run on MySQL, like the app, in their own `<database>_test` (created on the first run; `check:reference` uses `<database>_reference_test`). Row locks can be tested.
+- Register, reset password and security share `NewPasswordFields`; every new password field is required.
+- Rule: no code for a state nothing can reach yet (no refusal or test stand-in for a status the app cannot create); the grilling asks only about what this part builds.
+
 ## [2.8.2] - 2026-11-01
 
 From the redone weekly cleanup: eight experiments found 16 kinds of problems in the template itself. All are fixed here. Twelve commits come from the experiments' own cleanups (two-factor and passkey tests, the split two-factor dialog, shared code input).
