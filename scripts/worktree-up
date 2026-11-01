@@ -60,7 +60,7 @@ composer install --no-interaction --quiet
 if [ "$new_key" = true ]; then
     php artisan key:generate --no-interaction
 fi
-npm install --silent
+npm ci --silent
 php artisan migrate --force --no-interaction
 npm run build
 

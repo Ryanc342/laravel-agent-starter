@@ -41,9 +41,9 @@ For each milestone in the plan:
 1. Search for what already exists. For every Action, scope, enum method, model method, component or hook you are about to create, search first, including the underlying conditions (fields, enum cases, query conditions), not only helper names. List the existing owners before writing a new check: `rg -n "function \w+\(" app/Enums app/Models app/Policies app/Actions`. If a rule already exists in the wrong place, move it in this change instead of adding a copy.
 2. Place every rule using the owner table in ARCHITECTURE.md, and read the docs/rules/ file for each folder you touch.
 3. Copy the structure of the matching file in docs/reference/tasks/.
-4. Write the tests first (Pest, docs/rules/tests.md). Then implement in this order: migration, enum, model and factory, policy, action, form request, resource and TypeScript type, controller and routes, React. Add new pages to `mainNavItems` in `resources/js/components/app-sidebar.tsx`.
+4. Write the tests first (Pest, docs/rules/tests.md) and run them: they must fail. Then implement in this order: migration, enum, model and factory, policy, action, form request, resource and TypeScript type, controller and routes, React. Add new pages to `mainNavItems` in `resources/js/components/app-sidebar.tsx`.
 5. Run `composer check` and fix every failure. Error messages say what to call instead: follow them. To look at a page, use the Playwright MCP server.
-6. Commit, then add a timestamped line to Progress. Record any decision you made along the way in the Decision Log.
+6. Commit, then add a timestamped line to Progress with how many tests failed before the code and the `composer check` result. Record any decision you made along the way in the Decision Log.
 
 Before the next milestone, search the code already written in this task for the same condition you are about to write.
 

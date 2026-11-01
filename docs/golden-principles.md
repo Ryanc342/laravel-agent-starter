@@ -36,6 +36,7 @@ Each rule says who stops it:
 - `[review]` A bulk operation loops over the single-record Action instead of copying its checks and writes.
 - `[review]` Writes that must succeed together run in one `DB::transaction()`.
 - `[review]` A controller method authorizes, calls one Action (or runs a scoped query into a Resource) and returns. No business `if`.
+- `[review]` Every list page is paginated.
 - `[PHPStan]` Controllers have only the standard methods (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`, `__invoke`). Any other operation gets its own controller.
 - `[PHPStan]` Only Actions write: `save`, `update`, `delete`, `create`, `notify()`, `markAsRead()` and the rest are rejected everywhere else (seeders and factories in database/ excepted).
 - `[PHPStan]` Model scopes use the `#[Scope]` attribute, not `scopeFoo()` methods.
@@ -61,10 +62,12 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[review]` Select options come from the list the backend sends.
 - `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`).
 - `[review]` A business rule React decides under names the checks do not know.
+- `[review]` A `can.*` flag includes the business state, so a button shows exactly when pressing it succeeds. A reason shown for a refusal comes from the Resource, never worked out from `!can.*` or a mix of flags.
 
 ## 5. Input is checked once, at the edge
 
 - `[review]` Every write endpoint takes a FormRequest.
+- `[review]` A record the user must own is looked up through its owner scope in the Action, with one message for "missing" and "not yours"; the FormRequest has no `exists` rule for it.
 - `[PHPStan]` `$request->validate()`, `Validator::make()` and `validator()` are rejected outside FormRequests (Fortify adapters excepted).
 - `[PHPStan]` A FormRequest checks the shape of the input only: no database queries in FormRequests or app/Concerns, apart from the `exists` and `unique` rules.
 - `[PHPStan]` FormRequests have no `authorize()`. Permission is checked in the controller.
@@ -75,6 +78,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 
 - `[PHPStan]` No Service, Repository or DTO classes and no interfaces, unless the user asks for them.
 - `[review]` No events or listeners unless the user asks for them. An Action may call another Action.
+- `[review]` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks.
 - `[review]` Money is stored as integer cents and multiplied with `Brick\Math\BigDecimal`.
 - `[review]` Use what PHP, Laravel and installed packages already provide. Do not hand-write dates, money, parsing or formatting.
 

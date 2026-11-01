@@ -2,6 +2,21 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.7.0] - 2026-11-01
+
+From the first round of the model experiment: the in-session reviewer reported "No P0/P1 findings" in every experiment, yet a later review found a broken `[review]` rule in eight of ten. Half of them were outside the reviewer's short list of P1 kinds; the other half were on it and missed.
+
+### Changed
+
+- `docs/prompts/review.md`: P1 is any broken `[review]` rule in docs/golden-principles.md (plus behaviour not in the plan and a missing or weakened test). The reviewer goes through every `[review]` rule and writes one line for each, with two searches for the kinds missed most (a rule written twice; React deciding a business rule). Copied code and hand-written formatting are P1, not style.
+- `docs/prompts/cleanup.md` uses the same rule-by-rule check, and may commit on the current branch when the user says so. The reviewer subagents (Claude Code, Codex) say the same.
+- `docs/workflow.md`: tests are run before the code and must fail; the Progress line records how many failed and the `composer check` result.
+- `scripts/worktree-up` installs npm packages with `npm ci`, so package-lock.json no longer changes in every worktree.
+
+### Added
+
+- Four `[review]` rules in docs/golden-principles.md, with the matching lines in docs/rules/: every list page is paginated; a `can.*` flag includes the business state and the reason for a refusal comes from the Resource; a record the user must own is looked up in the Action with one message for "missing" and "not yours"; rows are locked only where concurrent writes can collide, never for reading.
+
 ## [2.6.0] - 2026-11-01
 
 The template has run on a real machine: the first-run plan passed every milestone and is in `docs/exec-plans/completed/`.

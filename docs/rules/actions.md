@@ -40,7 +40,7 @@ final class CompleteTask
 
 - Every `create`, `update`, `save`, `delete` and pivot change happens in an Action. PHPStan rejects them elsewhere.
 - Several writes that must succeed together go in `DB::transaction(...)`.
-- Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock or balances.
+- Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock, balances or a number counter. Pages and Actions that only read never lock.
 - Money is integer cents. Multiply decimals with `Brick\Math\BigDecimal`.
 
 ## One operation, one Action

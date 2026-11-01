@@ -11,6 +11,8 @@ It does **not** check business state. Those checks go in the Action. PHPStan rej
 
 `exists` only means "this record exists", not "this record is eligible". Do not chain business conditions onto `Rule::exists` or `Rule::unique`: active or expired state, ownership and remaining stock belong in the Action (or the Policy for who may act). This also applies to shared validation traits.
 
+For a record the user must own (a customer picked in a form), leave out `exists`: the Action looks it up through the owner scope and gives one message for "missing" and "not yours", so nobody can find out which ids belong to other users.
+
 | Check                                   | Where                                         |
 | --------------------------------------- | --------------------------------------------- |
 | `quantity` is an integer of at least 1  | FormRequest                                   |
