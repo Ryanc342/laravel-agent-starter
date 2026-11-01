@@ -41,11 +41,9 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
     }, []);
 
     const clearTwoFactorAuthData = useCallback((): void => {
-        setManualSetupKey(null);
-        setQrCodeSvg(null);
-        setErrors([]);
+        clearSetupData();
         setRecoveryCodesList([]);
-    }, []);
+    }, [clearSetupData]);
 
     const fetchQrCode = useCallback(async (): Promise<void> => {
         try {
