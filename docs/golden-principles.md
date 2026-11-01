@@ -79,7 +79,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[PHPStan]` No Service, Repository or DTO classes and no interfaces, unless the user asks for them.
 - `[review]` No events or listeners unless the user asks for them. An Action may call another Action.
 - `[review]` No code for a state nothing can reach yet: no refusal or branch for a status the app cannot create, and no test stand-in for it. The feature that adds the state adds its check and a real test.
-- `[review]` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks.
+- `[review]` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks. Each lock has a test (docs/rules/tests.md, Row locks).
 - `[review]` Money is stored as integer cents and multiplied with `Brick\Math\BigDecimal`.
 - `[review]` Use what PHP, Laravel and installed packages already provide. Do not hand-write dates, money, parsing or formatting.
 

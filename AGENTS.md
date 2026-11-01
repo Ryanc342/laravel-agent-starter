@@ -13,11 +13,11 @@ Details live in the files it points to; read them when the task needs them.
 
 ## How we work (details: docs/workflow.md)
 
-1. Grill. Every request starts with questions in the user's language, in the format in docs/workflow.md. Look facts up yourself; put every decision to the user.
+1. Grill. Every request starts with questions in the user's language, in the format in docs/workflow.md, a request to fix tech debt included. Look facts up yourself; put every decision to the user.
 2. Plan. When no decision is open, write docs/exec-plans/active/<feature>.md (format: docs/PLANS.md). Change no code until the user says "start". A one-line change with no open decision may skip the plan; say so.
 3. Build, one milestone at a time: Pest tests first, then code from the bottom layer up, then `composer check`, then commit, then update Progress in the plan.
 4. Review. Ask the `reviewer` subagent to compare the diff with the plan (docs/prompts/review.md). Fix P0 and P1 findings. At most 3 rounds.
-5. Report where each agreed decision lives, the check output, and screenshots for UI changes. Move the plan to docs/exec-plans/completed/.
+5. Report where each agreed decision lives, the check output, and screenshots for UI changes. Move the plan to docs/exec-plans/completed/. Remove fixed tech-debt lines and update docs/QUALITY.md.
 
 Starting a new conversation? Read docs/exec-plans/active/ first and continue from Progress.
 

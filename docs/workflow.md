@@ -4,7 +4,7 @@ Every request goes through the same steps. The user steers; you do the work and 
 
 ## 1. Grill every request
 
-Based on Matt Pocock's `grilling` skill (mattpocock/skills). This is the default way of working for every request. There is no trigger and no exception.
+Based on Matt Pocock's `grilling` skill (mattpocock/skills). This is the default way of working for every request. There is no trigger and no exception. A request to fix lines in docs/exec-plans/tech-debt.md is a request too: "fix them all" or "commit on the current branch" says what to do, not "start".
 
 Interview the user relentlessly until you reach a shared understanding. Map the request as a design tree: every decision branches into the decisions that hang off it.
 
@@ -56,7 +56,7 @@ If the user pastes review findings, check each one, move the rule to its one own
 
 ## 5. Report
 
-In the user's language: each agreed decision and the file and method that own it, what you reused or moved, the `composer check` result, and screenshots for UI changes. Fill in "Outcomes & Retrospective", move the plan to `docs/exec-plans/completed/`, and add anything you deferred to `docs/exec-plans/tech-debt.md`.
+In the user's language: each agreed decision and the file and method that own it, what you reused or moved, the `composer check` result, and screenshots for UI changes. Fill in "Outcomes & Retrospective", move the plan to `docs/exec-plans/completed/`, and add anything you deferred to `docs/exec-plans/tech-debt.md`. Remove each tech-debt line you fixed and update that domain's grade and notes in docs/QUALITY.md.
 
 ## Parallel work
 

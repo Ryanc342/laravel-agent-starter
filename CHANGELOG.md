@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.8.5] - 2026-11-02
+
+From the experiments' round of fixing their tech debt.
+
+### Added
+
+- `tests/Support/TestsRowLocks.php` for row-lock tests: `waitsForLock()` runs a second user's write on a second connection and says whether it had to wait. The file commits its rows and empties the tables after each test, because a second connection cannot see RefreshDatabase's uncommitted rows. Three experiments had each built their own version. Each `lockForUpdate()` has such a test.
+
+### Changed
+
+- A request to fix tech debt goes through every step like any other request: grill, plan, wait for "start". "Fix them all" or "commit on the current branch" is not the "start".
+- Fixing a tech-debt line also updates that domain's grade and notes in `docs/QUALITY.md`.
+
 ## [2.8.4] - 2026-11-01
 
 ### Fixed

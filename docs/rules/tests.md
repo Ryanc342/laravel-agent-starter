@@ -12,9 +12,9 @@ Write tests with Pest. Follow `docs/reference/tasks/tests/Feature/Tasks/` as the
 | `tests/Feature/{Domain}/{Model}ControllerTest.php` | Each endpoint: guest redirected, owner allowed, other user forbidden (403), invalid input rejected, success redirects |
 | `tests/Feature/{Domain}/{Model}ButtonsTest.php`    | Consistency: each `can.*` button and each form's choices agree with what the endpoint accepts                         |
 
-Tests run on MySQL, like the app, in a database of their own: the app's database name plus `_test`, created on the first run (tests/bootstrap.php). So a row lock can be tested too: open a second connection to the same database and check that it waits. MySQL must be running for `composer check`.
+Tests run on MySQL, like the app, in a database of their own: the app's database name plus `_test`, created on the first run (tests/bootstrap.php). So a row lock can be tested too (Row locks, below). MySQL must be running for `composer check`.
 
-PHPStan checks that every Action has its test file and every Resource with `can.*` has its buttons test (lint/phpstan/CompanionFilesRule.php). `lint/` and `tests/Structure/` belong to the template. Do not edit them without the user's approval.
+PHPStan checks that every Action has its test file and every Resource with `can.*` has its buttons test (lint/phpstan/CompanionFilesRule.php). `lint/`, `tests/Structure/` and `tests/Support/` belong to the template. Do not edit them without the user's approval.
 
 ## Frontend tests
 
@@ -29,9 +29,13 @@ When the same rule is used in two places, one test checks that both give the sam
 
 These values are few (roles, statuses, active or not, own or not), so list every combination with a Pest dataset instead of picking examples.
 
+## Row locks
+
+Test each `lockForUpdate()` by playing a second user who saves at the same moment. Put the test in its own file, `tests/Feature/{Domain}/{Action}LockTest.php`, starting with `uses(TestsRowLocks::class);` (tests/Support/TestsRowLocks.php) instead of RefreshDatabase: a second connection only sees committed rows, so this file commits its rows and empties the tables after each test. While the Action holds the lock (listen for a model event such as `Task::deleting(...)`), run the other user's write with `$this->waitsForLock(fn () => ...)` and expect `true`. Load the records that write changes inside the closure. `tests/Feature/TestsRowLocksTest.php` shows the calls.
+
 ## Style
 
-- Start each file with `uses(RefreshDatabase::class);`.
+- Start each file with `uses(RefreshDatabase::class);`, or a row-lock test file with `uses(TestsRowLocks::class);` (Row locks, above).
 - Name helper functions after the model (`taskCase()`, `notificationButtonsFor()`). Pest helpers are global, so two helpers with the same name stop the whole test run.
 - One `test('...')` per rule. The name describes the rule in plain words: `test('a completed task cannot be completed again', ...)`.
 - Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand.
