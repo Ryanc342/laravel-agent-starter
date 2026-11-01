@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.4.0] - 2026-11-01
+
+### Removed
+
+- jscpd duplicate-code detection (`.jscpd.json`, `npm run dupes`), at the user's request. "No copied blocks of code" is a review rule again.
+
 ## [2.3.0] - 2026-11-01
 
 Principles 1 (every rule written once) and 4 (the frontend never does the backend's job) are now mostly machine checks.

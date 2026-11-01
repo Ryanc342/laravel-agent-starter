@@ -32,7 +32,6 @@ The machine checks live in these files, and `composer check` runs them all:
 | `tests/Structure/DocsTest.php`        | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section |
 | `tests/PHPStan/` (custom PHPStan rules) | a model field or enum case compared outside the model and enum; a model sent to React without a Resource |
 | `tests/Structure/FrontendTest.php`    | React checking permissions, statuses, dates or money; hard-coded URLs; a TypeScript type out of step with its Resource |
-| `.jscpd.json` (duplicate detector)    | a copied block of code in app/ or resources/js                        |
 
 ## Where each rule goes
 

@@ -5,7 +5,7 @@ It is the official [Laravel React Starter Kit](https://github.com/laravel/react-
 
 1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
 2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in eight principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
-3. **Machine checks.** Pest architecture and structure tests, PHPStan (with custom rules in `tests/PHPStan`), dependency-cruiser and a duplicate-code detector enforce the architecture. One command runs everything: `composer check`.
+3. **Machine checks.** Pest architecture and structure tests, PHPStan (with custom rules in `tests/PHPStan`) and dependency-cruiser enforce the architecture. One command runs everything: `composer check`.
 
 The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
 
@@ -49,7 +49,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 | Command                    | Does                                                                  |
 | -------------------------- | --------------------------------------------------------------------- |
-| `composer check`           | Pint, PHPStan, Pest (Feature, Arch, Structure), tsc, lint, dependency-cruiser, jscpd |
+| `composer check`           | Pint, PHPStan, Pest (Feature, Arch, Structure), tsc, lint, dependency-cruiser |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
 | `composer lint`            | Format PHP                                                            |
 | `npm run check:fix`        | Format and lint the frontend                                          |

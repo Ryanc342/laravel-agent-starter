@@ -72,7 +72,6 @@
             "npm run check",
             "npm run types:check",
             "npm run depcruise",
-            "npm run dupes",
             "@php artisan test --compact"
         ],
         "ci:check": [

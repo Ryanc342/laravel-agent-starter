@@ -4,7 +4,7 @@ Every rule of this template, grouped under eight principles. The reviewer and th
 
 Each rule says who stops it:
 
-- `[Arch]` tests/Arch, `[PHPStan]` phpstan.neon and the custom rules in tests/PHPStan, `[Structure]` tests/Structure, `[depcruise]` .dependency-cruiser.cjs, `[jscpd]` .jscpd.json: a machine check in `composer check`. The change cannot be committed until it passes.
+- `[Arch]` tests/Arch, `[PHPStan]` phpstan.neon and the custom rules in tests/PHPStan, `[Structure]` tests/Structure, `[depcruise]` .dependency-cruiser.cjs: a machine check in `composer check`. The change cannot be committed until it passes.
 - `[review]`: no machine can check it. The `reviewer` subagent looks for it in every change and the weekly cleanup looks for it in the whole repository.
 
 ## 1. Every business rule is written once
@@ -12,8 +12,8 @@ Each rule says who stops it:
 - `[PHPStan]` Query conditions (`where…`, `orWhere…`) are written only in model scopes. Everywhere else calls the scope by name; `whereKey()` is allowed for one record.
 - `[Structure]` Inside a model, a column that a scope filters on is not compared again in a method: the method asks the scope with `whereKey($this->getKey())->exists()`.
 - `[PHPStan]` Outside app/Models and app/Enums nothing compares a model field, an enum case or an enum's value (`===`, `<`, `match`, `switch`, `in_array`), including `$this->field` in a Resource. Policies, Resources, Actions and controllers call the model or enum method instead.
-- `[jscpd]` No duplicated block of code (70 tokens and 8 lines) in app/ or resources/js. A copied block becomes one Action, scope, model method or shared component.
-- `[review]` Two entry points that do the same thing call the same Action (jscpd catches copies of 70 tokens or more).
+- `[review]` No copied blocks of code: a copied block becomes one Action, scope, model method or shared component.
+- `[review]` Two entry points that do the same thing call the same Action.
 - `[review]` Factories set values through enum cases and states; they never restate a condition.
 - `[review]` Two conditions that mean the same thing but are written differently.
 
