@@ -50,7 +50,7 @@ return Inertia::render('tasks/index', [
 ]);
 ```
 
-If the same query is needed in two places, move it into a model scope first.
+Conditions are written only in model scopes: PHPStan rejects `where…` and `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 
 Form choices (the options of a select) are reads too. Build them from the same scope the Action uses to accept the chosen value, so the list and the check cannot disagree. Do not write role, type or active conditions in the controller.
 

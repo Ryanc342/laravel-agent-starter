@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.3.0] - 2026-11-01
+
+Principles 1 (every rule written once) and 4 (the frontend never does the backend's job) are now mostly machine checks.
+
+### Added
+
+- Custom PHPStan rules in `tests/PHPStan/`: no comparison on a model field or enum case outside app/Models and app/Enums (`ConditionsLiveInModelsRule`); no model in Inertia page props or shared props (`PagePropsUseResourcesRule`).
+- PHPStan: `where…` and `orWhere…` only inside app/Models (`whereKey()` allowed everywhere).
+- tests/Structure: a model method may not compare a column one of its scopes filters on; `tests/Structure/FrontendTest.php` stops permission, status, date and money logic in React, hard-coded URLs, `fetch`, `axios` and other UI libraries, and checks that every Resource has a TypeScript type with the same fields.
+- jscpd duplicate-code detection (`npm run dupes`, `.jscpd.json`), part of `composer check`.
+- First-run M6 proves five more checks bite.
+
 ## [2.2.0] - 2026-11-01
 
 The rules are reorganized under eight principles in `docs/golden-principles.md`, the one list of every rule and the check that stops it. Twelve rules that were review-only are now machine checks.

@@ -4,14 +4,18 @@ Every rule of this template, grouped under eight principles. The reviewer and th
 
 Each rule says who stops it:
 
-- `[Arch]` tests/Arch, `[PHPStan]` phpstan.neon, `[Structure]` tests/Structure, `[depcruise]` .dependency-cruiser.cjs: a machine check in `composer check`. The change cannot be committed until it passes.
+- `[Arch]` tests/Arch, `[PHPStan]` phpstan.neon and the custom rules in tests/PHPStan, `[Structure]` tests/Structure, `[depcruise]` .dependency-cruiser.cjs, `[jscpd]` .jscpd.json: a machine check in `composer check`. The change cannot be committed until it passes.
 - `[review]`: no machine can check it. The `reviewer` subagent looks for it in every change and the weekly cleanup looks for it in the whole repository.
 
 ## 1. Every business rule is written once
 
-- `[review]` A condition on records is a model scope. One record asks the same scope with `whereKey()->exists()`; never a second PHP comparison.
-- `[review]` Buttons (`can.*`), form choices, Policies and factories call the rule's owner; they never restate the condition.
-- `[review]` Two entry points that do the same thing call the same Action.
+- `[PHPStan]` Query conditions (`where…`, `orWhere…`) are written only in model scopes. Everywhere else calls the scope by name; `whereKey()` is allowed for one record.
+- `[Structure]` Inside a model, a column that a scope filters on is not compared again in a method: the method asks the scope with `whereKey($this->getKey())->exists()`.
+- `[PHPStan]` Outside app/Models and app/Enums nothing compares a model field, an enum case or an enum's value (`===`, `<`, `match`, `switch`, `in_array`), including `$this->field` in a Resource. Policies, Resources, Actions and controllers call the model or enum method instead.
+- `[jscpd]` No duplicated block of code (70 tokens and 8 lines) in app/ or resources/js. A copied block becomes one Action, scope, model method or shared component.
+- `[review]` Two entry points that do the same thing call the same Action (jscpd catches copies of 70 tokens or more).
+- `[review]` Factories set values through enum cases and states; they never restate a condition.
+- `[review]` Two conditions that mean the same thing but are written differently.
 
 ## 2. Layers only depend downwards
 
@@ -42,13 +46,19 @@ Each rule says who stops it:
 
 ## 4. The frontend never does the backend's job
 
-- `[review]` React never calculates prices, totals, statuses, deadlines, permissions or eligibility. The Resource sends the results (`is_*`, `can.*`).
-- `[review]` Buttons are shown from `can.*`; select options come from the list the backend sends.
+React never calculates prices, totals, statuses, deadlines, permissions or eligibility. The Resource sends the results (`is_*`, `can.*`). The checks below read the React code by name and shape; a business rule written under other names is still the reviewer's job.
+
+- `[PHPStan]` Every model reaches React through a JsonResource: the props of `Inertia::render()` and the shared props never hold a model, a model collection or a paginator of models, also not inside an array, a closure or `Inertia::defer()` and the like.
+- `[Structure]` React does not check permissions (comparisons with `auth.user`). Buttons are shown from `can.*`.
+- `[Structure]` React does not compare statuses, roles or types (`.status ===`). It shows the `is_*` flags and labels.
+- `[Structure]` React does not compare or subtract dates (`new Date(…) <`, `Date.now() -`, `getTime()`) outside resources/js/lib/format.ts.
+- `[Structure]` React does not calculate money or sum lists (arithmetic on `price`, `total`, `amount` and similar fields, a `reduce` that adds) outside resources/js/lib/format.ts.
+- `[Structure]` No hard-coded URLs, `fetch` or `axios`: routes and controller actions come from Wayfinder, requests go through Inertia.
+- `[Structure]` Each Resource has a TypeScript type with the same fields, marked "Matches app/Http/Resources/{Model}Resource.php".
+- `[Structure]` No UI library besides components/ui (shadcn).
+- `[review]` Select options come from the list the backend sends.
 - `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`).
-- `[review]` No hard-coded URLs: routes and controller actions come from Wayfinder.
-- `[review]` Every model reaches React through a JsonResource, never as a raw model or a hand-built array.
-- `[review]` Each Resource has a TypeScript type with the same field names.
-- `[review]` UI is built from components/ui (shadcn); no other UI library.
+- `[review]` A business rule React decides under names the checks do not know.
 
 ## 5. Input is checked once, at the edge
 

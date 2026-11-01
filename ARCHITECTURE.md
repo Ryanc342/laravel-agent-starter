@@ -26,10 +26,13 @@ The machine checks live in these files, and `composer check` runs them all:
 | ------------------------------------- | --------------------------------------------------------------------- |
 | `tests/Arch/LayersTest.php`           | a layer using a layer above it (principle 2)                          |
 | `tests/Arch/ClassesTest.php`          | a class doing another class's job, wrong names, extra layers          |
-| `phpstan.neon` (disallowed calls)     | writes outside Actions, validation outside FormRequests, queries in FormRequests, whole models in Resources |
-| `tests/Structure/ConventionsTest.php` | an Action without a test, a `can.*` Resource without a buttons test, a model without a factory |
+| `phpstan.neon` (disallowed calls)     | writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources |
+| `tests/Structure/ConventionsTest.php` | an Action without a test, a `can.*` Resource without a buttons test, a model without a factory, a `scopeFoo()` method, a model method comparing a column its scope filters on |
 | `.dependency-cruiser.cjs`             | a domain component importing another domain's components              |
 | `tests/Structure/DocsTest.php`        | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section |
+| `tests/PHPStan/` (custom PHPStan rules) | a model field or enum case compared outside the model and enum; a model sent to React without a Resource |
+| `tests/Structure/FrontendTest.php`    | React checking permissions, statuses, dates or money; hard-coded URLs; a TypeScript type out of step with its Resource |
+| `.jscpd.json` (duplicate detector)    | a copied block of code in app/ or resources/js                        |
 
 ## Where each rule goes
 

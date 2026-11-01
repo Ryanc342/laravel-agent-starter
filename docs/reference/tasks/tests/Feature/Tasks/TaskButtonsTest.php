@@ -41,7 +41,7 @@ function taskCase(bool $own, bool $completed): array
  *
  * @return array<string, bool>
  */
-function buttonsFor(User $user, Task $task): array
+function taskButtonsFor(User $user, Task $task): array
 {
     $request = Request::create('/');
     $request->setUserResolver(fn () => $user);
@@ -52,7 +52,7 @@ function buttonsFor(User $user, Task $task): array
 test('the complete button is shown exactly when completing succeeds', function (bool $own, bool $completed) {
     [$user, $task] = taskCase($own, $completed);
 
-    $shown = buttonsFor($user, $task)['complete'];
+    $shown = taskButtonsFor($user, $task)['complete'];
     $response = $this->actingAs($user)->post(route('tasks.completion.store', $task));
 
     expect($shown)->toBe($response->isRedirect() && ! session()->has('errors'));
@@ -61,7 +61,7 @@ test('the complete button is shown exactly when completing succeeds', function (
 test('the edit button is shown exactly when editing succeeds', function (bool $own, bool $completed) {
     [$user, $task] = taskCase($own, $completed);
 
-    $shown = buttonsFor($user, $task)['update'];
+    $shown = taskButtonsFor($user, $task)['update'];
     $response = $this->actingAs($user)->put(route('tasks.update', $task), ['title' => 'Changed', 'due_on' => null]);
 
     expect($shown)->toBe($response->isRedirect() && ! session()->has('errors'));
@@ -70,7 +70,7 @@ test('the edit button is shown exactly when editing succeeds', function (bool $o
 test('the delete button is shown exactly when deleting succeeds', function (bool $own, bool $completed) {
     [$user, $task] = taskCase($own, $completed);
 
-    $shown = buttonsFor($user, $task)['delete'];
+    $shown = taskButtonsFor($user, $task)['delete'];
     $response = $this->actingAs($user)->delete(route('tasks.destroy', $task));
 
     expect($shown)->toBe($response->isRedirect() && ! session()->has('errors'));

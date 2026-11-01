@@ -26,6 +26,7 @@ These values are few (roles, statuses, active or not, own or not), so list every
 ## Style
 
 - Start each file with `uses(RefreshDatabase::class);`.
+- Name helper functions after the model (`taskCase()`, `notificationButtonsFor()`). Pest helpers are global, so two helpers with the same name stop the whole test run.
 - One `test('...')` per rule. The name describes the rule in plain words: `test('a completed task cannot be completed again', ...)`.
 - Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand.
 - Check values with `expect()`: `expect($task->refresh()->status)->toBe(TaskStatus::Done)`.

@@ -1,0 +1,24 @@
+{
+    "path": [
+        "app",
+        "resources/js"
+    ],
+    "format": [
+        "php",
+        "typescript",
+        "tsx"
+    ],
+    "minTokens": 70,
+    "minLines": 8,
+    "ignore": [
+        "**/components/ui/**",
+        "resources/js/actions/**",
+        "resources/js/routes/**",
+        "resources/js/wayfinder/**",
+        "**/*.d.ts"
+    ],
+    "reporters": [
+        "console"
+    ],
+    "mode": "mild"
+}

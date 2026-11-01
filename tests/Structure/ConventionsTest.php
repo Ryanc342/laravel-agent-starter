@@ -1,9 +1,9 @@
 <?php
 
 /*
-| Principles 3, 7 and 8 in docs/golden-principles.md that are about files rather
-| than code. Each test name says what to do instead, because Pest prints it when
-| a rule breaks.
+| Principles 1, 3, 7 and 8 in docs/golden-principles.md that can be checked by
+| reading files. Each test name says what to do instead, because Pest prints it
+| when a rule breaks.
 */
 
 $root = dirname(__DIR__, 2);
@@ -90,6 +90,29 @@ test('model scopes use the #[Scope] attribute: turn scopeFoo() into a protected 
 
         foreach ($matches[1] as $method) {
             $found[] = "{$path}: {$method}()";
+        }
+    }
+
+    expect($found)->toBe([]);
+});
+
+test('a model writes each condition once: a method that compares a column a scope already filters on must ask that scope with whereKey($this->getKey())->exists()', function () use ($root) {
+    $found = [];
+
+    foreach (conventionPhpFiles($root, 'app/Models') as $path) {
+        $source = (string) file_get_contents("{$root}/{$path}");
+
+        preg_match_all('/->(?:or)?[wW]here\w*\(\s*[\'"](\w+)[\'"]/', $source, $filtered);
+        preg_match_all(
+            '/\$this->(\w+)\s*(?:===|!==|==|!=|<=|>=|<|>)|(?<![=\-])(?:===|!==|==|!=|<=|>=|<|>)\s*\$this->(\w+)|in_array\(\s*\$this->(\w+)/',
+            $source,
+            $compared,
+        );
+
+        $comparedColumns = array_filter(array_merge($compared[1], $compared[2], $compared[3]));
+
+        foreach (array_unique(array_intersect($filtered[1], $comparedColumns)) as $column) {
+            $found[] = "{$path}: {$column}";
         }
     }
 

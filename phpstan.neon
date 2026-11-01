@@ -3,6 +3,11 @@ includes:
     - vendor/nesbot/carbon/extension.neon
     - vendor/spaze/phpstan-disallowed-calls/extension.neon
 
+# Custom rules for docs/golden-principles.md, in tests/PHPStan/.
+rules:
+    - Tests\PHPStan\ConditionsLiveInModelsRule
+    - Tests\PHPStan\PagePropsUseResourcesRule
+
 parameters:
     paths:
         - app/
@@ -81,6 +86,21 @@ parameters:
             allowExceptIn:
                 - app/Http/Resources/*
 
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Builder::where*()'
+                - 'Illuminate\Database\Eloquent\Builder::orWhere*()'
+                - 'Illuminate\Database\Query\Builder::where*()'
+                - 'Illuminate\Database\Query\Builder::orWhere*()'
+            exclude:
+                - 'Illuminate\Database\Eloquent\Builder::whereKey()'
+                - 'Illuminate\Database\Eloquent\Builder::whereKeyNot()'
+            message: 'query conditions live in a model scope'
+            errorTip: 'Add a #[Scope] method to the model (ownedBy(), open()) and call it by name. One record asks the same scope with whereKey($id)->exists(). See docs/rules/models.md.'
+            allowIn:
+                - app/Models/*
+                - database/*
+
     disallowedStaticCalls:
         -
             method:
@@ -132,6 +152,21 @@ parameters:
             errorTip: 'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.'
             allowExceptIn:
                 - app/Http/Resources/*
+
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Builder::where*()'
+                - 'Illuminate\Database\Eloquent\Builder::orWhere*()'
+                - 'Illuminate\Database\Query\Builder::where*()'
+                - 'Illuminate\Database\Query\Builder::orWhere*()'
+            exclude:
+                - 'Illuminate\Database\Eloquent\Builder::whereKey()'
+                - 'Illuminate\Database\Eloquent\Builder::whereKeyNot()'
+            message: 'query conditions live in a model scope'
+            errorTip: 'Add a #[Scope] method to the model (ownedBy(), open()) and call it by name. One record asks the same scope with whereKey($id)->exists(). See docs/rules/models.md.'
+            allowIn:
+                - app/Models/*
+                - database/*
 
     disallowedFunctionCalls:
         -

@@ -13,7 +13,7 @@ Before writing a condition, decide what it is about and write it once:
 | One loaded record, no query needs it     | Model method                    | `$order->isCancellable()`                                |
 | Who may act                              | Policy ability                  | controller `Gate::authorize()`, Resource `can.*`         |
 
-Never write the same condition both as a scope and as a PHP comparison. A single record asks the scope:
+Never write the same condition both as a scope and as a PHP comparison. A single record asks the scope. The checks enforce this: PHPStan rejects `where…` outside app/Models and any comparison on a model field or enum case outside app/Models and app/Enums; tests/Structure rejects a model method that compares a column one of its scopes filters on.
 
 ```php
 public function isOverdue(): bool

@@ -5,7 +5,7 @@ Details live in the files it points to; read them when the task needs them.
 
 ## Commands
 
-- `composer check`: every check (Pint, PHPStan, Pest incl. Arch and Structure, tsc, lint, dependency-cruiser). It must pass before you say "done".
+- `composer check`: every check (Pint, PHPStan, Pest incl. Arch and Structure, tsc, lint, dependency-cruiser, jscpd). It must pass before you say "done".
 - `php artisan test --compact --filter=<Name>`: one test.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
 - `composer check:reference`: the reference feature still passes every check. Run it after changing rules or tooling.

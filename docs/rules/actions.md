@@ -32,7 +32,7 @@ final class CompleteTask
 
 ## Business conditions
 
-- The Action checks every business precondition itself (stock, record status, limits, eligibility) by calling the owner (enum method, model method or scope). It never restates the condition.
+- The Action checks every business precondition itself (stock, record status, limits, eligibility) by calling the owner (enum method, model method or scope). It never restates the condition: PHPStan rejects `where…` and comparisons on model fields or enum cases here.
 - A refusal throws `ValidationException::withMessages([...])` keyed by the field the user should fix.
 - Permission is not checked here. The controller asked the Policy once; the Action does not ask again.
 

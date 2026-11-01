@@ -16,7 +16,9 @@ const isOverdue = task.status === 'open' && new Date(task.due_on) < new Date();
 {task.can.complete && <Button>Complete</Button>}
 ```
 
-Pure display logic is fine in React: formatting a date, toggling a dialog, filtering a list the user is looking at.
+Pure display logic is fine in React: formatting a date, toggling a dialog, filtering a list the user is looking at. Date and money formatting for display goes in `resources/js/lib/format.ts`.
+
+tests/Structure/FrontendTest.php reads the React code and fails on permission checks (`auth.user`), status, role and type comparisons, date comparisons and subtraction, money arithmetic and summing `reduce`, hard-coded URLs, `fetch` and `axios`, other UI libraries, and a TypeScript type whose fields differ from its Resource. PHPStan fails when a page prop holds a model. If a check matches code that is really display logic, ask the user to adjust the check; never rename fields to slip past it.
 
 Combining stored fields into a status is a business rule, not formatting: `status === 'done' && outcome === 'partial' ? 'warning' : status` belongs in the Model, and the Resource sends the result. Dividing integer cents by 100 inside a currency formatter is display; totals, discounts, taxes and eligibility are not.
 
