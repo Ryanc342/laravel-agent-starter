@@ -47,7 +47,9 @@ if ($top === null) {
 
 chdir($top);
 $stateDir = git(['rev-parse', '--path-format=absolute', '--git-path', 'ezdev']) ?? "{$top}/.git/ezdev";
-@mkdir($stateDir, 0777, true);
+if (! is_dir($stateDir)) {
+    mkdir($stateDir, 0777, true);
+}
 
 if ($mode === 'checked') {
     file_put_contents("{$stateDir}/checked", fingerprint());

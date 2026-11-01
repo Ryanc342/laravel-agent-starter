@@ -36,7 +36,10 @@ function finishCheckRepo(): string
 
 function finishCheckWrite(string $repo, string $path, string $content): void
 {
-    @mkdir(dirname("{$repo}/{$path}"), 0777, true);
+    if (! is_dir(dirname("{$repo}/{$path}"))) {
+        mkdir(dirname("{$repo}/{$path}"), 0777, true);
+    }
+
     file_put_contents("{$repo}/{$path}", $content);
 }
 
