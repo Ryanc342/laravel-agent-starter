@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.5.1] - 2026-11-01
+
+Fixes for running several copies of the template at the same time.
+
+### Fixed
+
+- `scripts/worktree-up` also sets `SERVER_PORT` (the port `composer dev` serves on, so it matches `APP_URL`) and a `SESSION_COOKIE` of its own.
+- PHPStan keeps its cache in `storage/framework/cache/phpstan` instead of the system temp folder, so projects running PHPStan at the same time never share one cache.
+
 ## [2.5.0] - 2026-11-01
 
 Every machine check is now a linter rule: PHPStan for PHP, oxlint for React. A linter reads the code without running it, gives its error with what to do instead, and also runs in the editor. The template is renamed Ezdev Template (folder `Ezdev-Template`); versions live in git tags only.

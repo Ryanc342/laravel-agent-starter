@@ -22,6 +22,10 @@ parameters:
 
     level: 7
 
+    # PHPStan's cache lives in this project, so copies of the template that
+    # run at the same time (worktrees, experiments) never share it.
+    tmpDir: storage/framework/cache/phpstan
+
     # Rules locked by PHPStan (spaze/phpstan-disallowed-calls), from
     # docs/golden-principles.md. Each entry says what to do instead. Never widen
     # allowIn or narrow allowExceptIn to make code pass: move the code to where

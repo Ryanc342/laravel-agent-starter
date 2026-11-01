@@ -30,11 +30,20 @@ else
     new_key=true
 fi
 
-# Own URL and port; own database: a separate SQLite file, or <database>_<name> for MySQL.
+# Own URL, port (SERVER_PORT is what composer dev serves on) and session
+# cookie; own database: a separate SQLite file, or <database>_<name> for MySQL.
 php -r '
     [$file, $port, $name] = [".env", $argv[1], $argv[2]];
     $env = file_get_contents($file);
-    $env = preg_replace("/^APP_URL=.*$/m", "APP_URL=http://localhost:{$port}", $env);
+    $set = function (string $key, string $value) use (&$env): void {
+        $line = "{$key}={$value}";
+        $env = preg_match("/^{$key}=/m", $env) === 1
+            ? preg_replace("/^{$key}=.*$/m", $line, $env)
+            : rtrim($env)."\n{$line}\n";
+    };
+    $set("APP_URL", "http://localhost:{$port}");
+    $set("SERVER_PORT", $port);
+    $set("SESSION_COOKIE", preg_replace("/[^a-z0-9_]/", "_", strtolower($name))."_session");
     if (preg_match("/^DB_CONNECTION=mysql/m", $env) && preg_match("/^DB_DATABASE=(.*)$/m", $env, $m)) {
         $database = trim($m[1]) . "_" . preg_replace("/[^A-Za-z0-9_]/", "_", $name);
         $env = preg_replace("/^DB_DATABASE=.*$/m", "DB_DATABASE={$database}", $env);
@@ -55,5 +64,5 @@ npm run build
 
 echo
 echo "Worktree ready: $dir (branch $name)"
-echo "Run the app:   cd \"$dir\" && php artisan serve --port=$port"
+echo "Run the app:   cd \"$dir\" && composer dev   (http://localhost:$port)"
 echo "Remove later:  git worktree remove \"$dir\""
