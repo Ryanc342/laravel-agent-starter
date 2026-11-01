@@ -75,4 +75,15 @@ class Notification extends DatabaseNotification
     {
         $query->whereMorphedTo('notifiable', $user);
     }
+
+    /**
+     * The order notifications are listed in: newest first.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function listOrder(Builder $query): void
+    {
+        $query->latest();
+    }
 }

@@ -20,7 +20,7 @@ class NotificationController extends Controller
 
         $notifications = Notification::query()
             ->ownedBy($request->user())
-            ->latest()
+            ->listOrder()
             ->take(50)
             ->get();
 

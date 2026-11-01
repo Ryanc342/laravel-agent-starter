@@ -43,7 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function notifications(): MorphMany
     {
-        return $this->morphMany(Notification::class, 'notifiable')->latest();
+        return $this->morphMany(Notification::class, 'notifiable')->listOrder();
     }
 
     /**
