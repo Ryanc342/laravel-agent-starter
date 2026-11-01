@@ -3,6 +3,11 @@ includes:
     - vendor/nesbot/carbon/extension.neon
     - vendor/spaze/phpstan-disallowed-calls/extension.neon
 
+services:
+    -
+        class: Lint\PHPStan\DisallowedTypeResolver
+        autowired: Spaze\PHPStan\Rules\Disallowed\Type\TypeResolver
+
 # Ezdev's own rules for docs/golden-principles.md, in lint/phpstan/.
 rules:
     - Lint\PHPStan\ClassShapeRule
