@@ -21,6 +21,14 @@ test('every page receives the signed-in user through UserResource only', functio
         );
 });
 
+test('the user\'s initials come from the backend', function () {
+    $user = User::factory()->create(['name' => 'ada lovelace']);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('auth.user.initials', 'AL'));
+});
+
 test('guests receive no user and no unread notifications', function () {
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page

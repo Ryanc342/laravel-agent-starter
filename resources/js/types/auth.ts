@@ -3,6 +3,7 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    initials: string;
     avatar?: string; // not sent yet: components fall back to initials
     email_verified_at: string | null;
     created_at: string;
