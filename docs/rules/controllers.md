@@ -76,7 +76,7 @@ An operation like "complete a task" or "approve an invoice" gets a small control
 
 ## Routes
 
-- One route file per domain (`routes/tasks.php`), required from `routes/web.php`.
+- One route file per domain (`routes/{domain}.php`, like docs/reference/tasks/routes/tasks.php), required from `routes/web.php`.
 - Every route is named (`tasks.index`, `tasks.completion.store`). React reaches routes only through Wayfinder imports, never hard-coded URLs.
 - Use route model binding (`{task}`); never look records up by id manually.
 - Register fixed paths (`tasks/overdue/completion`) before wildcard paths (`tasks/{task}`).

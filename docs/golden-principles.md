@@ -5,7 +5,7 @@ Every rule of this template, grouped under eight principles. The reviewer and th
 Each rule says who stops it:
 
 - `[PHPStan]` the PHP linter (phpstan.neon and Ezdev's rules in lint/phpstan/) and `[oxlint]` the frontend linter (the `lint` block in vite.config.ts and Ezdev's rules in lint/oxlint/ezdev.js). A linter reads the code without running it. Both run in `composer check`; the change cannot be committed until they pass.
-- `[Structure]` tests/Structure: the two checks a linter does not do. One reads the docs, one compares each Resource with its TypeScript type (until Wayfinder generates the types, see docs/exec-plans/tech-debt.md). Also in `composer check`.
+- `[Structure]` tests/Structure: the two checks a linter does not do. One reads the docs, one compares each Resource with its TypeScript type (kept until a tagged Wayfinder release generates the types, see docs/rules/frontend.md). Also in `composer check`.
 - `[review]`: no machine can check it. The `reviewer` subagent looks for it in every change and the weekly cleanup looks for it in the whole repository.
 
 ## 1. Every business rule is written once
