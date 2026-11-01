@@ -7,6 +7,7 @@ import ManagePasskeys from '@/components/users/manage-passkeys';
 import type { Props as ManagePasskeysProps } from '@/components/users/manage-passkeys';
 import ManageTwoFactor from '@/components/users/manage-two-factor';
 import type { Props as ManageTwoFactorProps } from '@/components/users/manage-two-factor';
+import NewPasswordFields from '@/components/users/new-password-fields';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -75,40 +76,12 @@ export default function Security(props: Props) {
                                 <InputError message={errors.current_password} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">New password</Label>
-
-                                <PasswordInput
-                                    id="password"
-                                    ref={passwordInput}
-                                    name="password"
-                                    className="mt-1 block w-full"
-                                    autoComplete="new-password"
-                                    placeholder="New password"
-                                    passwordrules={props.passwordRules}
-                                />
-
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-
-                                <PasswordInput
-                                    id="password_confirmation"
-                                    name="password_confirmation"
-                                    className="mt-1 block w-full"
-                                    autoComplete="new-password"
-                                    placeholder="Confirm password"
-                                    passwordrules={props.passwordRules}
-                                />
-
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
-                            </div>
+                            <NewPasswordFields
+                                passwordRules={props.passwordRules}
+                                errors={errors}
+                                label="New password"
+                                passwordRef={passwordInput}
+                            />
 
                             <div className="flex items-center gap-4">
                                 <Button
