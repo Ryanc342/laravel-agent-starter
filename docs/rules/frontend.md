@@ -27,7 +27,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 - Every model sent to React goes through a JsonResource in `app/Http/Resources/`. Never pass a raw model or a hand-built array from a controller.
 - `toArray()` lists each field by name. Never return the whole model (`parent::toArray()`, `attributesToArray()`) or spread an arbitrary array. PHPStan rejects the first two in Resources.
 - The Resource includes the derived flags (`is_overdue`) and permissions (`can: { update, delete, complete }`).
-- Each flag and each `can.*` only calls existing owners (Policy abilities, model and enum methods); it never writes a condition. Each `can.*` has a consistency test (docs/rules/tests.md).
+- Each flag and each `can.*` only calls existing owners (Policy abilities, model and enum methods); it never writes a condition. Each `can.*` has a consistency test (docs/rules/tests.md). A row may cost a few small queries this way; a list page shows at most 20 rows, so that is accepted, not debt. Never work a flag out a second way to save a query; if a page is measured slow, ask the user.
 - A `can.*` flag already includes the business state: the button shows exactly when pressing it succeeds. When the page explains why something is not possible ("still in use"), the Resource sends that text; React never works out the reason from `!can.*` or from a mix of flags.
 - Collections arrive wrapped in `data`: pass `TaskResource::collection($tasks)->response($request)->getData(true)` as the prop, read it as `tasks.data`, and type it with `ResourceCollection<T>` from `@/types/resource`.
 - Each Resource has a matching TypeScript type in `resources/js/types/{model}.ts` with the same field names. When you change one, change the other in the same edit.
@@ -36,7 +36,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 
 - Use Inertia's `<Form>` component with Wayfinder: `<Form {...TaskController.store.form()}>`.
 - Never hard-code URLs. Import routes from `@/routes/...` or controller actions from `@/actions/...`.
-- Show server errors with `<InputError message={errors.field} />`. Do not duplicate server validation in React beyond simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code) is display, not validation.
+- Show server errors with `<InputError message={errors.field} />`. Do not duplicate server validation in React beyond simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code, a name that is not blank) is display, not validation.
 - Select options come from the list the backend sends. Display preferences kept in the browser (the appearance setting) are not business options.
 
 ## Files and boundaries
@@ -52,4 +52,4 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 
 ## Breadcrumbs and layout
 
-Set breadcrumbs with `Page.layout = { breadcrumbs: [...] }` like `pages/dashboard.tsx`. Show flash messages with `Inertia::flash('toast', [...])` in the controller; the layout already displays them.
+Set breadcrumbs with `Page.layout = { breadcrumbs: [...] }` like `pages/dashboard/index.tsx`. Show flash messages with `Inertia::flash('toast', [...])` in the controller; the layout already displays them.
