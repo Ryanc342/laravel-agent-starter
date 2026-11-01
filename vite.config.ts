@@ -43,6 +43,7 @@ export default defineConfig({
     test: {
         include: ['tests/js/**/*.test.{ts,tsx}'],
         environment: 'jsdom',
+        setupFiles: ['tests/js/setup.ts'],
     },
     lint: {
         // The default plugins plus import (for import/no-cycle). Setting
