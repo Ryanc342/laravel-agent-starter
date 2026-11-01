@@ -55,6 +55,15 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Whether the user still has to verify their email address. The profile page asks this;
+     * UpdateProfile makes it true again when the address changes.
+     */
+    public function needsEmailVerification(): bool
+    {
+        return ! $this->hasVerifiedEmail();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

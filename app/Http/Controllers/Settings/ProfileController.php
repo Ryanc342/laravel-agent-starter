@@ -7,7 +7,6 @@ use App\Actions\Users\UpdateProfile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +26,7 @@ class ProfileController extends Controller
         Gate::authorize('update', $user);
 
         return Inertia::render('settings/profile', [
-            'emailNeedsVerification' => $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail(),
+            'emailNeedsVerification' => $user->needsEmailVerification(),
             'status' => $request->session()->get('status'),
         ]);
     }
