@@ -63,7 +63,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 - docs/exec-plans/tech-debt.md: known debt, oldest first
 - docs/golden-principles.md: what review and the weekly cleanup check
 - docs/QUALITY.md: quality grade per domain
-- docs/prompts/review.md and docs/prompts/cleanup.md: prompts for review and the weekly cleanup
+- docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
 - docs/reference/tasks/: the reference feature
 - DESIGN.md (optional, project root): visual style only
 

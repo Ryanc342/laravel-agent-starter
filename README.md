@@ -27,7 +27,7 @@ To set up by hand instead: `composer setup`, then `php artisan boost:install` (C
 4. **Review.** A `reviewer` subagent with a fresh context compares the change with the plan and reports only real problems (at most 3 rounds).
 5. **Report.** Where each decision lives, the check output, screenshots. You approve the merge; CI runs `composer check` again.
 
-Once a week, run `docs/prompts/cleanup.md` to find and fix drift.
+Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update dependencies, take changes from the Laravel starter kit or move to a new Laravel version, run `docs/prompts/upgrade.md`.
 
 ## Where things are
 
@@ -68,4 +68,4 @@ Put a `DESIGN.md` in the project root when the project has a visual design. The 
 - `laravel/react-starter-kit`, main branch, commit 98d9b82 (2026-10-29), auth and settings code rewritten (see `ARCHITECTURE.md`, "Starter kit code")
 - Laravel 13, Inertia 3, React 19, Vite+, Pest, Larastan, Laravel Boost
 
-To pick up later starter kit changes, compare with a fresh `laravel new --react` project and copy what changed outside `docs/`, `tests/Arch`, `tests/Structure` and the check configs. See `CHANGELOG.md` for versions.
+To pick up later starter kit or Laravel changes, run `docs/prompts/upgrade.md`. See `CHANGELOG.md` for versions.

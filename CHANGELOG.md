@@ -11,6 +11,7 @@ The starter kit's own code now follows the v2 rules, so no check has an exceptio
 - In-app notifications: a notifications page, "Mark as read" and "Mark all as read", and an unread badge in the sidebar. Users are notified when their account is created, their password changes and their email address changes.
 - `App\Models\Notification` (extends Laravel's `DatabaseNotification`) with `ownedBy()` and `unread()` scopes, `NotificationPolicy`, `MarkNotificationRead` and `MarkAllNotificationsRead`, `NotificationResource` with `can.mark_read`, and a button consistency test.
 - Arch rule: notifications use no actions, http or integrations. PHPStan: `markAsRead()`, `markAsUnread()`, `notify()` and `Notification::send()` only in Actions.
+- `docs/prompts/upgrade.md`: how to take dependency updates, starter kit changes and a new major Laravel version.
 - Actions that write the user and a notification do both in one `DB::transaction()`; `DeleteUser` also deletes the user's notifications.
 
 ### Changed
