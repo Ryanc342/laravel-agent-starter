@@ -111,6 +111,15 @@ test('guests are redirected to the login page', function () {
     $this->put(route('user-password.update'))->assertRedirect(route('login'));
 });
 
+test('password managers can find where passkeys are managed, without signing in', function () {
+    $this->get(route('well-known.passkeys'))
+        ->assertOk()
+        ->assertExactJson([
+            'enroll' => route('security.edit'),
+            'manage' => route('security.edit'),
+        ]);
+});
+
 test('a new password that breaks a rule is rejected and changes nothing', function (array $input) {
     $user = User::factory()->create();
 
