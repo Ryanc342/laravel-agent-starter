@@ -1,5 +1,4 @@
 import { Form } from '@inertiajs/react';
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
@@ -12,12 +11,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
 import { Spinner } from '@/components/ui/spinner';
+import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
@@ -174,27 +169,11 @@ function TwoFactorVerificationStep({
                         className="relative w-full space-y-3"
                     >
                         <div className="flex w-full flex-col items-center space-y-3 py-2">
-                            <InputOTP
+                            <TwoFactorCodeInput
                                 id="otp"
-                                name="code"
-                                maxLength={OTP_MAX_LENGTH}
                                 onChange={setCode}
                                 disabled={processing}
-                                pattern={REGEXP_ONLY_DIGITS}
-                                autoFocus
-                            >
-                                <InputOTPGroup>
-                                    {Array.from(
-                                        { length: OTP_MAX_LENGTH },
-                                        (_, index) => (
-                                            <InputOTPSlot
-                                                key={index}
-                                                index={index}
-                                            />
-                                        ),
-                                    )}
-                                </InputOTPGroup>
-                            </InputOTP>
+                            />
                             <InputError
                                 message={
                                     errors?.confirmTwoFactorAuthentication?.code
@@ -272,8 +251,7 @@ export default function TwoFactorSetupModal({
         if (showVerificationStep) {
             return {
                 title: 'Verify authentication code',
-                description:
-                    'Enter the 6-digit code from your authenticator app',
+                description: `Enter the ${OTP_MAX_LENGTH}-digit code from your authenticator app`,
                 buttonText: 'Continue',
             };
         }
