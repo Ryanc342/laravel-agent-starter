@@ -143,6 +143,24 @@ function isText(node) {
 }
 
 /**
+ * Whether a value can be a hard-coded path: a text starting with "/", also
+ * as either side of ??, || and ?: (response.redirect ?? '/dashboard').
+ */
+function isPathText(node) {
+    const value = unwrap(node);
+
+    if (value?.type === 'LogicalExpression') {
+        return isPathText(value.left) || isPathText(value.right);
+    }
+
+    if (value?.type === 'ConditionalExpression') {
+        return isPathText(value.consequent) || isPathText(value.alternate);
+    }
+
+    return leadingText(value)?.startsWith('/') ?? false;
+}
+
+/**
  * The text a string or template starts with, or null. For "/" + slug it
  * follows the left side of the +.
  */
@@ -164,10 +182,20 @@ function leadingText(node) {
     return null;
 }
 
+// A destructured status or role prop is the same business value as task.status.
+const BARE_STATUS_WORDS = new Set(['status', 'role']);
+
 /**
- * task.status, user.role and the like, but not event.type or flash.type.
+ * task.status, user.role and the like (also a bare status or role), but not
+ * event.type or flash.type.
  */
 function isBusinessValue(node) {
+    const value = unwrap(node);
+
+    if (value?.type === 'Identifier') {
+        return BARE_STATUS_WORDS.has(value.name);
+    }
+
     const names = memberPath(node);
 
     if (!names || names.length < 2) {
@@ -412,7 +440,7 @@ const noDirectBackendCalls = rule(
 
                 if (
                     (name === 'href' || name === 'action') &&
-                    leadingText(value)?.startsWith('/')
+                    isPathText(value)
                 ) {
                     context.report({ node, message });
                 }
@@ -433,7 +461,7 @@ const noDirectBackendCalls = rule(
                 if (
                     names?.length === 2 &&
                     names[0] === 'router' &&
-                    leadingText(node.arguments[0])?.startsWith('/')
+                    isPathText(node.arguments[0])
                 ) {
                     context.report({ node, message });
                 }

@@ -137,3 +137,31 @@ test('invalid profile input is rejected and changes nothing', function (array $i
     'not an email' => [['name' => 'After', 'email' => 'not-an-email'], 'email'],
     'email of another account' => [['name' => 'After', 'email' => 'taken@example.com'], 'email'],
 ]);
+
+test('the delete account button is shown exactly when deleting succeeds', function (bool $verified) {
+    $user = $verified ? User::factory()->create() : User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertInertia(fn (Assert $page) => $page->where('can.delete_account', $verified));
+
+    $this->delete(route('profile.destroy'), ['password' => 'password']);
+
+    expect($user->fresh() === null)->toBe($verified);
+})->with([
+    'verified email' => [true],
+    'unverified email' => [false],
+]);
+
+test('the profile page says when a new verification link was sent', function () {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertInertia(fn (Assert $page) => $page->where('verificationLinkSent', false));
+
+    $this->post(route('verification.send'));
+
+    $this->get(route('profile.edit'))
+        ->assertInertia(fn (Assert $page) => $page->where('verificationLinkSent', true));
+});

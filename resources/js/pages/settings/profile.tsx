@@ -17,10 +17,14 @@ type PageProps = {
 
 export default function Profile({
     emailNeedsVerification,
-    status,
+    verificationLinkSent,
+    can,
 }: {
     emailNeedsVerification: boolean;
-    status?: string;
+    verificationLinkSent: boolean;
+    can: {
+        delete_account: boolean;
+    };
 }) {
     const { auth } = usePage<PageProps>().props;
 
@@ -95,7 +99,7 @@ export default function Profile({
                                         </TextLink>
                                     </p>
 
-                                    {status === 'verification-link-sent' && (
+                                    {verificationLinkSent && (
                                         <div className="mt-2 text-sm font-medium text-green-600">
                                             A new verification link has been
                                             sent to your email address.
@@ -117,7 +121,7 @@ export default function Profile({
                 </Form>
             </div>
 
-            <DeleteUser />
+            {can.delete_account && <DeleteUser />}
         </>
     );
 }

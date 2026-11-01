@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Fortify\Fortify;
 
 class ProfileController extends Controller
 {
@@ -27,7 +28,11 @@ class ProfileController extends Controller
 
         return Inertia::render('settings/profile', [
             'emailNeedsVerification' => $user->needsEmailVerification(),
-            'status' => $request->session()->get('status'),
+            'verificationLinkSent' => $request->session()->get('status') === Fortify::VERIFICATION_LINK_SENT,
+            'can' => [
+                // profile.destroy sits behind the verified middleware.
+                'delete_account' => $user->can('delete', $user) && ! $user->needsEmailVerification(),
+            ],
         ]);
     }
 

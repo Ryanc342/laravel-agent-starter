@@ -6,12 +6,16 @@ import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 
-export default function VerifyEmail({ status }: { status?: string }) {
+export default function VerifyEmail({
+    verificationLinkSent,
+}: {
+    verificationLinkSent: boolean;
+}) {
     return (
         <>
             <Head title="Email verification" />
 
-            {status === 'verification-link-sent' && (
+            {verificationLinkSent && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">
                     A new verification link has been sent to the email address
                     you provided during registration.
