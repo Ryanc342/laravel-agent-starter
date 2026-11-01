@@ -23,3 +23,27 @@ test('password confirmation requires authentication', function () {
 
     $response->assertRedirect(route('login'));
 });
+
+test('password confirmation submission requires authentication', function () {
+    $this->post(route('password.confirm.store'), ['password' => 'password'])
+        ->assertRedirect(route('login'))
+        ->assertSessionMissing('auth.password_confirmed_at');
+});
+
+test('correct password confirms the session and returns to the intended page', function () {
+    $this->freezeTime();
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->withSession(['url.intended' => route('security.edit')])
+        ->post(route('password.confirm.store'), ['password' => 'password'])
+        ->assertRedirect(route('security.edit'))
+        ->assertSessionHas('auth.password_confirmed_at', now()->timestamp);
+});
+
+test('invalid password does not confirm the session', function (string $password) {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('password.confirm.store'), ['password' => $password])
+        ->assertSessionHasErrors('password')
+        ->assertSessionMissing('auth.password_confirmed_at');
+})->with(['wrong-password', '']);
