@@ -27,6 +27,7 @@ Write the round in the user's language. Word each question so "yes" accepts your
 - Decisions are the user's. Put each one to them and wait. Never answer your own decision questions. Decisions about money, permissions, or who can see which data always go to the user.
 - Keep lookups cheap. Small lookups (a few files, one search) you do yourself. Large lookups (many files, long documents, many searches) go to the read-only `explorer` subagent with a fixed file list and a capped answer.
 - Ask in plain business language, not code terms, in chat text, not a pop-up question tool. There is no cap on the number of questions. If the scope is too big, propose splitting it first.
+- Ask only about what this part builds. A rule for a status or feature a later part brings ("only drafts can be edited" while drafts are the only status) is not asked or planned now: nothing could reach it, so it could only be tested with a stand-in.
 
 The grilling is done when the frontier is empty: every branch visited, nothing silently assumed. If a request has no open decision, say so in one line with your understanding and ask the user to confirm. When the user says "enough, give me the plan", stop asking.
 

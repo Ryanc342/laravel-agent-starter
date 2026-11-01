@@ -78,6 +78,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 
 - `[PHPStan]` No Service, Repository or DTO classes and no interfaces, unless the user asks for them.
 - `[review]` No events or listeners unless the user asks for them. An Action may call another Action.
+- `[review]` No code for a state nothing can reach yet: no refusal or branch for a status the app cannot create, and no test stand-in for it. The feature that adds the state adds its check and a real test.
 - `[review]` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks.
 - `[review]` Money is stored as integer cents and multiplied with `Brick\Math\BigDecimal`.
 - `[review]` Use what PHP, Laravel and installed packages already provide. Do not hand-write dates, money, parsing or formatting.
@@ -99,4 +100,5 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[review]` Every form's choices have a consistency test: a value is accepted exactly when it is in the list the page receives.
 - `[review]` Every endpoint is tested for guests, other users (403), invalid input and success.
 - `[review]` Test data comes from factories; tests never insert rows by hand.
+- `[review]` A hook with timing or ordering logic (wait before asking, the latest answer wins, retry) and every money or date formatter in resources/js/lib have a Vitest test in tests/js.
 - `[review]` When a test fails, fix the code, not the test.
