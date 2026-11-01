@@ -2,6 +2,32 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.8.2] - 2026-11-01
+
+From the redone weekly cleanup: eight experiments found 16 kinds of problems in the template itself. All are fixed here. Twelve commits come from the experiments' own cleanups (two-factor and passkey tests, the split two-factor dialog, shared code input).
+
+### Changed
+
+- Rules: the weekly cleanup may fix a stale path or name in AGENTS.md, ARCHITECTURE.md, docs/rules/ and golden-principles; a change to what a rule says is listed for the user. A short list inside another page is not a list page; the page size is 20 unless the plan agreed another. A name that is not blank counts as complete input. Per-row owner queries are accepted. The Validator rule says what PHPStan does.
+- The dashboard and welcome pages moved to `pages/dashboard/index.tsx` and `pages/welcome/index.tsx`.
+- Delete account shows only when deleting succeeds (`can.delete_account`, verified email). The verification notice comes from `verificationLinkSent`, not from comparing Fortify's status text.
+- Initials come from `UserResource` (`Str::initials`); `use-initials` is gone. The passkey name starts empty instead of being guessed from the browser.
+- oxlint catches a bare `status` or `role` comparison and a path on either side of `??` or `?:`.
+- In-app notifications extend `InAppNotification`; the list breaks same-second ties by id.
+- The two-factor setup dialog is split by job, the code input is one component, and the profile page uses `TextLink`.
+
+### Removed
+
+- The unused header layout (and `AppHeader`), card and split auth layouts.
+
+### Fixed
+
+- A passkey the WebAuthn library rejects is a validation error, not a 500.
+- `passkey-verify.tsx` takes the dashboard address from Wayfinder.
+- The test user's two-factor secret is valid, so tests can use real authenticator codes.
+- Every Fortify and passkey endpoint is tested, and docs/QUALITY.md grades Users and Notifications.
+- `.playwright-mcp/` is ignored.
+
 ## [2.8.1] - 2026-11-01
 
 ### Changed
