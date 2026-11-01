@@ -77,13 +77,14 @@ class Notification extends DatabaseNotification
     }
 
     /**
-     * The order notifications are listed in: newest first.
+     * The order notifications are listed in: newest first. The id breaks ties, so
+     * notifications created in the same second never move between pages.
      *
      * @param  Builder<self>  $query
      */
     #[Scope]
     protected function listOrder(Builder $query): void
     {
-        $query->latest();
+        $query->latest()->latest('id');
     }
 }

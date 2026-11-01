@@ -31,6 +31,18 @@ test('the list shows only the user\'s own notifications, newest first', function
             ->where('unreadNotifications', 2));
 });
 
+test('notifications created in the same second each appear on exactly one page', function () {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(25)->create(['created_at' => now()]);
+
+    $ids = collect([1, 2])->flatMap(fn (int $page) => collect($this->actingAs($user)
+        ->get(route('notifications.index', ['page' => $page]))
+        ->inertiaProps('notifications.data'))->pluck('id'));
+
+    expect($ids)->toHaveCount(25)
+        ->and($ids->unique())->toHaveCount(25);
+});
+
 test('the list shows 20 notifications per page', function () {
     $user = User::factory()->create();
     Notification::factory()->for($user, 'notifiable')->count(21)->create();
