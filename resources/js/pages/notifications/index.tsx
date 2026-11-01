@@ -2,6 +2,7 @@ import { Form, Head } from '@inertiajs/react';
 import AllNotificationsReadController from '@/actions/App/Http/Controllers/AllNotificationsReadController';
 import Heading from '@/components/heading';
 import NotificationRow from '@/components/notifications/notification-row';
+import Pagination from '@/components/shared/pagination';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/notifications';
 import type { AppNotification } from '@/types/notification';
@@ -52,14 +53,17 @@ export default function Notifications({
                         You have no notifications.
                     </p>
                 ) : (
-                    <ul className="grid gap-2">
-                        {notifications.data.map((notification) => (
-                            <NotificationRow
-                                key={notification.id}
-                                notification={notification}
-                            />
-                        ))}
-                    </ul>
+                    <>
+                        <ul className="grid gap-2">
+                            {notifications.data.map((notification) => (
+                                <NotificationRow
+                                    key={notification.id}
+                                    notification={notification}
+                                />
+                            ))}
+                        </ul>
+                        <Pagination collection={notifications} />
+                    </>
                 )}
             </div>
         </>

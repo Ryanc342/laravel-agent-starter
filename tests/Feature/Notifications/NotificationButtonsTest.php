@@ -67,7 +67,7 @@ dataset('whose notifications', [
     'only another user\'s unread notification' => [false, false, true],
 ]);
 
-test('the mark all as read button is shown exactly when the user has unread notifications', function (bool $ownUnread, bool $ownRead, bool $otherUnread) {
+test('the mark all as read button is shown exactly when pressing it succeeds', function (bool $ownUnread, bool $ownRead, bool $otherUnread) {
     $user = User::factory()->create();
 
     if ($ownUnread) {
@@ -86,7 +86,11 @@ test('the mark all as read button is shown exactly when the user has unread noti
         ->get(route('notifications.index'))
         ->assertInertia(fn (Assert $page) => $page->where('can.mark_all_read', $ownUnread));
 
-    $this->post(route('notifications.read-all.store'))->assertSessionHasNoErrors();
+    $response = $this->post(route('notifications.read-all.store'));
+
+    $ownUnread
+        ? $response->assertSessionHasNoErrors()
+        : $response->assertSessionHasErrors('notifications');
 
     expect(Notification::query()->ownedBy($user)->unread()->count())->toBe(0);
 })->with('whose notifications');

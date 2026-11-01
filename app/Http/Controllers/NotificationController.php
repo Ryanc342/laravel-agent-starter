@@ -12,7 +12,7 @@ use Inertia\Response;
 class NotificationController extends Controller
 {
     /**
-     * Show the user's 50 newest notifications.
+     * Show the user's notifications, newest first, 20 per page.
      */
     public function index(Request $request): Response
     {
@@ -23,8 +23,7 @@ class NotificationController extends Controller
         $notifications = Notification::query()
             ->ownedBy($user)
             ->listOrder()
-            ->take(50)
-            ->get();
+            ->paginate(20);
 
         return Inertia::render('notifications/index', [
             'notifications' => NotificationResource::collection($notifications)->response($request)->getData(true),

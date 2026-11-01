@@ -106,9 +106,10 @@ alone cannot, because it has only one record per user:
 | Non-CRUD controller                        | `NotificationReadController` marks one notification as read               |
 | Bulk Action that reuses the single Action  | `MarkAllNotificationsRead` calls `MarkNotificationRead`                    |
 | State rule refused in the Action           | "already read" in `MarkNotificationRead`                                   |
-| `can.*` from the Policy and the model      | `NotificationResource`, `can.mark_read`                                    |
+| `can.*` from the Policy and the model      | `NotificationResource` `can.mark_read`; the page's `can.mark_all_read`     |
 | Button consistency test                    | `tests/Feature/Notifications/NotificationButtonsTest.php`                  |
 | Domain components                          | `resources/js/components/notifications/`                                   |
+| Paginated list                             | `NotificationController::index()`, `resources/js/components/shared/pagination.tsx` |
 | Notifications sent from Actions            | `CreateUser`, `UpdateProfile`, `UpdatePassword`                            |
 
 Create and edit forms, an Enum with several methods and a business limit refused with

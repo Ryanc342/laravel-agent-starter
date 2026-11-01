@@ -31,6 +31,19 @@ test('the list shows only the user\'s own notifications, newest first', function
             ->where('unreadNotifications', 2));
 });
 
+test('the list shows 20 notifications per page', function () {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(21)->create();
+
+    $this->actingAs($user)
+        ->get(route('notifications.index', ['page' => 2]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('notifications.data', 1)
+            ->where('notifications.meta.current_page', 2)
+            ->where('notifications.meta.total', 21));
+});
+
 test('a user can mark their own notification as read', function () {
     $user = User::factory()->create();
     $notification = Notification::factory()->for($user, 'notifiable')->create();
