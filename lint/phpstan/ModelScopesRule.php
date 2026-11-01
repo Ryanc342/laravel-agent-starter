@@ -89,7 +89,7 @@ final class ModelScopesRule implements Rule
                     ->line($line)
                     ->tip($this->isScope($filter)
                         ? "Write the condition once: ask the scope with self::query()->{$filterName}()->whereKey(\$this->getKey())->exists(). See docs/rules/models.md."
-                        : "Write the condition once: move it into a #[Scope] method and ask that scope with self::query()->scopeName()->whereKey(\$this->getKey())->exists(). See docs/rules/models.md.")
+                        : 'Write the condition once: move it into a #[Scope] method and ask that scope with self::query()->scopeName()->whereKey($this->getKey())->exists(). See docs/rules/models.md.')
                     ->build();
             }
         }
