@@ -37,7 +37,7 @@ public function store(Request $request): RedirectResponse
 
 ## Always use a FormRequest for input
 
-Do not call `$request->validate()`, `Validator::make()` or `validator()` in a controller, even for one field (PHPStan rejects them). Every write endpoint that receives input takes a FormRequest; one with no input (mark all as read) needs none.
+A controller reads input only from a FormRequest: `$request->validated()`, `$request->safe()` or a method the FormRequest declares. PHPStan rejects `$request->validate()`, `Validator::make()`, `validator()`, `$request->input()`, `all()`, `query()`, `boolean()`, `enum()`, `$request->field` and the Request facade in a controller (lint/phpstan/ControllerInputRule.php), even for one field. An endpoint with no input (mark all as read) needs no FormRequest; a list page with filters gets one for its query string.
 
 ## Reads
 
@@ -68,7 +68,7 @@ if (! Location::query()->selectableFor($user, $type)->whereKey($data['location_i
 }
 ```
 
-To read an enum from the request in a controller, use `$request->enum('type', ShipmentType::class)`, not `ShipmentType::from(...)` (PHPStan rejects it).
+To read an enum from the request, give the FormRequest a method and call it from the controller: `public function type(): ?ShipmentType { return $this->enum('type', ShipmentType::class); }`, then `$request->type()`. `ShipmentType::from(...)` and `$request->enum()` in a controller are rejected. Boost's laravel-best-practices skill suggests `$request->string()`, `integer()` and `boolean()`: in this template those calls go inside the FormRequest's own methods.
 
 ## Non-CRUD operations get their own controller
 

@@ -56,6 +56,7 @@ export default defineConfig({
             'ezdev/no-business-comparisons': 'error',
             'ezdev/no-date-math': 'error',
             'ezdev/no-money-math': 'error',
+            'ezdev/no-hand-formatting': 'error',
             'ezdev/no-direct-backend-calls': 'error',
             'ezdev/component-boundaries': 'error',
             'import/no-cycle': 'error',

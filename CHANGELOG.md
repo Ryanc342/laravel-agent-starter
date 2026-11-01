@@ -2,6 +2,26 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.9.0] - 2026-11-02
+
+Rules now show up at the moment the AI breaks them instead of relying on it remembering them. In the experiments, no machine-checked rule was ever broken; every miss was a `[review]` rule or a step of the workflow.
+
+### Added
+
+- Finish check (`scripts/hooks/finish-check.php`, run by `.claude/settings.json` and `.codex/hooks.json`): when the AI is about to stop, it sends back a missing step: code without a plan, a removed tech-debt line without a `docs/QUALITY.md` update, a protected file or dependency without the user's approval in the plan's Decision Log, code that no passing `composer check` has seen, or a completed plan without check results, review rounds or outcome. Each reason is sent back at most three times. `composer check` records the code it passed on. In Codex, trust the hook once in `/hooks`.
+- Principle 9, "Work follows the steps", lists the workflow rules with who checks them (`[hook]`, `[user]`).
+- Checks for nine rules that were `[review]` only:
+  - PHPStan: rows are locked only in Actions, and an Action that locks has `{Action}LockTest.php`; no `number_format()`, `round()`, `floor()` or `ceil()` in app/; a controller reads input only from a FormRequest (`ControllerInputRule`); no events, listeners, observers or model event callbacks; no `bool` parameter in an Action's `handle()`; a Resource cannot send the model through `getAttributes()` and the like.
+  - oxlint: no `toFixed()`, `padStart()` or `padEnd()` in React, `lib/format.ts` included (`no-hand-formatting`); a status or role copied into a variable is still a business comparison.
+  - tests/Structure/CodeTest.php: no silenced check or skipped test, no rows inserted by hand in tests, and `lib/format.ts` has `tests/js/lib/format.test.ts`.
+- At most 27 `[review]` rules, counted by `tests/Structure/DocsTest.php`.
+
+### Changed
+
+- The reviewer lists only the `[review]` rules the change touches, and always runs four searches (a rule written twice, React deciding a business rule, a lock where nothing collides, hand-written formatting), pasting each search. The weekly cleanup does the same, writes a plan and asks the reviewer.
+- Review rounds get a Progress line. Dependency updates, starter-kit changes and template changes copied into a project write a plan that records the user's approval.
+- A list page with filters reads them through a FormRequest (`IndexTaskRequest::status()`); `$request->enum()` in a controller is replaced by a FormRequest method.
+
 ## [2.8.5] - 2026-11-02
 
 From the experiments' round of fixing their tech debt.

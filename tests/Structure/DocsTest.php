@@ -10,6 +10,12 @@ test('AGENTS.md stays a map of at most 100 lines: move details into docs/', func
     expect(count(file("{$root}/AGENTS.md")))->toBeLessThanOrEqual(100);
 });
 
+test('docs/golden-principles.md has at most 27 [review] rules: to add one, merge, remove or turn another into a check', function () use ($root) {
+    preg_match_all('/^- `\[review\]` /m', file_get_contents("{$root}/docs/golden-principles.md") ?: '', $rules);
+
+    expect(count($rules[0]))->toBeLessThanOrEqual(27);
+});
+
 test('every docs path that AGENTS.md and ARCHITECTURE.md mention exists: fix the path or the doc', function () use ($root) {
     $missing = [];
 

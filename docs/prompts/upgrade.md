@@ -10,11 +10,12 @@ First decide which kind of update this is and follow only that part. If it is un
 
 ## A. Minor and patch updates (same major version)
 
-1. Run `composer outdated --direct` and `npm outdated`, then `composer update` and `npm update`.
-2. Run `composer check`. If something fails, read the package's changelog or upgrade notes (Boost `search-docs`) and fix the code, never the check.
-3. Run `composer check:reference`.
-4. If the new Wayfinder version generates Inertia page prop types, tell the user: tests/Structure/ResourceTypesTest.php can then be replaced (docs/rules/frontend.md).
-5. Commit once ("Update dependencies"). Report which packages changed version and every fix you made.
+1. Write a short plan docs/exec-plans/active/update-dependencies-<date>.md (docs/PLANS.md). Its Decision Log records that the user asked for the update, naming composer.json and package.json: the finish check looks for that approval.
+2. Run `composer outdated --direct` and `npm outdated`, then `composer update` and `npm update`.
+3. Run `composer check`. If something fails, read the package's changelog or upgrade notes (Boost `search-docs`) and fix the code, never the check.
+4. Run `composer check:reference`.
+5. If the new Wayfinder version generates Inertia page prop types, tell the user: tests/Structure/ResourceTypesTest.php can then be replaced (docs/rules/frontend.md).
+6. Commit once ("Update dependencies"). Move the plan to completed/ with its Progress and Outcomes. Report which packages changed version and every fix you made.
 
 ## B. Changes from the Laravel starter kit
 
@@ -22,7 +23,7 @@ The starter kit code was copied into this project and rewritten to the v2 rules,
 
 1. Find the base commit in README.md ("Based on").
 2. Clone https://github.com/laravel/react-starter-kit into a temporary folder and run `git log --oneline <base>..main` and `git diff --stat <base>..main`.
-3. List the changes in the user's language, grouped (security fix, new feature, UI, tooling), one line each, with a recommendation: take or skip. Security fixes are recommended. The user decides.
+3. List the changes in the user's language, grouped (security fix, new feature, UI, tooling), one line each, with a recommendation: take or skip. Security fixes are recommended. The user decides; write the picks into a plan, docs/exec-plans/active/starter-kit-<date>.md (docs/PLANS.md).
 4. For each change the user takes: rewrite it to the v2 rules before adding it (writes in an Action, permission in a Policy, data through a Resource, every condition in its one owner), with tests. Never add Laravel Chisel markers back.
 5. Run `composer check` and `composer check:reference`. One commit per change.
 6. Update the base commit in README.md and add a CHANGELOG.md entry.
@@ -37,4 +38,4 @@ The starter kit code was copied into this project and rewritten to the v2 rules,
 
 ## Projects made from this template
 
-A project made from the template is not linked to it. To bring template changes (rules, checks, docs) into a project, read the template's CHANGELOG.md, list the changes for the user, copy what the user picks, and run the project's `composer check`.
+A project made from the template is not linked to it. To bring template changes (rules, checks, docs) into a project, read the template's CHANGELOG.md, list the changes for the user, write the picks into a plan whose Decision Log names every protected file they change, copy them, and run the project's `composer check`.

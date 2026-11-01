@@ -1,5 +1,7 @@
-# Project settings for Codex. Codex reads AGENTS.md for instructions and
-# .codex/agents/*.toml for the explorer and reviewer subagents.
+# Project settings for Codex. Codex reads AGENTS.md for instructions,
+# .codex/agents/*.toml for the explorer and reviewer subagents, and
+# .codex/hooks.json for the finish check (scripts/hooks/finish-check.php).
+# Codex asks once in /hooks before it runs a new or changed hook.
 [mcp_servers.playwright]
 command = "npx"
 args = ["@playwright/mcp@0.0.83", "--isolated"]

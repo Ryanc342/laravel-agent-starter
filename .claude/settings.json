@@ -1,3 +1,26 @@
 {
-    "enabledMcpjsonServers": ["laravel-boost", "playwright"]
+    "enabledMcpjsonServers": ["laravel-boost", "playwright"],
+    "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" start"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" stop",
+                        "timeout": 60
+                    }
+                ]
+            }
+        ]
+    }
 }

@@ -1,0 +1,26 @@
+{
+    "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$(git rev-parse --show-toplevel)/scripts/hooks/finish-check.php\" start",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$(git rev-parse --show-toplevel)/scripts/hooks/finish-check.php\" stop",
+                        "timeout": 60
+                    }
+                ]
+            }
+        ]
+    }
+}

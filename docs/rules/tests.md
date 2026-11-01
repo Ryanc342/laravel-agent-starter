@@ -18,7 +18,7 @@ PHPStan checks that every Action has its test file and every Resource with `can.
 
 ## Frontend tests
 
-React only displays, so pages and components get no tests. Two kinds of frontend code do: a hook with timing or ordering logic (wait before asking the server, the latest answer wins, retry) and every money or date formatter in `resources/js/lib`. They get a Vitest test in `tests/js/`, mirroring the path (`tests/js/hooks/use-network-error-toast.test.tsx`). Import from `vite-plus/test`, render a hook with `renderHook` from `@testing-library/react`. `npm test` runs them, and `composer check` includes it.
+React only displays, so pages and components get no tests. Two kinds of frontend code do: a hook with timing or ordering logic (wait before asking the server, the latest answer wins, retry) and the money and date formatters in `resources/js/lib/format.ts` (their test is `tests/js/lib/format.test.ts`; tests/Structure/CodeTest.php checks that it exists). They get a Vitest test in `tests/js/`, mirroring the path (`tests/js/hooks/use-network-error-toast.test.tsx`). Import from `vite-plus/test`, render a hook with `renderHook` from `@testing-library/react`. `npm test` runs them, and `composer check` includes it.
 
 ## Consistency tests
 
@@ -38,7 +38,8 @@ Test each `lockForUpdate()` by playing a second user who saves at the same momen
 - Start each file with `uses(RefreshDatabase::class);`, or a row-lock test file with `uses(TestsRowLocks::class);` (Row locks, above).
 - Name helper functions after the model (`taskCase()`, `notificationButtonsFor()`). Pest helpers are global, so two helpers with the same name stop the whole test run.
 - One `test('...')` per rule. The name describes the rule in plain words: `test('a completed task cannot be completed again', ...)`.
-- Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand.
+- Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand: tests/Structure/CodeTest.php rejects `DB::insert()` and `DB::table(…)->insert()`.
+- Never skip a test or silence a check: tests/Structure/CodeTest.php rejects `->skip()`, `->todo()`, `@phpstan-ignore`, `oxlint-disable` and the like.
 - Never mock a model to fake a state. If no factory state or Action can create the state, the code for it should not exist yet (docs/golden-principles.md, principle 6).
 - Check values with `expect()`: `expect($task->refresh()->status)->toBe(TaskStatus::Done)`.
 - A rule that must refuse: `->throws(ValidationException::class)` on the test, or `expect(fn () => ...)->toThrow(...)` when you still check the database afterwards.

@@ -34,6 +34,25 @@ public function rules(): array
 }
 ```
 
+## The controller reads input only from here
+
+A controller reads input through the FormRequest only: `$request->validated()`, `$request->safe()`, or a method the FormRequest declares (PHPStan rejects `input()`, `query()`, `enum()` and the rest in controllers). A list page with filters gets a FormRequest for its query string too:
+
+```php
+final class IndexTaskRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return ['status' => ['nullable', Rule::enum(TaskStatus::class)]];
+    }
+
+    public function status(): ?TaskStatus
+    {
+        return $this->enum('status', TaskStatus::class);
+    }
+}
+```
+
 ## Authorization
 
 Do not write `authorize()` (PHPStan rejects it). Authorization happens in the controller through the Policy, so there is one place to look.
@@ -44,4 +63,4 @@ If two FormRequests need the same field rules, put them in a trait in `app/Conce
 
 ## Naming
 
-`{Store|Update}{Model}Request` in `app/Http/Requests/{Domain}/`.
+`{Index|Store|Update}{Model}Request` in `app/Http/Requests/{Domain}/`.

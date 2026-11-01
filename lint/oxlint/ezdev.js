@@ -287,22 +287,78 @@ const noBusinessComparisons = rule(
         const message =
             'React does not compare statuses, roles or types: use the is_* flags and labels the Resource sends. See docs/rules/frontend.md.';
 
+        // Variables a status or role was copied into: const s = quote.status,
+        // const s = quote.status ?? 'draft', const { status: s } = quote,
+        // s = quote.status. A later declaration of the same name with another
+        // value forgets it again.
+        const copies = new Set();
+        const isBusiness = (node) => {
+            let value = unwrap(node);
+
+            while (
+                value?.type === 'LogicalExpression' &&
+                ['??', '||'].includes(value.operator)
+            ) {
+                value = unwrap(value.left);
+            }
+
+            return (
+                isBusinessValue(value) ||
+                (value?.type === 'Identifier' && copies.has(value.name))
+            );
+        };
+        const remember = (name, copied) =>
+            copied ? copies.add(name) : copies.delete(name);
+
         return {
+            VariableDeclarator(node) {
+                if (node.id.type === 'Identifier') {
+                    remember(
+                        node.id.name,
+                        node.init !== null && isBusiness(node.init),
+                    );
+                }
+
+                if (node.id.type === 'ObjectPattern') {
+                    for (const property of node.id.properties) {
+                        const target =
+                            property.value?.type === 'AssignmentPattern'
+                                ? property.value.left
+                                : property.value;
+
+                        if (
+                            property.type === 'Property' &&
+                            target?.type === 'Identifier'
+                        ) {
+                            remember(
+                                target.name,
+                                property.key.type === 'Identifier' &&
+                                    BARE_STATUS_WORDS.has(property.key.name),
+                            );
+                        }
+                    }
+                }
+            },
+            AssignmentExpression(node) {
+                if (node.left.type === 'Identifier' && node.operator === '=') {
+                    remember(node.left.name, isBusiness(node.right));
+                }
+            },
             BinaryExpression(node) {
                 if (!EQUALITY.has(node.operator)) {
                     return;
                 }
 
                 const compared =
-                    (isBusinessValue(node.left) && !isNumber(node.right)) ||
-                    (isBusinessValue(node.right) && !isNumber(node.left));
+                    (isBusiness(node.left) && !isNumber(node.right)) ||
+                    (isBusiness(node.right) && !isNumber(node.left));
 
                 if (compared) {
                     context.report({ node, message });
                 }
             },
             SwitchStatement(node) {
-                if (isBusinessValue(node.discriminant)) {
+                if (isBusiness(node.discriminant)) {
                     context.report({ node: node.discriminant, message });
                 }
             },
@@ -311,13 +367,32 @@ const noBusinessComparisons = rule(
 
                 if (
                     names?.[names.length - 1] === 'includes' &&
-                    node.arguments.some(isBusinessValue)
+                    node.arguments.some(isBusiness)
                 ) {
                     context.report({ node, message });
                 }
             },
         };
     },
+);
+
+const HAND_FORMATTING = new Set(['toFixed', 'padStart', 'padEnd']);
+
+const noHandFormatting = rule(
+    'React does not format numbers or dates by hand',
+    (context) => ({
+        CallExpression(node) {
+            const names = memberPath(node.callee);
+            const method = names?.[names.length - 1];
+
+            if (HAND_FORMATTING.has(method)) {
+                context.report({
+                    node,
+                    message: `React does not format numbers or dates by hand (${method}): use Intl.NumberFormat or Intl.DateTimeFormat in ${DISPLAY_FORMAT_FILE}. See docs/rules/frontend.md.`,
+                });
+            }
+        },
+    }),
 );
 
 const noDateMath = rule(
@@ -587,6 +662,7 @@ export default {
         'no-business-comparisons': noBusinessComparisons,
         'no-date-math': noDateMath,
         'no-money-math': noMoneyMath,
+        'no-hand-formatting': noHandFormatting,
         'no-direct-backend-calls': noDirectBackendCalls,
         'component-boundaries': componentBoundaries,
     },

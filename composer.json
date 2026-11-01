@@ -73,7 +73,8 @@
             "npm run check",
             "npm run types:check",
             "npm test",
-            "@php artisan test --compact"
+            "@php artisan test --compact",
+            "@php scripts/hooks/finish-check.php checked"
         ],
         "ci:check": [
             "@check"

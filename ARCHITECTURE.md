@@ -24,15 +24,18 @@ Almost every rule is checked by a linter: a tool that reads the code without run
 
 | Check                                        | What it stops                                                         |
 | -------------------------------------------- | --------------------------------------------------------------------- |
-| `phpstan.neon` (disallowed calls and namespaces) | a layer using a layer above it, writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources, HTTP or permission checks in Actions |
-| `lint/phpstan/ClassShapeRule.php`, `lint/phpstan/TraitPlacementRule.php` | an Action that is not final or has more than `handle()`, extra controller methods, `authorize()` in a FormRequest, non-enums in app/Enums, traits in app/Enums or app/Actions, interfaces, Service/Repository/DTO classes, wrong class names |
+| `phpstan.neon` (disallowed calls and namespaces) | a layer using a layer above it, writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources, HTTP or permission checks in Actions, row locks outside Actions, events and listeners, `round()` and `number_format()` |
+| `lint/phpstan/ClassShapeRule.php`, `lint/phpstan/TraitPlacementRule.php` | an Action that is not final, has more than `handle()` or takes a `bool`, extra controller methods, event, listener and observer classes, a Resource sending `$this->resource` whole, `authorize()` in a FormRequest, non-enums in app/Enums, traits in app/Enums or app/Actions, interfaces, Service/Repository/DTO classes, wrong class names |
 | `lint/phpstan/ModelScopesRule.php`           | a `scopeFoo()` method, a model method comparing a column its scope filters on |
 | `lint/phpstan/ConditionsLiveInModelsRule.php` | a model field or enum value compared outside the model and enum      |
 | `lint/phpstan/PagePropsUseResourcesRule.php` | a model sent to React without a Resource                             |
-| `lint/phpstan/CompanionFilesRule.php`        | an Action without a test, a model without a factory, a `can.*` Resource without a buttons test |
-| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | React checking permissions, statuses, dates or money; hard-coded URLs, `fetch`, `axios`; another UI library; a component importing another domain's components or a page; circular imports |
+| `lint/phpstan/CompanionFilesRule.php`        | an Action without a test, an Action that locks without a lock test, a model without a factory, a `can.*` Resource without a buttons test |
+| `lint/phpstan/ControllerInputRule.php`       | a controller reading input anywhere but from its FormRequest          |
+| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | React checking permissions, statuses, dates or money; numbers formatted by hand; hard-coded URLs, `fetch`, `axios`; another UI library; a component importing another domain's components or a page; circular imports |
 | `tests/Structure/ResourceTypesTest.php`      | a TypeScript type out of step with its Resource (a test until Wayfinder generates the types) |
-| `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section |
+| `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section, more than 27 `[review]` rules |
+| `tests/Structure/CodeTest.php`               | a silenced check or skipped test, rows inserted by hand in tests, `lib/format.ts` without its test |
+| `scripts/hooks/finish-check.php` (when the AI stops) | code without a plan, a fixed tech-debt line without a QUALITY.md update, a protected file without the user's recorded approval, code no passing `composer check` has seen, a completed plan without its records |
 
 ## Where each rule goes
 
@@ -55,9 +58,9 @@ Before writing a business rule, decide what it is about, then write it once, in 
 - Form choices, `can.*` flags, Policies and factories call the owner. They never restate the condition.
 - To change existing behaviour, find the owner, change it there, update its tests, and check that nothing else re-implements it.
 
-## The eight principles
+## The nine principles
 
-The rules are grouped under eight principles. docs/golden-principles.md lists every rule under them and says which check stops it.
+The rules are grouped under nine principles. docs/golden-principles.md lists every rule under them and says which check stops it.
 
 1. Every business rule is written once.
 2. Layers only depend downwards.
@@ -67,6 +70,7 @@ The rules are grouped under eight principles. docs/golden-principles.md lists ev
 6. Keep it simple: no Service, Repository or DTO layers.
 7. Files go where the conventions say.
 8. Every feature is tested.
+9. Work follows the steps: plan, check, review, report (docs/workflow.md). The finish check in scripts/hooks/ sends back a missing step.
 
 ## Request flow
 

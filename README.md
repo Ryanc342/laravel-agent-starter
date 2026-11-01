@@ -4,8 +4,8 @@ A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects 
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
 
 1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
-2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in eight principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
-3. **Machine checks.** Two linters enforce the architecture: PHPStan for PHP (with Ezdev's rules in `lint/phpstan/`) and oxlint for React (with Ezdev's rules in `lint/oxlint/`). Two small tests check the docs and the Resource types. One command runs everything: `composer check`.
+2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in nine principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
+3. **Machine checks.** Two linters enforce the architecture: PHPStan for PHP (with Ezdev's rules in `lint/phpstan/`) and oxlint for React (with Ezdev's rules in `lint/oxlint/`). Small tests check the docs, the code across folders and the Resource types. One command runs everything: `composer check`. When the AI is about to stop, a finish check sends back any step of the workflow it skipped.
 
 The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
 
@@ -16,7 +16,7 @@ In-app notifications are built in (a notifications page and an unread badge in t
 1. On GitHub, click **Use this template**, create the repository and clone it.
 2. Start MySQL. Copy `.env.example` to `.env` and set `DB_DATABASE` to the project name in snake_case (and `DB_USERNAME` and `DB_PASSWORD` if your MySQL needs them).
 3. Run `composer setup`: it installs from the lock files, creates the database, migrates and builds. Then `composer check` must pass (MySQL running; the tests create their own `<database>_test`).
-4. Open it in Codex or Claude Code and describe what you need in business terms.
+4. Open it in Codex or Claude Code and describe what you need in business terms. In Codex, open `/hooks` once and trust the finish check (`.codex/hooks.json`); Claude Code runs it from `.claude/settings.json`.
 
 The lock files, the Laravel Boost setup and the skills are already committed. How the template was installed and proven on a real machine (every check passes and catches the violations it should) is recorded in `docs/exec-plans/completed/first-run.md`.
 
@@ -27,6 +27,8 @@ The lock files, the Laravel Boost setup and the skills are already committed. Ho
 3. **Milestones.** For each one: tests first, then code bottom-up, then `composer check`, then a commit and a Progress line in the plan.
 4. **Review.** A `reviewer` subagent with a fresh context compares the change with the plan and reports only real problems (at most 3 rounds).
 5. **Report.** Where each decision lives, the check output, screenshots. You approve the merge; CI runs `composer check` again.
+
+Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back a missing step: code without a plan, a fixed tech-debt line without a `docs/QUALITY.md` update, a protected file or dependency changed without your recorded approval, or code that no passing `composer check` has seen.
 
 Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update dependencies, take changes from the Laravel starter kit or move to a new Laravel version, run `docs/prompts/upgrade.md`.
 
@@ -43,8 +45,9 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | `docs/golden-principles.md`, `QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
 | `phpstan.neon`, `lint/phpstan/`           | PHP linter rules: forbidden calls and layers, class shapes, scopes, companion files |
 | `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter rules: React never does the backend's job, component boundaries |
-| `tests/Structure/`                        | Docs checks; Resource and TypeScript type comparison                     |
-| `.codex/`, `.claude/`, `.mcp.json`        | Subagents (explorer, reviewer) and MCP servers (Boost, Playwright)       |
+| `tests/Structure/`                        | Docs checks; code checks across folders; Resource and TypeScript type comparison |
+| `.codex/`, `.claude/`, `.mcp.json`        | Subagents (explorer, reviewer), MCP servers (Boost, Playwright) and the finish check hooks |
+| `scripts/hooks/finish-check.php`          | The finish check: what is missing when the AI is about to stop            |
 | `scripts/worktree-up`                     | A git worktree with its own .env, database and port for parallel work    |
 
 ## Commands

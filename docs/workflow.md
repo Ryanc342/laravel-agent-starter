@@ -1,6 +1,6 @@
 # Workflow
 
-Every request goes through the same steps. The user steers; you do the work and bring evidence.
+Every request goes through the same steps. The user steers; you do the work and bring evidence. When you are about to stop, the finish check (scripts/hooks/finish-check.php, principle 9 in docs/golden-principles.md) sends back any step that is missing: do it.
 
 ## 1. Grill every request
 
@@ -50,7 +50,7 @@ Before the next milestone, search the code already written in this task for the 
 
 ## 4. Review
 
-Ask the `reviewer` subagent to review the change against the plan using docs/prompts/review.md. Fix P0 and P1 findings, run `composer check`, and ask again. Stop after 3 rounds and report what is left.
+Ask the `reviewer` subagent to review the change against the plan using docs/prompts/review.md. Fix P0 and P1 findings, run `composer check`, and ask again. Stop after 3 rounds and report what is left. Add a Progress line for each round: `review round <n>: <number> P0, <number> P1`.
 
 If the user pastes review findings, check each one, move the rule to its one owner, update its callers and tests, and verify again.
 

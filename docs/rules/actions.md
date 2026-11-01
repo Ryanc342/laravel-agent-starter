@@ -40,12 +40,13 @@ final class CompleteTask
 
 - Every `create`, `update`, `save`, `delete` and pivot change happens in an Action. PHPStan rejects them elsewhere.
 - Several writes that must succeed together go in `DB::transaction(...)`.
-- Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock, balances or a number counter. Pages and Actions that only read never lock.
-- Money is integer cents. Multiply decimals with `Brick\Math\BigDecimal`.
+- Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock, balances or a number counter. Pages and Actions that only read never lock. Only Actions may lock (PHPStan), and an Action that locks has `tests/Feature/{Domain}/{Action}LockTest.php` (docs/rules/tests.md, Row locks).
+- Money is integer cents. Multiply decimals with `Brick\Math\BigDecimal` and round with its `RoundingMode`; PHPStan rejects `round()`, `floor()`, `ceil()` and `number_format()` in app/.
 
 ## One operation, one Action
 
-- No mode switches through nullable or boolean parameters (`handle($order, $force = false)`). Two behaviours are two Actions.
+- No mode switches: `handle()` takes no bool parameter (`handle($order, $force = false)`, rejected by PHPStan). Two behaviours are two Actions.
+- No events, listeners or observers (PHPStan): when a second step must follow, the Action calls that step's Action.
 - An operation that repeats another (complete all overdue tasks) loops and calls the other Action instead of copying its checks and writes. See `docs/reference/tasks/app/Actions/Tasks/CompleteOverdueTasks.php`.
 - External services are called through a class in `app/Integrations/`, injected into the Action.
 

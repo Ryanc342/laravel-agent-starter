@@ -18,6 +18,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  * with a second file.
  *
  * - Every Action has a feature test: tests/Feature/{Domain}/{Action}Test.php.
+ * - An Action that locks a row also has tests/Feature/{Domain}/{Action}LockTest.php.
  * - Every model has a factory: database/factories/{Model}Factory.php.
  * - Every Resource that sends can.* has a button consistency test:
  *   tests/Feature/{Domain}/{Model}ButtonsTest.php.
@@ -41,9 +42,14 @@ final class CompanionFilesRule implements Rule
         $root = dirname(__DIR__, 2);
 
         if (str_starts_with($name, 'App\\Actions\\') && $class->isClass()) {
-            $test = 'tests/Feature/'.str_replace('\\', '/', substr($name, strlen('App\\Actions\\'))).'Test.php';
+            $path = 'tests/Feature/'.str_replace('\\', '/', substr($name, strlen('App\\Actions\\')));
+            $errors = $this->expect($scope, $root, "{$path}Test.php", "Action {$name} has no feature test", 'ezdev.actionTest', "Add {$path}Test.php: the happy path and every ValidationException the Action throws. See docs/rules/tests.md.");
 
-            return $this->expect($scope, $root, $test, "Action {$name} has no feature test", 'ezdev.actionTest', "Add {$test}: the happy path and every ValidationException the Action throws. See docs/rules/tests.md.");
+            if ($this->locksRows($node)) {
+                $errors = [...$errors, ...$this->expect($scope, $root, "{$path}LockTest.php", "Action {$name} locks a row but has no lock test", 'ezdev.lockTest', "Add {$path}LockTest.php with uses(TestsRowLocks::class): a second user who saves the same row at the same moment has to wait (docs/rules/tests.md, Row locks). If nothing can write that row at the same moment, remove the lock.")];
+            }
+
+            return $errors;
         }
 
         if (str_starts_with($name, 'App\\Models\\') && $class->is(Model::class) && ! $class->isAbstract()) {
@@ -93,6 +99,19 @@ final class CompanionFilesRule implements Rule
         }
 
         return [RuleErrorBuilder::message($message)->identifier($identifier)->tip($tip)->build()];
+    }
+
+    /**
+     * Whether the class calls lockForUpdate() or sharedLock() anywhere.
+     */
+    private function locksRows(InClassNode $node): bool
+    {
+        return (new NodeFinder)->findFirst(
+            $node->getOriginalNode()->stmts,
+            fn (Node $n): bool => ($n instanceof Node\Expr\MethodCall || $n instanceof Node\Expr\StaticCall)
+                && $n->name instanceof Node\Identifier
+                && in_array($n->name->toString(), ['lockForUpdate', 'sharedLock'], true),
+        ) !== null;
     }
 
     /**

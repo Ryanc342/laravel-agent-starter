@@ -46,7 +46,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - Fix the code, not the test. Change an assertion only when the user changed the requirement, and say why.
 - Build only what the plan lists. Anything else is a new question for the user.
 - Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
-- Do not change AGENTS.md, ARCHITECTURE.md, docs/rules/, docs/golden-principles.md or check configs without the user's approval. One exception: the weekly cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 4).
+- Do not change AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs/golden-principles.md, docs/rules/, docs/prompts/ or the checks and tools (phpstan.neon, vite.config.ts, tsconfig.json, pint.json, phpunit.xml, lint/, tests/Structure/, tests/Support/, tests/Unit/Hooks/, scripts/, .claude/, .codex/, .agents/, .github/) without the user's approval, and record it in the plan's Decision Log, naming the file. One exception: the weekly cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 5).
 - Do not add or upgrade dependencies without the user's approval.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
 
@@ -61,7 +61,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 - docs/PLANS.md: how to write an ExecPlan
 - docs/exec-plans/active/: work in progress. docs/exec-plans/completed/: finished plans
 - docs/exec-plans/tech-debt.md: known debt, oldest first
-- docs/golden-principles.md: every rule, grouped in eight principles, and the check that stops each one
+- docs/golden-principles.md: every rule, grouped in nine principles, and the check that stops each one
 - docs/QUALITY.md: quality grade per domain
 - docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
 - docs/reference/tasks/: the reference feature
@@ -72,6 +72,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
 - Playwright MCP (`playwright`): open pages in its own browser. Never use the user's Chrome.
 - Subagents: `explorer` (read-only lookups, small model) and `reviewer` (fresh context, read-only).
+- Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back a missing step (a plan, docs/QUALITY.md, the user's approval, a passing `composer check`). Do the step.
 
 ## Code Review Rules
 

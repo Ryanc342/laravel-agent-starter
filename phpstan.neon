@@ -13,6 +13,7 @@ rules:
     - Lint\PHPStan\ClassShapeRule
     - Lint\PHPStan\CompanionFilesRule
     - Lint\PHPStan\ConditionsLiveInModelsRule
+    - Lint\PHPStan\ControllerInputRule
     - Lint\PHPStan\ModelScopesRule
     - Lint\PHPStan\PagePropsUseResourcesRule
     - Lint\PHPStan\TraitPlacementRule
@@ -129,6 +130,12 @@ parameters:
             errorTip: 'Wrap the external service in app/Integrations/{Service}.php and call it from an Action. See ARCHITECTURE.md.'
             allowIn:
                 - app/Integrations/*
+        -
+            namespace:
+                - 'Illuminate\Contracts\Events\Dispatcher'
+                - 'Illuminate\Events\Dispatcher'
+            message: 'no events or listeners'
+            errorTip: 'Do the work in the Action, and call another Action from it when a second step is needed. Events and listeners hide who does what. See docs/rules/actions.md.'
 
     disallowedMethodCalls:
         -
@@ -182,6 +189,12 @@ parameters:
             method:
                 - 'Illuminate\Database\Eloquent\Model::toArray()'
                 - 'Illuminate\Database\Eloquent\Model::attributesToArray()'
+                - 'Illuminate\Database\Eloquent\Model::relationsToArray()'
+                - 'Illuminate\Database\Eloquent\Model::getAttributes()'
+                - 'Illuminate\Database\Eloquent\Model::getOriginal()'
+                - 'Illuminate\Database\Eloquent\Model::getRawOriginal()'
+                - 'Illuminate\Database\Eloquent\Model::toJson()'
+                - 'Illuminate\Database\Eloquent\Model::jsonSerialize()'
             message: 'list each field by name'
             errorTip: 'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.'
             allowExceptIn:
@@ -195,6 +208,18 @@ parameters:
             message: 'actions do not ask for permission again'
             errorTip: 'The controller authorizes once with Gate::authorize(). A business state the Action needs is checked with a model method and ValidationException. See docs/rules/actions.md.'
             allowExceptIn:
+                - app/Actions/*
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Builder::lockForUpdate()'
+                - 'Illuminate\Database\Eloquent\Builder::sharedLock()'
+                - 'Illuminate\Database\Eloquent\Builder::lock()'
+                - 'Illuminate\Database\Query\Builder::lockForUpdate()'
+                - 'Illuminate\Database\Query\Builder::sharedLock()'
+                - 'Illuminate\Database\Query\Builder::lock()'
+            message: 'rows are locked only in an Action'
+            errorTip: 'Lock inside the Action that writes, in its DB::transaction(), and test the lock in tests/Feature/{Domain}/{Action}LockTest.php. Pages and Actions that only read never lock. See docs/rules/tests.md, Row locks.'
+            allowIn:
                 - app/Actions/*
         -
             method:
@@ -231,7 +256,7 @@ parameters:
                 - 'App\Enums\*::from()'
                 - 'App\Enums\*::tryFrom()'
             message: 'turn input into an enum only where input arrives'
-            errorTip: 'FormRequests, Actions and console commands may call from() on input. In a controller use $request->enum(). To get one enum from another, call a method on the enum (for example $role->locationType()); never rely on two enums sharing the same values.'
+            errorTip: 'FormRequests, Actions and console commands may call from() on input. In a controller, add a method to the FormRequest that calls $this->enum() (for example $request->status()). To get one enum from another, call a method on the enum (for example $role->locationType()); never rely on two enums sharing the same values.'
             allowIn:
                 - app/Enums/*
                 - app/Http/Requests/*
@@ -277,6 +302,47 @@ parameters:
             allowIn:
                 - app/Models/*
                 - database/*
+        -
+            method:
+                - 'Illuminate\Database\Eloquent\Builder::lockForUpdate()'
+                - 'Illuminate\Database\Eloquent\Builder::sharedLock()'
+                - 'Illuminate\Database\Eloquent\Builder::lock()'
+            message: 'rows are locked only in an Action'
+            errorTip: 'Lock inside the Action that writes, in its DB::transaction(), and test the lock in tests/Feature/{Domain}/{Action}LockTest.php. Pages and Actions that only read never lock. See docs/rules/tests.md, Row locks.'
+            allowIn:
+                - app/Actions/*
+        -
+            method:
+                - 'Illuminate\Support\Facades\Event::*()'
+                - 'Illuminate\Database\Eloquent\Model::observe()'
+                - 'Illuminate\Database\Eloquent\Model::retrieved()'
+                - 'Illuminate\Database\Eloquent\Model::saving()'
+                - 'Illuminate\Database\Eloquent\Model::saved()'
+                - 'Illuminate\Database\Eloquent\Model::creating()'
+                - 'Illuminate\Database\Eloquent\Model::created()'
+                - 'Illuminate\Database\Eloquent\Model::updating()'
+                - 'Illuminate\Database\Eloquent\Model::updated()'
+                - 'Illuminate\Database\Eloquent\Model::deleting()'
+                - 'Illuminate\Database\Eloquent\Model::deleted()'
+                - 'Illuminate\Database\Eloquent\Model::replicating()'
+                - 'App\Models\*::retrieved()'
+                - 'App\Models\*::saving()'
+                - 'App\Models\*::saved()'
+                - 'App\Models\*::creating()'
+                - 'App\Models\*::created()'
+                - 'App\Models\*::updating()'
+                - 'App\Models\*::updated()'
+                - 'App\Models\*::deleting()'
+                - 'App\Models\*::deleted()'
+                - 'App\Models\*::replicating()'
+                - 'App\Models\*::restoring()'
+                - 'App\Models\*::restored()'
+                - 'App\Models\*::trashed()'
+                - 'App\Models\*::forceDeleting()'
+                - 'App\Models\*::forceDeleted()'
+                - 'App\Models\*::observe()'
+            message: 'no events or listeners'
+            errorTip: 'Do the work in the Action, and call another Action from it when a second step is needed. Events and listeners hide who does what. See docs/rules/actions.md.'
 
     disallowedFunctionCalls:
         -
@@ -297,3 +363,18 @@ parameters:
             errorTip: 'Create app/Http/Requests/{Domain}/{Verb}{Model}Request.php with the rules and type-hint it in the controller method. See docs/rules/form-requests.md.'
             allowIn:
                 - app/Http/Fortify/*
+        -
+            function:
+                - 'event()'
+            message: 'no events or listeners'
+            errorTip: 'Do the work in the Action, and call another Action from it when a second step is needed. Events and listeners hide who does what. See docs/rules/actions.md.'
+        -
+            function:
+                - 'number_format()'
+                - 'round()'
+                - 'floor()'
+                - 'ceil()'
+            message: 'money and numbers are not rounded or formatted by hand'
+            errorTip: 'Calculate money with Brick\Math\BigDecimal and its RoundingMode, store integer cents, and let React format the display in resources/js/lib/format.ts with Intl. See docs/golden-principles.md, principle 6.'
+            allowIn:
+                - database/*
