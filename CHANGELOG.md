@@ -2,6 +2,23 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.8.0] - 2026-11-01
+
+From the round 1.5 weekly cleanup: eight experiments found the same template problems (13 kinds). Each one is fixed here, or the rule is worded so it no longer reads as broken. Six commits come from the experiments' own cleanup fixes.
+
+### Changed
+
+- Notifications: the list is paginated (20 per page) with the new `components/shared/pagination.tsx`. "Mark all as read" is shown from `can.mark_all_read` (the Policy and `User::hasUnreadNotifications()`), not from React's unread count; with nothing unread the Action refuses, and it runs in one transaction. "Newest first" is written once, in the `listOrder()` scope.
+- Reference Tasks: the list is paginated, and the bulk button is shown from `can.complete_overdue` (`Task::hasOverdueFor()`) instead of `overdueCount > 0`. `CompleteOverdueTasks` refuses when nothing is overdue and runs in one transaction. `TaskButtonsTest` checks the page's button too. The `docs/rules/controllers.md` read example pages its list.
+- The account components (two-factor, passkeys, delete user, appearance tabs) moved to `components/users/`.
+- "Email still needs verifying" is a `User` method.
+- Rule wording in docs/golden-principles.md and docs/rules/: the owned-record rule is for ids picked in a form (a record in the URL is the Policy's, 403); only a write endpoint that receives input needs a FormRequest; `min`, `max` and `step` are allowed HTML attributes, and keeping submit disabled until a code is complete is display; the appearance setting is a browser display preference, not business options; the starter kit's layout and general components stay at the components root.
+
+### Fixed
+
+- The settings redirect route is named.
+- The settings endpoints are tested for guests and invalid input.
+
 ## [2.7.0] - 2026-11-01
 
 From the first round of the model experiment: the in-session reviewer reported "No P0/P1 findings" in every experiment, yet a later review found a broken `[review]` rule in eight of ten. Half of them were outside the reviewer's short list of P1 kinds; the other half were on it and missed.

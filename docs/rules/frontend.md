@@ -36,12 +36,13 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 
 - Use Inertia's `<Form>` component with Wayfinder: `<Form {...TaskController.store.form()}>`.
 - Never hard-code URLs. Import routes from `@/routes/...` or controller actions from `@/actions/...`.
-- Show server errors with `<InputError message={errors.field} />`. Do not duplicate server validation in React beyond simple HTML attributes (`required`, `maxLength`).
+- Show server errors with `<InputError message={errors.field} />`. Do not duplicate server validation in React beyond simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code) is display, not validation.
+- Select options come from the list the backend sends. Display preferences kept in the browser (the appearance setting) are not business options.
 
 ## Files and boundaries
 
 - Page: `resources/js/pages/{domain}/{page}.tsx` (matches `Inertia::render('{domain}/{page}')`).
-- Domain components: `resources/js/components/{domain}/`. Components used by several domains: `resources/js/components/shared/`.
+- Domain components: `resources/js/components/{domain}/`. Components used by several domains: `resources/js/components/shared/`. The starter kit's layout and general components (app-shell, heading, input-error) stay at the components root.
 - A domain's components never import another domain's components, and nothing imports a page. oxlint enforces this (`ezdev/component-boundaries`, and `import/no-cycle` for circular imports).
 - Before creating a component, hook or page section, look for an existing one in the shared folders (`components`, `components/ui`, `components/shared`, `hooks`) **and in the other pages** (`grep -rn` in `resources/js/pages` for the same fields, table headers or labels).
 - A UI block that appears on a second page becomes one shared component, and every page uses it. Example: `docs/reference/tasks/resources/js/components/tasks/task-fields.tsx`, used by the create and the edit form.

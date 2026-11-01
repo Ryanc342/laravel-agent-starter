@@ -36,7 +36,7 @@ Each rule says who stops it:
 - `[review]` A bulk operation loops over the single-record Action instead of copying its checks and writes.
 - `[review]` Writes that must succeed together run in one `DB::transaction()`.
 - `[review]` A controller method authorizes, calls one Action (or runs a scoped query into a Resource) and returns. No business `if`.
-- `[review]` Every list page is paginated.
+- `[review]` Every list page is paginated (`paginate(20)` and `<Pagination>` from components/shared).
 - `[PHPStan]` Controllers have only the standard methods (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`, `__invoke`). Any other operation gets its own controller.
 - `[PHPStan]` Only Actions write: `save`, `update`, `delete`, `create`, `notify()`, `markAsRead()` and the rest are rejected everywhere else (seeders and factories in database/ excepted).
 - `[PHPStan]` Model scopes use the `#[Scope]` attribute, not `scopeFoo()` methods.
@@ -59,15 +59,15 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[Structure]` Each Resource has a TypeScript type with the same fields, marked "Matches app/Http/Resources/{Model}Resource.php".
 - `[oxlint]` No UI library besides components/ui (shadcn): importing another UI library in React code is rejected.
 - `[review]` No UI library that comes in through CSS only (a Tailwind plugin such as daisyui, Bootstrap's stylesheet).
-- `[review]` Select options come from the list the backend sends.
-- `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`).
+- `[review]` Select options come from the list the backend sends. Display preferences kept in the browser (the appearance setting) are not business options.
+- `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code) is display.
 - `[review]` A business rule React decides under names the checks do not know.
 - `[review]` A `can.*` flag includes the business state, so a button shows exactly when pressing it succeeds. A reason shown for a refusal comes from the Resource, never worked out from `!can.*` or a mix of flags.
 
 ## 5. Input is checked once, at the edge
 
-- `[review]` Every write endpoint takes a FormRequest.
-- `[review]` A record the user must own is looked up through its owner scope in the Action, with one message for "missing" and "not yours"; the FormRequest has no `exists` rule for it.
+- `[review]` Every write endpoint that receives input takes a FormRequest. An endpoint with no input (mark all as read) needs none.
+- `[review]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours"; the FormRequest has no `exists` rule for it. A record in the URL (route model binding) is checked by the Policy (403).
 - `[PHPStan]` `$request->validate()`, `Validator::make()` and `validator()` are rejected outside FormRequests (Fortify adapters excepted).
 - `[PHPStan]` A FormRequest checks the shape of the input only: no database queries in FormRequests or app/Concerns, apart from the `exists` and `unique` rules.
 - `[PHPStan]` FormRequests have no `authorize()`. Permission is checked in the controller.
@@ -88,7 +88,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[PHPStan]` Every model has a factory in database/factories with the states tests need.
 - `[review]` Actions live in `app/Actions/{Domain}/{Verb}{Noun}.php`.
 - `[review]` One route file per domain. Every route is named and uses route model binding; fixed paths come before wildcard paths.
-- `[review]` Pages live in `resources/js/pages/{domain}/`, components in `resources/js/components/{domain}/` or `components/shared/`. components/ui is shadcn's code, which the linter skips; it never imports a domain component.
+- `[review]` Pages live in `resources/js/pages/{domain}/`, components in `resources/js/components/{domain}/` or `components/shared/`. The starter kit's layout and general components (app-shell, heading, input-error) stay at the components root. components/ui is shadcn's code, which the linter skips; it never imports a domain component.
 - `[oxlint]` Domain components never import another domain's components; components/shared never imports domain components; nothing imports a page; no circular imports.
 - `[Structure]` AGENTS.md stays under 100 lines and every path it names exists. Every ExecPlan has the sections docs/PLANS.md requires.
 

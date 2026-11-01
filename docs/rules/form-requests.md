@@ -11,7 +11,7 @@ It does **not** check business state. Those checks go in the Action. PHPStan rej
 
 `exists` only means "this record exists", not "this record is eligible". Do not chain business conditions onto `Rule::exists` or `Rule::unique`: active or expired state, ownership and remaining stock belong in the Action (or the Policy for who may act). This also applies to shared validation traits.
 
-For a record the user must own (a customer picked in a form), leave out `exists`: the Action looks it up through the owner scope and gives one message for "missing" and "not yours", so nobody can find out which ids belong to other users.
+For a record the user must own (a customer picked in a form), leave out `exists`: the Action looks it up through the owner scope and gives one message for "missing" and "not yours", so nobody can find out which ids belong to other users. A record in the URL (`/invoices/{invoice}`) is different: route model binding finds it and the Policy answers 403.
 
 | Check                                   | Where                                         |
 | --------------------------------------- | --------------------------------------------- |
