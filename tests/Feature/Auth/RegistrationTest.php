@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Fortify\Features;
 
 uses(RefreshDatabase::class);
@@ -26,3 +28,25 @@ test('new users can register', function () {
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 });
+
+test('invalid registration creates no account or notification', function (array $input, array $fields) {
+    User::factory()->create(['email' => 'existing@example.test']);
+    Notification::fake();
+
+    $this->post(route('register.store'), array_replace([
+        'name' => 'New User',
+        'email' => 'new@example.test',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ], $input))->assertSessionHasErrors($fields);
+
+    $this->assertGuest();
+    $this->assertDatabaseCount('users', 1);
+    Notification::assertNothingSent();
+})->with([
+    'missing fields' => [['name' => '', 'email' => '', 'password' => ''], ['name', 'email', 'password']],
+    'invalid email' => [['email' => 'invalid'], ['email']],
+    'duplicate email' => [['email' => 'existing@example.test'], ['email']],
+    'short password' => [['password' => 'short', 'password_confirmation' => 'short'], ['password']],
+    'unconfirmed password' => [['password_confirmation' => 'different'], ['password']],
+]);
