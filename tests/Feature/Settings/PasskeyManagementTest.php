@@ -163,3 +163,21 @@ test('missing passkey login credential does not authenticate a session', functio
     $this->assertGuest();
     $this->assertDatabaseCount('passkeys', 0);
 });
+
+test('a passkey signature from another key is refused, not a server error', function () {
+    $user = User::factory()->create();
+    $authenticator = new VirtualPasskey;
+    $passkey = passkeyRegisteredFor($user, $authenticator);
+    $options = $this->withSession(['auth.password_confirmed_at' => null])
+        ->getJson(route('passkey.confirm-options'))->assertOk()->json('options');
+
+    $credential = $authenticator->assertion($options, $user->getPasskeyUserHandle());
+    $credential['response']['signature'] = (new VirtualPasskey)->assertion($options, $user->getPasskeyUserHandle())['response']['signature'];
+
+    $this->postJson(route('passkey.confirm'), ['credential' => $credential])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('credential')
+        ->assertSessionMissing('auth.password_confirmed_at');
+
+    expect($passkey->refresh()->last_used_at)->toBeNull();
+});

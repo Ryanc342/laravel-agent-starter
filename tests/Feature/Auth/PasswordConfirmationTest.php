@@ -47,3 +47,19 @@ test('invalid password does not confirm the session', function (string $password
         ->assertSessionHasErrors('password')
         ->assertSessionMissing('auth.password_confirmed_at');
 })->with(['wrong-password', '']);
+
+test('the password status endpoint says whether the password was confirmed recently', function () {
+    $this->getJson(route('password.confirmation'))->assertUnauthorized();
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->getJson(route('password.confirmation'))
+        ->assertOk()
+        ->assertJson(['confirmed' => false]);
+
+    $this->withSession(['auth.password_confirmed_at' => time()])
+        ->getJson(route('password.confirmation'))
+        ->assertOk()
+        ->assertJson(['confirmed' => true]);
+});
