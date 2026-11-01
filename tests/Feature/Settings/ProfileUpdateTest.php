@@ -109,3 +109,31 @@ test('the settings address opens the profile page', function () {
         ->get(route('settings'))
         ->assertRedirect(route('profile.edit'));
 });
+
+test('guests are redirected to the login page', function () {
+    $this->get(route('settings'))->assertRedirect(route('login'));
+    $this->get(route('profile.edit'))->assertRedirect(route('login'));
+    $this->patch(route('profile.update'))->assertRedirect(route('login'));
+    $this->delete(route('profile.destroy'))->assertRedirect(route('login'));
+});
+
+test('invalid profile input is rejected and changes nothing', function (array $input, string $field) {
+    $user = User::factory()->create(['name' => 'Before', 'email' => 'before@example.com']);
+    User::factory()->create(['email' => 'taken@example.com']);
+
+    $this->actingAs($user)
+        ->from(route('profile.edit'))
+        ->patch(route('profile.update'), $input)
+        ->assertSessionHasErrors($field)
+        ->assertRedirect(route('profile.edit'));
+
+    expect($user->refresh())
+        ->name->toBe('Before')
+        ->email->toBe('before@example.com');
+})->with([
+    'no name' => [['name' => '', 'email' => 'new@example.com'], 'name'],
+    'name too long' => [['name' => str_repeat('a', 256), 'email' => 'new@example.com'], 'name'],
+    'no email' => [['name' => 'After', 'email' => ''], 'email'],
+    'not an email' => [['name' => 'After', 'email' => 'not-an-email'], 'email'],
+    'email of another account' => [['name' => 'After', 'email' => 'taken@example.com'], 'email'],
+]);

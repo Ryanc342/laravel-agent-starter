@@ -105,3 +105,24 @@ test('correct password must be provided to update password', function () {
         ->assertSessionHasErrors('current_password')
         ->assertRedirect(route('security.edit'));
 });
+
+test('guests are redirected to the login page', function () {
+    $this->get(route('security.edit'))->assertRedirect(route('login'));
+    $this->put(route('user-password.update'))->assertRedirect(route('login'));
+});
+
+test('a new password that breaks a rule is rejected and changes nothing', function (array $input) {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from(route('security.edit'))
+        ->put(route('user-password.update'), ['current_password' => 'password', ...$input])
+        ->assertSessionHasErrors('password')
+        ->assertRedirect(route('security.edit'));
+
+    expect(Hash::check('password', $user->refresh()->password))->toBeTrue();
+})->with([
+    'no password' => [['password' => '', 'password_confirmation' => '']],
+    'too short' => [['password' => 'short', 'password_confirmation' => 'short']],
+    'not confirmed' => [['password' => 'new-password', 'password_confirmation' => 'other-password']],
+]);

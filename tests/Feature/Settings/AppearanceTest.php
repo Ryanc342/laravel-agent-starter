@@ -15,3 +15,7 @@ test('an unknown appearance cookie falls back to the system setting', function (
         ->get(route('home'))
         ->assertViewHas('appearance', 'system');
 });
+
+test('guests are redirected to the login page', function () {
+    $this->get(route('appearance.edit'))->assertRedirect(route('login'));
+});
