@@ -5,6 +5,7 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -57,3 +58,35 @@ test('the mark as read button is shown exactly when marking as read succeeds', f
 
     expect($shown)->toBe($response->isRedirect() && ! session()->has('errors'));
 })->with('who and which notification');
+
+dataset('whose notifications', [
+    'no notifications' => [false, false, false],
+    'only read notifications' => [false, true, false],
+    'an unread notification' => [true, false, false],
+    'an unread and a read notification' => [true, true, false],
+    'only another user\'s unread notification' => [false, false, true],
+]);
+
+test('the mark all as read button is shown exactly when the user has unread notifications', function (bool $ownUnread, bool $ownRead, bool $otherUnread) {
+    $user = User::factory()->create();
+
+    if ($ownUnread) {
+        Notification::factory()->for($user, 'notifiable')->create();
+    }
+
+    if ($ownRead) {
+        Notification::factory()->read()->for($user, 'notifiable')->create();
+    }
+
+    if ($otherUnread) {
+        Notification::factory()->create();
+    }
+
+    $this->actingAs($user)
+        ->get(route('notifications.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('can.mark_all_read', $ownUnread));
+
+    $this->post(route('notifications.read-all.store'))->assertSessionHasNoErrors();
+
+    expect(Notification::query()->ownedBy($user)->unread()->count())->toBe(0);
+})->with('whose notifications');

@@ -1,4 +1,4 @@
-import { Form, Head, usePage } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import AllNotificationsReadController from '@/actions/App/Http/Controllers/AllNotificationsReadController';
 import Heading from '@/components/heading';
 import NotificationRow from '@/components/notifications/notification-row';
@@ -9,13 +9,15 @@ import type { ResourceCollection } from '@/types/resource';
 
 type NotificationsPageProps = {
     notifications: ResourceCollection<AppNotification>;
+    can: {
+        mark_all_read: boolean;
+    };
 };
 
 export default function Notifications({
     notifications,
+    can,
 }: NotificationsPageProps) {
-    const { unreadNotifications } = usePage().props;
-
     return (
         <>
             <Head title="Notifications" />
@@ -27,7 +29,7 @@ export default function Notifications({
                         description="Security alerts and other messages about your account"
                     />
 
-                    {unreadNotifications > 0 && (
+                    {can.mark_all_read && (
                         <Form
                             {...AllNotificationsReadController.store.form()}
                             options={{ preserveScroll: true }}

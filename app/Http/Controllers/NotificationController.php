@@ -18,14 +18,19 @@ class NotificationController extends Controller
     {
         Gate::authorize('viewAny', Notification::class);
 
+        $user = $request->user();
+
         $notifications = Notification::query()
-            ->ownedBy($request->user())
+            ->ownedBy($user)
             ->listOrder()
             ->take(50)
             ->get();
 
         return Inertia::render('notifications/index', [
             'notifications' => NotificationResource::collection($notifications)->response($request)->getData(true),
+            'can' => [
+                'mark_all_read' => $user->can('markAllRead', Notification::class) && $user->hasUnreadNotifications(),
+            ],
         ]);
     }
 }

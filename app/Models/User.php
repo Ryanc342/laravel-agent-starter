@@ -47,6 +47,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Whether any of this user's notifications is unread. Asks the scopes, so the rule is written once.
+     */
+    public function hasUnreadNotifications(): bool
+    {
+        return Notification::query()->ownedBy($this)->unread()->exists();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
