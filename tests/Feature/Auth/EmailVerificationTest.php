@@ -73,7 +73,8 @@ test('email is not verified with invalid user id', function () {
     $verificationUrl = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => 123, 'hash' => sha1($user->email)],
+        // Another user's id: ids keep counting up on MySQL, so a fixed number could be this user's.
+        ['id' => User::factory()->create()->id, 'hash' => sha1($user->email)],
     );
 
     $this->actingAs($user)->get($verificationUrl);

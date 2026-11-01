@@ -5,7 +5,7 @@ Details live in the files it points to; read them when the task needs them.
 
 ## Commands
 
-- `composer check`: every check (Pint, PHPStan with Ezdev's rules, oxlint with Ezdev's rules, tsc, Pest). It must pass before you say "done".
+- `composer check`: every check (Pint, PHPStan with Ezdev's rules, oxlint with Ezdev's rules, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running.
 - `php artisan test --compact --filter=<Name>`: one test.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
 - `composer check:reference`: the reference feature still passes every check. Run it after changing rules or tooling.

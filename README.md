@@ -15,7 +15,7 @@ In-app notifications are built in (a notifications page and an unread badge in t
 
 1. On GitHub, click **Use this template**, create the repository and clone it.
 2. Start MySQL. Copy `.env.example` to `.env` and set `DB_DATABASE` to the project name in snake_case (and `DB_USERNAME` and `DB_PASSWORD` if your MySQL needs them).
-3. Run `composer setup`: it installs from the lock files, creates the database, migrates and builds. Then `composer check` must pass.
+3. Run `composer setup`: it installs from the lock files, creates the database, migrates and builds. Then `composer check` must pass (MySQL running; the tests create their own `<database>_test`).
 4. Open it in Codex or Claude Code and describe what you need in business terms.
 
 The lock files, the Laravel Boost setup and the skills are already committed. How the template was installed and proven on a real machine (every check passes and catches the violations it should) is recorded in `docs/exec-plans/completed/first-run.md`.
@@ -51,7 +51,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 | Command                    | Does                                                                  |
 | -------------------------- | --------------------------------------------------------------------- |
-| `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Pest (Feature, Structure) |
+| `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Feature, Structure) |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
 | `composer lint`            | Format PHP                                                            |
 | `npm run check:fix`        | Format and lint the frontend                                          |

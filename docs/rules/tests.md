@@ -12,9 +12,13 @@ Write tests with Pest. Follow `docs/reference/tasks/tests/Feature/Tasks/` as the
 | `tests/Feature/{Domain}/{Model}ControllerTest.php` | Each endpoint: guest redirected, owner allowed, other user forbidden (403), invalid input rejected, success redirects |
 | `tests/Feature/{Domain}/{Model}ButtonsTest.php`    | Consistency: each `can.*` button and each form's choices agree with what the endpoint accepts                         |
 
-Tests run on an in-memory SQLite database (phpunit.xml); the app runs on MySQL. Write queries with the query builder; raw SQL (`orderByRaw`, `selectRaw`) must work on both.
+Tests run on MySQL, like the app, in a database of their own: the app's database name plus `_test`, created on the first run (tests/bootstrap.php). So a row lock can be tested too: open a second connection to the same database and check that it waits. MySQL must be running for `composer check`.
 
 PHPStan checks that every Action has its test file and every Resource with `can.*` has its buttons test (lint/phpstan/CompanionFilesRule.php). `lint/` and `tests/Structure/` belong to the template. Do not edit them without the user's approval.
+
+## Frontend tests
+
+React only displays, so pages and components get no tests. Two kinds of frontend code do: a hook with timing or ordering logic (wait before asking the server, the latest answer wins, retry) and every money or date formatter in `resources/js/lib`. They get a Vitest test in `tests/js/`, mirroring the path (`tests/js/hooks/use-network-error-toast.test.tsx`). Import from `vite-plus/test`, render a hook with `renderHook` from `@testing-library/react`. `npm test` runs them, and `composer check` includes it.
 
 ## Consistency tests
 
@@ -31,6 +35,7 @@ These values are few (roles, statuses, active or not, own or not), so list every
 - Name helper functions after the model (`taskCase()`, `notificationButtonsFor()`). Pest helpers are global, so two helpers with the same name stop the whole test run.
 - One `test('...')` per rule. The name describes the rule in plain words: `test('a completed task cannot be completed again', ...)`.
 - Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand.
+- Never mock a model to fake a state. If no factory state or Action can create the state, the code for it should not exist yet (docs/golden-principles.md, principle 6).
 - Check values with `expect()`: `expect($task->refresh()->status)->toBe(TaskStatus::Done)`.
 - A rule that must refuse: `->throws(ValidationException::class)` on the test, or `expect(fn () => ...)->toThrow(...)` when you still check the database afterwards.
 - Assert the outcome in the database (`$this->assertDatabaseHas`, `$task->refresh()`), not just the response code.
