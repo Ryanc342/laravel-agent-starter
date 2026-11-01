@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.8.1] - 2026-11-01
+
+### Changed
+
+- The ResourceTypesTest row left docs/exec-plans/tech-debt.md. It was not debt an AI could fix: four experiments tried Wayfinder's untagged dev-next branch to replace the test and found wrong types, and two switched to it anyway. docs/rules/frontend.md now says the test stays until a tagged Wayfinder release generates page prop types, and docs/prompts/upgrade.md checks for that release.
+
 ## [2.8.0] - 2026-11-01
 
 From the round 1.5 weekly cleanup: eight experiments found the same template problems (13 kinds). Each one is fixed here, or the rule is worded so it no longer reads as broken. Six commits come from the experiments' own cleanup fixes.
