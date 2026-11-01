@@ -14,10 +14,11 @@ In-app notifications are built in (a notifications page and an unread badge in t
 ## Start a new project
 
 1. On GitHub, click **Use this template**, create the repository and clone it.
-2. Open it in Codex or Claude Code and say: "Do the first-run plan." The AI follows `docs/exec-plans/completed/first-run.md`: installs everything, sets up Laravel Boost, runs every check, and proves the checks catch violations.
-3. Describe what you need in business terms.
+2. Start MySQL. Copy `.env.example` to `.env` and set `DB_DATABASE` to the project name in snake_case (and `DB_USERNAME` and `DB_PASSWORD` if your MySQL needs them).
+3. Run `composer setup`: it installs from the lock files, creates the database, migrates and builds. Then `composer check` must pass.
+4. Open it in Codex or Claude Code and describe what you need in business terms.
 
-To set up by hand instead: `composer setup`, then `php artisan boost:install` (Claude Code and Codex, MCP and skills, no AI guidelines), then `composer check`.
+The lock files, the Laravel Boost setup and the skills are already committed. How the template was installed and proven on a real machine (every check passes and catches the violations it should) is recorded in `docs/exec-plans/completed/first-run.md`.
 
 ## What happens when you ask for a feature
 

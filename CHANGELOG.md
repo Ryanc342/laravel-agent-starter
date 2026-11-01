@@ -2,6 +2,25 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.6.0] - 2026-11-01
+
+The template has run on a real machine: the first-run plan passed every milestone and is in `docs/exec-plans/completed/`.
+
+### Added
+
+- `composer.lock`, `package-lock.json`, `boost.json` and the Boost skills for Claude Code and Codex.
+
+### Changed
+
+- The app runs on MySQL: `.env.example` uses `DB_CONNECTION=mysql` and the database `ezdev_template`. A new project sets `DB_DATABASE` to its own name; `composer setup` (`php artisan migrate --force`) creates the database, and `scripts/worktree-up` gives each worktree its own (`<database>_<name>`). Tests still run on SQLite in memory (phpunit.xml); raw SQL must work on both (docs/rules/tests.md).
+- CI starts a MySQL 8.4 service for `composer setup`.
+- README: a new project is set up with `composer setup`; the first-run plan is the record of the template's own first run.
+
+### Fixed
+
+- The forbidden-call rules also apply when the receiver may be null, such as `$request->user()->update()` (`lint/phpstan/DisallowedTypeResolver.php`). Found by the first run's deliberate violations.
+- `PasskeyResource` declares its model with `@mixin`, so PHPStan knows its fields.
+
 ## [2.5.1] - 2026-11-01
 
 Fixes for running several copies of the template at the same time.

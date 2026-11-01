@@ -31,7 +31,7 @@ else
 fi
 
 # Own URL, port (SERVER_PORT is what composer dev serves on) and session
-# cookie; own database: a separate SQLite file, or <database>_<name> for MySQL.
+# cookie; own database: <database>_<name> for MySQL, or a separate SQLite file.
 php -r '
     [$file, $port, $name] = [".env", $argv[1], $argv[2]];
     $env = file_get_contents($file);
@@ -47,12 +47,14 @@ php -r '
     if (preg_match("/^DB_CONNECTION=mysql/m", $env) && preg_match("/^DB_DATABASE=(.*)$/m", $env, $m)) {
         $database = trim($m[1]) . "_" . preg_replace("/[^A-Za-z0-9_]/", "_", $name);
         $env = preg_replace("/^DB_DATABASE=.*$/m", "DB_DATABASE={$database}", $env);
-        fwrite(STDERR, "MySQL: create the database {$database} before running migrations.\n");
+        fwrite(STDERR, "MySQL database: {$database} (php artisan migrate creates it).\n");
     }
     file_put_contents($file, $env);
 ' "$port" "$name"
 
-touch database/database.sqlite
+if grep -q '^DB_CONNECTION=sqlite' .env; then
+    touch database/database.sqlite
+fi
 
 composer install --no-interaction --quiet
 if [ "$new_key" = true ]; then
