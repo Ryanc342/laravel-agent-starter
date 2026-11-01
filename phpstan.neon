@@ -14,9 +14,8 @@ parameters:
     level: 7
 
     # Rules locked by PHPStan (spaze/phpstan-disallowed-calls). Each entry says
-    # what to call instead. Never widen allowIn to make business code pass: move
-    # the code to where it belongs. Settings controllers are starter kit
-    # scaffolding (see ARCHITECTURE.md).
+    # what to call instead. Never widen allowIn to make code pass: move the code
+    # to where it belongs.
     filesRootDir: %rootDir%/../../..
 
     disallowedMethodCalls:
@@ -40,12 +39,17 @@ parameters:
                 - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::attach()'
                 - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::detach()'
                 - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::sync()'
+                - 'Illuminate\Notifications\DatabaseNotification::markAsRead()'
+                - 'Illuminate\Notifications\DatabaseNotification::markAsUnread()'
+                - 'Illuminate\Notifications\DatabaseNotificationCollection::markAsRead()'
+                - 'Illuminate\Notifications\DatabaseNotificationCollection::markAsUnread()'
+                - 'Illuminate\Notifications\Notifiable::notify()'
+                - 'Illuminate\Notifications\Notifiable::notifyNow()'
             message: 'writes belong in an Action'
             errorTip: 'Move the write into app/Actions/{Domain}/{Verb}{Noun}.php and call the Action from here. See ARCHITECTURE.md.'
             allowIn:
                 - app/Actions/*
                 - database/*
-                - app/Http/Controllers/Settings/*
 
     disallowedStaticCalls:
         -
@@ -55,6 +59,8 @@ parameters:
                 - 'App\Models\*::destroy()'
                 - 'App\Models\*::updateOrCreate()'
                 - 'App\Models\*::firstOrCreate()'
+                - 'Illuminate\Support\Facades\Notification::send()'
+                - 'Illuminate\Support\Facades\Notification::sendNow()'
             message: 'writes belong in an Action'
             errorTip: 'Move the write into app/Actions/{Domain}/{Verb}{Noun}.php and call the Action from here. See ARCHITECTURE.md.'
             allowIn:

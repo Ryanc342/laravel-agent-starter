@@ -26,15 +26,15 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - Layers, top to bottom: React, Http (Controller, FormRequest, Resource), Actions and Policies, Models, Enums. A layer may use the layers below it, never the ones above.
 - Every business rule has exactly one owner (table in ARCHITECTURE.md). Every other place calls it.
 - External services enter only through app/Integrations, called only from Actions.
-- New features copy the structure of docs/reference/tasks/. Never copy its Task domain.
-- The starter kit's auth and settings code (app/Actions/Fortify, app/Http/Controllers/Settings) is scaffolding. Do not imitate it.
+- New features copy the structure of docs/reference/tasks/ and of the notifications feature in app/ (map in ARCHITECTURE.md). Never copy their domains.
+- The starter kit's auth and settings code follows the same rules (app/Actions/Users, app/Policies/UserPolicy.php, app/Http/Fortify, app/Http/Controllers/Settings).
 
 ## Rules by folder: read before editing
 
 | Editing                                                   | Read first                    |
 | --------------------------------------------------------- | ----------------------------- |
 | app/Actions/**                                            | docs/rules/actions.md         |
-| app/Http/Controllers/**, routes/**                        | docs/rules/controllers.md     |
+| app/Http/Controllers/**, app/Http/Fortify/**, routes/**   | docs/rules/controllers.md     |
 | app/Http/Requests/**                                      | docs/rules/form-requests.md   |
 | app/Models/**, app/Enums/**, app/Policies/**, database/** | docs/rules/models.md          |
 | resources/js/**, app/Http/Resources/**                    | docs/rules/frontend.md        |

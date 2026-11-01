@@ -33,6 +33,7 @@ public function isOverdue(): bool
 - Use `#[Fillable([...])]` and `casts()`, as in `app/Models/User.php`. Cast enums, dates and money.
 - Scopes use the `#[Scope]` attribute on a protected method with a typed `Builder<self>` parameter.
 - Relationships have return types with generics (`@return BelongsTo<User, $this>`).
+- A model may extend a framework model to add scopes, as `App\Models\Notification` extends `DatabaseNotification`. Then ask its scopes, not the framework's instance methods that compare the same column again (`unread()`).
 - Models never call Actions, Policies or HTTP classes (Arch test).
 
 ## Policies

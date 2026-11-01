@@ -17,6 +17,8 @@ A layer may use the layers below it, never the ones above it. Two side folders:
 
 - `app/Integrations/`: the only entry for external services (payment, SMS, maps). Only Actions call it.
 - `app/Support/`: small helpers any layer may use (money with `Brick\Math\BigDecimal`, dates).
+- `app/Concerns/`: validation rule traits shared by FormRequests (`PasswordValidationRules`).
+- `app/Notifications/`: messages to a user (`PasswordChanged`). Only Actions send them, with `$user->notify()`.
 
 | Rule                                                                | Enforced by                           |
 | ------------------------------------------------------------------- | ------------------------------------- |
@@ -27,8 +29,10 @@ A layer may use the layers below it, never the ones above it. Two side folders:
 | Resources and FormRequests call no Actions                          | `tests/Arch/LayersTest.php`           |
 | Controllers use no integrations and no `DB` facade                  | `tests/Arch/LayersTest.php`           |
 | `Http::` only in app/Integrations; integrations only from Actions   | `tests/Arch/LayersTest.php`           |
+| Notifications use no actions, http or integrations                  | `tests/Arch/LayersTest.php`           |
 | No `*Service` or `*Repository` classes                              | `tests/Arch/LayersTest.php`           |
-| Model writes (`save`, `update`, `delete`, `create`, ...) only in Actions | `phpstan.neon` (disallowed calls) |
+| Model writes (`save`, `update`, `delete`, `create`, `markAsRead`, ...) only in Actions | `phpstan.neon` (disallowed calls) |
+| Notifications are sent (`notify()`, `Notification::send()`) only in Actions | `phpstan.neon` (disallowed calls) |
 | `Enum::from()` only where input arrives                             | `phpstan.neon` (disallowed calls)     |
 | Domain components do not import other domains' components          | `.dependency-cruiser.cjs`             |
 | Files stay under 250 lines                                          | `tests/Structure/FileSizeTest.php`    |
@@ -74,8 +78,37 @@ React <Form> (Wayfinder) -> route -> Controller
 -> React displays what it received
 ```
 
-## Scaffolding
+## Starter kit code
 
-The starter kit's own code keeps its shape and is excluded from some checks: `app/Actions/Fortify`,
-`app/Http/Controllers/Settings`, `app/Console/Commands/InstallFeaturesCommand.php`, `chisel.php`.
-Do not use it as an example. The example to copy is `docs/reference/tasks/`.
+The starter kit's auth and settings code follows the same rules, with no exceptions in any check:
+
+| Starter kit piece                                    | Where it lives                    | Rule it shows                          |
+| ---------------------------------------------------- | --------------------------------- | -------------------------------------- |
+| Register, update profile, set password, delete account | `app/Actions/Users/`            | one write is one Action                |
+| "A changed email is unverified again"                | `UpdateProfile`                   | a business rule lives in its Action    |
+| Settings page and password reset both set a password | `UpdatePassword`, called by both  | two entry points call the same Action  |
+| Fortify's register and reset hooks                   | `app/Http/Fortify/`               | check input shape, call one Action     |
+| Profile and security pages                           | `app/Http/Controllers/Settings/`  | thin controllers                       |
+| Only the owner may change or delete an account       | `app/Policies/UserPolicy.php`     | every endpoint asks the Policy         |
+| `auth.user` on every page, the passkey list          | `UserResource`, `PasskeyResource` | React gets data only through Resources |
+| Theme cookie: light, dark or system                  | `app/Enums/Appearance.php`        | fixed values and their rule in an Enum |
+
+## Notifications: a live example
+
+In-app notifications are part of the app and follow the same rules. They show what the starter kit
+alone cannot, because it has only one record per user:
+
+| Pattern                                    | Where                                                                      |
+| ------------------------------------------ | -------------------------------------------------------------------------- |
+| Scopes; one record asks a scope            | `Notification::ownedBy()`, `unread()`; `isUnread()` uses `whereKey()->exists()` |
+| Records that belong to other users         | `NotificationPolicy::markRead()` asks `isOwnedBy()`                        |
+| Non-CRUD controller                        | `NotificationReadController` marks one notification as read               |
+| Bulk Action that reuses the single Action  | `MarkAllNotificationsRead` calls `MarkNotificationRead`                    |
+| State rule refused in the Action           | "already read" in `MarkNotificationRead`                                   |
+| `can.*` from the Policy and the model      | `NotificationResource`, `can.mark_read`                                    |
+| Button consistency test                    | `tests/Feature/Notifications/NotificationButtonsTest.php`                  |
+| Domain components                          | `resources/js/components/notifications/`                                   |
+| Notifications sent from Actions            | `CreateUser`, `UpdateProfile`, `UpdatePassword`                            |
+
+Create and edit forms, an Enum with several methods and a business limit refused with
+`ValidationException` are in `docs/reference/tasks/`. New features copy the structure of both.

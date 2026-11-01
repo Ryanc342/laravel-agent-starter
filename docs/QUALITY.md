@@ -11,4 +11,5 @@ One row per business domain. The weekly cleanup (docs/prompts/cleanup.md) update
 
 | Domain                          | Grade | Notes                                   | Last checked |
 | ------------------------------- | ----- | --------------------------------------- | ------------ |
-| Auth and settings (starter kit) | n/a   | Scaffolding, excluded from grading.     |              |
+| Users (starter kit auth and settings) | -     | Rewritten to the v2 rules. Grade it after the first `composer check`. |              |
+| Notifications                   | -     | New in 2.1.0. Grade it after the first `composer check`. |              |

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Users\DeleteUser;
+use App\Actions\Users\UpdateProfile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
@@ -9,6 +11,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,8 +22,12 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+
+        Gate::authorize('update', $user);
+
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'emailNeedsVerification' => $user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail(),
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -28,15 +35,11 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request, UpdateProfile $updateProfile): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        Gate::authorize('update', $request->user());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
+        $updateProfile->handle($request->user(), $request->validated());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
@@ -44,15 +47,17 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's profile.
+     * Delete the user's account.
      */
-    public function destroy(ProfileDeleteRequest $request): RedirectResponse
+    public function destroy(ProfileDeleteRequest $request, DeleteUser $deleteUser): RedirectResponse
     {
         $user = $request->user();
 
+        Gate::authorize('delete', $user);
+
         Auth::logout();
 
-        $user->delete();
+        $deleteUser->handle($user);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

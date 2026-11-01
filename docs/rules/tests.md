@@ -18,7 +18,7 @@ Write tests with Pest. Follow `docs/reference/tasks/tests/Feature/Tasks/` as the
 
 When the same rule is used in two places, one test checks that both give the same answer for every case. Write one for:
 
-- **Each `can.*` button:** for every combination of user and record (own or another user's, each status), the button is shown exactly when pressing it succeeds. See `docs/reference/tasks/tests/Feature/Tasks/TaskButtonsTest.php`.
+- **Each `can.*` button:** for every combination of user and record (own or another user's, each status), the button is shown exactly when pressing it succeeds. See `docs/reference/tasks/tests/Feature/Tasks/TaskButtonsTest.php` and `tests/Feature/Notifications/NotificationButtonsTest.php`.
 - **Each form's choices:** create one record per case (right type and active, wrong type, inactive, ...), then for each record check that saving it succeeds exactly when it is in the list the page receives.
 
 These values are few (roles, statuses, active or not, own or not), so list every combination with a Pest dataset instead of picking examples.

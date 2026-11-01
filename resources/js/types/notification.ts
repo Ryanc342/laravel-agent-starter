@@ -1,0 +1,14 @@
+/**
+ * Matches app/Http/Resources/NotificationResource.php. Change both together.
+ * Named AppNotification so it does not hide the browser's Notification type.
+ */
+export type AppNotification = {
+    id: string;
+    message: string;
+    created_at: string | null;
+    created_at_diff: string | null;
+    is_unread: boolean;
+    can: {
+        mark_read: boolean;
+    };
+};

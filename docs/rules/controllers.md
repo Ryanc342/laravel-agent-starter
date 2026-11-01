@@ -1,6 +1,6 @@
 # Controllers and routes
 
-Applies to `app/Http/Controllers/**` and `routes/**`.
+Applies to `app/Http/Controllers/**`, `routes/**` and the Fortify adapters in `app/Http/Fortify/**` (they check input shape and call one Action, like a controller; Fortify's routes decide who may call them).
 
 ## A controller method does only three things
 

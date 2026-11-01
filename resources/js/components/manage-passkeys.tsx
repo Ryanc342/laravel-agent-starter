@@ -5,10 +5,11 @@ import Heading from '@/components/heading';
 import PasskeyItem from '@/components/passkey-item';
 import PasskeyRegistration from '@/components/passkey-register';
 import type { Passkey } from '@/types/auth';
+import type { ResourceCollection } from '@/types/resource';
 
 export type Props = {
     canManagePasskeys?: boolean;
-    passkeys?: Passkey[];
+    passkeys?: ResourceCollection<Passkey>;
 };
 
 const EmptyState = () => {
@@ -26,7 +27,7 @@ const EmptyState = () => {
 };
 
 export default function ManagePasskeys(props: Props) {
-    const passkeys = props.passkeys ?? [];
+    const passkeys = props.passkeys?.data ?? [];
 
     const handleDelete = (id: number, onError: () => void) => {
         router.delete(destroy.url(id), {

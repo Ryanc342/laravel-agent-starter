@@ -4,15 +4,9 @@
 | Architecture rules (ARCHITECTURE.md). Each test name says what to do instead,
 | because Pest prints the name when a rule breaks.
 |
-| Starter kit scaffolding keeps its own shape and is ignored here. Do not add new
-| entries to this list to make a check pass; change the code instead.
+| Every class in app/ follows these rules, the starter kit's auth and settings
+| code included. Never add ->ignoring() to make a check pass; change the code.
 */
-
-$scaffolding = [
-    'App\Actions\Fortify',
-    'App\Http\Controllers\Settings',
-    'App\Console\Commands\InstallFeaturesCommand',
-];
 
 $http = [
     'App\Http',
@@ -44,28 +38,27 @@ arch('policies only ask models and enums: they use no actions, http or integrati
 arch('actions are final classes')
     ->expect('App\Actions')
     ->classes()
-    ->toBeFinal()
-    ->ignoring($scaffolding);
+    ->toBeFinal();
 
 arch('actions expose a handle() method')
     ->expect('App\Actions')
-    ->toHaveMethod('handle')
-    ->ignoring($scaffolding);
+    ->toHaveMethod('handle');
 
 arch('actions have no public methods besides the constructor and handle(): one operation per Action')
     ->expect('App\Actions')
-    ->not->toHavePublicMethodsBesides(['__construct', 'handle'])
-    ->ignoring($scaffolding);
+    ->not->toHavePublicMethodsBesides(['__construct', 'handle']);
 
 arch('actions do not depend on http: take plain values, the controller handles the request')
     ->expect('App\Actions')
-    ->not->toUse($http)
-    ->ignoring($scaffolding);
+    ->not->toUse($http);
 
 arch('actions do not ask for permission again: authorize once in the controller')
     ->expect('App\Actions')
-    ->not->toUse($gate)
-    ->ignoring($scaffolding);
+    ->not->toUse($gate);
+
+arch('notifications only describe a message: they use no actions, http or integrations, an Action sends them')
+    ->expect('App\Notifications')
+    ->not->toUse(['App\Actions', 'App\Http', 'App\Integrations']);
 
 arch('resources only read: can.* asks the Policy, never an Action')
     ->expect('App\Http\Resources')

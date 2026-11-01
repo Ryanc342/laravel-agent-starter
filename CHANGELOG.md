@@ -2,6 +2,34 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.1.0] - 2026-11-01
+
+The starter kit's own code now follows the v2 rules, so no check has an exception for it. In-app notifications are added as a live example of the patterns the starter kit cannot show.
+
+### Added
+
+- In-app notifications: a notifications page, "Mark as read" and "Mark all as read", and an unread badge in the sidebar. Users are notified when their account is created, their password changes and their email address changes.
+- `App\Models\Notification` (extends Laravel's `DatabaseNotification`) with `ownedBy()` and `unread()` scopes, `NotificationPolicy`, `MarkNotificationRead` and `MarkAllNotificationsRead`, `NotificationResource` with `can.mark_read`, and a button consistency test.
+- Arch rule: notifications use no actions, http or integrations. PHPStan: `markAsRead()`, `markAsUnread()`, `notify()` and `Notification::send()` only in Actions.
+- Actions that write the user and a notification do both in one `DB::transaction()`; `DeleteUser` also deletes the user's notifications.
+
+### Changed
+
+- Writes moved into Actions in `app/Actions/Users/`: `CreateUser`, `UpdateProfile` (owns "a changed email is unverified again"), `UpdatePassword` (called by both the security page and password reset), `DeleteUser`.
+- Fortify's `CreateNewUser` and `ResetUserPassword` moved from `app/Actions/Fortify/` to `app/Http/Fortify/`. They check the input shape and call an Action.
+- Settings controllers are thin: authorize, call one Action, return. New `UserPolicy`: only the owner may change or delete an account.
+- `auth.user` is sent through `UserResource` instead of the raw model; the passkey list through `PasskeyResource`, wrapped in `data` like every collection. The TypeScript `User` type matches `UserResource`.
+- The profile page receives `emailNeedsVerification` from the backend instead of checking `email_verified_at` in React.
+- The theme cookie is read through the `Appearance` enum (`light`, `dark`, `system`); an unknown value falls back to `system`.
+- The starter kit's tests are converted to Pest. New tests for each Action, the shared user and the theme cookie.
+- `docs/QUALITY.md` grades the Users domain like any other.
+
+### Removed
+
+- Laravel Chisel (`chisel.php`, `chisel-paths.php`, `install:features`, every `@chisel-*` marker). Every auth feature stays.
+- `tests/Unit/ExampleTest.php` (it only asserted `true`); `tests/Unit/Enums/AppearanceTest.php` takes its place.
+- The scaffolding exceptions in `tests/Arch/LayersTest.php` and `phpstan.neon`.
+
 ## [2.0.0] - 2026-10-31
 
 A rebuild on a fresh `laravel/react-starter-kit` (main, 98d9b82). It keeps the ideas of Ezdev 0.8.0 and changes how they are delivered to the AI and how they are enforced.

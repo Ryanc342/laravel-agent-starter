@@ -7,6 +7,10 @@ It is the official [Laravel React Starter Kit](https://github.com/laravel/react-
 2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. See `ARCHITECTURE.md`.
 3. **Machine checks.** Pest architecture tests, PHPStan rules and dependency-cruiser enforce the architecture. One command runs everything: `composer check`.
 
+The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
+
+In-app notifications are built in (a notifications page and an unread badge in the sidebar). They are also the live example of scopes, Policies, bulk operations and button consistency tests; `ARCHITECTURE.md` maps each pattern to its file.
+
 ## Start a new project
 
 1. On GitHub, click **Use this template**, create the repository and clone it.
@@ -61,7 +65,7 @@ Put a `DESIGN.md` in the project root when the project has a visual design. The 
 
 ## Based on
 
-- `laravel/react-starter-kit`, main branch, commit 98d9b82 (2026-10-29)
+- `laravel/react-starter-kit`, main branch, commit 98d9b82 (2026-10-29), auth and settings code rewritten (see `ARCHITECTURE.md`, "Starter kit code")
 - Laravel 13, Inertia 3, React 19, Vite+, Pest, Larastan, Laravel Boost
 
 To pick up later starter kit changes, compare with a fresh `laravel new --react` project and copy what changed outside `docs/`, `tests/Arch`, `tests/Structure` and the check configs. See `CHANGELOG.md` for versions.
