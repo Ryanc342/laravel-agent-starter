@@ -31,6 +31,8 @@ Install the dependencies, finish the Laravel Boost setup and prove that every ch
 - M7 screenshots show the notifications page before and after "Mark as read", and the badge in the sidebar.
 
 ## Progress
+- 2026-11-01 Final composer check after archiving passed: Pint, PHPStan, vp format/lint, TypeScript, and 82 tests / 264 assertions. Development server returned HTTP 200.
+- 2026-11-01 Independent reviewer round 1 found no P0/P1 issues and confirmed every agreed decision. Implementation and M6/M7 evidence committed as 0af2f67. Boost MCP also successfully initialized and listed its tools. Plan archived to completed; README first-run reference updated to its new location.
 - 2026-11-01 M6 passed all seventeen negative cases, including nullable Request::user() writes and notifications. Adding the missing Action test removed its PHPStan error on the next run without clearing the cache. All probe files and the throwaway branch were removed. After the tooling fix, composer check passed 82 tests / 264 assertions and composer check:reference passed 122 tests / 340 assertions.
 - 2026-11-01 M7 passed with Playwright MCP and composer dev: registered first-run-20261101@example.test, verified through the logged email link, checked the welcome notification and unread badge, marked it read and confirmed the badge disappeared, confirmed the password and changed it on /settings/security, then checked the new password notification and badge. Screenshots: storage/app/first-run/notifications-unread.png, notifications-read.png, password-notification.png. Browser console: zero errors.
 - 2026-11-01 M5 passed without reference changes: composer check:reference reports all checks green and 120 tests / 336 assertions. M4 committed as 89acb63.
@@ -52,4 +54,18 @@ Install the dependencies, finish the Laravel Boost setup and prove that every ch
 - 2026-11-01 tests/Feature/Settings/SecurityTest.php: two assertions changed from `passkeys` to `passkeys.data`. The user asked for the starter kit code to follow the v2 rules, and the rule in docs/rules/frontend.md sends every collection wrapped in `data`.
 
 ## Outcomes & Retrospective
-Fill this in when done, then move this file to docs/exec-plans/completed/.
+All seven milestones passed on this machine. Both production build and development server work. No existing test assertions changed, no dependency was added or upgraded outside the agreed install, and the hand-written agent guides are unchanged.
+
+| Agreed decision | Implementation and evidence |
+| --- | --- |
+| 1 Boost provides MCP and skills only | boost.json sets guidelines=false and agents to claude_code/codex; .mcp.json and .codex/config.toml retain both servers. Direct Boost MCP initialization and tools/list succeeded. AGENTS.md and CLAUDE.md have no diff from e107d41. |
+| 2 Accept formatter output | Pint formatted tests/Pest.php and lint/phpstan/ModelScopesRule.php; vp formatted JSON configuration. Both formatting checks pass. |
+| 3 Fix template configuration without weakening it | phpstan.neon prefers DisallowedTypeResolver, preserving the original forbidden-call declarations and allowed paths. |
+| 4 Compatible dev packages and PHPStan >=2.3 | composer.lock pins PHPStan 2.3.4, Pest 4.7.8, Spaze 4.15.0 and Boost 2.10.4; package-lock.json records npm resolution. |
+| 5 Keep reference feature passing | composer check:reference passes without edits to docs/reference/tasks (122 tests, 340 assertions). |
+| 6 Preserve starter kit auth/settings behaviour | PasskeyResource declares its delegated Passkey model; existing auth/settings assertions are unchanged and pass. Registration, email verification, password confirmation and password change also passed in Playwright. |
+| 7 Preserve in-app notification behaviour | Existing notifications Actions, Policies, model scopes, Resources and React were reused unchanged. Playwright verified welcome, mark-read/badge removal, and password-change notification; database checks confirmed two notifications, one unread. |
+| 8 Make the custom rules work | DisallowedTypeResolver::getType() fixes nullable receiver handling for the existing Spaze checks. Two new regression tests pass; all seventeen M6 violations were caught and the companion-file cache refreshed without clearing. |
+| 9 Keep oxlint configuration semantics | Installed vp accepts the existing jsPlugins/import/regex configuration. Cross-domain imports, frontend date comparisons and @mui imports each fail with the planned messages. |
+
+Evidence remains locally in storage/app/first-run/: notifications-unread.png, notifications-read.png, password-notification.png, probes.log, probe-phpstan.json, probe-cache.json, probe-oxlint.log, check.log, reference.log, and browser/ snapshots. Local .env, SQLite and evidence are intentionally ignored by git. No required work was deferred.

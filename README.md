@@ -14,7 +14,7 @@ In-app notifications are built in (a notifications page and an unread badge in t
 ## Start a new project
 
 1. On GitHub, click **Use this template**, create the repository and clone it.
-2. Open it in Codex or Claude Code and say: "Do the first-run plan." The AI follows `docs/exec-plans/active/first-run.md`: installs everything, sets up Laravel Boost, runs every check, and proves the checks catch violations.
+2. Open it in Codex or Claude Code and say: "Do the first-run plan." The AI follows `docs/exec-plans/completed/first-run.md`: installs everything, sets up Laravel Boost, runs every check, and proves the checks catch violations.
 3. Describe what you need in business terms.
 
 To set up by hand instead: `composer setup`, then `php artisan boost:install` (Claude Code and Codex, MCP and skills, no AI guidelines), then `composer check`.
