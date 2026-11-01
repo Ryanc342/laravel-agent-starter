@@ -46,7 +46,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - Fix the code, not the test. Change an assertion only when the user changed the requirement, and say why.
 - Build only what the plan lists. Anything else is a new question for the user.
 - Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
-- Do not change AGENTS.md, ARCHITECTURE.md, docs/rules/, docs/golden-principles.md or check configs without the user's approval.
+- Do not change AGENTS.md, ARCHITECTURE.md, docs/rules/, docs/golden-principles.md or check configs without the user's approval. One exception: the weekly cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 4).
 - Do not add or upgrade dependencies without the user's approval.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
 

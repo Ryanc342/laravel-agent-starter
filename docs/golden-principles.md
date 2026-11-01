@@ -36,7 +36,7 @@ Each rule says who stops it:
 - `[review]` A bulk operation loops over the single-record Action instead of copying its checks and writes.
 - `[review]` Writes that must succeed together run in one `DB::transaction()`.
 - `[review]` A controller method authorizes, calls one Action (or runs a scoped query into a Resource) and returns. No business `if`.
-- `[review]` Every list page is paginated (`paginate(20)` and `<Pagination>` from components/shared).
+- `[review]` Every list page is paginated (`paginate(20)` unless the plan agreed another size, and `<Pagination>` from components/shared). A short list inside another page, such as the user's passkeys on the security page, is not a list page.
 - `[PHPStan]` Controllers have only the standard methods (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`, `__invoke`). Any other operation gets its own controller.
 - `[PHPStan]` Only Actions write: `save`, `update`, `delete`, `create`, `notify()`, `markAsRead()` and the rest are rejected everywhere else (seeders and factories in database/ excepted).
 - `[PHPStan]` Model scopes use the `#[Scope]` attribute, not `scopeFoo()` methods.
@@ -52,7 +52,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 
 - `[PHPStan]` Every model reaches React through a JsonResource: the props of `Inertia::render()` and the shared props never hold a model, a model collection or a paginator of models, also not inside an array, a closure or `Inertia::defer()` and the like.
 - `[oxlint]` React does not check permissions (comparisons with `auth.user`). Buttons are shown from `can.*`.
-- `[oxlint]` React does not compare statuses, roles or types (`.status ===`, `switch (x.status)`, `.includes(x.status)`). It shows the `is_*` flags and labels.
+- `[oxlint]` React does not compare statuses, roles or types (`.status ===`, a bare `status` or `role`, `switch (x.status)`, `.includes(x.status)`). It shows the `is_*` flags and labels.
 - `[oxlint]` React does not compare or subtract dates (`new Date(…) <`, `Date.now() -`, `getTime()`) outside resources/js/lib/format.ts.
 - `[oxlint]` React does not calculate money or sum lists (arithmetic on `price`, `total`, `amount` and similar fields, `+=`, a `reduce` that adds) outside resources/js/lib/format.ts.
 - `[oxlint]` No hard-coded URLs, `fetch` or `axios`: routes and controller actions come from Wayfinder, requests go through Inertia.
@@ -60,7 +60,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[oxlint]` No UI library besides components/ui (shadcn): importing another UI library in React code is rejected.
 - `[review]` No UI library that comes in through CSS only (a Tailwind plugin such as daisyui, Bootstrap's stylesheet).
 - `[review]` Select options come from the list the backend sends. Display preferences kept in the browser (the appearance setting) are not business options.
-- `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code) is display.
+- `[review]` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code, a name that is not blank) is display.
 - `[review]` A business rule React decides under names the checks do not know.
 - `[review]` A `can.*` flag includes the business state, so a button shows exactly when pressing it succeeds. A reason shown for a refusal comes from the Resource, never worked out from `!can.*` or a mix of flags.
 
@@ -68,7 +68,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 
 - `[review]` Every write endpoint that receives input takes a FormRequest. An endpoint with no input (mark all as read) needs none.
 - `[review]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours"; the FormRequest has no `exists` rule for it. A record in the URL (route model binding) is checked by the Policy (403).
-- `[PHPStan]` `$request->validate()`, `Validator::make()` and `validator()` are rejected outside FormRequests (Fortify adapters excepted).
+- `[PHPStan]` `$request->validate()`, `Validator::make()` and `validator()` are rejected: input is validated by a FormRequest's `rules()`. Only the Fortify adapters in app/Http/Fortify may call `Validator::make()` and `validator()`.
 - `[PHPStan]` A FormRequest checks the shape of the input only: no database queries in FormRequests or app/Concerns, apart from the `exists` and `unique` rules.
 - `[PHPStan]` FormRequests have no `authorize()`. Permission is checked in the controller.
 - `[PHPStan]` `Enum::from()` and `tryFrom()` only where input arrives (FormRequests, Actions, console commands, the enum itself).

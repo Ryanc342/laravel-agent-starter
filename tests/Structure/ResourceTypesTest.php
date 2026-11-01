@@ -4,9 +4,9 @@
 | Principle 4 in docs/golden-principles.md: every Resource has a TypeScript
 | type with the same fields, so React never guesses what the backend sends.
 |
-| This stays a test until Laravel Wayfinder generates the page prop types
-| (docs/exec-plans/tech-debt.md). The other frontend rules are oxlint rules in
-| lint/oxlint/ezdev.js.
+| This stays a test until a tagged Laravel Wayfinder release generates the
+| page prop types (docs/rules/frontend.md). The other frontend rules are oxlint
+| rules in lint/oxlint/ezdev.js.
 */
 
 $root = dirname(__DIR__, 2);
