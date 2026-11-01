@@ -39,6 +39,11 @@ export default defineConfig({
             ],
         },
     },
+    // Frontend tests (vp test, part of composer check): docs/rules/tests.md.
+    test: {
+        include: ['tests/js/**/*.test.{ts,tsx}'],
+        environment: 'jsdom',
+    },
     lint: {
         // The default plugins plus import (for import/no-cycle). Setting
         // plugins replaces the default list, so every plugin is named here.
