@@ -36,3 +36,26 @@ test('two factor challenge can be rendered', function () {
             ->component('auth/two-factor-challenge'),
         );
 });
+
+test('a recovery code completes login and is replaced after use', function () {
+    $user = User::factory()->withTwoFactor()->create();
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('two-factor.login'));
+
+    $this->post(route('two-factor.login.store'), ['recovery_code' => 'recovery-code-1'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertAuthenticatedAs($user);
+    expect($user->refresh()->recoveryCodes())->not->toContain('recovery-code-1');
+});
+
+test('an invalid recovery code does not complete login or replace codes', function () {
+    $user = User::factory()->withTwoFactor()->create();
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password']);
+
+    $this->post(route('two-factor.login.store'), ['recovery_code' => 'wrong-recovery-code'])
+        ->assertSessionHasErrors('recovery_code');
+
+    $this->assertGuest();
+    expect($user->refresh()->recoveryCodes())->toBe(['recovery-code-1']);
+});
