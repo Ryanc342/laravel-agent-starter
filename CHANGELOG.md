@@ -14,6 +14,7 @@ Every rule now says who checks it and what it is about. Machines check structure
 - The weekly cleanup goes through every `[review]` rule, lists gaps in the machine checks with the code that shows them and a suggested check, and lists rules to merge or remove. The user decides; a check only gets stricter. In a project made from the template, the suggestion is for the template.
 - The finish check counts only a plan written or changed in this conversation, with its purpose, decisions and milestones filled in; approval only from Decision Log lines added in this conversation; the "asking" exemption only when the message ends with the question and names the files. A plan with every milestone done is sent back to be completed. A step it lets go after three times is told to the user and to the next conversation. If the check itself fails, it says so instead of staying silent.
 - `composer check` records a pass only for the code it started on (`checking` step) and only when the tests ran to the end (`tests/Structure/RunFinishedTest.php`).
+- The starter kit's `.well-known/passkey-endpoints` route calls `Settings\PasskeyEndpointsController` instead of a closure. A Resource error points at the line that sends the model or the relation.
 - More protected files: `.npmrc`, `.gitignore`, `artisan`, `tests/bootstrap.php`, `tests/Pest.php`, `tests/TestCase.php`, `tests/js/setup.ts`, `docs/workflow.md`, `docs/PLANS.md`, `docs/reference/`.
 
 ### Fixed

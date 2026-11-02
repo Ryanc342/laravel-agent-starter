@@ -126,11 +126,21 @@ final class ClassShapeRule implements Rule
         }
 
         if (str_starts_with($name, 'App\\Http\\Resources\\')) {
-            foreach ([...$this->wholeResourceReads($node), ...$this->rawRelations($node)] as $read) {
+            foreach ($this->wholeResourceReads($node) as [$read, $line]) {
                 $errors[] = $this->error(
                     "Resource {$name} sends the whole model ({$read})",
                     'ezdev.resourceFields',
                     'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.',
+                    $line,
+                );
+            }
+
+            foreach ($this->rawRelations($node) as [$relation, $line]) {
+                $errors[] = $this->error(
+                    "Resource {$name} sends the relation '{$relation}' as models (\$this->whenLoaded('{$relation}') without a Resource)",
+                    'ezdev.resourceFields',
+                    "Wrap it in the related model's Resource, such as LineResource::collection(\$this->whenLoaded('{$relation}')), so only named fields reach React. See docs/rules/frontend.md.",
+                    $line,
                 );
             }
         }
@@ -291,7 +301,7 @@ final class ClassShapeRule implements Rule
      * Ways a Resource sends $this->resource whole: $this->resource->toArray(),
      * ->getAttributes() and the like, (array) $this->resource, get_object_vars().
      *
-     * @return list<string>
+     * @return list<array{string, int}>
      */
     private function wholeResourceReads(InClassNode $node): array
     {
@@ -303,12 +313,12 @@ final class ClassShapeRule implements Rule
 
         foreach ((new NodeFinder)->find($node->getOriginalNode()->stmts, fn (Node $n): bool => true) as $n) {
             if ($n instanceof Node\Expr\MethodCall && $isResource($n->var) && $n->name instanceof Node\Identifier && in_array($n->name->toString(), $whole, true)) {
-                $reads[] = "\$this->resource->{$n->name->toString()}()";
+                $reads[] = ["\$this->resource->{$n->name->toString()}()", $n->getStartLine()];
             } elseif ($n instanceof Node\Expr\Cast\Array_ && $isResource($n->expr)) {
-                $reads[] = '(array) $this->resource';
+                $reads[] = ['(array) $this->resource', $n->getStartLine()];
             } elseif ($n instanceof Node\Expr\FuncCall && $n->name instanceof Node\Name && $n->name->toString() === 'get_object_vars'
                 && isset($n->getArgs()[0]) && $isResource($n->getArgs()[0]->value)) {
-                $reads[] = 'get_object_vars($this->resource)';
+                $reads[] = ['get_object_vars($this->resource)', $n->getStartLine()];
             }
         }
 
@@ -319,7 +329,7 @@ final class ClassShapeRule implements Rule
      * Relations a Resource sends as models: $this->whenLoaded('lines') that is
      * not wrapped in LineResource::collection(...) or LineResource::make(...).
      *
-     * @return list<string>
+     * @return list<array{string, int}>
      */
     private function rawRelations(InClassNode $node): array
     {
@@ -342,7 +352,8 @@ final class ClassShapeRule implements Rule
 
         foreach ($finder->find($stmts, fn (Node $n): bool => $this->isWhenLoaded($n)) as $call) {
             if (! isset($wrapped[spl_object_id($call)])) {
-                $raw[] = '$this->whenLoaded() without a Resource';
+                $argument = $call->getArgs()[0]->value;
+                $raw[] = [$argument instanceof Node\Scalar\String_ ? $argument->value : '…', $call->getStartLine()];
             }
         }
 
@@ -357,8 +368,10 @@ final class ClassShapeRule implements Rule
             && count($n->getArgs()) === 1;
     }
 
-    private function error(string $message, string $identifier, string $tip): IdentifierRuleError
+    private function error(string $message, string $identifier, string $tip, ?int $line = null): IdentifierRuleError
     {
-        return RuleErrorBuilder::message($message)->identifier($identifier)->tip($tip)->build();
+        $error = RuleErrorBuilder::message($message)->identifier($identifier)->tip($tip);
+
+        return ($line === null ? $error : $error->line($line))->build();
     }
 }
