@@ -22,7 +22,9 @@ use ReflectionMethod;
  * - No events, listeners or observers (app/Events, app/Listeners, app/Observers,
  *   #[ObservedBy] or $dispatchesEvents on a model).
  * - A Resource never sends $this->resource whole (toArray(), getAttributes(),
- *   an (array) cast and the like).
+ *   an (array) cast and the like), nor a relation without its own Resource.
+ * - An Action sits in app/Actions/{Domain}/; app/Http holds only controllers,
+ *   FormRequests, Resources, middleware and the Fortify adapters.
  * - A controller has only the standard methods.
  * - A FormRequest has no authorize().
  * - app/Enums holds enums only (traits: TraitPlacementRule).
@@ -44,6 +46,12 @@ final class ClassShapeRule implements Rule
         'App\\Http\\Resources\\' => 'Resource',
         'App\\Policies\\' => 'Policy',
     ];
+
+    /**
+     * The folders app/Http may hold; a controller anywhere else would escape
+     * the controller rules.
+     */
+    private const HTTP_FOLDERS = ['Controllers', 'Requests', 'Resources', 'Middleware', 'Fortify'];
 
     /**
      * Class name ending => what to write instead.
@@ -118,7 +126,7 @@ final class ClassShapeRule implements Rule
         }
 
         if (str_starts_with($name, 'App\\Http\\Resources\\')) {
-            foreach ($this->wholeResourceReads($node) as $read) {
+            foreach ([...$this->wholeResourceReads($node), ...$this->rawRelations($node)] as $read) {
                 $errors[] = $this->error(
                     "Resource {$name} sends the whole model ({$read})",
                     'ezdev.resourceFields',
@@ -132,6 +140,22 @@ final class ClassShapeRule implements Rule
                 "{$name} is in app/Enums but is not an enum",
                 'ezdev.enumsOnly',
                 'app/Enums holds enums only. Put other code in the layer it belongs to. See ARCHITECTURE.md.',
+            );
+        }
+
+        if (str_starts_with($name, 'App\\Http\\') && ! in_array(explode('\\', $name)[2] ?? '', self::HTTP_FOLDERS, true)) {
+            $errors[] = $this->error(
+                "{$name} is in app/Http but not in ".implode(', ', self::HTTP_FOLDERS),
+                'ezdev.httpFolders',
+                'A controller goes in app/Http/Controllers, a FormRequest in app/Http/Requests, a Resource in app/Http/Resources. See ARCHITECTURE.md.',
+            );
+        }
+
+        if (str_starts_with($name, 'App\\Actions\\') && substr_count($name, '\\') !== 3) {
+            $errors[] = $this->error(
+                "Action {$name} is not in app/Actions/{Domain}/",
+                'ezdev.actionFolder',
+                'Put the Action in app/Actions/{Domain}/{Verb}{Noun}.php, one folder per business domain (app/Actions/Quotes/SendQuote.php). See docs/rules/actions.md.',
             );
         }
 
@@ -289,6 +313,48 @@ final class ClassShapeRule implements Rule
         }
 
         return $reads;
+    }
+
+    /**
+     * Relations a Resource sends as models: $this->whenLoaded('lines') that is
+     * not wrapped in LineResource::collection(...) or LineResource::make(...).
+     *
+     * @return list<string>
+     */
+    private function rawRelations(InClassNode $node): array
+    {
+        $finder = new NodeFinder;
+        $stmts = $node->getOriginalNode()->stmts;
+        $wrapped = [];
+
+        $isResourceCall = fn (Node $n): bool => ($n instanceof Node\Expr\StaticCall
+                && $n->class instanceof Node\Name && str_ends_with($n->class->toString(), 'Resource')
+                && $n->name instanceof Node\Identifier && in_array($n->name->toLowerString(), ['make', 'collection'], true))
+            || ($n instanceof Node\Expr\New_ && $n->class instanceof Node\Name && str_ends_with($n->class->toString(), 'Resource'));
+
+        foreach ($finder->find($stmts, $isResourceCall) as $call) {
+            foreach ($finder->find([$call], fn (Node $n): bool => $this->isWhenLoaded($n)) as $inside) {
+                $wrapped[spl_object_id($inside)] = true;
+            }
+        }
+
+        $raw = [];
+
+        foreach ($finder->find($stmts, fn (Node $n): bool => $this->isWhenLoaded($n)) as $call) {
+            if (! isset($wrapped[spl_object_id($call)])) {
+                $raw[] = '$this->whenLoaded() without a Resource';
+            }
+        }
+
+        return $raw;
+    }
+
+    private function isWhenLoaded(Node $n): bool
+    {
+        return $n instanceof Node\Expr\MethodCall
+            && $n->var instanceof Node\Expr\Variable && $n->var->name === 'this'
+            && $n->name instanceof Node\Identifier && $n->name->toString() === 'whenLoaded'
+            && count($n->getArgs()) === 1;
     }
 
     private function error(string $message, string $identifier, string $tip): IdentifierRuleError

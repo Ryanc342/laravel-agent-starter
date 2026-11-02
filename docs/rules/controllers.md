@@ -72,11 +72,11 @@ To read an enum from the request, give the FormRequest a method and call it from
 
 ## Non-CRUD operations get their own controller
 
-An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. PHPStan allows only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`.
+An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. PHPStan allows only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`, and controllers only in app/Http/Controllers.
 
 ## Routes
 
 - One route file per domain (`routes/{domain}.php`, like docs/reference/tasks/routes/tasks.php), required from `routes/web.php`.
-- Every route is named (`tasks.index`, `tasks.completion.store`). React reaches routes only through Wayfinder imports, never hard-coded URLs.
+- Every route is named (`tasks.index`, `tasks.completion.store`) and calls a controller, never a closure (`Route::inertia()` for a page with no data is fine). React reaches routes only through Wayfinder imports, never hard-coded URLs.
 - Use route model binding (`{task}`); never look records up by id manually.
-- Register fixed paths (`tasks/overdue/completion`) before wildcard paths (`tasks/{task}`).
+- Register fixed paths (`tasks/overdue/completion`) before wildcard paths (`tasks/{task}`). tests/Structure/RoutesTest.php checks names, closures and this order on the booted app.

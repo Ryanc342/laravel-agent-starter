@@ -12,7 +12,6 @@ services:
 rules:
     - Lint\PHPStan\ClassShapeRule
     - Lint\PHPStan\CompanionFilesRule
-    - Lint\PHPStan\ConditionsLiveInModelsRule
     - Lint\PHPStan\ControllerInputRule
     - Lint\PHPStan\ModelScopesRule
     - Lint\PHPStan\PagePropsUseResourcesRule
@@ -44,14 +43,13 @@ parameters:
     filesRootDir: %rootDir%/../../..
 
     # Principle 2: layers only depend downwards. A class may not use (import,
-    # type-hint, call or extend) anything from the namespaces listed.
+    # type-hint, call or extend) anything from the namespaces listed. spaze keeps
+    # one entry per namespace (a second entry for the same namespace replaces the
+    # first), so each namespace is listed once, with every folder it is banned in.
     disallowedNamespaces:
         -
             namespace:
                 - 'App\Models\*'
-                - 'App\Policies\*'
-                - 'App\Actions\*'
-                - 'App\Http\*'
             message: 'enums are the bottom layer'
             errorTip: 'An enum only knows its own cases, labels and small decisions about itself. Move this logic into the model, Policy or Action that owns it. See ARCHITECTURE.md.'
             allowExceptIn:
@@ -59,64 +57,78 @@ parameters:
         -
             namespace:
                 - 'App\Policies\*'
-                - 'App\Actions\*'
-                - 'App\Http\*'
-            message: 'models use no policies, actions or http'
-            errorTip: 'A model holds fields, relations, scopes and is*/can* methods. Move the work into an Action. See ARCHITECTURE.md.'
+            message: 'enums and models use no policies'
+            errorTip: 'A model holds fields, relations, scopes and is*/can* methods; the controller asks the Policy. See ARCHITECTURE.md.'
             allowExceptIn:
+                - app/Enums/*
                 - app/Models/*
         -
             namespace:
                 - 'App\Actions\*'
-                - 'App\Http\*'
-            message: 'policies only ask models and enums'
-            errorTip: 'A Policy answers yes or no from the model (isOwnedBy(), canBeCompleted()). See docs/rules/models.md.'
+            message: 'only controllers and Actions call Actions'
+            errorTip: 'Enums, models, policies and notifications sit below the Actions; a Resource only reads and a FormRequest only checks the shape of the input. The controller calls the Action. See ARCHITECTURE.md.'
             allowExceptIn:
+                - app/Enums/*
+                - app/Models/*
                 - app/Policies/*
-        -
-            namespace:
-                - 'App\Actions\*'
-                - 'App\Http\*'
-            message: 'notifications only describe a message'
-            errorTip: 'An Action decides when to send a notification; the notification only builds its text. See ARCHITECTURE.md.'
-            allowExceptIn:
                 - app/Notifications/*
-        -
-            namespace: 'App\Actions\*'
-            message: 'resources and form requests only read'
-            errorTip: 'A Resource asks the Policy for can.*; a FormRequest checks the shape of the input. The controller calls the Action. See ARCHITECTURE.md.'
-            allowExceptIn:
                 - app/Http/Resources/*
                 - app/Http/Requests/*
         -
-            namespace: 'Illuminate\Support\Facades\DB'
-            message: 'controllers do not use the database directly'
-            errorTip: 'Put the work, and any transaction, in an Action. See docs/rules/actions.md.'
-            allowExceptIn:
-                - app/Http/Controllers/*
-        -
             namespace:
                 - 'App\Http\*'
-                - 'Inertia\*'
+            message: 'only the http layer uses app/Http'
+            errorTip: 'An Action takes plain values (the validated array, models, enums); enums, models, policies and notifications know nothing about controllers, requests or Resources. See ARCHITECTURE.md.'
+            allowExceptIn:
+                - app/Enums/*
+                - app/Models/*
+                - app/Policies/*
+                - app/Notifications/*
+                - app/Actions/*
+        -
+            namespace:
                 - 'Illuminate\Http\*'
                 - 'Symfony\Component\HttpFoundation\*'
+                - 'Symfony\Component\HttpKernel\*'
                 - 'Illuminate\Support\Facades\Request'
                 - 'Illuminate\Support\Facades\Response'
-            message: 'actions do not depend on http'
-            errorTip: 'An Action takes plain values (the validated array, models, enums). The controller reads the request and returns the response. See docs/rules/actions.md.'
+                - 'Illuminate\Support\Facades\Session'
+                - 'Illuminate\Support\Facades\Auth'
+                - 'Illuminate\Support\Facades\Redirect'
+                - 'Illuminate\Support\Facades\URL'
+                - 'Illuminate\Support\Facades\Cookie'
+                - 'Inertia\*'
+            message: 'only controllers deal with the request'
+            errorTip: 'Actions, enums, models, policies and notifications work with plain values: the controller reads the request and the signed-in user, passes them in and returns the response. A refusal in an Action is a ValidationException. See docs/rules/actions.md.'
             allowExceptIn:
+                - app/Enums/*
+                - app/Models/*
+                - app/Policies/*
+                - app/Notifications/*
                 - app/Actions/*
         -
             namespace:
                 - 'Illuminate\Support\Facades\Gate'
                 - 'Illuminate\Contracts\Auth\Access\Gate'
                 - 'Illuminate\Auth\Access\AuthorizationException'
-            message: 'actions do not ask for permission again'
-            errorTip: 'The controller authorizes once with Gate::authorize(). A business state the Action needs is checked with a model method and ValidationException. See docs/rules/actions.md.'
+            message: 'permission is checked once, in the controller'
+            errorTip: 'The controller authorizes once with Gate::authorize() and the Policy. A business state the Action needs is checked with a model method and ValidationException. See docs/rules/actions.md.'
             allowExceptIn:
+                - app/Enums/*
+                - app/Models/*
+                - app/Policies/*
+                - app/Notifications/*
                 - app/Actions/*
         -
-            namespace: 'App\Integrations\*'
+            namespace:
+                - 'Illuminate\Support\Facades\DB'
+            message: 'controllers do not use the database directly'
+            errorTip: 'Put the work, and any transaction, in an Action. See docs/rules/actions.md.'
+            allowExceptIn:
+                - app/Http/Controllers/*
+        -
+            namespace:
+                - 'App\Integrations\*'
             message: 'integrations are called only from actions'
             errorTip: 'Call the integration from an Action, and call that Action from here. See ARCHITECTURE.md.'
             allowIn:
@@ -136,28 +148,85 @@ parameters:
                 - 'Illuminate\Events\Dispatcher'
             message: 'no events or listeners'
             errorTip: 'Do the work in the Action, and call another Action from it when a second step is needed. Events and listeners hide who does what. See docs/rules/actions.md.'
+        -
+            namespace:
+                - 'Database\Seeders\*'
+            message: 'seeders only fill the database'
+            errorTip: 'Code the app runs goes in app/: a write in an Action, a query in a model scope. See ARCHITECTURE.md.'
+            allowIn:
+                - database/*
+        -
+            namespace:
+                - 'Database\Factories\*'
+            message: 'factories are for tests and seeders'
+            errorTip: 'Code the app runs goes in app/: a write in an Action, a query in a model scope. A model names its factory in its HasFactory annotation only. See ARCHITECTURE.md.'
+            allowIn:
+                - database/*
+                - app/Models/*
+        -
+            namespace:
+                - 'Tests\*'
+            message: 'the app never uses test code'
+            errorTip: 'Code the app runs goes in app/. See ARCHITECTURE.md.'
 
     disallowedMethodCalls:
         -
             method:
-                - 'Illuminate\Database\Eloquent\Model::save()'
-                - 'Illuminate\Database\Eloquent\Model::update()'
-                - 'Illuminate\Database\Eloquent\Model::delete()'
-                - 'Illuminate\Database\Eloquent\Model::forceDelete()'
-                - 'Illuminate\Database\Eloquent\Model::increment()'
-                - 'Illuminate\Database\Eloquent\Model::decrement()'
-                - 'Illuminate\Database\Eloquent\Model::push()'
-                - 'Illuminate\Database\Eloquent\Builder::create()'
-                - 'Illuminate\Database\Eloquent\Builder::forceCreate()'
-                - 'Illuminate\Database\Eloquent\Builder::update()'
+                - 'Illuminate\Database\Eloquent\Model::save*()'
+                - 'Illuminate\Database\Eloquent\Model::update*()'
+                - 'Illuminate\Database\Eloquent\Model::delete*()'
+                - 'Illuminate\Database\Eloquent\Model::forceDelete*()'
+                - 'Illuminate\Database\Eloquent\Model::increment*()'
+                - 'Illuminate\Database\Eloquent\Model::decrement*()'
+                - 'Illuminate\Database\Eloquent\Model::push*()'
+                - 'Illuminate\Database\Eloquent\Model::touch*()'
+                - 'Illuminate\Database\Eloquent\Model::restore*()'
+                - 'Illuminate\Database\Eloquent\Builder::create*()'
+                - 'Illuminate\Database\Eloquent\Builder::forceCreate*()'
+                - 'Illuminate\Database\Eloquent\Builder::insert*()'
+                - 'Illuminate\Database\Eloquent\Builder::upsert()'
+                - 'Illuminate\Database\Eloquent\Builder::update*()'
                 - 'Illuminate\Database\Eloquent\Builder::delete()'
-                - 'Illuminate\Database\Eloquent\Builder::updateOrCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::forceDelete()'
+                - 'Illuminate\Database\Eloquent\Builder::restore()'
+                - 'Illuminate\Database\Eloquent\Builder::increment*()'
+                - 'Illuminate\Database\Eloquent\Builder::decrement*()'
+                - 'Illuminate\Database\Eloquent\Builder::touch()'
                 - 'Illuminate\Database\Eloquent\Builder::firstOrCreate()'
-                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::create()'
-                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::save()'
+                - 'Illuminate\Database\Eloquent\Builder::truncate()'
+                - 'Illuminate\Database\Query\Builder::insert*()'
+                - 'Illuminate\Database\Query\Builder::upsert()'
+                - 'Illuminate\Database\Query\Builder::update*()'
+                - 'Illuminate\Database\Query\Builder::delete()'
+                - 'Illuminate\Database\Query\Builder::increment*()'
+                - 'Illuminate\Database\Query\Builder::decrement*()'
+                - 'Illuminate\Database\Query\Builder::truncate()'
+                - 'Illuminate\Database\Connection::insert()'
+                - 'Illuminate\Database\Connection::update()'
+                - 'Illuminate\Database\Connection::delete()'
+                - 'Illuminate\Database\Connection::statement()'
+                - 'Illuminate\Database\Connection::affectingStatement()'
+                - 'Illuminate\Database\Connection::unprepared()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::create*()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::forceCreate*()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::save*()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::updateOrCreate()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::firstOrCreate()'
+                - 'Illuminate\Database\Eloquent\Relations\HasOneOrMany::upsert()'
                 - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::attach()'
                 - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::detach()'
-                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::sync()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::sync*()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::toggle()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::updateExistingPivot()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::create*()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::save*()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::updateOrCreate()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsToMany::firstOrCreate()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsTo::associate()'
+                - 'Illuminate\Database\Eloquent\Relations\BelongsTo::dissociate()'
+                - 'Illuminate\Mail\PendingMail::send()'
+                - 'Illuminate\Mail\PendingMail::queue()'
+                - 'Illuminate\Notifications\AnonymousNotifiable::notify*()'
                 - 'Illuminate\Notifications\DatabaseNotification::markAsRead()'
                 - 'Illuminate\Notifications\DatabaseNotification::markAsUnread()'
                 - 'Illuminate\Notifications\DatabaseNotificationCollection::markAsRead()'
@@ -197,8 +266,6 @@ parameters:
                 - 'Illuminate\Database\Eloquent\Model::jsonSerialize()'
             message: 'list each field by name'
             errorTip: 'A Resource names every field it sends to React, so nothing private leaks and the TypeScript type can match it. See docs/rules/frontend.md.'
-            allowExceptIn:
-                - app/Http/Resources/*
         -
             method:
                 - 'Illuminate\Foundation\Auth\Access\Authorizable::can()'
@@ -239,11 +306,22 @@ parameters:
     disallowedStaticCalls:
         -
             method:
-                - 'Illuminate\Database\Eloquent\Builder::create()'
-                - 'Illuminate\Database\Eloquent\Builder::forceCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::create*()'
+                - 'Illuminate\Database\Eloquent\Builder::forceCreate*()'
+                - 'Illuminate\Database\Eloquent\Builder::insert*()'
+                - 'Illuminate\Database\Eloquent\Builder::upsert()'
                 - 'Illuminate\Database\Eloquent\Builder::updateOrCreate()'
                 - 'Illuminate\Database\Eloquent\Builder::firstOrCreate()'
+                - 'Illuminate\Database\Eloquent\Builder::truncate()'
                 - 'Illuminate\Database\Eloquent\Model::destroy()'
+                - 'Illuminate\Support\Facades\DB::insert()'
+                - 'Illuminate\Support\Facades\DB::update()'
+                - 'Illuminate\Support\Facades\DB::delete()'
+                - 'Illuminate\Support\Facades\DB::statement()'
+                - 'Illuminate\Support\Facades\DB::affectingStatement()'
+                - 'Illuminate\Support\Facades\DB::unprepared()'
+                - 'Illuminate\Support\Facades\Mail::send()'
+                - 'Illuminate\Support\Facades\Mail::queue()'
                 - 'Illuminate\Support\Facades\Notification::send()'
                 - 'Illuminate\Support\Facades\Notification::sendNow()'
             message: 'writes belong in an Action'
@@ -264,7 +342,7 @@ parameters:
                 - app/Console/*
         -
             method:
-                - 'Illuminate\Support\Facades\Validator::make()'
+                - 'Illuminate\Support\Facades\Validator::*()'
             message: 'validate input in a FormRequest'
             errorTip: 'Create app/Http/Requests/{Domain}/{Verb}{Model}Request.php with the rules and type-hint it in the controller method. See docs/rules/form-requests.md.'
             allowIn:
@@ -353,10 +431,21 @@ parameters:
                 - 'back()'
                 - 'to_route()'
                 - 'inertia()'
-            message: 'actions do not depend on http'
-            errorTip: 'An Action takes plain values (the validated array, models, enums). The controller reads the request and returns the response. See docs/rules/actions.md.'
+                - 'session()'
+                - 'auth()'
+                - 'abort()'
+                - 'abort_if()'
+                - 'abort_unless()'
+                - 'url()'
+                - 'cookie()'
+            message: 'only controllers deal with the request'
+            errorTip: 'Actions, enums, models, policies and notifications work with plain values (the validated array, models, enums): the controller reads the request and the signed-in user, passes them in and returns the response. A refusal in an Action is a ValidationException. See docs/rules/actions.md.'
             allowExceptIn:
                 - app/Actions/*
+                - app/Enums/*
+                - app/Models/*
+                - app/Policies/*
+                - app/Notifications/*
         -
             function: 'validator()'
             message: 'validate input in a FormRequest'
@@ -368,13 +457,3 @@ parameters:
                 - 'event()'
             message: 'no events or listeners'
             errorTip: 'Do the work in the Action, and call another Action from it when a second step is needed. Events and listeners hide who does what. See docs/rules/actions.md.'
-        -
-            function:
-                - 'number_format()'
-                - 'round()'
-                - 'floor()'
-                - 'ceil()'
-            message: 'money and numbers are not rounded or formatted by hand'
-            errorTip: 'Calculate money with Brick\Math\BigDecimal and its RoundingMode, store integer cents, and let React format the display in resources/js/lib/format.ts with Intl. See docs/golden-principles.md, principle 6.'
-            allowIn:
-                - database/*

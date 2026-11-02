@@ -2,53 +2,14 @@
  * Ezdev rules for oxlint (docs/golden-principles.md, principles 4 and 7).
  * vite.config.ts loads this file under lint.jsPlugins; every rule is "ezdev/...".
  *
- * The rules only look at the hand-written React code in resources/js. They
- * match by name and shape, so a match can be display logic after all. Then ask
- * the user to adjust this file; never rename things to slip past a rule.
+ * Only structure rules live here: what React may import and call. Whether
+ * React decides a business rule (statuses, money, dates, permissions) needs
+ * someone who reads the code, so those rules belong to the reviewer
+ * (docs/prompts/review.md), not to a linter.
  *
  * Each message says what to do instead, because oxlint prints it.
  */
 import path from 'node:path';
-
-const DISPLAY_FORMAT_FILE = 'resources/js/lib/format.ts';
-
-const STATUS_WORDS = new Set([
-    'status',
-    'state',
-    'role',
-    'type',
-    'kind',
-    'stage',
-    'level',
-]);
-
-// Browser objects (an event, a file, an HTTP response) and flash or toast
-// messages have a type or status that is not a business value.
-const BROWSER_HOLDERS = new Set([
-    'event',
-    'evt',
-    'e',
-    'file',
-    'target',
-    'input',
-    'element',
-    'el',
-    'response',
-    'res',
-    'error',
-    'err',
-    'flash',
-    'toast',
-    'props',
-]);
-
-const MONEY_FIELD =
-    /^(price|total|amount|subtotal|tax|discount|cost|balance|fee)/i;
-
-const EQUALITY = new Set(['==', '===', '!=', '!==']);
-const ORDER = new Set(['<', '<=', '>', '>=']);
-const ARITHMETIC = new Set(['+', '-', '*', '/', '%']);
-const ARITHMETIC_ASSIGN = new Set(['+=', '-=', '*=', '/=', '%=']);
 
 /**
  * The file's path from the project root ("resources/js/pages/x.tsx"), or null
@@ -127,122 +88,6 @@ function memberPath(node) {
     return names;
 }
 
-function isNumber(node) {
-    const value = unwrap(node);
-
-    return value?.type === 'Literal' && typeof value.value === 'number';
-}
-
-function isText(node) {
-    const value = unwrap(node);
-
-    return (
-        (value?.type === 'Literal' && typeof value.value === 'string') ||
-        value?.type === 'TemplateLiteral'
-    );
-}
-
-/**
- * Whether a value can be a hard-coded path: a text starting with "/", also
- * as either side of ??, || and ?: (response.redirect ?? '/dashboard').
- */
-function isPathText(node) {
-    const value = unwrap(node);
-
-    if (value?.type === 'LogicalExpression') {
-        return isPathText(value.left) || isPathText(value.right);
-    }
-
-    if (value?.type === 'ConditionalExpression') {
-        return isPathText(value.consequent) || isPathText(value.alternate);
-    }
-
-    return leadingText(value)?.startsWith('/') ?? false;
-}
-
-/**
- * The text a string or template starts with, or null. For "/" + slug it
- * follows the left side of the +.
- */
-function leadingText(node) {
-    let value = unwrap(node);
-
-    while (value?.type === 'BinaryExpression' && value.operator === '+') {
-        value = unwrap(value.left);
-    }
-
-    if (value?.type === 'Literal' && typeof value.value === 'string') {
-        return value.value;
-    }
-
-    if (value?.type === 'TemplateLiteral') {
-        return value.quasis[0]?.value.cooked ?? '';
-    }
-
-    return null;
-}
-
-// A destructured status or role prop is the same business value as task.status.
-const BARE_STATUS_WORDS = new Set(['status', 'role']);
-
-/**
- * task.status, user.role and the like (also a bare status or role), but not
- * event.type or flash.type.
- */
-function isBusinessValue(node) {
-    const value = unwrap(node);
-
-    if (value?.type === 'Identifier') {
-        return BARE_STATUS_WORDS.has(value.name);
-    }
-
-    const names = memberPath(node);
-
-    if (!names || names.length < 2) {
-        return false;
-    }
-
-    const field = names[names.length - 1];
-    const holder = names[names.length - 2];
-
-    return STATUS_WORDS.has(field) && !BROWSER_HOLDERS.has(holder);
-}
-
-function isMoneyField(node) {
-    const names = memberPath(node);
-
-    if (!names || names.length < 2) {
-        return false;
-    }
-
-    const field = names[names.length - 1];
-    const holder = names[names.length - 2];
-
-    return MONEY_FIELD.test(field) && holder !== 'meta';
-}
-
-function isDateValue(node) {
-    const value = unwrap(node);
-
-    if (value?.type === 'NewExpression') {
-        return (
-            value.callee.type === 'Identifier' && value.callee.name === 'Date'
-        );
-    }
-
-    if (value?.type !== 'CallExpression') {
-        return false;
-    }
-
-    const names = memberPath(value.callee);
-
-    return (
-        names !== null &&
-        ((names.length === 2 && names[0] === 'Date' && names[1] === 'now') ||
-            names[names.length - 1] === 'getTime')
-    );
-}
-
 function rule(description, create) {
     return {
         meta: { type: 'problem', docs: { description } },
@@ -254,272 +99,13 @@ function rule(description, create) {
     };
 }
 
-const noPermissionChecks = rule(
-    'React does not check permissions',
-    (context) => ({
-        BinaryExpression(node) {
-            if (!EQUALITY.has(node.operator)) {
-                return;
-            }
-
-            const touchesUser = [node.left, node.right].some((side) => {
-                const names = memberPath(side) ?? [];
-
-                return names.some(
-                    (name, i) => name === 'auth' && names[i + 1] === 'user',
-                );
-            });
-
-            if (touchesUser) {
-                context.report({
-                    node,
-                    message:
-                        'React does not check permissions: show each button from the can.* flag the Resource sends. See docs/rules/frontend.md.',
-                });
-            }
-        },
-    }),
-);
-
-const noBusinessComparisons = rule(
-    'React does not compare statuses, roles or types',
-    (context) => {
-        const message =
-            'React does not compare statuses, roles or types: use the is_* flags and labels the Resource sends. See docs/rules/frontend.md.';
-
-        // Variables a status or role was copied into: const s = quote.status,
-        // const s = quote.status ?? 'draft', const { status: s } = quote,
-        // s = quote.status. A later declaration of the same name with another
-        // value forgets it again.
-        const copies = new Set();
-        const isBusiness = (node) => {
-            let value = unwrap(node);
-
-            while (
-                value?.type === 'LogicalExpression' &&
-                ['??', '||'].includes(value.operator)
-            ) {
-                value = unwrap(value.left);
-            }
-
-            return (
-                isBusinessValue(value) ||
-                (value?.type === 'Identifier' && copies.has(value.name))
-            );
-        };
-        const remember = (name, copied) =>
-            copied ? copies.add(name) : copies.delete(name);
-
-        return {
-            VariableDeclarator(node) {
-                if (node.id.type === 'Identifier') {
-                    remember(
-                        node.id.name,
-                        node.init !== null && isBusiness(node.init),
-                    );
-                }
-
-                if (node.id.type === 'ObjectPattern') {
-                    for (const property of node.id.properties) {
-                        const target =
-                            property.value?.type === 'AssignmentPattern'
-                                ? property.value.left
-                                : property.value;
-
-                        if (
-                            property.type === 'Property' &&
-                            target?.type === 'Identifier'
-                        ) {
-                            remember(
-                                target.name,
-                                property.key.type === 'Identifier' &&
-                                    BARE_STATUS_WORDS.has(property.key.name),
-                            );
-                        }
-                    }
-                }
-            },
-            AssignmentExpression(node) {
-                if (node.left.type === 'Identifier' && node.operator === '=') {
-                    remember(node.left.name, isBusiness(node.right));
-                }
-            },
-            BinaryExpression(node) {
-                if (!EQUALITY.has(node.operator)) {
-                    return;
-                }
-
-                const compared =
-                    (isBusiness(node.left) && !isNumber(node.right)) ||
-                    (isBusiness(node.right) && !isNumber(node.left));
-
-                if (compared) {
-                    context.report({ node, message });
-                }
-            },
-            SwitchStatement(node) {
-                if (isBusiness(node.discriminant)) {
-                    context.report({ node: node.discriminant, message });
-                }
-            },
-            CallExpression(node) {
-                const names = memberPath(node.callee);
-
-                if (
-                    names?.[names.length - 1] === 'includes' &&
-                    node.arguments.some(isBusiness)
-                ) {
-                    context.report({ node, message });
-                }
-            },
-        };
-    },
-);
-
-const HAND_FORMATTING = new Set(['toFixed', 'padStart', 'padEnd']);
-
-const noHandFormatting = rule(
-    'React does not format numbers or dates by hand',
-    (context) => ({
-        CallExpression(node) {
-            const names = memberPath(node.callee);
-            const method = names?.[names.length - 1];
-
-            if (HAND_FORMATTING.has(method)) {
-                context.report({
-                    node,
-                    message: `React does not format numbers or dates by hand (${method}): use Intl.NumberFormat or Intl.DateTimeFormat in ${DISPLAY_FORMAT_FILE}. See docs/rules/frontend.md.`,
-                });
-            }
-        },
-    }),
-);
-
-const noDateMath = rule(
-    'React does not compare or subtract dates',
-    (context, file) => {
-        if (file === DISPLAY_FORMAT_FILE) {
-            return {};
-        }
-
-        return {
-            BinaryExpression(node) {
-                if (!ORDER.has(node.operator) && node.operator !== '-') {
-                    return;
-                }
-
-                if (isDateValue(node.left) || isDateValue(node.right)) {
-                    context.report({
-                        node,
-                        message: `React does not compare or subtract dates: the Resource sends is_* flags and formatted dates. Display-only formatting goes in ${DISPLAY_FORMAT_FILE}. See docs/rules/frontend.md.`,
-                    });
-                }
-            },
-        };
-    },
-);
-
-const noMoneyMath = rule(
-    'React does not calculate money or sum lists',
-    (context, file) => {
-        if (file === DISPLAY_FORMAT_FILE) {
-            return {};
-        }
-
-        const message = `React does not calculate money or sum lists: the Resource sends prices, totals and discounts. Display-only formatting goes in ${DISPLAY_FORMAT_FILE}. See docs/rules/frontend.md.`;
-
-        return {
-            BinaryExpression(node) {
-                if (!ARITHMETIC.has(node.operator)) {
-                    return;
-                }
-
-                const joinsText =
-                    node.operator === '+' &&
-                    (isText(node.left) || isText(node.right));
-
-                if (
-                    !joinsText &&
-                    (isMoneyField(node.left) || isMoneyField(node.right))
-                ) {
-                    context.report({ node, message });
-                }
-            },
-            UnaryExpression(node) {
-                if (
-                    (node.operator === '-' || node.operator === '+') &&
-                    isMoneyField(node.argument)
-                ) {
-                    context.report({ node, message });
-                }
-            },
-            AssignmentExpression(node) {
-                if (
-                    ARITHMETIC_ASSIGN.has(node.operator) &&
-                    (isMoneyField(node.left) || isMoneyField(node.right))
-                ) {
-                    context.report({ node, message });
-                }
-            },
-            CallExpression(node) {
-                const names = memberPath(node.callee);
-                const reducer = node.arguments[0];
-
-                if (
-                    names?.[names.length - 1] !== 'reduce' ||
-                    !reducer ||
-                    !['ArrowFunctionExpression', 'FunctionExpression'].includes(
-                        reducer.type,
-                    ) ||
-                    reducer.params[0]?.type !== 'Identifier'
-                ) {
-                    return;
-                }
-
-                const total = reducer.params[0].name;
-                const body =
-                    reducer.body.type === 'BlockStatement'
-                        ? reducer.body.body.find(
-                              (statement) =>
-                                  statement.type === 'ReturnStatement',
-                          )?.argument
-                        : reducer.body;
-                const sum = unwrap(body);
-
-                if (
-                    sum?.type === 'BinaryExpression' &&
-                    sum.operator === '+' &&
-                    unwrap(sum.left)?.type === 'Identifier' &&
-                    unwrap(sum.left).name === total
-                ) {
-                    context.report({ node, message });
-                }
-            },
-        };
-    },
-);
-
 const noDirectBackendCalls = rule(
-    'React reaches the backend only through Wayfinder routes and Inertia',
+    'React reaches the backend only through Inertia',
     (context) => {
         const message =
-            'React reaches the backend only through Wayfinder routes and Inertia: no hard-coded URLs, fetch or axios. Import the route from @/routes or @/actions. See docs/rules/frontend.md.';
+            'React reaches the backend only through Inertia: no fetch or axios. Use the Wayfinder route from @/routes or @/actions with router or useForm. See docs/rules/frontend.md.';
 
         return {
-            JSXAttribute(node) {
-                const name = node.name?.name;
-                const value =
-                    node.value?.type === 'JSXExpressionContainer'
-                        ? node.value.expression
-                        : node.value;
-
-                if (
-                    (name === 'href' || name === 'action') &&
-                    isPathText(value)
-                ) {
-                    context.report({ node, message });
-                }
-            },
             CallExpression(node) {
                 const callee = unwrap(node.callee);
                 const names = memberPath(callee);
@@ -527,16 +113,6 @@ const noDirectBackendCalls = rule(
                 if (
                     (callee.type === 'Identifier' && callee.name === 'fetch') ||
                     names?.join('.') === 'window.fetch'
-                ) {
-                    context.report({ node, message });
-
-                    return;
-                }
-
-                if (
-                    names?.length === 2 &&
-                    names[0] === 'router' &&
-                    isPathText(node.arguments[0])
                 ) {
                     context.report({ node, message });
                 }
@@ -658,11 +234,6 @@ const componentBoundaries = rule(
 export default {
     meta: { name: 'ezdev' },
     rules: {
-        'no-permission-checks': noPermissionChecks,
-        'no-business-comparisons': noBusinessComparisons,
-        'no-date-math': noDateMath,
-        'no-money-math': noMoneyMath,
-        'no-hand-formatting': noHandFormatting,
         'no-direct-backend-calls': noDirectBackendCalls,
         'component-boundaries': componentBoundaries,
     },

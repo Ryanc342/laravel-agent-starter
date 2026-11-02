@@ -38,8 +38,9 @@ Test each `lockForUpdate()` by playing a second user who saves at the same momen
 - Start each file with `uses(RefreshDatabase::class);`, or a row-lock test file with `uses(TestsRowLocks::class);` (Row locks, above).
 - Name helper functions after the model (`taskCase()`, `notificationButtonsFor()`). Pest helpers are global, so two helpers with the same name stop the whole test run.
 - One `test('...')` per rule. The name describes the rule in plain words: `test('a completed task cannot be completed again', ...)`.
-- Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand: tests/Structure/CodeTest.php rejects `DB::insert()` and `DB::table(…)->insert()`.
-- Never skip a test or silence a check: tests/Structure/CodeTest.php rejects `->skip()`, `->todo()`, `@phpstan-ignore`, `oxlint-disable` and the like.
+- Build data with factories and their states (`Task::factory()->for($user)->overdue()->create()`). Never insert rows by hand: tests/Structure/CodeTest.php rejects `DB::insert()`, `DB::table(…)->insert()`, `Model::create()`, `firstOrCreate()`, `updateOrCreate()`, `upsert()` and `INSERT` statements in tests/.
+- Never skip a test or silence a check: tests/Structure/CodeTest.php rejects `->skip()`, `->todo()`, `@phpstan-ignore`, `oxlint-disable` and the like, and Pest fails on any skipped or unfinished test (phpunit.xml). Turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
+- Pest files end in `Test.php` inside tests/Feature or tests/Unit; helpers go in tests/Support; Vitest files are `tests/js/**/*.test.ts(x)` (tests/Structure/FoldersTest.php).
 - Never mock a model to fake a state. If no factory state or Action can create the state, the code for it should not exist yet (docs/golden-principles.md, principle 6).
 - Check values with `expect()`: `expect($task->refresh()->status)->toBe(TaskStatus::Done)`.
 - A rule that must refuse: `->throws(ValidationException::class)` on the test, or `expect(fn () => ...)->toThrow(...)` when you still check the database afterwards.

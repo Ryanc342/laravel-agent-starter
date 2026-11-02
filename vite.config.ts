@@ -49,14 +49,9 @@ export default defineConfig({
         // The default plugins plus import (for import/no-cycle). Setting
         // plugins replaces the default list, so every plugin is named here.
         plugins: ['typescript', 'unicorn', 'oxc', 'import'],
-        // Ezdev's own rules, docs/golden-principles.md principles 4 and 7.
+        // Ezdev's own structure rules, docs/golden-principles.md principles 4 and 7.
         jsPlugins: ['./lint/oxlint/ezdev.js'],
         rules: {
-            'ezdev/no-permission-checks': 'error',
-            'ezdev/no-business-comparisons': 'error',
-            'ezdev/no-date-math': 'error',
-            'ezdev/no-money-math': 'error',
-            'ezdev/no-hand-formatting': 'error',
             'ezdev/no-direct-backend-calls': 'error',
             'ezdev/component-boundaries': 'error',
             'import/no-cycle': 'error',

@@ -1,41 +1,75 @@
 <?php
 
+use PhpParser\Node;
+use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Return_;
+use PhpParser\NodeFinder;
+use PhpParser\ParserFactory;
+use Tests\Structure\ProjectFiles;
+
 /*
 | Principle 4 in docs/golden-principles.md: every Resource has a TypeScript
 | type with the same fields, so React never guesses what the backend sends.
 |
 | This stays a test until a tagged Laravel Wayfinder release generates the
-| page prop types (docs/rules/frontend.md). The other frontend rules are oxlint
-| rules in lint/oxlint/ezdev.js.
+| page prop types (docs/rules/frontend.md).
 */
-
-$root = dirname(__DIR__, 2);
 
 /**
  * Field names of a Resource's toArray(): the top level and the keys inside 'can'.
+ * Null when toArray() does not return one literal array with fixed keys.
  *
- * @return array{top: list<string>, can: list<string>}
+ * @return array{top: list<string>, can: list<string>}|null
  */
-function resourceFieldNames(string $source): array
+function resourceFieldNames(string $source): ?array
 {
-    $top = [];
-    $can = [];
-    $inCan = false;
+    $finder = new NodeFinder;
+    $ast = (new ParserFactory)->createForHostVersion()->parse($source) ?? [];
+    $method = $finder->findFirst($ast, fn (Node $node): bool => $node instanceof ClassMethod && $node->name->toLowerString() === 'toarray');
 
-    foreach (explode("\n", $source) as $line) {
-        if (preg_match("/^ {12}'(\w+)'\s*=>/", $line, $key) === 1) {
-            $top[] = $key[1];
-            $inCan = $key[1] === 'can';
+    if (! $method instanceof ClassMethod) {
+        return null;
+    }
 
-            continue;
+    $returns = $finder->findInstanceOf($method->stmts ?? [], Return_::class);
+
+    if (count($returns) !== 1 || ! $returns[0]->expr instanceof Array_) {
+        return null;
+    }
+
+    $keys = function (Array_ $array): ?array {
+        $names = [];
+
+        foreach ($array->items as $item) {
+            if (! $item->key instanceof String_ || $item->unpack) {
+                return null;
+            }
+
+            $names[$item->key->value] = $item->value;
         }
 
-        if ($inCan && preg_match("/^ {16}'(\w+)'\s*=>/", $line, $key) === 1) {
-            $can[] = $key[1];
+        return $names;
+    };
+
+    $top = $keys($returns[0]->expr);
+
+    if ($top === null) {
+        return null;
+    }
+
+    $can = [];
+
+    if (isset($top['can'])) {
+        $can = $top['can'] instanceof Array_ ? $keys($top['can']) : null;
+
+        if ($can === null) {
+            return null;
         }
     }
 
-    return ['top' => $top, 'can' => $can];
+    return ['top' => array_keys($top), 'can' => array_keys($can)];
 }
 
 /**
@@ -45,49 +79,71 @@ function resourceFieldNames(string $source): array
  */
 function typeFieldNames(string $source, string $resourcePath): ?array
 {
-    $position = strpos($source, $resourcePath);
+    $position = strpos($source, "Matches {$resourcePath}");
 
-    if ($position === false || preg_match('/export type \w+ = \{\n(.*?)\n\};/s', $source, $type, 0, $position) !== 1) {
+    if ($position === false || preg_match('/export (?:type \w+ =|interface \w+)\s*\{/', $source, $match, PREG_OFFSET_CAPTURE, $position) !== 1) {
         return null;
     }
+
+    // Read the body brace by brace, without comments, so layout does not matter.
+    $body = substr($source, $match[0][1] + strlen($match[0][0]));
+    $body = (string) preg_replace(['#/\*.*?\*/#s', '#//[^\n]*#'], '', $body);
 
     $top = [];
     $optional = [];
     $can = [];
-    $inCan = false;
+    $depth = 1;
+    $key = null;
 
-    foreach (explode("\n", $type[1]) as $line) {
-        if (preg_match('/^ {4}(\w+)(\?)?:/', $line, $key) === 1) {
-            $top[] = $key[1];
-            $inCan = $key[1] === 'can';
+    foreach (preg_split('/([{};,\n])/', $body, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) ?: [] as $part) {
+        if ($part === '{') {
+            $depth++;
 
-            if (($key[2] ?? '') === '?') {
-                $optional[] = $key[1];
+            continue;
+        }
+
+        if ($part === '}') {
+            $depth--;
+
+            if ($depth === 0) {
+                break;
             }
 
             continue;
         }
 
-        if ($inCan && preg_match('/^ {8}(\w+)\??:/', $line, $key) === 1) {
-            $can[] = $key[1];
+        if (preg_match('/^\s*(?:readonly\s+)?[\'"]?(\w+)[\'"]?(\?)?\s*:/', $part, $field) !== 1) {
+            continue;
+        }
+
+        if ($depth === 1) {
+            $key = $field[1];
+            $top[] = $key;
+
+            if (($field[2] ?? '') === '?') {
+                $optional[] = $key;
+            }
+        } elseif ($depth === 2 && $key === 'can') {
+            $can[] = $field[1];
         }
     }
 
     return ['top' => $top, 'optional' => $optional, 'can' => $can];
 }
 
-test('every Resource has a TypeScript type with the same fields: keep the type that says "Matches app/Http/Resources/{Model}Resource.php" in step with toArray()', function () use ($root) {
-    $types = [];
-
-    foreach (glob("{$root}/resources/js/types/*.ts") ?: [] as $file) {
-        $types[] = (string) file_get_contents($file);
-    }
-
+test('every Resource has a TypeScript type with the same fields: keep the type that says "Matches app/Http/Resources/{Model}Resource.php" in step with toArray()', function () {
+    $types = array_map(ProjectFiles::read(...), ProjectFiles::in(['resources/js/types']));
     $problems = [];
 
-    foreach (glob("{$root}/app/Http/Resources/*.php") ?: [] as $file) {
-        $resourcePath = 'app/Http/Resources/'.basename($file);
-        $fields = resourceFieldNames((string) file_get_contents($file));
+    foreach (ProjectFiles::in(['app/Http/Resources']) as $resourcePath) {
+        $fields = resourceFieldNames(ProjectFiles::read($resourcePath));
+
+        if ($fields === null) {
+            $problems[] = "{$resourcePath}: toArray() returns one literal array with fixed keys ('id' => …), and 'can' is a literal array too";
+
+            continue;
+        }
+
         $type = null;
 
         foreach ($types as $source) {

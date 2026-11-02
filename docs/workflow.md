@@ -64,4 +64,4 @@ One plan, one git worktree: `scripts/worktree-up <name>` creates it with its own
 
 ## Weekly cleanup
 
-Once a week, run docs/prompts/cleanup.md: scan for deviations from docs/golden-principles.md, open small fixes, update docs/QUALITY.md.
+Once a week, run docs/prompts/cleanup.md: go through every `[review]` rule, open small fixes, list the gaps in the machine checks and the rules to merge or remove for the user, update docs/QUALITY.md.

@@ -2,6 +2,35 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.10.0] - 2026-11-02
+
+Every rule now says who checks it and what it is about. Machines check structure and the steps of the work; whether the business logic is right is read by the reviewer. A red-team pass found about 150 ways around the checks; the structure ones are closed here.
+
+### Changed
+
+- Every rule in `docs/golden-principles.md` carries two tags: who checks it (`[PHPStan]`, `[oxlint]`, `[Structure]`, `[hook]`, `[review]`, `[user]`) and what it is about (`structure`, `business`, `process`). `tests/Structure/DocsTest.php` checks the format, and that a business rule is never given to a machine.
+- Business rules are no longer machine checks. These moved to `[review]`: comparisons on model fields and enums outside app/Models and app/Enums (`ConditionsLiveInModelsRule` removed), a model method re-comparing a column its scope filters on, React permission, status, date and money logic (the oxlint rules `no-permission-checks`, `no-business-comparisons`, `no-date-math`, `no-money-math` and `no-hand-formatting` removed), hard-coded URLs, and `round()` / `number_format()` (merged into the money and "do not hand-write formatting" rules). oxlint keeps `fetch` / `axios`, UI libraries and component boundaries.
+- The reviewer lists every `[review]` rule the change touches with `ok` or the finding, all the same; the four searches are gone. The 27-rule cap is gone.
+- The weekly cleanup goes through every `[review]` rule, lists gaps in the machine checks with the code that shows them and a suggested check, and lists rules to merge or remove. The user decides; a check only gets stricter. In a project made from the template, the suggestion is for the template.
+- The finish check counts only a plan written or changed in this conversation, with its purpose, decisions and milestones filled in; approval only from Decision Log lines added in this conversation; the "asking" exemption only when the message ends with the question and names the files. A plan with every milestone done is sent back to be completed. A step it lets go after three times is told to the user and to the next conversation. If the check itself fails, it says so instead of staying silent.
+- `composer check` records a pass only for the code it started on (`checking` step) and only when the tests ran to the end (`tests/Structure/RunFinishedTest.php`).
+- More protected files: `.npmrc`, `.gitignore`, `artisan`, `tests/bootstrap.php`, `tests/Pest.php`, `tests/TestCase.php`, `tests/js/setup.ts`, `docs/workflow.md`, `docs/PLANS.md`, `docs/reference/`.
+
+### Fixed
+
+- The layer bans in `phpstan.neon` were partly never enforced: phpstan-disallowed-calls keeps only the last entry for a namespace or function, so a later entry replaced an earlier one (Models and Policies were allowed in Actions and Http, and the Action bans on `request()` and the like were replaced). Each namespace and function now appears once.
+
+### Added
+
+- PHPStan: writes are found by method family (`save*`, `update*`, `delete*`, `insert*`, `sync*`, `touch*` and the rest, also on query builders, relations, `DB::statement()`, mail and notifications); `Validator::*()` outside app/Http/Fortify; the request, session, auth and Gate helpers in every lower layer; seeders, factories and test code in the app; models as `->toArray()` or through `Inertia::share()`, `->with()` and `response()->json()`; a relation sent without its Resource (`whenLoaded()`); Actions exactly in `app/Actions/{Domain}/`; app/Http holds only Controllers, Requests, Resources, Middleware and Fortify.
+- `tests/Structure/FoldersTest.php`: the fixed folders of app/, resources/js and tests/, pages in `pages/{domain}/`, components in `components/{domain}/` or `shared/`, test file names and places, only TypeScript in resources/js, only Markdown in docs/, no symlinks, no PHP in public/.
+- `tests/Structure/RoutesTest.php`: every route named, no closures in routes/, a fixed path before a wildcard that catches it.
+- `tests/Structure/ConfigTest.php`: the checks stay as set (PHPStan level, paths, extensions and rules, every Ezdev oxlint rule on with only generated code ignored, strict TypeScript, the three Pest suites, `composer check` itself, no other lint config, no `script-shell`), and PHPStan reads every folder composer autoloads.
+- `tests/Structure/CodeTest.php`: components/ui imports no app code, no import leaves resources/js, PHP requires only PHP files, no PHP in Blade views, no CSS-only UI library (resources/css and package.json), and more ways of writing test rows by hand.
+- `tests/Structure/ResourceTypesTest.php` reads the Resource with a PHP parser and finds Resources and types in subfolders: `toArray()` returns one literal array.
+- Pest fails on a skipped or unfinished test (`phpunit.xml`). Turning a Fortify feature off means deleting its tests.
+- CI also runs `composer check:reference`.
+
 ## [2.9.0] - 2026-11-02
 
 Rules now show up at the moment the AI breaks them instead of relying on it remembering them. In the experiments, no machine-checked rule was ever broken; every miss was a `[review]` rule or a step of the workflow.

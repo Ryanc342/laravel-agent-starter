@@ -32,7 +32,7 @@ final class CompleteTask
 
 ## Business conditions
 
-- The Action checks every business precondition itself (stock, record status, limits, eligibility) by calling the owner (enum method, model method or scope). It never restates the condition: PHPStan rejects `where…` and comparisons on model fields or enum cases here.
+- The Action checks every business precondition itself (stock, record status, limits, eligibility) by calling the owner (enum method, model method or scope). It never restates the condition: PHPStan rejects `where…` here, and the reviewer looks for comparisons on model fields or enum cases.
 - A refusal throws `ValidationException::withMessages([...])` keyed by the field the user should fix.
 - Permission is not checked here. The controller asked the Policy once; the Action does not ask again.
 
@@ -41,7 +41,7 @@ final class CompleteTask
 - Every `create`, `update`, `save`, `delete` and pivot change happens in an Action. PHPStan rejects them elsewhere.
 - Several writes that must succeed together go in `DB::transaction(...)`.
 - Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock, balances or a number counter. Pages and Actions that only read never lock. Only Actions may lock (PHPStan), and an Action that locks has `tests/Feature/{Domain}/{Action}LockTest.php` (docs/rules/tests.md, Row locks).
-- Money is integer cents. Multiply decimals with `Brick\Math\BigDecimal` and round with its `RoundingMode`; PHPStan rejects `round()`, `floor()`, `ceil()` and `number_format()` in app/.
+- Money is integer cents. Multiply decimals with `Brick\Math\BigDecimal` and round with its `RoundingMode`, never with `round()`, `floor()`, `ceil()` or `number_format()` (the reviewer checks this).
 
 ## One operation, one Action
 

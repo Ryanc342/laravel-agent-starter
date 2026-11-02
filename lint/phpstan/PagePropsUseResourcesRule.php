@@ -16,9 +16,10 @@ use PHPStan\Type\TypeCombinator;
 
 /**
  * Principle 4 in docs/golden-principles.md: every model reaches React through
- * a JsonResource. The props of Inertia::render() and inertia(), and the shared
- * props returned by HandleInertiaRequests::share(), never hold a model, a model
- * collection or a paginator of models: not directly, not inside an array, not
+ * a JsonResource. The props of Inertia::render(), inertia(), ->with(),
+ * Inertia::share(), the shared props returned by HandleInertiaRequests::share()
+ * and response()->json() never hold a model, a model collection or a paginator
+ * of models: not directly, not as ->toArray(), not inside an array, not
  * returned by a closure or by Inertia::defer(), optional(), merge() and the like.
  *
  * An array literal is checked item by item, because spreading another array
@@ -65,6 +66,34 @@ final class PagePropsUseResourcesRule implements Rule
             return $node->getArgs()[1]->value ?? null;
         }
 
+        // Inertia::share('key', $value), Inertia::share([...]).
+        if ($node instanceof Expr\StaticCall
+            && $node->class instanceof Node\Name
+            && $scope->resolveName($node->class) === 'Inertia\Inertia'
+            && $node->name instanceof Node\Identifier
+            && $node->name->toLowerString() === 'share') {
+            return $this->keyOrArray($node);
+        }
+
+        // Inertia::render(...)->with('key', $value), inertia()->render('page', [...]),
+        // response()->json([...]).
+        if ($node instanceof Expr\MethodCall && $node->name instanceof Node\Identifier) {
+            $receiver = $scope->getType($node->var);
+            $method = $node->name->toLowerString();
+
+            if ($method === 'with' && (new ObjectType('Inertia\Response'))->isSuperTypeOf($receiver)->yes()) {
+                return $this->keyOrArray($node);
+            }
+
+            if ($method === 'render' && (new ObjectType('Inertia\ResponseFactory'))->isSuperTypeOf($receiver)->yes()) {
+                return $node->getArgs()[1]->value ?? null;
+            }
+
+            if ($method === 'json' && (new ObjectType('Illuminate\Contracts\Routing\ResponseFactory'))->isSuperTypeOf($receiver)->yes()) {
+                return $node->getArgs()[0]->value ?? null;
+            }
+        }
+
         if ($node instanceof Node\Stmt\Return_
             && $node->expr !== null
             && $scope->getFunction()?->getName() === 'share'
@@ -73,6 +102,16 @@ final class PagePropsUseResourcesRule implements Rule
         }
 
         return null;
+    }
+
+    /**
+     * The value of a ('key', $value) call, or the array of an ([...]) call.
+     */
+    private function keyOrArray(Expr\CallLike $call): ?Expr
+    {
+        $args = $call->getArgs();
+
+        return count($args) >= 2 ? $args[1]->value : ($args[0]->value ?? null);
     }
 
     /**
@@ -104,6 +143,15 @@ final class PagePropsUseResourcesRule implements Rule
             $wrapped = $expr->getArgs()[0]->value ?? null;
 
             return $wrapped !== null && $this->expressionHoldsModel($wrapped, $scope, $depth + 1);
+        }
+
+        // $order->toArray(), $orders->toArray(), $paginator->toArray(): the whole model as an array.
+        if ($expr instanceof Expr\MethodCall
+            && $expr->name instanceof Node\Identifier
+            && in_array($expr->name->toLowerString(), ['toarray', 'attributestoarray', 'jsonserialize', 'tojson'], true)
+            && ! (new ObjectType('Illuminate\Http\Resources\Json\JsonResource'))->isSuperTypeOf($scope->getType($expr->var))->yes()
+            && $this->holdsModel($scope->getType($expr->var), $scope, $depth)) {
+            return true;
         }
 
         return $this->holdsModel($scope->getType($expr), $scope, $depth);

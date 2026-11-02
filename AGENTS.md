@@ -46,7 +46,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - Fix the code, not the test. Change an assertion only when the user changed the requirement, and say why.
 - Build only what the plan lists. Anything else is a new question for the user.
 - Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
-- Do not change AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs/golden-principles.md, docs/rules/, docs/prompts/ or the checks and tools (phpstan.neon, vite.config.ts, tsconfig.json, pint.json, phpunit.xml, lint/, tests/Structure/, tests/Support/, tests/Unit/Hooks/, scripts/, .claude/, .codex/, .agents/, .github/) without the user's approval, and record it in the plan's Decision Log, naming the file. One exception: the weekly cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 5).
+- Do not change AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs/golden-principles.md, docs/rules/, docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/ or the checks and tools (phpstan.neon, vite.config.ts, tsconfig.json, pint.json, phpunit.xml, .npmrc, .gitignore, artisan, lint/, tests/Structure/, tests/Support/, tests/Unit/Hooks/, tests/bootstrap.php, tests/Pest.php, tests/TestCase.php, tests/js/setup.ts, scripts/, .claude/, .codex/, .agents/, .github/) without the user's approval, and record it in the plan's Decision Log, naming the file. One exception: the weekly cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 5).
 - Do not add or upgrade dependencies without the user's approval.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
 

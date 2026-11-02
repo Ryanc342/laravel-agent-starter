@@ -67,6 +67,7 @@
         ],
         "check": [
             "Composer\\Config::disableProcessTimeout",
+            "@php scripts/hooks/finish-check.php checking",
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",

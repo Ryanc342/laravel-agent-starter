@@ -5,7 +5,7 @@ It is the official [Laravel React Starter Kit](https://github.com/laravel/react-
 
 1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
 2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in nine principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
-3. **Machine checks.** Two linters enforce the architecture: PHPStan for PHP (with Ezdev's rules in `lint/phpstan/`) and oxlint for React (with Ezdev's rules in `lint/oxlint/`). Small tests check the docs, the code across folders and the Resource types. One command runs everything: `composer check`. When the AI is about to stop, a finish check sends back any step of the workflow it skipped.
+3. **Machine checks for structure, a second AI for business logic.** Machines check where code goes and what it may use: PHPStan for PHP (with Ezdev's rules in `lint/phpstan/`), oxlint for React (with Ezdev's rules in `lint/oxlint/`), and structure tests for folders, routes, check configs, docs and the Resource types. One command runs them all: `composer check`. Whether the business logic is right needs reading, so a reviewer AI checks those rules on every change. When the AI is about to stop, a finish check sends back any step of the workflow it skipped.
 
 The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
 
@@ -62,7 +62,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 ## Changing the rules
 
-The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (a test checks it): add details to `docs/`, not to the map. When a rule is broken twice, turn it into a linter rule (`phpstan.neon`, `lint/phpstan/` or `lint/oxlint/ezdev.js`) with an error message that says what to do instead. After changing rules or tooling, run `composer check:reference`.
+The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (a test checks it): add details to `docs/`, not to the map. When a structure rule is broken twice, turn it into a check (`phpstan.neon`, `lint/phpstan/`, `lint/oxlint/ezdev.js` or `tests/Structure/`) with an error message that says what to do instead; business rules stay with the reviewer. The weekly cleanup lists gaps in the checks and rules to merge or remove; you decide, and a check only ever gets stricter. After changing rules or tooling, run `composer check:reference`.
 
 ## Optional: DESIGN.md
 

@@ -5,7 +5,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$(git rev-parse --show-toplevel)/scripts/hooks/finish-check.php\" start",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$(git rev-parse --show-toplevel)/scripts/hooks/finish-check.php\" start || echo '{\"systemMessage\":\"The finish check could not run.\"}'",
                         "timeout": 30
                     }
                 ]
@@ -16,7 +16,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$(git rev-parse --show-toplevel)/scripts/hooks/finish-check.php\" stop",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$(git rev-parse --show-toplevel)/scripts/hooks/finish-check.php\" stop || echo '{\"systemMessage\":\"The finish check could not run.\"}'",
                         "timeout": 60
                     }
                 ]

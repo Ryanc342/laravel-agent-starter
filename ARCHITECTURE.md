@@ -20,22 +20,25 @@ A layer may use the layers below it, never the ones above it. Side folders:
 - `app/Concerns/`: validation rule traits shared by FormRequests (`PasswordValidationRules`).
 - `app/Notifications/`: messages to a user (`PasswordChanged`). Only Actions send them, with `$user->notify()`.
 
-Almost every rule is checked by a linter: a tool that reads the code without running it and stops a broken rule with a message that says what to do instead. `composer check` runs them all:
+Rules about structure (where code goes, which layer uses which, what a class looks like) are checked by machines: a linter reads the code without running it, a structure test reads the files, and each stops a broken rule with a message that says what to do instead. Whether code gets a business rule right needs someone who reads it, so those rules are the reviewer's (docs/golden-principles.md). `composer check` runs every machine check:
 
 | Check                                        | What it stops                                                         |
 | -------------------------------------------- | --------------------------------------------------------------------- |
-| `phpstan.neon` (disallowed calls and namespaces) | a layer using a layer above it, writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources, HTTP or permission checks in Actions, row locks outside Actions, events and listeners, `round()` and `number_format()` |
-| `lint/phpstan/ClassShapeRule.php`, `lint/phpstan/TraitPlacementRule.php` | an Action that is not final, has more than `handle()` or takes a `bool`, extra controller methods, event, listener and observer classes, a Resource sending `$this->resource` whole, `authorize()` in a FormRequest, non-enums in app/Enums, traits in app/Enums or app/Actions, interfaces, Service/Repository/DTO classes, wrong class names |
-| `lint/phpstan/ModelScopesRule.php`           | a `scopeFoo()` method, a model method comparing a column its scope filters on |
-| `lint/phpstan/ConditionsLiveInModelsRule.php` | a model field or enum value compared outside the model and enum      |
-| `lint/phpstan/PagePropsUseResourcesRule.php` | a model sent to React without a Resource                             |
+| `phpstan.neon` (disallowed calls and namespaces) | a layer using a layer above it, writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources, HTTP or permission checks in Actions, row locks outside Actions, events and listeners, seeders, factories or test code in the app |
+| `lint/phpstan/ClassShapeRule.php`, `lint/phpstan/TraitPlacementRule.php` | an Action that is not final, sits outside `app/Actions/{Domain}/`, has more than `handle()` or takes a `bool`, extra controller methods, a folder in app/Http other than Controllers, Requests, Resources, Middleware and Fortify, event, listener and observer classes, a Resource sending `$this->resource` whole or a relation without its Resource, `authorize()` in a FormRequest, non-enums in app/Enums, traits in app/Enums or app/Actions, interfaces, Service/Repository/DTO classes, wrong class names |
+| `lint/phpstan/ModelScopesRule.php`           | a `scopeFoo()` method instead of `#[Scope]`                           |
+| `lint/phpstan/PagePropsUseResourcesRule.php` | a model sent to React or as JSON without a Resource, also as `->toArray()` |
 | `lint/phpstan/CompanionFilesRule.php`        | an Action without a test, an Action that locks without a lock test, a model without a factory, a `can.*` Resource without a buttons test |
 | `lint/phpstan/ControllerInputRule.php`       | a controller reading input anywhere but from its FormRequest          |
-| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | React checking permissions, statuses, dates or money; numbers formatted by hand; hard-coded URLs, `fetch`, `axios`; another UI library; a component importing another domain's components or a page; circular imports |
+| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | `fetch` and `axios`; another UI library; a component importing another domain's components or a page; circular imports |
 | `tests/Structure/ResourceTypesTest.php`      | a TypeScript type out of step with its Resource (a test until Wayfinder generates the types) |
-| `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section, more than 27 `[review]` rules |
-| `tests/Structure/CodeTest.php`               | a silenced check or skipped test, rows inserted by hand in tests, `lib/format.ts` without its test |
-| `scripts/hooks/finish-check.php` (when the AI stops) | code without a plan, a fixed tech-debt line without a QUALITY.md update, a protected file without the user's recorded approval, code no passing `composer check` has seen, a completed plan without its records |
+| `tests/Structure/FoldersTest.php`            | a folder or file outside the fixed layout: app/ and resources/js top level, pages and components folders, test names and places, non-TypeScript files in resources/js, non-Markdown files in docs/, symlinks, PHP in public/ |
+| `tests/Structure/RoutesTest.php`             | an unnamed route, a closure route, a fixed path registered after a wildcard path that catches it |
+| `tests/Structure/CodeTest.php`               | a silenced check, rows inserted by hand in tests, `lib/format.ts` without its test, components/ui importing app code, imports leaving resources/js, PHP required from other files, PHP in views, a CSS-only UI library |
+| `tests/Structure/ConfigTest.php`             | a check turned down: PHPStan level, paths, extensions or rules, an oxlint rule off or code ignored, TypeScript not strict, a Pest suite left out, `composer check` changed, another lint config, a `script-shell` |
+| `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section, a rule in docs/golden-principles.md without its two tags |
+| `tests/Structure/RunFinishedTest.php`        | the last test: its file proves the test run reached its end           |
+| `scripts/hooks/finish-check.php` (when the AI stops) | code without a plan written in this conversation, a fixed tech-debt line without a QUALITY.md update, a protected file without the user's recorded approval, code no full passing `composer check` has seen, a completed plan without its records |
 
 ## Where each rule goes
 
