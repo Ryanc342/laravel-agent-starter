@@ -40,7 +40,7 @@ final class CompleteTask
 
 - Every `create`, `update`, `save`, `delete` and pivot change happens in an Action. PHPStan rejects them elsewhere.
 - Several writes that must succeed together go in `DB::transaction(...)`.
-- Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock, balances or a number counter. Pages and Actions that only read never lock. Only Actions may lock (PHPStan), and an Action that locks has `tests/Feature/{Domain}/{Action}LockTest.php` (docs/rules/tests.md, Row locks).
+- Lock rows (`lockForUpdate()`) only for real concurrent writes on the same record, such as stock, balances or a number counter. Pages and Actions that only read never lock, and neither does a row an Action only reads to check it: saving an order that checks "is the supplier active?" does not lock the supplier, because deactivating it a moment later gives the same result, and the lock would make everyone who edits that supplier wait for every order save. Only Actions may lock (PHPStan), and an Action that locks has `tests/Feature/{Domain}/{Action}LockTest.php` (docs/rules/tests.md, Row locks).
 - Money is integer cents. Multiply decimals with `Brick\Math\BigDecimal` and round with its `RoundingMode`, never with `round()`, `floor()`, `ceil()` or `number_format()` (the reviewer checks this).
 
 ## One operation, one Action

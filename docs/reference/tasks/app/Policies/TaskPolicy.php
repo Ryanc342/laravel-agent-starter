@@ -25,6 +25,11 @@ class TaskPolicy
         return true;
     }
 
+    public function view(User $user, Task $task): bool
+    {
+        return $task->isOwnedBy($user);
+    }
+
     public function update(User $user, Task $task): bool
     {
         return $task->isOwnedBy($user);

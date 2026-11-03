@@ -2,6 +2,21 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.13.0] - 2026-11-04
+
+From the first round of the Sol experiment (purchase orders): what the AI had to guess, the template now shows.
+
+### Added
+
+- `components/ui/table.tsx` (shadcn's Table, no new package). DESIGN.md: every list of records is a Table in a bordered box, with its name or number, status and amount first so a phone shows them before the table scrolls; a feed of messages (notifications) stays rows. Principle 10 says the same.
+- The reference feature's task list is a table, and it gains a task page (`tasks.show`, `TaskPolicy::view`, `pages/tasks/show.tsx`) whose breadcrumb is built from its data and ends at the task, with the task's actions and its edit form. Updating or completing a task returns to its page. A `ui` rule: a page about one record has such a breadcrumb and no separate back button.
+- `resources/js/lib/format.ts` with `formatMoney(cents)`, `formatQuantity(value)` and `formatDate(date)` (Intl, en-MY and MYR set at the top), and its test. Every amount, quantity and date on screen goes through it.
+
+### Changed
+
+- Locks: a row an Action only reads to check it (is the supplier active?) is not locked, and a lock test must fail once its `lockForUpdate()` is removed (docs/rules/actions.md, docs/rules/tests.md, principles 6 and 8).
+- Select options are `{ value, label }` pairs from one model or enum method with one query for the whole list, never a full Resource or a query per option (docs/rules/frontend.md, principle 4).
+
 ## [2.12.1] - 2026-11-04
 
 ### Fixed

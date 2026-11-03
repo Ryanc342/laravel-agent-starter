@@ -31,7 +31,7 @@ These values are few (roles, statuses, active or not, own or not), so list every
 
 ## Row locks
 
-Test each `lockForUpdate()` by playing a second user who saves at the same moment. Put the test in its own file, `tests/Feature/{Domain}/{Action}LockTest.php`, starting with `uses(TestsRowLocks::class);` (tests/Support/TestsRowLocks.php) instead of RefreshDatabase: a second connection only sees committed rows, so this file commits its rows and empties the tables after each test. While the Action holds the lock (listen for a model event such as `Task::deleting(...)`), run the other user's write with `$this->waitsForLock(fn () => ...)` and expect `true`. Load the records that write changes inside the closure. `tests/Feature/TestsRowLocksTest.php` shows the calls.
+Test each `lockForUpdate()` by playing a second user who saves at the same moment. Put the test in its own file, `tests/Feature/{Domain}/{Action}LockTest.php`, starting with `uses(TestsRowLocks::class);` (tests/Support/TestsRowLocks.php) instead of RefreshDatabase: a second connection only sees committed rows, so this file commits its rows and empties the tables after each test. While the Action holds the lock (listen for a model event such as `Task::deleting(...)`), run the other user's write with `$this->waitsForLock(fn () => ...)` and expect `true`. Load the records that write changes inside the closure. `tests/Feature/TestsRowLocksTest.php` shows the calls. Then remove the `lockForUpdate()` once and run the test: it must fail. A lock test that still passes without its lock proves nothing; make the second write go through the same Action, or through the step the lock protects.
 
 ## Style
 

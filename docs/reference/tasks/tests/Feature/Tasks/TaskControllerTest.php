@@ -10,6 +10,27 @@ uses(RefreshDatabase::class);
 
 test('guests are redirected to the login page', function () {
     $this->get(route('tasks.index'))->assertRedirect(route('login'));
+    $this->get(route('tasks.show', Task::factory()->create()))->assertRedirect(route('login'));
+});
+
+test('a user sees their own task', function () {
+    $task = Task::factory()->create(['title' => 'Buy milk']);
+
+    $this->actingAs($task->user)
+        ->get(route('tasks.show', $task))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('tasks/show')
+            ->where('task.id', $task->id)
+            ->where('task.title', 'Buy milk'));
+});
+
+test('a user cannot see another user\'s task', function () {
+    $task = Task::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('tasks.show', $task))
+        ->assertForbidden();
 });
 
 test('the list shows only the user\'s own tasks', function () {
@@ -63,7 +84,7 @@ test('a user can update their own task', function () {
 
     $this->actingAs($task->user)
         ->put(route('tasks.update', $task), ['title' => 'Changed', 'due_on' => null])
-        ->assertRedirect(route('tasks.index'));
+        ->assertRedirect(route('tasks.show', $task));
 
     expect($task->refresh()->title)->toBe('Changed');
 });

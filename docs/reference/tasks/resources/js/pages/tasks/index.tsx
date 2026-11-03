@@ -4,7 +4,7 @@ import TaskController from '@/actions/App/Http/Controllers/TaskController';
 import Heading from '@/components/heading';
 import Pagination from '@/components/shared/pagination';
 import TaskFields from '@/components/tasks/task-fields';
-import TaskRow from '@/components/tasks/task-row';
+import TaskTable from '@/components/tasks/task-table';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/tasks';
 import type { ResourceCollection } from '@/types/resource';
@@ -68,11 +68,7 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
                     </p>
                 ) : (
                     <>
-                        <ul className="grid gap-2">
-                            {tasks.data.map((task) => (
-                                <TaskRow key={task.id} task={task} />
-                            ))}
-                        </ul>
+                        <TaskTable tasks={tasks.data} />
                         <Pagination collection={tasks} />
                     </>
                 )}

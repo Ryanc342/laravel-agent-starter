@@ -40,6 +40,18 @@ class TaskController extends Controller
     }
 
     /**
+     * Show one task, with its actions.
+     */
+    public function show(Request $request, Task $task): Response
+    {
+        Gate::authorize('view', $task);
+
+        return Inertia::render('tasks/show', [
+            'task' => TaskResource::make($task)->resolve($request),
+        ]);
+    }
+
+    /**
      * Create a task.
      */
     public function store(StoreTaskRequest $request, CreateTask $createTask): RedirectResponse
@@ -64,7 +76,7 @@ class TaskController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Task updated.')]);
 
-        return to_route('tasks.index');
+        return to_route('tasks.show', $task);
     }
 
     /**

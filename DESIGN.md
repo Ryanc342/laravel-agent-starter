@@ -101,16 +101,16 @@ People open this app to get work done: enter an order, find a customer, check wh
 
 - One family, Instrument Sans, loaded by the `fonts` list in vite.config.ts.
 - Body text is 14px (`text-sm`). The page title is `<Heading>` (20px, semibold); a section inside a page is `<Heading variant="small">`. Nothing inside the app is larger.
-- Numbers that line up in tables or totals use `tabular-nums`.
+- Numbers that line up in tables or totals use `tabular-nums`. Money, quantities and dates are shown through `resources/js/lib/format.ts` (`formatMoney`, `formatQuantity`, `formatDate`), which also sets the locale and currency.
 - Sentence case for titles, labels and buttons.
 
 ## Layout
 
 - Top bar of every page: the sidebar toggle and breadcrumbs on the left, the notification bell on the right. The bell opens a card with the newest notifications.
 - Page: `flex flex-col gap-6 p-4`. First a header row, `flex flex-wrap items-start justify-between gap-4`, with `<Heading>` on the left and the page's actions on the right. Then filters, then the content, then `<Pagination>`.
-- List page: one row per record (`rounded-lg border p-4`, the `list-row` component above), or a table when the records have columns to compare. An empty list shows one short line in `text-muted-foreground`.
+- List page: a list of records (orders, products, customers, tasks) is always a `Table` from `components/ui/table` inside a `rounded-lg border` box, like `docs/reference/tasks/resources/js/components/tasks/task-table.tsx`. Columns go in this order: the record's name or number (a link to its page), its status, its amount, then the rest, so a phone shows the important columns before the table scrolls. A feed of messages, such as notifications, is rows instead (`rounded-lg border p-4`, the `list-row` component above). An empty list shows one short line in `text-muted-foreground`.
 - Form: `grid max-w-xl gap-4`; each field is a label, the input and `<InputError>` under it; the buttons come last, the main one first. A label is hidden (`sr-only`) only when the layout already says what the field is, such as a search box next to a Search button; it is never left out.
-- Detail page: the record's name as the heading, its status as a Badge next to it, its actions in the header row.
+- Detail page: the record's name as the heading, its status as a Badge next to it, its actions in the header row. Its breadcrumb ends at the record (`Tasks › Buy milk`, `Purchase orders › PO-2026-0002 › Edit`), built from the page's data as in `docs/reference/tasks/resources/js/pages/tasks/show.tsx`; the breadcrumb is the way back, so there is no separate back button.
 - Spacing comes from the scale (`gap-1`, `gap-2`, `gap-4`, `gap-6`, `gap-8`). Every screen works from a 390px phone up; a wide table scrolls inside its own container, never the page.
 
 ## Elevation & Depth
@@ -127,6 +127,7 @@ Use what `resources/js/components/ui` (shadcn) and `components/shared` already h
 
 | Need | Use |
 | --- | --- |
+| A list of records | `Table` (`components/ui/table`) |
 | An action | `Button` (one `default` per area, the rest `outline`, `secondary` or `ghost`) |
 | A status | `Badge` (`secondary`, `success`, `warning`, `destructive`) |
 | Confirm something that cannot be undone | `Dialog` with Cancel and the action named in full ("Delete task") |
@@ -163,3 +164,4 @@ Don't:
 - Secondary labels and descriptions the layout already makes clear: a description under a heading that repeats it ("Tasks: your to-do list"), help text under every field, a sentence that explains what a feature does.
 - Slogans, text about how the screen was built or what was asked for, and the same information shown twice.
 - Raw colors (`bg-blue-500`, `#3366ff`), arbitrary sizes (`text-[13px]`, `p-[18px]`) or `dark:` color overrides: use the tokens.
+- A "Back to …" button next to a breadcrumb that already links back.

@@ -21,6 +21,6 @@ class TaskCompletionController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Task completed.')]);
 
-        return to_route('tasks.index');
+        return to_route('tasks.show', $task);
     }
 }

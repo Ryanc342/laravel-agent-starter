@@ -25,9 +25,12 @@ Do not copy the Task domain itself into the app, and do not "fix" files here wit
 | CRUD controller                                 | `app/Http/Controllers/TaskController.php`                                    |
 | Non-CRUD operation                              | `app/Http/Controllers/TaskCompletionController.php`                          |
 | Routes                                          | `routes/tasks.php`                                                           |
-| Page and components                             | `resources/js/pages/tasks/index.tsx`, `resources/js/components/tasks/`       |
+| List page with a table                          | `resources/js/pages/tasks/index.tsx`, `components/tasks/task-table.tsx`      |
+| Detail page, breadcrumbs from the page's data   | `resources/js/pages/tasks/show.tsx` (`ShowTask.layout`)                      |
+| Actions shown from `can.*`, delete confirmation | `resources/js/components/tasks/task-actions.tsx`                             |
 | Paginated list                                  | `TaskController::index()` and `<Pagination>` in the page                     |
 | Shared UI block                                 | `resources/js/components/tasks/task-fields.tsx` (create and edit forms)      |
+| Dates shown through `lib/format.ts`             | `formatDate()` in `task-table.tsx` and `show.tsx`                            |
 | Tests                                           | `tests/Feature/Tasks/`                                                       |
 | Buttons agree with the endpoints                | `tests/Feature/Tasks/TaskButtonsTest.php`                                    |
 

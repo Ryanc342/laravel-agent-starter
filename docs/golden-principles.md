@@ -72,7 +72,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[Structure]` `structure` Each Resource has a TypeScript type with the same fields, marked "Matches app/Http/Resources/{Model}Resource.php".
 - `[oxlint]` `structure` No UI library besides components/ui (shadcn): importing another UI library in React code is rejected.
 - `[Structure]` `structure` No UI library that comes in through CSS only: resources/css imports only Tailwind and tw-animate-css, and package.json has no CSS UI kit (daisyui, Bootstrap and the like).
-- `[review]` `structure` Select options come from the list the backend sends. Display preferences kept in the browser (the appearance setting) are not business options.
+- `[review]` `structure` Select options come from the list the backend sends, as `{ value, label }` pairs from one model or enum method with one query for the whole list, never a full Resource or a query per option. Display preferences kept in the browser (the appearance setting) are not business options.
 - `[review]` `structure` Validation lives in the FormRequest; React adds only simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code, a name that is not blank) is display.
 - `[review]` `business` A `can.*` flag includes the business state, so a button shows exactly when pressing it succeeds. A reason shown for a refusal comes from the Resource, never worked out from `!can.*` or a mix of flags.
 
@@ -92,7 +92,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[Structure]` `structure` app/ holds only Actions, Concerns, Console, Enums, Http, Integrations, Models, Notifications, Policies, Providers and Support; a new top-level folder is a decision for the user.
 - `[PHPStan]` `structure` No events or listeners: `event()`, the `Event` facade and the event dispatcher, model event callbacks (`creating()`, `saved()`, `observe()` and the like), `#[ObservedBy]`, `$dispatchesEvents` and classes in app/Events, app/Listeners or app/Observers are rejected. An Action may call another Action.
 - `[review]` `business` No code for a state nothing can reach yet: no refusal or branch for a status the app cannot create, and no test stand-in for it. The feature that adds the state adds its check and a real test.
-- `[review]` `business` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks.
+- `[review]` `business` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks, also not a row an Action only reads to check it (whether a supplier is active).
 - `[PHPStan]` `structure` `lockForUpdate()` and `sharedLock()` are called only in Actions, and an Action that locks has `tests/Feature/{Domain}/{Action}LockTest.php` (docs/rules/tests.md, Row locks).
 - `[review]` `business` Money is stored as integer cents, multiplied with `Brick\Math\BigDecimal` and rounded with its `RoundingMode`, never with `round()` or `number_format()`.
 - `[review]` `business` Use what PHP, Laravel and installed packages already provide. Do not hand-write dates, money, parsing or formatting: React formats with `Intl` in resources/js/lib/format.ts, never with `toFixed()` or `padStart()`.
@@ -119,7 +119,8 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 - `[Structure]` `structure` Test data comes from factories: `DB::insert()`, `DB::table(…)->insert()`, `Model::create()`, `insert()`, `upsert()` on models and `INSERT` statements in tests/ are rejected.
 - `[Structure]` `structure` Pest test files end in `Test.php` inside tests/Feature or tests/Unit; Vitest files are `tests/js/**/*.test.ts(x)`.
 - `[review]` `structure` A hook with timing or ordering logic (wait before asking, the latest answer wins, retry) has a Vitest test in tests/js.
-- `[Structure]` `structure` resources/js/lib/format.ts, the money and date formatters, has `tests/js/lib/format.test.ts`.
+- `[Structure]` `structure` resources/js/lib/format.ts, the money, quantity and date formatters, has `tests/js/lib/format.test.ts`.
+- `[review]` `process` A lock test fails when its `lockForUpdate()` is removed: try it once.
 - `[review]` `process` When a test fails, fix the code, not the test.
 
 ## 9. Work follows the steps
@@ -145,7 +146,8 @@ DESIGN.md says how the app looks; docs/rules/visual-design.md says how to apply 
 - `[review]` `ui` None of the looks DESIGN.md's Don'ts name: gradients, glows, decorative backgrounds, a row of identical stat cards as the page opener, all-caps or letter-spaced labels.
 - `[review]` `ui` The first screen after login is the working screen, and the layout does the explaining: no secondary labels or descriptions, no description under a heading unless the title alone is unclear, no slogans, no text about how the screen was built or what was asked for, and nothing shown twice.
 - `[review]` `ui` Explaining text appears only for an unusual state (an error, an empty list, a locked record) or a step the user must take; other details sit behind a Tooltip, a collapsible section or a detail page.
-- `[review]` `ui` Pages of the same kind (list, detail, form) use the layout DESIGN.md describes and the reference feature shows: header row with the heading and the page's actions, then filters, content and pagination.
+- `[review]` `ui` Pages of the same kind (list, detail, form) use the layout DESIGN.md describes and the reference feature shows: header row with the heading and the page's actions, then filters, content and pagination. A list of records is a Table, with its name, status and amount first.
+- `[review]` `ui` A page about one record has a breadcrumb that ends at that record, built from its data, and no separate back button.
 - `[review]` `ui` At desktop and phone width, text stays inside its box and nothing overlaps; long text wraps or truncates, and a wide table scrolls inside its own container.
 - `[review]` `ui` An existing component (components/ui, components/shared) is used instead of hand-styled markup, and restyled through its variants, not by overriding its colors with `className`.
 - `[review]` `ui` Familiar controls: a Select for a list of options, a Checkbox for yes or no, a ToggleGroup for two to seven modes, tabs for views; an icon-only button has a Tooltip and an `aria-label`.

@@ -16,7 +16,7 @@ const isOverdue = task.status === 'open' && new Date(task.due_on) < new Date();
 {task.can.complete && <Button>Complete</Button>}
 ```
 
-Pure display logic is fine in React: formatting a date, toggling a dialog, filtering a list the user is looking at. Date and money formatting for display goes in `resources/js/lib/format.ts`, with `Intl.NumberFormat` and `Intl.DateTimeFormat`, and has its test in `tests/js/lib/format.test.ts` (tests/Structure/CodeTest.php checks it).
+Pure display logic is fine in React: formatting a date, toggling a dialog, filtering a list the user is looking at. Every amount, quantity and date on screen goes through `resources/js/lib/format.ts`: `formatMoney(cents)`, `formatQuantity(value)`, `formatDate('2026-11-04')`. The template ships it with `Intl` and its test in `tests/js/lib/format.test.ts` (tests/Structure/CodeTest.php checks the test exists); change the locale and currency at its top for the project, and add a function there when a new kind of value needs one. Never format numbers or dates anywhere else, and never take them apart by hand.
 
 oxlint (the `lint` block in vite.config.ts, Ezdev's rules in lint/oxlint/ezdev.js) checks only what React may import and call: no `fetch` or `axios`, no other UI library, and the component boundaries below. Whether React decides a business rule (permission checks on `auth.user`, status, role or type comparisons under any name, date comparisons and subtraction, money arithmetic and summing, numbers formatted by hand with `toFixed()` or `padStart()`, hard-coded URLs) needs someone who reads the code, so the reviewer checks these (docs/golden-principles.md principle 4). tests/Structure/ResourceTypesTest.php fails on a TypeScript type whose fields differ from its Resource; it stays until a tagged Wayfinder release generates page prop types (the untagged dev-next branch, tried on 2026-11-01, typed wrapped and paginated Resources wrongly), so do not replace it or list it as debt. PHPStan fails when a page prop holds a model. If a check matches code that is really display logic, ask the user to adjust the check; never rename fields to slip past it.
 
@@ -38,7 +38,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 - Use Inertia's `<Form>` component with Wayfinder: `<Form {...TaskController.store.form()}>`.
 - Never hard-code URLs. Import routes from `@/routes/...` or controller actions from `@/actions/...`.
 - Show server errors with `<InputError message={errors.field} />`. Do not duplicate server validation in React beyond simple HTML attributes (`required`, `maxLength`, `min`, `max`, `step`). Keeping submit disabled until the input is complete (every digit of a code, a name that is not blank) is display, not validation.
-- Select options come from the list the backend sends. Display preferences kept in the browser (the appearance setting) are not business options.
+- Select options come from the list the backend sends, as `{ value, label }` pairs built by one model or enum method (for example `Supplier::options()` returning the active suppliers' ids and names) with one query for the whole list. Never send a full Resource per option, and never run a query per option. Display preferences kept in the browser (the appearance setting) are not business options.
 
 ## Files and boundaries
 
@@ -53,4 +53,4 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 
 ## Breadcrumbs and layout
 
-Set breadcrumbs with `Page.layout = { breadcrumbs: [...] }` like `pages/dashboard/index.tsx`. Show flash messages with `Inertia::flash('toast', [...])` in the controller; the layout already displays them.
+Set breadcrumbs with `Page.layout = { breadcrumbs: [...] }` like `pages/dashboard/index.tsx`. A page about one record builds them from its props, ending at the record: `ShowTask.layout = (props) => ({ breadcrumbs: [{ title: 'Tasks', href: index() }, { title: props.task.title, href: show(props.task.id) }] })` (`docs/reference/tasks/resources/js/pages/tasks/show.tsx`). The breadcrumb is the way back: no separate back button. Show flash messages with `Inertia::flash('toast', [...])` in the controller; the layout already displays them.
