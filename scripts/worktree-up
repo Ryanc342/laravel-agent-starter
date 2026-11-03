@@ -61,7 +61,8 @@ if [ "$new_key" = true ]; then
     php artisan key:generate --no-interaction
 fi
 npm ci --silent
-php artisan migrate --force --no-interaction
+# --seed creates the test user (test@example.com / password) the reviewer logs in with.
+php artisan migrate --seed --force --no-interaction
 npm run build
 
 echo

@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.12.1] - 2026-11-04
+
+### Fixed
+
+- `scripts/worktree-up` seeds the database, so the test user the reviewer logs in with (test@example.com) exists in every worktree. docs/workflow.md step 4 says how to create it elsewhere.
+
 ## [2.12.0] - 2026-11-04
 
 "Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining." AI-built screens tend to read like a manual; these rules keep the words to what the layout cannot say.

@@ -50,7 +50,7 @@ Before the next milestone, search the code already written in this task for the 
 
 ## 4. Review
 
-Ask the `reviewer` subagent to review the change against the plan using docs/prompts/review.md. When the change touches pages, keep the app running (`composer dev`) with enough data to show them, so the reviewer can open and screenshot them. Fix P0 and P1 findings, run `composer check`, and ask again. Stop after 3 rounds and report what is left. Add a Progress line for each round: `review round <n>: <number> P0, <number> P1`.
+Ask the `reviewer` subagent to review the change against the plan using docs/prompts/review.md. When the change touches pages, keep the app running (`composer dev`) with enough data to show them, so the reviewer can open and screenshot them; `php artisan db:seed` creates the test user it logs in with (test@example.com, password `password`). Fix P0 and P1 findings, run `composer check`, and ask again. Stop after 3 rounds and report what is left. Add a Progress line for each round: `review round <n>: <number> P0, <number> P1`.
 
 If the user pastes review findings, check each one, move the rule to its one owner, update its callers and tests, and verify again.
 
