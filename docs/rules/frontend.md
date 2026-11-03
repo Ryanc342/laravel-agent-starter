@@ -48,7 +48,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 - A UI block that appears on a second page becomes one shared component, and every page uses it. Example: `docs/reference/tasks/resources/js/components/tasks/task-fields.tsx`, used by the create and the edit form.
 - Split a page by job, not by size: when a page holds several parts (a list, a form, a summary), each part becomes a component in `components/{domain}/`. A file over 300 lines is a signal to check this.
 - Use the shadcn components in `components/ui`; do not install another UI library, also not one that comes in through CSS (tests/Structure/CodeTest.php checks resources/css and package.json). components/ui is shadcn's code: it imports no app code.
-- If a `DESIGN.md` exists in the project root, also follow docs/rules/visual-design.md.
+- How a page looks comes from DESIGN.md; follow docs/rules/visual-design.md.
 
 ## Breadcrumbs and layout
 

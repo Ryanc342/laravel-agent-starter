@@ -1,21 +1,21 @@
 # Visual design
 
-Applies to `resources/js/**`, `resources/css/**` and `vite.config.ts`, and only when a `DESIGN.md` (any capitalisation) exists in the project root.
+Applies to `resources/js/**`, `resources/css/**` and `DESIGN.md`.
 
-`DESIGN.md` describes how the app should look. It controls appearance only. It never changes the architecture, business rules, folder structure or data contract; if it conflicts with them, they win. Do not edit `DESIGN.md` unless the user asks.
+`DESIGN.md` in the project root says how every screen looks. It uses Google's DESIGN.md format (github.com/google-labs-code/design.md): exact values (tokens) at the top, then eight sections that explain them, ending with Do's and Don'ts. It controls appearance only; the architecture, business rules, folders and the data contract win over it. The template ships one for a quiet work tool. A project with its own brand replaces it, keeping the section order. It is a protected file: change it only with the user's approval.
 
-## The first time you build a page with a DESIGN.md
+## The tokens are the theme
 
-1. Move its colors, fonts and corner radius into the theme variables in `resources/css/app.css` (Tailwind `@theme` and the light and dark CSS variables the shadcn components already read).
-2. Load fonts the way `resources/views/app.blade.php` already does.
-3. Tell the user which tokens you set.
+- Every color, radius and font in DESIGN.md is a theme variable in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. A change to one is a change to the other, in the same commit.
+- Fonts load through the `fonts` list in vite.config.ts.
+- Use the theme classes (`bg-primary`, `text-muted-foreground`, `text-success`, `rounded-lg`, `gap-4`), never raw colors (`bg-blue-500`, `#hex`), arbitrary sizes (`text-[13px]`) or `dark:` color overrides.
 
-## Every page after that
+## Every page
 
-- Use the theme tokens (`bg-primary`, `text-muted-foreground`, `rounded-lg`), never raw colors or pixel values from DESIGN.md.
-- Use the shadcn components in `components/ui` and restyle them through tokens. Do not install another UI library.
+- Read DESIGN.md before building a page: Layout says how list, detail and form pages look, Components which component to use for what, Do's and Don'ts what to avoid.
+- Copy the layout of the matching page in docs/reference/tasks or resources/js/pages/notifications.
+- Use `components/ui` (shadcn) and `components/shared`, and restyle them through their variants. Do not install another UI library.
 - Keep light and dark mode working.
+- Before you report, open the page with the Playwright MCP server at desktop (1280px) and phone (390px) width and fix what looks wrong. The reviewer does the same (docs/prompts/review.md step 5) against principle 10 in docs/golden-principles.md.
 
-## Without a DESIGN.md
-
-Keep the starter kit's look. Do not invent a visual style and do not ask the user for one.
+`resources/js/pages/welcome` is Laravel's own start page with its own colors. Replace it when the project gets a home page; do not copy from it.

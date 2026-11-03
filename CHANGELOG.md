@@ -2,6 +2,24 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.11.0] - 2026-11-04
+
+How screens look gets the same treatment as the code: one file says it, and the reviewer checks it. Based on OpenAI's frontend guidance, Anthropic's frontend-design skill, Google's DESIGN.md format, Vercel's Web Interface Guidelines and shadcn's skill.
+
+### Added
+
+- `DESIGN.md` for a quiet work tool, in Google's DESIGN.md format: tokens (colors, type, corners, spacing, components) and eight sections, ending with Do's and Don'ts. Its values are the theme in `resources/css/app.css`. It is a protected file.
+- Principle 10, "Screens follow DESIGN.md": 15 `[review]` rules of the new kind `ui` (tokens only, one primary color, no nested cards, the same layout for the same kind of page, text that fits at phone width, components over hand-styled markup, familiar controls, empty states and delete confirmation, labelled inputs, focus and contrast, button labels that say what happens, screenshots).
+- The reviewer opens every changed page with Playwright at 1280px and 390px width and once in dark mode, and checks the `ui` rules on the screenshots (`docs/prompts/review.md` step 5).
+- `success` and `warning` theme colors, and `Badge` variants for them.
+
+### Changed
+
+- `docs/rules/visual-design.md` always applies; the builder also looks at its pages at desktop and phone width before reporting.
+- Corners are 8px at most (`--radius: 0.5rem`).
+- The starter kit's components use theme colors instead of raw ones (input errors, status messages, appearance tabs, avatar fallback, delete warning, footer links, logo, passkey label), and the dark sidebar logo is readable.
+- The reference feature puts the page action in the header row, shows a message for an empty list, asks before deleting a task, and says "Save changes".
+
 ## [2.10.0] - 2026-11-02
 
 Every rule now says who checks it and what it is about. Machines check structure and the steps of the work; whether the business logic is right is read by the reviewer. A red-team pass found about 150 ways around the checks; the structure ones are closed here.

@@ -61,7 +61,7 @@ test('every ExecPlan has the sections docs/PLANS.md requires', function () {
 });
 
 test('every rule in docs/golden-principles.md carries its two tags, and business rules are checked by people: write - `[checker]` `kind` rule', function () use ($root) {
-    $rule = '/^- `\[(PHPStan|oxlint|Structure|hook|review|user)\]` `(structure|business|process)` \S/';
+    $rule = '/^- `\[(PHPStan|oxlint|Structure|hook|review|user)\]` `(structure|business|process|ui)` \S/';
     $section = null;
     $problems = [];
 

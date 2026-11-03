@@ -43,14 +43,14 @@ For each milestone in the plan:
 2. Place every rule using the owner table in ARCHITECTURE.md, and read the docs/rules/ file for each folder you touch.
 3. Copy the structure of the matching file in docs/reference/tasks/.
 4. Write the tests first (Pest, docs/rules/tests.md) and run them: they must fail. Then implement in this order: migration, enum, model and factory, policy, action, form request, resource and TypeScript type, controller and routes, React. Add new pages to `mainNavItems` in `resources/js/components/app-sidebar.tsx`.
-5. Run `composer check` and fix every failure. Error messages say what to call instead: follow them. To look at a page, use the Playwright MCP server.
+5. Run `composer check` and fix every failure. Error messages say what to call instead: follow them. For a page, follow DESIGN.md and docs/rules/visual-design.md, and look at it with the Playwright MCP server at desktop and phone width.
 6. Commit, then add a timestamped line to Progress with how many tests failed before the code and the `composer check` result. Record any decision you made along the way in the Decision Log.
 
 Before the next milestone, search the code already written in this task for the same condition you are about to write.
 
 ## 4. Review
 
-Ask the `reviewer` subagent to review the change against the plan using docs/prompts/review.md. Fix P0 and P1 findings, run `composer check`, and ask again. Stop after 3 rounds and report what is left. Add a Progress line for each round: `review round <n>: <number> P0, <number> P1`.
+Ask the `reviewer` subagent to review the change against the plan using docs/prompts/review.md. When the change touches pages, keep the app running (`composer dev`) with enough data to show them, so the reviewer can open and screenshot them. Fix P0 and P1 findings, run `composer check`, and ask again. Stop after 3 rounds and report what is left. Add a Progress line for each round: `review round <n>: <number> P0, <number> P1`.
 
 If the user pastes review findings, check each one, move the rule to its one owner, update its callers and tests, and verify again.
 

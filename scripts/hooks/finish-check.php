@@ -23,7 +23,7 @@
 
 // AGENTS.md "Red lines": the user approves a change to these.
 const PROTECTED_PATHS = [
-    'AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'docs/golden-principles.md', 'docs/rules/', 'docs/prompts/',
+    'AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'DESIGN.md', 'docs/golden-principles.md', 'docs/rules/', 'docs/prompts/',
     'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/',
     'phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'pint.json', 'phpunit.xml', '.npmrc', 'artisan', '.gitignore',
     'lint/', 'tests/Structure/', 'tests/Support/', 'tests/Unit/Hooks/', 'scripts/',

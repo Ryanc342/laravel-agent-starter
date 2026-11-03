@@ -5,6 +5,15 @@ import TaskController from '@/actions/App/Http/Controllers/TaskController';
 import TaskFields from '@/components/tasks/task-fields';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import type { Task } from '@/types/task';
 
 /**
@@ -27,7 +36,7 @@ export default function TaskRow({ task }: { task: Task }) {
                             <TaskFields task={task} errors={errors} />
                             <div className="flex gap-2">
                                 <Button type="submit" disabled={processing}>
-                                    Save
+                                    Save changes
                                 </Button>
                                 <Button
                                     type="button"
@@ -84,21 +93,44 @@ export default function TaskRow({ task }: { task: Task }) {
                     </Button>
                 )}
                 {task.can.delete && (
-                    <Form
-                        {...TaskController.destroy.form(task.id)}
-                        options={{ preserveScroll: true }}
-                    >
-                        {({ processing }) => (
-                            <Button
-                                type="submit"
-                                size="sm"
-                                variant="destructive"
-                                disabled={processing}
-                            >
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button size="sm" variant="destructive">
                                 Delete
                             </Button>
-                        )}
-                    </Form>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogTitle>Delete this task?</DialogTitle>
+                            <DialogDescription>
+                                “{task.title}” will be deleted. This cannot be
+                                undone.
+                            </DialogDescription>
+                            <Form
+                                {...TaskController.destroy.form(task.id)}
+                                options={{ preserveScroll: true }}
+                            >
+                                {({ processing }) => (
+                                    <DialogFooter className="gap-2">
+                                        <DialogClose asChild>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </DialogClose>
+                                        <Button
+                                            type="submit"
+                                            variant="destructive"
+                                            disabled={processing}
+                                        >
+                                            Delete task
+                                        </Button>
+                                    </DialogFooter>
+                                )}
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
                 )}
             </div>
         </li>

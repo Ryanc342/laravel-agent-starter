@@ -23,7 +23,26 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
             <Head title="Tasks" />
 
             <div className="flex flex-col gap-6 p-4">
-                <Heading title="Tasks" description="Your to-do list" />
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <Heading title="Tasks" description="Your to-do list" />
+
+                    {can.complete_overdue && (
+                        <Form
+                            {...OverdueTaskCompletionController.store.form()}
+                            options={{ preserveScroll: true }}
+                        >
+                            {({ processing }) => (
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    disabled={processing}
+                                >
+                                    Complete overdue tasks
+                                </Button>
+                            )}
+                        </Form>
+                    )}
+                </div>
 
                 <Form
                     {...TaskController.store.form()}
@@ -43,29 +62,20 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
                     )}
                 </Form>
 
-                {can.complete_overdue && (
-                    <Form
-                        {...OverdueTaskCompletionController.store.form()}
-                        options={{ preserveScroll: true }}
-                    >
-                        {({ processing }) => (
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                disabled={processing}
-                            >
-                                Complete overdue tasks
-                            </Button>
-                        )}
-                    </Form>
+                {tasks.data.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                        You have no tasks yet.
+                    </p>
+                ) : (
+                    <>
+                        <ul className="grid gap-2">
+                            {tasks.data.map((task) => (
+                                <TaskRow key={task.id} task={task} />
+                            ))}
+                        </ul>
+                        <Pagination collection={tasks} />
+                    </>
                 )}
-
-                <ul className="grid gap-2">
-                    {tasks.data.map((task) => (
-                        <TaskRow key={task.id} task={task} />
-                    ))}
-                </ul>
-                <Pagination collection={tasks} />
             </div>
         </>
     );

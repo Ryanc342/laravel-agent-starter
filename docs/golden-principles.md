@@ -1,6 +1,6 @@
 # Golden principles
 
-Every rule of this template, grouped under nine principles. The reviewer and the weekly cleanup check the code against this list. Details and examples are in ARCHITECTURE.md and docs/rules/.
+Every rule of this template, grouped under ten principles. The reviewer and the weekly cleanup check the code against this list. Details and examples are in ARCHITECTURE.md and docs/rules/.
 
 Each rule carries two tags. The first says who checks it:
 
@@ -15,8 +15,9 @@ The second says what the rule is about:
 - `structure`: where code goes, which layer may use which, what a class or file looks like, which companion files it needs.
 - `business`: the business logic itself is correct and written once.
 - `process`: the steps of the work.
+- `ui`: how a screen looks and behaves for the person using it (DESIGN.md).
 
-Machines check `structure` and `process` rules only where they can tell by position, imports, calls and files. Whether code decides a business rule needs someone who reads it, so `business` rules, and the `structure` rules that need reading, belong to the reviewer.
+Machines check `structure` and `process` rules only where they can tell by position, imports, calls and files. Whether code decides a business rule needs someone who reads it, so `business` rules, and the `structure` rules that need reading, belong to the reviewer. Whether a screen looks right needs someone who looks at it, so the `ui` rules are the reviewer's too, checked on screenshots.
 
 ## 1. Every business rule is written once
 
@@ -132,3 +133,23 @@ docs/workflow.md has the steps. A request to fix tech debt or review findings is
 - `[hook]` `process` The work stops only after `composer check` ran to the end and passed on the code as it is. A plan whose milestones are all done moves to completed/, with its check results and review rounds in Progress and a filled Outcomes & Retrospective.
 - `[Structure]` `process` No check is silenced: no `@phpstan-ignore`, `oxlint-disable`, `eslint-disable`, `@ts-ignore` or `@ts-expect-error`, no skipped or unfinished test (Pest fails on them), and no `ignoreErrors`, `excludePaths` or baseline in phpstan.neon.
 - `[Structure]` `process` The checks stay as set: PHPStan's level, paths, includes and rules, every Ezdev oxlint rule on with only generated code ignored, strict TypeScript, the three Pest suites, the steps of `composer check`, no other lint config file, and no `script-shell` in .npmrc. Changing them is a protected change.
+
+## 10. Screens follow DESIGN.md
+
+DESIGN.md says how the app looks; docs/rules/visual-design.md says how to apply it. The reviewer checks these rules in the changed code and on screenshots of the changed pages.
+
+- `[review]` `ui` Colors, fonts, corners and spacing come from the theme tokens DESIGN.md sets in resources/css/app.css: no raw colors (`bg-blue-500`, `#hex`), no arbitrary sizes (`text-[13px]`), no `dark:` color overrides.
+- `[review]` `ui` One primary color, for the main action of a screen; `destructive`, `success` and `warning` only mean a status, never decoration.
+- `[review]` `ui` Cards hold only repeated items, dialogs and framed tools: no card inside a card, no page section styled as a floating card, and corners from the radius scale.
+- `[review]` `ui` The page title is `<Heading>` and sections, panels, rows and tables use smaller headings; nothing in the app uses marketing-size type; one font family, as DESIGN.md sets.
+- `[review]` `ui` None of the looks DESIGN.md's Don'ts name: gradients, glows, decorative backgrounds, a row of identical stat cards as the page opener, all-caps or letter-spaced labels.
+- `[review]` `ui` The first screen after login is the working screen, and the app holds no text that explains how to use a screen or what a feature does; a short description under the heading is fine.
+- `[review]` `ui` Pages of the same kind (list, detail, form) use the layout DESIGN.md describes and the reference feature shows: header row with the heading and the page's actions, then filters, content and pagination.
+- `[review]` `ui` At desktop and phone width, text stays inside its box and nothing overlaps; long text wraps or truncates, and a wide table scrolls inside its own container.
+- `[review]` `ui` An existing component (components/ui, components/shared) is used instead of hand-styled markup, and restyled through its variants, not by overriding its colors with `className`.
+- `[review]` `ui` Familiar controls: a Select for a list of options, a Checkbox for yes or no, a ToggleGroup for two to seven modes, tabs for views; an icon-only button has a Tooltip and an `aria-label`.
+- `[review]` `ui` An empty list shows a short message, data that arrives later shows a Skeleton, and an action that cannot be undone asks for confirmation in a Dialog first.
+- `[review]` `ui` Every input has a visible label, errors show next to the field with `InputError`, and the submit button is disabled while the form is sending.
+- `[review]` `ui` Keyboard focus stays visible, actions are buttons and navigation is links (no clickable `div`), text is readable against its background, and light and dark mode both work.
+- `[review]` `ui` Button labels say what happens ("Save changes", "Delete task", not "Submit" or "OK"), and an error message says how to fix the problem.
+- `[review]` `ui` Every changed page is opened with Playwright at desktop (1280px) and phone (390px) width, and once in dark mode, and the rules above are checked on the screenshots.

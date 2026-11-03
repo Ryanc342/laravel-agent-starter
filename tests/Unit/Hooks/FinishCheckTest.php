@@ -271,9 +271,9 @@ test('stopping to ask about the protected files counts only when the message end
         ->and(finishCheckRun($repo, 'stop', message: 'I added a package. May I keep it?'))->toContain('You changed composer.json');
 });
 
-test('the test setup, artisan, .gitignore, .npmrc and the workflow docs are protected', function () {
+test('the test setup, artisan, .gitignore, .npmrc, DESIGN.md and the workflow docs are protected', function () {
     $repo = finishCheckRepo();
-    $paths = ['.npmrc', 'artisan', '.gitignore', 'tests/bootstrap.php', 'tests/Pest.php', 'tests/TestCase.php', 'tests/js/setup.ts', 'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/tasks/send-quote.md'];
+    $paths = ['DESIGN.md', '.npmrc', 'artisan', '.gitignore', 'tests/bootstrap.php', 'tests/Pest.php', 'tests/TestCase.php', 'tests/js/setup.ts', 'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/tasks/send-quote.md'];
 
     foreach ($paths as $path) {
         finishCheckWrite($repo, $path, "changed\n");

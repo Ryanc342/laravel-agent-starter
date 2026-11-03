@@ -61,9 +61,9 @@ Before writing a business rule, decide what it is about, then write it once, in 
 - Form choices, `can.*` flags, Policies and factories call the owner. They never restate the condition.
 - To change existing behaviour, find the owner, change it there, update its tests, and check that nothing else re-implements it.
 
-## The nine principles
+## The ten principles
 
-The rules are grouped under nine principles. docs/golden-principles.md lists every rule under them and says which check stops it.
+The rules are grouped under ten principles. docs/golden-principles.md lists every rule under them and says which check stops it.
 
 1. Every business rule is written once.
 2. Layers only depend downwards.
@@ -74,6 +74,7 @@ The rules are grouped under nine principles. docs/golden-principles.md lists eve
 7. Files go where the conventions say.
 8. Every feature is tested.
 9. Work follows the steps: plan, check, review, report (docs/workflow.md). The finish check in scripts/hooks/ sends back a missing step.
+10. Screens follow DESIGN.md. The reviewer checks them on screenshots at desktop and phone width.
 
 ## Request flow
 
