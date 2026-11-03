@@ -1,4 +1,8 @@
 import type { Auth } from '@/types/auth';
+import type {
+    AppNotification,
+    NotificationSummary,
+} from '@/types/notification';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -11,7 +15,8 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
-            unreadNotifications: number;
+            notificationSummary: NotificationSummary | null;
+            latestNotifications?: AppNotification[];
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

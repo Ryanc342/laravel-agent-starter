@@ -18,18 +18,14 @@ class NotificationController extends Controller
     {
         Gate::authorize('viewAny', Notification::class);
 
-        $user = $request->user();
-
         $notifications = Notification::query()
-            ->ownedBy($user)
+            ->ownedBy($request->user())
             ->listOrder()
             ->paginate(20);
 
+        // can.mark_all_read is shared with every page (notificationSummary in HandleInertiaRequests).
         return Inertia::render('notifications/index', [
             'notifications' => NotificationResource::collection($notifications)->response($request)->getData(true),
-            'can' => [
-                'mark_all_read' => $user->can('markAllRead', Notification::class) && $user->hasUnreadNotifications(),
-            ],
         ]);
     }
 }

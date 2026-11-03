@@ -1,24 +1,21 @@
-import { Form, Head } from '@inertiajs/react';
-import AllNotificationsReadController from '@/actions/App/Http/Controllers/AllNotificationsReadController';
+import { Head, usePage } from '@inertiajs/react';
 import Heading from '@/components/heading';
+import MarkAllReadButton from '@/components/notifications/mark-all-read-button';
 import NotificationRow from '@/components/notifications/notification-row';
 import Pagination from '@/components/shared/pagination';
-import { Button } from '@/components/ui/button';
 import { index } from '@/routes/notifications';
 import type { AppNotification } from '@/types/notification';
 import type { ResourceCollection } from '@/types/resource';
 
 type NotificationsPageProps = {
     notifications: ResourceCollection<AppNotification>;
-    can: {
-        mark_all_read: boolean;
-    };
 };
 
 export default function Notifications({
     notifications,
-    can,
 }: NotificationsPageProps) {
+    const { notificationSummary } = usePage().props;
+
     return (
         <>
             <Head title="Notifications" />
@@ -27,21 +24,8 @@ export default function Notifications({
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title="Notifications" />
 
-                    {can.mark_all_read && (
-                        <Form
-                            {...AllNotificationsReadController.store.form()}
-                            options={{ preserveScroll: true }}
-                        >
-                            {({ processing }) => (
-                                <Button
-                                    type="submit"
-                                    variant="outline"
-                                    disabled={processing}
-                                >
-                                    Mark all as read
-                                </Button>
-                            )}
-                        </Form>
+                    {notificationSummary?.can.mark_all_read && (
+                        <MarkAllReadButton />
                     )}
                 </div>
 

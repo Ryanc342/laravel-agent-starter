@@ -28,7 +28,7 @@ test('the list shows only the user\'s own notifications, newest first', function
             ->component('notifications/index')
             ->has('notifications.data', 2)
             ->where('notifications.data.0.id', $newest->id)
-            ->where('unreadNotifications', 2));
+            ->where('notificationSummary.unread', 2));
 });
 
 test('notifications created in the same second each appear on exactly one page', function () {

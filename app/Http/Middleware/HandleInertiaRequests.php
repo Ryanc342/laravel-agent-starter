@@ -2,9 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\NotificationResource;
 use App\Http\Resources\UserResource;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -37,17 +39,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user() === null
-                    ? null
-                    : UserResource::make($request->user())->resolve($request),
+                'user' => $user === null ? null : UserResource::make($user)->resolve($request),
             ],
-            'unreadNotifications' => fn () => $request->user() === null
-                ? 0
-                : Notification::query()->ownedBy($request->user())->unread()->count(),
+            // The notification bell in the top bar (components/notifications/notification-menu.tsx)
+            // and the notifications page read these.
+            'notificationSummary' => fn () => $user === null ? null : [
+                'unread' => Notification::query()->ownedBy($user)->unread()->count(),
+                'can' => [
+                    'mark_all_read' => $user->can('markAllRead', Notification::class) && $user->hasUnreadNotifications(),
+                ],
+            ],
+            // Sent only when the bell asks for it (router.reload({ only: ['latestNotifications'] })).
+            'latestNotifications' => Inertia::optional(fn () => $user === null
+                ? []
+                : NotificationResource::collection(
+                    Notification::query()->ownedBy($user)->listOrder()->limit(5)->get(),
+                )->resolve($request)),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

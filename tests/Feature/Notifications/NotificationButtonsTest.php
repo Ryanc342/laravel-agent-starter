@@ -84,7 +84,7 @@ test('the mark all as read button is shown exactly when pressing it succeeds', f
 
     $this->actingAs($user)
         ->get(route('notifications.index'))
-        ->assertInertia(fn (Assert $page) => $page->where('can.mark_all_read', $ownUnread));
+        ->assertInertia(fn (Assert $page) => $page->where('notificationSummary.can.mark_all_read', $ownUnread));
 
     $response = $this->post(route('notifications.read-all.store'));
 

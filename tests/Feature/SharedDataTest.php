@@ -3,6 +3,7 @@
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -29,11 +30,11 @@ test('the user\'s initials come from the backend', function () {
         ->assertInertia(fn (Assert $page) => $page->where('auth.user.initials', 'AL'));
 });
 
-test('guests receive no user and no unread notifications', function () {
+test('guests receive no user and no notification summary', function () {
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('auth.user', null)
-            ->where('unreadNotifications', 0),
+            ->where('notificationSummary', null),
         );
 });
 
@@ -45,5 +46,22 @@ test('every page receives the number of the user\'s unread notifications', funct
 
     $this->actingAs($user)
         ->get(route('dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->where('unreadNotifications', 2));
+        ->assertInertia(fn (Assert $page) => $page->where('notificationSummary.unread', 2));
+});
+
+test('the notification bell gets the user\'s five newest notifications only when it asks for them', function () {
+    $user = User::factory()->create();
+    $oldest = Notification::factory()->for($user, 'notifiable')->create(['created_at' => now()->subDay()]);
+    Notification::factory()->for($user, 'notifiable')->count(5)->create(['created_at' => now()->subHour()]);
+    $other = Notification::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->missing('latestNotifications')
+            ->reloadOnly('latestNotifications', fn (Assert $reload) => $reload
+                ->has('latestNotifications', 5)
+                ->where('latestNotifications', fn (Collection $notifications) => $notifications->pluck('id')->intersect([$oldest->id, $other->id])->isEmpty()),
+            ),
+        );
 });

@@ -106,6 +106,7 @@ People open this app to get work done: enter an order, find a customer, check wh
 
 ## Layout
 
+- Top bar of every page: the sidebar toggle and breadcrumbs on the left, the notification bell on the right. The bell opens a card with the newest notifications.
 - Page: `flex flex-col gap-6 p-4`. First a header row, `flex flex-wrap items-start justify-between gap-4`, with `<Heading>` on the left and the page's actions on the right. Then filters, then the content, then `<Pagination>`.
 - List page: one row per record (`rounded-lg border p-4`, the `list-row` component above), or a table when the records have columns to compare. An empty list shows one short line in `text-muted-foreground`.
 - Form: `grid max-w-xl gap-4`; each field is a label, the input and `<InputError>` under it; the buttons come last, the main one first. A label is hidden (`sr-only`) only when the layout already says what the field is, such as a search box next to a Search button; it is never left out.
@@ -130,6 +131,7 @@ Use what `resources/js/components/ui` (shadcn) and `components/shared` already h
 | A status | `Badge` (`secondary`, `success`, `warning`, `destructive`) |
 | Confirm something that cannot be undone | `Dialog` with Cancel and the action named in full ("Delete task") |
 | A side panel | `Sheet` |
+| A small card that opens from a button (the notification bell) | `Popover` |
 | A message on the page | `Alert` |
 | A toast after an action | the flash toast (`Inertia::flash('toast', ...)`, shown by the layout) |
 | Data that arrives later | `Skeleton` |

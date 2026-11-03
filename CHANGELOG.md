@@ -8,6 +8,8 @@ Versions follow [Semantic Versioning](https://semver.org): a new rule or behavio
 
 ### Added
 
+- A notification bell on the right of every page's top bar. It shows the unread count (9+ above nine) and opens a card with the five newest notifications, a mark-as-read button on each, "Mark all as read" and "View all". The sidebar no longer has a Notifications item. The card loads its notifications when it opens (`latestNotifications`, an `Inertia::optional()` shared prop); every page gets only the summary (`notificationSummary`: unread count and `can.mark_all_read`, which the notifications page now reads too, instead of `unreadNotifications`).
+- `@radix-ui/react-popover` and shadcn's `Popover` component (`components/ui/popover.tsx`).
 - Two `ui` rules: explaining text only for an unusual state (an error, an empty list, a locked record) or a step the user must take, with other details behind a Tooltip, a collapsible section or a detail page; and a change to a screen changes only what the plan names, preferring to remove or simplify over adding.
 
 ### Changed

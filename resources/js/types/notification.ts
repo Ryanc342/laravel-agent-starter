@@ -12,3 +12,14 @@ export type AppNotification = {
         mark_read: boolean;
     };
 };
+
+/**
+ * Shared with every page by app/Http/Middleware/HandleInertiaRequests.php
+ * (notificationSummary). Null for guests.
+ */
+export type NotificationSummary = {
+    unread: number;
+    can: {
+        mark_all_read: boolean;
+    };
+};

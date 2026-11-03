@@ -29,6 +29,7 @@ Combining stored fields into a status is a business rule, not formatting: `statu
 - The Resource includes the derived flags (`is_overdue`) and permissions (`can: { update, delete, complete }`).
 - Each flag and each `can.*` only calls existing owners (Policy abilities, model and enum methods); it never writes a condition. Each `can.*` has a consistency test (docs/rules/tests.md). A row may cost a few small queries this way; a list page shows at most 20 rows, so that is accepted, not debt. Never work a flag out a second way to save a query; if a page is measured slow, ask the user.
 - A `can.*` flag already includes the business state: the button shows exactly when pressing it succeeds. When the page explains why something is not possible ("still in use"), the Resource sends that text; React never works out the reason from `!can.*` or from a mix of flags.
+- Data every page needs (the signed-in user, the unread count) is shared in `app/Http/Middleware/HandleInertiaRequests.php`. Data only one widget needs, such as the bell's newest notifications, is an `Inertia::optional()` shared prop that the widget loads with `router.reload({ only: [...] })`.
 - Collections arrive wrapped in `data`: pass `TaskResource::collection($tasks)->response($request)->getData(true)` as the prop, read it as `tasks.data`, and type it with `ResourceCollection<T>` from `@/types/resource`.
 - Each Resource has a matching TypeScript type in `resources/js/types/{model}.ts` with the same field names. When you change one, change the other in the same edit.
 
