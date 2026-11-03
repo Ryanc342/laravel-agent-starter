@@ -49,7 +49,7 @@ export default function ManagePasskeys(props: Props) {
             <Heading
                 variant="small"
                 title="Passkeys"
-                description="Manage your passkeys for passwordless sign-in"
+                description="Sign in with your fingerprint, face or device, without a password"
             />
 
             <div className="overflow-hidden rounded-lg border border-border">

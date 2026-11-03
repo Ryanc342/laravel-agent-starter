@@ -24,7 +24,7 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
 
             <div className="flex flex-col gap-6 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading title="Tasks" description="Your to-do list" />
+                    <Heading title="Tasks" />
 
                     {can.complete_overdue && (
                         <Form

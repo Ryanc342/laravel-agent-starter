@@ -2,6 +2,20 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [2.12.0] - 2026-11-04
+
+"Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining." AI-built screens tend to read like a manual; these rules keep the words to what the layout cannot say.
+
+### Added
+
+- Two `ui` rules: explaining text only for an unusual state (an error, an empty list, a locked record) or a step the user must take, with other details behind a Tooltip, a collapsible section or a detail page; and a change to a screen changes only what the plan names, preferring to remove or simplify over adding.
+
+### Changed
+
+- The layout does the explaining: no description under a heading unless the title alone is unclear, no slogans, no text about how the screen was built or what was asked for, nothing shown twice. DESIGN.md says the same in its Overview and Do's and Don'ts.
+- Every input has a label; it may be hidden (`sr-only`, `aria-label`) only when the layout already says what the field is, never left out (W3C).
+- The starter kit's and the reference feature's headings lose the descriptions that repeated their titles (settings, notifications, login, register, password pages, tasks). The passkeys description now says what a passkey does. The auth layout shows no empty description line.
+
 ## [2.11.0] - 2026-11-04
 
 How screens look gets the same treatment as the code: one file says it, and the reviewer checks it. Based on OpenAI's frontend guidance, Anthropic's frontend-design skill, Google's DESIGN.md format, Vercel's Web Interface Guidelines and shadcn's skill.

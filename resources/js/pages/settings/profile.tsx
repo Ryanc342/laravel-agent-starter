@@ -35,11 +35,7 @@ export default function Profile({
             <h1 className="sr-only">Profile settings</h1>
 
             <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title="Profile"
-                    description="Update your name and email address"
-                />
+                <Heading variant="small" title="Profile" />
 
                 <Form
                     {...ProfileController.update.form()}

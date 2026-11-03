@@ -21,11 +21,7 @@ export default function DeleteUser() {
 
     return (
         <div className="space-y-6">
-            <Heading
-                variant="small"
-                title="Delete account"
-                description="Delete your account and all of its resources"
-            />
+            <Heading variant="small" title="Delete account" />
             <div className="space-y-4 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
                 <div className="relative space-y-0.5 text-destructive-foreground">
                     <p className="font-medium">Warning</p>

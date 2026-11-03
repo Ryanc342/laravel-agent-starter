@@ -143,13 +143,15 @@ DESIGN.md says how the app looks; docs/rules/visual-design.md says how to apply 
 - `[review]` `ui` Cards hold only repeated items, dialogs and framed tools: no card inside a card, no page section styled as a floating card, and corners from the radius scale.
 - `[review]` `ui` The page title is `<Heading>` and sections, panels, rows and tables use smaller headings; nothing in the app uses marketing-size type; one font family, as DESIGN.md sets.
 - `[review]` `ui` None of the looks DESIGN.md's Don'ts name: gradients, glows, decorative backgrounds, a row of identical stat cards as the page opener, all-caps or letter-spaced labels.
-- `[review]` `ui` The first screen after login is the working screen, and the app holds no text that explains how to use a screen or what a feature does; a short description under the heading is fine.
+- `[review]` `ui` The first screen after login is the working screen, and the layout does the explaining: no secondary labels or descriptions, no description under a heading unless the title alone is unclear, no slogans, no text about how the screen was built or what was asked for, and nothing shown twice.
+- `[review]` `ui` Explaining text appears only for an unusual state (an error, an empty list, a locked record) or a step the user must take; other details sit behind a Tooltip, a collapsible section or a detail page.
 - `[review]` `ui` Pages of the same kind (list, detail, form) use the layout DESIGN.md describes and the reference feature shows: header row with the heading and the page's actions, then filters, content and pagination.
 - `[review]` `ui` At desktop and phone width, text stays inside its box and nothing overlaps; long text wraps or truncates, and a wide table scrolls inside its own container.
 - `[review]` `ui` An existing component (components/ui, components/shared) is used instead of hand-styled markup, and restyled through its variants, not by overriding its colors with `className`.
 - `[review]` `ui` Familiar controls: a Select for a list of options, a Checkbox for yes or no, a ToggleGroup for two to seven modes, tabs for views; an icon-only button has a Tooltip and an `aria-label`.
 - `[review]` `ui` An empty list shows a short message, data that arrives later shows a Skeleton, and an action that cannot be undone asks for confirmation in a Dialog first.
-- `[review]` `ui` Every input has a visible label, errors show next to the field with `InputError`, and the submit button is disabled while the form is sending.
+- `[review]` `ui` Every input has a label. It is visible unless the layout already says what the field is (a search box next to a Search button), and then it is hidden with `sr-only` or `aria-label`, never left out. Errors show next to the field with `InputError`, and the submit button is disabled while the form is sending.
 - `[review]` `ui` Keyboard focus stays visible, actions are buttons and navigation is links (no clickable `div`), text is readable against its background, and light and dark mode both work.
 - `[review]` `ui` Button labels say what happens ("Save changes", "Delete task", not "Submit" or "OK"), and an error message says how to fix the problem.
+- `[review]` `ui` A change to a screen changes only what the plan names: the rest of the page stays as it was, and removing or simplifying is preferred over adding.
 - `[review]` `ui` Every changed page is opened with Playwright at desktop (1280px) and phone (390px) width, and once in dark mode, and the rules above are checked on the screenshots.

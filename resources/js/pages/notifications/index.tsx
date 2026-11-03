@@ -25,10 +25,7 @@ export default function Notifications({
 
             <div className="flex flex-col gap-6 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading
-                        title="Notifications"
-                        description="Security alerts and other messages about your account"
-                    />
+                    <Heading title="Notifications" />
 
                     {can.mark_all_read && (
                         <Form

@@ -88,7 +88,7 @@ How every screen of this app looks. The values above are the theme in `resources
 
 ## Overview
 
-People open this app to get work done: enter an order, find a customer, check what is overdue. The interface stays quiet and out of the way: neutral surfaces, one dark primary color for the main action, compact type, and dense but readable lists. Finding and finishing the task matters more than looking impressive. The settings and notifications pages (`resources/js/pages/settings`, `resources/js/pages/notifications`) and the reference feature (`docs/reference/tasks`) show the look.
+People open this app to get work done: enter an order, find a customer, check what is overdue. The interface stays quiet and out of the way: neutral surfaces, one dark primary color for the main action, compact type, and dense but readable lists. The layout does the explaining: a screen whose purpose is clear from its title, its fields and its buttons needs no extra words. Finding and finishing the task matters more than looking impressive. The settings and notifications pages (`resources/js/pages/settings`, `resources/js/pages/notifications`) and the reference feature (`docs/reference/tasks`) show the look.
 
 ## Colors
 
@@ -108,7 +108,7 @@ People open this app to get work done: enter an order, find a customer, check wh
 
 - Page: `flex flex-col gap-6 p-4`. First a header row, `flex flex-wrap items-start justify-between gap-4`, with `<Heading>` on the left and the page's actions on the right. Then filters, then the content, then `<Pagination>`.
 - List page: one row per record (`rounded-lg border p-4`, the `list-row` component above), or a table when the records have columns to compare. An empty list shows one short line in `text-muted-foreground`.
-- Form: `grid max-w-xl gap-4`; each field is a label, the input and `<InputError>` under it; the buttons come last, the main one first.
+- Form: `grid max-w-xl gap-4`; each field is a label, the input and `<InputError>` under it; the buttons come last, the main one first. A label is hidden (`sr-only`) only when the layout already says what the field is, such as a search box next to a Search button; it is never left out.
 - Detail page: the record's name as the heading, its status as a Badge next to it, its actions in the header row.
 - Spacing comes from the scale (`gap-1`, `gap-2`, `gap-4`, `gap-6`, `gap-8`). Every screen works from a 390px phone up; a wide table scrolls inside its own container, never the page.
 
@@ -149,6 +149,8 @@ Do:
 - Say what a button does: "Save changes", "Delete task", "Send quote", not "Submit" or "OK".
 - Write errors that say how to fix the problem.
 - Keep every text inside its box at phone and desktop width; long names wrap or truncate.
+- Show explaining text only for an unusual state (an error, an empty list, a locked record) or a step the user must take. Put other details behind a Tooltip, a collapsible section or a detail page.
+- Change only the part of a screen the plan names, and keep the rest as it was. Prefer removing or simplifying to adding.
 
 Don't:
 
@@ -156,5 +158,6 @@ Don't:
 - A card inside a card, or page sections styled as floating cards.
 - A row of identical stat cards with big numbers as the page opener, unless the page is a dashboard the plan asked for.
 - Marketing-size headlines, all-caps or letter-spaced labels, or a second accent color.
-- Text that explains how to use the screen or what a feature does. A short description under the heading is fine.
+- Secondary labels and descriptions the layout already makes clear: a description under a heading that repeats it ("Tasks: your to-do list"), help text under every field, a sentence that explains what a feature does.
+- Slogans, text about how the screen was built or what was asked for, and the same information shown twice.
 - Raw colors (`bg-blue-500`, `#3366ff`), arbitrary sizes (`text-[13px]`, `p-[18px]`) or `dark:` color overrides: use the tokens.
