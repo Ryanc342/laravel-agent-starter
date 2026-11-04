@@ -13,4 +13,4 @@ One row per business domain. The weekly cleanup (docs/prompts/cleanup.md) update
 | ------------------------------- | ----- | --------------------------------------- | ------------ |
 | Users (starter kit auth and settings) | A     | Rewritten to the v2 rules; every Fortify and passkey endpoint is tested (2.8.2). | 2026-11-01   |
 | Notifications                   | A     | Paginated, buttons from can.*, consistency tests (2.8.0, 2.8.2). | 2026-11-01   |
-| Public template documentation    | A     | Bilingual setup, MIT notices, contribution and security guides reviewed; isolated setup and checks pass (224 tests; reference 272). GitHub publication awaits the recorded CI PHP correction approval. | 2026-11-04 |
+| Public template documentation    | A     | Bilingual setup, MIT notices, contribution and security guides reviewed; isolated setup and checks pass (224 tests; reference 272). Approved CI PHP correction applied; GitHub publication verification in progress. | 2026-11-04 |

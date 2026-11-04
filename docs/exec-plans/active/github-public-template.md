@@ -13,6 +13,7 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 5. Add a LICENSE, contribution instructions, and security reporting instructions. Validate installation and all existing checks, publish the repository, and verify GitHub CI succeeds.
 6. Rename the local project folder from `Ezdev-Template` to `laravel-agent-starter`; check references to the old absolute path and verify commands still work from the new location.
 7. Follow the existing plan, review, and verification workflow. The user explicitly instructed implementation to start on 2026-11-04.
+8. On 2026-11-04 the user approved changing `.github/workflows/check.yml` from PHP 8.3 to PHP 8.4 and continuing publication. Also verify the recent critical PHP security fixes against the local runtime and the runtime used by GitHub CI.
 
 ## Milestones
 
@@ -39,6 +40,8 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 - 2026-11-04 20:21 MYT Review round 2: 0 P0, 0 P1; the PHP documentation finding is resolved. M1 documentation is ready. A clean checkout with no installed dependencies completed `composer setup`, `composer check` (224 Pest tests, 868 assertions; 6 Vitest tests), and `composer check:reference` (272 Pest tests, 1,025 assertions; 6 Vitest tests), using its own temporary database. `composer dev` served `/`, `/login`, and `/register` with HTTP 200. Publication remains gated on approval to correct the original CI PHP version.
 - 2026-11-04 20:21 MYT Committed M1 documentation and its validation records as `4e37f77` (`Prepare Laravel Agent Starter for public template use`).
 - 2026-11-04 20:22 MYT Renamed the project to `/Users/ryan/Projects/laravel-agent-starter`; the previous directory no longer exists. Git identifies the new worktree path, and the original history remains reachable. `composer check` passed from the new path: 224 Pest tests (868 assertions), 6 Vitest tests, and all static checks. No active configuration refers to the old absolute path. Stopped the smoke development processes and removed their temporary checkout and three isolated databases. M2 is complete; GitHub creation and push remain pending the one-line protected CI correction approval.
+- 2026-11-04 20:55 MYT The user approved the protected CI correction and continuation. Changed only the workflow's PHP selection from 8.3 to 8.4. `composer check` passed: 224 Pest tests (868 assertions), 6 Vitest tests, and all static checks. Repeated checksum-verified Gitleaks scans of reachable history and publishable files: zero findings. The working tree contains no application, dependency, or test assertion changes.
+- 2026-11-04 20:56 MYT `composer check:reference` passed: 272 Pest tests (1,025 assertions), 6 Vitest tests, and all static checks. Review round 3: 0 P0, 0 P1. Created `https://github.com/Ryanc342/laravel-agent-starter`, verified public visibility, template mode, default branch `main`, and `origin`. Enabled private vulnerability reporting and read back `enabled=true`. All local links in public documentation resolve. Ready to commit and push retained history, then inspect GitHub CI.
 
 ## Surprises & Discoveries
 
@@ -49,6 +52,7 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 - The READMEs and public repository name can change without renaming internal Ezdev rule identifiers or modifying the application's behavior.
 - The committed Symfony dependencies require PHP >=8.4.1, despite the project's broad PHP constraint and existing CI's PHP 8.3 selection. The verified local runtime is PHP 8.4.20. CI must select PHP 8.4 before publication can be verified; no dependency update is needed.
 - A clean `npm install` changes only the root display name in its copy of `package-lock.json` to match the checkout directory; package versions and dependency requirements remain unchanged. The original lock file is unchanged.
+- The [PHP security advisory published on 2026-10-21](https://www.php.net/archive/2026.php#2026-10-21-5) fixes CVE-2026-109618 and CVE-2026-109619 in PHP 8.4.27 (also 8.5.12, 8.3.36, and 8.2.35). The local Homebrew CLI remains PHP 8.4.20 and predates those fixes; serving web traffic with that runtime requires an update. Updating the installed runtime is outside the approved CI-only change. Verify the actual CI patch version after the first push. The project's app/config/public/routes code contains no native session serialization-handler switches associated with the additional configuration-specific 2026-10-23 notice; this does not establish that an unpatched PHP runtime is safe.
 
 ## Decision Log
 
@@ -56,8 +60,8 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 - 2026-11-04 The user additionally requested renaming the local project folder; use the accepted repository name for the folder and perform the move after installation validation, with subsequent commands using the new absolute path.
 - 2026-11-04 The authorized changes currently cover publication documentation, the execution plan, `docs/QUALITY.md`, repository settings, the Git remote, and the local directory name. No protected rule, tool, CI, manifest, dependency, or existing test assertion change is planned. Any newly necessary protected-file change requires the user's approval recorded here with its exact file name before editing.
 - 2026-11-04 The user explicitly said "开始", authorizing execution of the recorded plan, including public publication and the local folder rename.
-- 2026-11-04 Pending user approval: change only `php-version: '8.3'` to `php-version: '8.4'` in `.github/workflows/check.yml`, because existing locked dependencies require >=8.4.1. Do not edit the protected workflow until approved; then record that approval here and verify both check commands.
+- 2026-11-04 The user said "同意" and approved changing only `php-version: '8.3'` to `php-version: '8.4'` in `.github/workflows/check.yml`, then continuing publication. This resolves the protected-file approval recorded above. Verify both check commands and inspect the recent PHP security release without changing the user's installed runtime or project dependencies.
 
 ## Outcomes & Retrospective
 
-Public documentation is prepared and reviewed, fresh installation and both check commands pass, and the local project is now `/Users/ryan/Projects/laravel-agent-starter`. Publication is awaiting explicit approval for the one-line PHP version correction in `.github/workflows/check.yml`. No public repository has been created and no code has been pushed. Record the final repository URL and successful GitHub CI here after publication.
+Public documentation is prepared and reviewed, fresh installation and both check commands pass, and the local project is now `/Users/ryan/Projects/laravel-agent-starter`. The user approved the one-line CI correction, which now selects PHP 8.4. Publication and final GitHub CI verification are in progress; record the repository URL, actual CI PHP patch version, and successful workflow here after publication. The local PHP 8.4.20 runtime still needs its separate security update before it is used to serve web traffic.
