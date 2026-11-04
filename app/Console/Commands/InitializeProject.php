@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Dotenv\Dotenv;
+use Dotenv\Parser\Lines;
+use Dotenv\Parser\Parser;
 use Illuminate\Console\Command;
 use Illuminate\Database\ConfigurationUrlParser;
 use Illuminate\Support\Facades\File;
@@ -35,7 +37,7 @@ final class InitializeProject extends Command
         $connection = (new ConfigurationUrlParser)->parseConfiguration($configuration);
         $database = (string) $connection['database'];
 
-        if (($database === '' || $database === 'laravel') && empty($configuration['url'])) {
+        if ($database === '' && empty($configuration['url'])) {
             $database = Str::slug(basename(base_path()), '_');
         }
 
@@ -86,10 +88,14 @@ final class InitializeProject extends Command
     private function writeEnvironment(array $values): void
     {
         $file = $this->laravel->environmentFilePath();
-        $contents = File::get($file);
+        $contents = str_replace(["\r\n", "\r"], "\n", File::get($file));
+        $replacements = [];
+        $protectCredentials = array_any($values, static fn (string $value): bool => str_contains($value, 'DB_CONNECTION='));
 
         foreach ($values as $key => $value) {
             $encoded = '"'.strtr($value, [
+                // Native Installer rewrites this literal anywhere in .env.
+                'DB_CONNECTION=' => 'DB_CONNECTION${LARAVEL_STARTER_LITERAL_EQUALS}',
                 '\\' => '\\\\',
                 '"' => '\\"',
                 '$' => '\\$',
@@ -97,14 +103,47 @@ final class InitializeProject extends Command
                 "\r" => '\r',
                 "\t" => '\t',
             ]).'"';
-            $line = $key.'='.($key === 'DB_DATABASE' ? $value : $encoded);
-            $pattern = '/^'.preg_quote($key, '/').'=(?:"(?:\\\\.|[^"\\\\])*"|\'[^\']*\'|[^\r\n]*)(?:[ \t]*#[^\r\n]*)?/ms';
-            $contents = preg_match($pattern, $contents) === 1
-                ? preg_replace_callback($pattern, static fn (): string => $line, $contents)
-                : rtrim($contents).PHP_EOL.$line.PHP_EOL;
+            $replacements[$key] = $key.'='.($key === 'DB_DATABASE' ? $value : $encoded);
         }
 
-        File::put($file, $contents);
+        $parser = new Parser;
+        $entries = $parser->parse($contents);
+        $lines = explode("\n", $contents);
+        $output = [];
+        $written = [];
+        $cursor = 0;
+
+        foreach (Lines::process($lines) as $index => $raw) {
+            $entryLines = explode("\n", $raw);
+
+            while ($lines[$cursor] !== $entryLines[0]) {
+                $output[] = $lines[$cursor++];
+            }
+
+            $cursor += count($entryLines);
+            $name = $entries[$index]->getName();
+
+            if ($protectCredentials && $name === 'LARAVEL_STARTER_LITERAL_EQUALS') {
+                continue;
+            }
+
+            $output[] = $replacements[$name] ?? $raw;
+            $written[$name] = true;
+        }
+
+        $updated = implode("\n", [...$output, ...array_slice($lines, $cursor)]);
+        $missing = array_diff_key($replacements, $written);
+
+        if ($missing !== []) {
+            $updated = rtrim($updated)."\n".implode("\n", $missing)."\n";
+        }
+
+        if ($protectCredentials) {
+            $updated = 'LARAVEL_STARTER_LITERAL_EQUALS="="'."\n".$updated;
+        }
+
+        $parser->parse($updated);
+        File::put($file, $updated);
     }
 
     /**

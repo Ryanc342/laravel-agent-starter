@@ -28,7 +28,7 @@ APP_NAME=Laravel
 APP_KEY=
 # DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=laravel
+DB_DATABASE=
 DB_USERNAME=root
 DB_PASSWORD=
 ENV);
@@ -44,7 +44,7 @@ ENV);
         'driver' => 'mysql',
         'host' => '127.0.0.1',
         'port' => '3306',
-        'database' => 'laravel',
+        'database' => '',
         'username' => 'root',
         'password' => '',
     ]);
@@ -145,6 +145,49 @@ test('an explicit mysql url keeps its database even when it is named laravel', f
     expect($environment['DB_DATABASE'])->toBe('laravel');
     Process::assertRan(fn (PendingProcess $process): bool => $process->command === [PHP_BINARY, 'artisan', 'migrate', '--force']
         && ($process->environment['DB_DATABASE'] ?? null) === 'laravel');
+});
+
+test('an existing database named laravel is preserved when setup is repeated', function () {
+    File::put($this->project.'/.env', "APP_KEY=existing-key\nDB_DATABASE=laravel\n");
+    config()->set('database.connections.mysql.database', 'laravel');
+
+    $this->artisan('starter:initialize')->assertSuccessful();
+
+    $environment = Dotenv::createArrayBacked($this->project)->load();
+    expect($environment['DB_DATABASE'])->toBe('laravel');
+    expect($environment['APP_KEY'])->toBe('existing-key');
+    Process::assertRan(fn (PendingProcess $process): bool => $process->command === [PHP_BINARY, 'artisan', 'migrate', '--force']
+        && ($process->environment['DB_DATABASE'] ?? null) === 'laravel');
+});
+
+test('assignment-like text inside a multiline password is preserved', function () {
+    $password = "old\nDB_HOST=inside_password\nend";
+    File::put($this->project.'/.env', "APP_KEY=\nDB_PASSWORD=\"{$password}\"\nDB_HOST=db.internal\nDB_DATABASE=customer_portal\n");
+    config()->set('database.connections.mysql.password', $password);
+    config()->set('database.connections.mysql.host', 'db.internal');
+    config()->set('database.connections.mysql.database', 'customer_portal');
+
+    $this->artisan('starter:initialize')->assertSuccessful();
+
+    $environment = Dotenv::createArrayBacked($this->project)->load();
+    expect($environment['DB_PASSWORD'])->toBe($password);
+    expect($environment['DB_HOST'])->toBe('db.internal');
+});
+
+test('credentials survive the laravel installer database rewrite after initialization', function () {
+    $password = 'prefix DB_CONNECTION=inside_password';
+    config()->set('database.connections.mysql.password', $password);
+
+    $this->artisan('starter:initialize')->assertSuccessful();
+
+    // Laravel Installer 5.28.1 and 5.32.0 apply this rewrite after the kit hook.
+    $contents = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=sqlite', File::get($this->project.'/.env'));
+    File::put($this->project.'/.env', $contents);
+    expect(Dotenv::createArrayBacked($this->project)->load()['DB_PASSWORD'])->toBe($password);
+
+    $this->artisan('starter:initialize')->assertSuccessful();
+
+    expect(substr_count(File::get($this->project.'/.env'), 'LARAVEL_STARTER_LITERAL_EQUALS="="'))->toBe(1);
 });
 
 test('composer defers initialization while the laravel installer prepares the project', function () {

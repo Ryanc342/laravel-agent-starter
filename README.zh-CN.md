@@ -18,50 +18,47 @@
 | ---- | ---------- |
 | PHP | 8.4.1 或更新版本，并安装 Composer 要求的扩展，包括 PDO MySQL；这是已锁定依赖要求的最低版本 |
 | Composer | 2.x |
+| Laravel Installer | 5.28.1 或更新版本；已验证 5.28.1 和 5.32.0 |
 | Node.js | 22.x 的 22.22.2+、24.x 的 24.15.0+，或 26+；CI 使用 Node 22 |
 | MySQL | 推荐 8.4，与 CI 一致；安装、开发和检查时保持运行 |
-| Git | 用于克隆、执行计划、提交和结束检查 |
+| Git | 用于初始化项目、执行计划、提交和结束检查 |
 
 开发环境的数据库账号需要有权限创建项目数据库和测试数据库。检查使用 `<DB_DATABASE>_test`，参考功能检查使用独立的 `<DB_DATABASE>_reference_test`。
 
 ## 创建自己的项目
 
-1. 点击 [**Use this template**](https://github.com/new?template_name=laravel-agent-starter&template_owner=Ryanc342)，创建自己的仓库，然后克隆：
-
-   ```sh
-   git clone https://github.com/YOUR-ACCOUNT/YOUR-PROJECT.git
-   cd YOUR-PROJECT
-   cp .env.example .env
-   ```
-
-2. 启动 MySQL，编辑 `.env`：将 `DB_DATABASE` 设为独立的项目数据库名，例如 `my_project`，并配置 `DB_HOST`、`DB_PORT`、`DB_USERNAME` 和 `DB_PASSWORD`。`.env` 只保留在本地，Git 中只提交 `.env.example`。
-3. 安装并检查：
-
-   ```sh
-   composer setup
-   composer check
-   ```
-
-   `composer setup` 根据已提交的锁文件安装 PHP 和 Node 依赖、生成应用密钥、按需创建数据库、运行迁移并构建前端。这个命令用于首次安装，每次执行都会重新生成应用密钥。
-
-4. 启动开发服务器：
-
-   ```sh
-   composer dev
-   ```
-
-   打开终端显示的地址，通常为 `http://localhost:8000`，注册账号即可使用。命令会一起启动开发所需进程，按 Ctrl+C 停止。
-5. 用 Codex 或 Claude Code 打开项目，以业务语言描述需求。首次使用 Codex 时，打开 `/hooks` 并信任 `.codex/hooks.json` 中的结束检查；Claude Code 通过 `.claude/settings.json` 运行该检查。
-
-如果想先试用模板，也可以直接克隆本仓库：
+启动 MySQL，然后使用官方 Laravel 命令：
 
 ```sh
-git clone https://github.com/Ryanc342/laravel-agent-starter.git
-cd laravel-agent-starter
-cp .env.example .env
+laravel new my-project --using=ryanc342/laravel-agent-starter
+cd my-project
+composer dev
 ```
 
-然后从上面的第 2 步继续。这是源代码模板，使用时不需要发布或安装 npm 包。
+如果安装器询问 Pest、Boost 或前端依赖，保留默认选项即可。模板会自动准备环境配置、应用密钥、项目数据库、数据库迁移、前端资源和 Git 仓库。打开 `composer dev` 显示的地址（通常为 `http://localhost:8000`），注册账号即可使用。按 Ctrl+C 停止开发进程。
+
+**默认使用 MySQL，不需要数据库参数。** `my-project` 会使用数据库 `my_project`；检查和参考功能检查分别使用 `my_project_test` 与 `my_project_reference_test`。默认连接为 `127.0.0.1:3306`，账号 `root`，密码为空。已经显式配置的数据库名或连接 URL 会保留。
+
+用 Codex 或 Claude Code 打开新项目，以业务语言描述需求。首次使用 Codex 时，打开 `/hooks` 并信任 `.codex/hooks.json`；Claude Code 使用 `.claude/settings.json`。
+
+### MySQL 账号与默认值不同时
+
+创建项目前设置连接信息，模板会将其保存到新项目本地的 `.env`：
+
+```sh
+export DB_HOST=127.0.0.1
+export DB_PORT=3306
+export DB_USERNAME=your-user
+export DB_PASSWORD='your-password'
+```
+
+账号需要有权限创建项目对应的数据库。`.env` 只保留在本地。如果初始化提示数据库连接错误，修正生成的 `.env` 后，在新项目中运行 `composer setup` 即可重试；已有的应用密钥和数据库名会保留。
+
+### 维护这个模板
+
+公开 Composer 包为 [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter)，稳定 Git 标签标识发布版本。模板更新不会改动已经创建的项目。
+
+维护模板源码时，克隆本仓库，在 MySQL 运行的情况下执行 `composer setup`。`composer check` 检查源码，`composer check:reference` 同时检查参考功能。本仓库的 CI 还会通过 `scripts/check-installer`，使用真实 Laravel 安装器创建两个临时项目，验证 MySQL 隔离、开发服务器和完整检查；派生项目仓库运行常规检查。
 
 ## AI 开发流程
 
@@ -77,7 +74,7 @@ cp .env.example .env
 
 | 命令 | 用途 |
 | ---- | ---- |
-| `composer setup` | 首次安装依赖、生成密钥、迁移数据库并构建前端 |
+| `composer setup` | 安装依赖、保留或生成密钥、迁移数据库并构建前端 |
 | `composer dev` | 一起启动开发所需进程 |
 | `composer check` | PHP 格式、PHPStan、前端格式和 lint、TypeScript、Vitest、Pest 全部检查 |
 | `composer check:reference` | 在临时副本中加入参考功能，再运行完整检查 |

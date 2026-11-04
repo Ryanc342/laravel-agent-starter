@@ -19,51 +19,47 @@ In-app notifications are built in (a notifications page and an unread badge in t
 | ---- | ---------------------- |
 | PHP | 8.4.1 or later, with the extensions required by Composer, including PDO MySQL; this is the minimum required by the committed dependencies |
 | Composer | 2.x |
+| Laravel Installer | 5.28.1 or later; verified with 5.28.1 and 5.32.0 |
 | Node.js | 22.22.2+ on the 22.x line, 24.15.0+ on the 24.x line, or 26+; CI uses Node 22 |
 | MySQL | 8.4 recommended, matching CI; running during setup, development and checks |
-| Git | Required for cloning, plans, commits and the finish check |
+| Git | Required for project initialization, plans, commits and the finish check |
 
 The development database user must be able to create the configured database and its test databases. Checks use `<DB_DATABASE>_test`; the reference check uses a separate `<DB_DATABASE>_reference_test` database.
 
 ## Start a new project
 
-1. Click [**Use this template**](https://github.com/new?template_name=laravel-agent-starter&template_owner=Ryanc342), create your own repository, and clone it:
-
-   ```sh
-   git clone https://github.com/YOUR-ACCOUNT/YOUR-PROJECT.git
-   cd YOUR-PROJECT
-   cp .env.example .env
-   ```
-
-2. Start MySQL and edit `.env`. Set a unique `DB_DATABASE` such as `my_project`, together with your `DB_HOST`, `DB_PORT`, `DB_USERNAME` and `DB_PASSWORD`. Keep `.env` local; only `.env.example` belongs in Git.
-3. Install and verify:
-
-   ```sh
-   composer setup
-   composer check
-   ```
-
-   `composer setup` installs the PHP and Node dependencies using the committed lock files, generates the application key, creates the database if needed, runs migrations, and builds the frontend. Use it for initial setup; it generates a new application key each time.
-
-4. Start the development server:
-
-   ```sh
-   composer dev
-   ```
-
-   Open the URL printed in the terminal (normally `http://localhost:8000`) and register an account. The command runs the development processes together; stop them with Ctrl+C.
-5. Open the project in Codex or Claude Code and describe what you need in business terms. In Codex, open `/hooks` once and trust the finish check (`.codex/hooks.json`); Claude Code runs it from `.claude/settings.json`.
-
-You can also clone this repository directly to try it before creating your own project:
+Start MySQL, then use the official Laravel CLI:
 
 ```sh
-git clone https://github.com/Ryanc342/laravel-agent-starter.git
-cd laravel-agent-starter
+laravel new my-project --using=ryanc342/laravel-agent-starter
+cd my-project
+composer dev
 ```
 
-Then follow steps 2–5 above, copying `.env.example` to `.env` first. This is a source template; it does not require publishing or installing an npm package.
+Keep the installer's default choices if it asks about Pest, Boost or frontend dependencies. The template prepares the environment, application key, project database, migrations, frontend assets and Git repository automatically. Open the URL printed by `composer dev` (normally `http://localhost:8000`) and register an account. Stop the development processes with Ctrl+C.
 
-The lock files, the Laravel Boost setup and the skills are already committed. How the template was installed and proven on a real machine (every check passes and catches the violations it should) is recorded in `docs/exec-plans/completed/first-run.md`.
+**MySQL is the default.** No database flag is needed. `my-project` gets the database `my_project`, with separate `my_project_test` and `my_project_reference_test` databases for checks. The default connection is `127.0.0.1:3306`, user `root`, with an empty password. An explicitly configured database or connection URL is preserved.
+
+Open the project in Codex or Claude Code and describe what you need. In Codex, open `/hooks` once and trust `.codex/hooks.json`; Claude Code uses `.claude/settings.json`.
+
+### If your MySQL credentials differ
+
+Set your connection credentials before creating the project; the template saves them in the new project's local `.env`:
+
+```sh
+export DB_HOST=127.0.0.1
+export DB_PORT=3306
+export DB_USERNAME=your-user
+export DB_PASSWORD='your-password'
+```
+
+The account needs permission to create the project's databases. Keep `.env` local. If initialization reports a connection error, fix the credentials in the generated `.env` and run `composer setup` there. It preserves an existing application key and database name.
+
+### Maintaining this starter kit
+
+The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases; updating the template does not change projects you already created.
+
+To work on the template itself, clone this repository and run `composer setup` with MySQL running. `composer check` verifies the source, and `composer check:reference` also verifies the reference feature. In this repository's CI, `scripts/check-installer` creates two disposable projects with the actual Laravel Installer and checks their MySQL isolation, development servers and complete checks. Derived project repositories run the regular checks.
 
 ## What happens when you ask for a feature
 
@@ -101,7 +97,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | -------------------------- | --------------------------------------------------------------------- |
 | `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Feature, Structure) |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
-| `composer setup`           | Install dependencies, generate an app key, migrate and build for the first run |
+| `composer setup`           | Install dependencies, preserve or generate the app key, migrate and build |
 | `composer dev`             | Start the application's development processes together                  |
 | `composer lint`            | Format PHP                                                            |
 | `npm run check:fix`        | Format and lint the frontend                                          |

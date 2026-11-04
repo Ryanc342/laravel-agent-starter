@@ -172,8 +172,13 @@ def main():
         archive = workspace / 'starter.zip'
         files = subprocess.check_output(['git', 'ls-files', '--cached', '--others',
                                          '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
+        attributes = subprocess.check_output(
+            ['git', 'check-attr', '-z', '--stdin', 'export-ignore'],
+            input=('\0'.join(files)).encode(), cwd=ROOT).decode().split('\0')
+        excluded = {attributes[index] for index in range(0, len(attributes) - 1, 3)
+                    if attributes[index + 2] == 'set'}
         with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as output:
-            for name in sorted(set(files) - {''}):
+            for name in sorted(set(files) - excluded - {''}):
                 source = ROOT / name
                 if source.is_file():
                     output.write(source, 'starter/' + name)
@@ -223,6 +228,8 @@ def main():
             assert state['key'] != hashlib.sha256(b'').hexdigest(), state
             assert (project / 'public/build/manifest.json').is_file()
             assert (project / '.git').is_dir()
+            assert (project / 'README.md').is_file() and (project / 'CHANGELOG.md').is_file()
+            assert not list((project / 'docs/exec-plans/active').glob('*.md'))
             assert (project / 'AGENTS.md').read_bytes() == (ROOT / 'AGENTS.md').read_bytes()
             results.append(state)
             print(f'{mode}: PDO MySQL {state["mysql"]}; migrated database {expected}', flush=True)
