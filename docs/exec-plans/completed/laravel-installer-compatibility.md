@@ -53,6 +53,7 @@ composer dev
 
 ## Progress
 
+- 2026-11-04 23:54 MYT `CI=true composer check`: PASS（237 PHP tests / 919 assertions、6 Vitest，含最终归档文档）；`CI=true composer check:reference`: PASS（285 / 1076、6 Vitest）。公开主分支和 v1.0.0 的真实双路径安装检查也全部 PASS，发布源码 GitHub CI 已通过。
 - 2026-11-04 23:53 MYT M3 完成：源码 37d387043574634447bb05837bdb175e65777d12 已推送，独立稳定标签 v1.0.0 已发布，未推送旧模板标签。用户回复已登录后，使用其 Ryanc342 账号提交 Packagist；v1.0.0 索引源码与标签均指向 37d3870。GitHub push webhook 已自动启用，测试投递获 202。公开短命令（原生解析 dev-main）和固定 v1.0.0 的普通终端/AI 两种安装均通过 MySQL、独立库、密钥、Git、构建、composer dev HTTP 200、完整检查与参考检查。发布源码 GitHub CI 41859875868 全部通过（PHP 8.4.27、Node 22.23.4、MySQL 8.4.13、Installer 5.32.0）。计划归档，最终文档提交仍执行常规 CI。
 - 2026-11-04 23:38 MYT 发布候选源码完整检查通过 237 PHP tests / 919 assertions + 6 前端测试；参考检查通过 285 / 1076 + 6。第三轮发现的原生安装器凭据回写问题已修复，包含该原样文本的真实临时 MySQL 密码已通过双路径安装、启动、完整检查和参考检查。额外的分发档案验收正在验证 export-ignore 规则下的最终包。三轮审查发现均已修复并有回归证据，未放宽检查或改写原有断言。用户已告知创建了 Packagist 账号，技术准备就绪后处理登录。
 - 2026-11-04 23:34 MYT review round 3: 1 P0, 0 P1。原生安装器在钩子之后用非行首限定的 DB_CONNECTION 正则回写，可能误改密码中的同名文本。新增回归用例先失败，再用标准 dotenv 插值保护凭据内该字面值；初始化测试现 13 tests / 51 assertions 全通过，包括重复初始化不增加内部辅助变量。实际一次性 MySQL 密码已改为包含该复现文本及引号、美元符号和反斜线，重新执行完整双路径候选包验收。审查最多三轮，后续不再追加轮次；最终记录该项修复和验证证据。
