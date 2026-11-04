@@ -44,7 +44,7 @@ php -r '
     $set("APP_URL", "http://localhost:{$port}");
     $set("SERVER_PORT", $port);
     $set("SESSION_COOKIE", preg_replace("/[^a-z0-9_]/", "_", strtolower($name))."_session");
-    if (preg_match("/^DB_CONNECTION=mysql/m", $env) && preg_match("/^DB_DATABASE=(.*)$/m", $env, $m)) {
+    if ((! preg_match("/^DB_CONNECTION=/m", $env) || preg_match("/^DB_CONNECTION=mysql/m", $env)) && preg_match("/^DB_DATABASE=(.*)$/m", $env, $m)) {
         $database = trim($m[1]) . "_" . preg_replace("/[^A-Za-z0-9_]/", "_", $name);
         $env = preg_replace("/^DB_DATABASE=.*$/m", "DB_DATABASE={$database}", $env);
         fwrite(STDERR, "MySQL database: {$database} (php artisan migrate creates it).\n");

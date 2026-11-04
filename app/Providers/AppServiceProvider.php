@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Support\InstallBoost;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Boost\Console\InstallCommand;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (class_exists(InstallCommand::class)) {
+            $this->app->bind(InstallCommand::class, InstallBoost::class);
+        }
     }
 
     /**

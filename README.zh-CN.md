@@ -1,6 +1,6 @@
 # Laravel Agent Starter
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/check.yml)
+[English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/tests.yml)
 
 基于 Laravel 13、Inertia 3、React 19、TypeScript 和 Tailwind 的项目模板，适合使用 Codex 或 Claude Code 开发业务应用。
 

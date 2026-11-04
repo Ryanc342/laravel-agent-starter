@@ -1,6 +1,6 @@
 # Laravel Agent Starter
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/check.yml)
+[English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/tests.yml)
 
 A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects where AI (Codex or Claude Code) writes the code.
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
