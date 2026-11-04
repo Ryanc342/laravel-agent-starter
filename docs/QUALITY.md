@@ -13,4 +13,4 @@ One row per business domain. The weekly cleanup (docs/prompts/cleanup.md) update
 | ------------------------------- | ----- | --------------------------------------- | ------------ |
 | Users (starter kit auth and settings) | A     | Rewritten to the v2 rules; every Fortify and passkey endpoint is tested (2.8.2). | 2026-11-01   |
 | Notifications                   | A     | Paginated, buttons from can.*, consistency tests (2.8.0, 2.8.2). | 2026-11-01   |
-| Public template documentation    | A     | Public GitHub template and private security reporting enabled; bilingual docs reviewed. Approved Vite/Vitest CI correction passes the full check in CI mode (224 PHP tests, 6 frontend tests) and production build; reference and remote verification are in progress. | 2026-11-04 |
+| Public template documentation    | A     | Public GitHub template and private security reporting verified; bilingual docs, MIT notices, contribution/security guides reviewed. CI-mode checks pass (224 PHP tests; reference 272; 6 frontend tests each). GitHub run 41835490770 passed setup and both check commands using PHP 8.4.27; no unresolved P0/P1 findings. | 2026-11-04 |
