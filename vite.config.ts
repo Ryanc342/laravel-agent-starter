@@ -9,15 +9,16 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
-            refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
-        }),
+        !process.env.VITEST &&
+            laravel({
+                input: ['resources/css/app.css', 'resources/js/app.tsx'],
+                refresh: true,
+                fonts: [
+                    bunny('Instrument Sans', {
+                        weights: [400, 500, 600],
+                    }),
+                ],
+            }),
         inertia(),
         react(),
         babel({
@@ -28,6 +29,9 @@ export default defineConfig({
             formVariants: true,
         }),
     ]),
+    resolve: {
+        tsconfigPaths: true,
+    },
     server: {
         watch: {
             ignored: [
