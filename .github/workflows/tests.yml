@@ -56,3 +56,13 @@ jobs:
       # same checks, so a rule change that breaks the example fails here.
       - name: Check the reference feature
         run: composer check:reference
+
+      - name: Verify the starter kit with Laravel Installer
+        if: github.repository == 'Ryanc342/laravel-agent-starter'
+        run: python3 scripts/check-installer
+        env:
+          STARTER_INSTALLER_ISOLATED_MYSQL: '1'
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_USERNAME: root
+          DB_PASSWORD: ''

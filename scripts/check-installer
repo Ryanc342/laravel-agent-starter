@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+"""Verify the real Laravel installer against this checkout or its public release.
+
+Requires disposable MySQL: STARTER_INSTALLER_ISOLATED_MYSQL=1 plus DB_HOST,
+DB_PORT, DB_USERNAME and DB_PASSWORD. Never point it at a business database.
+"""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import pty
+import re
+import select
+import shutil
+import signal
+import socket
+import subprocess
+import tempfile
+import time
+import urllib.request
+import uuid
+import zipfile
+
+PACKAGE = 'ryanc342/laravel-agent-starter'
+ROOT = Path(__file__).resolve().parent.parent
+ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
+VERIFY = '''<?php
+require 'vendor/autoload.php';
+$app = require 'bootstrap/app.php';
+$app->make(Illuminate\\Contracts\\Console\\Kernel::class)->bootstrap();
+$pdo = Illuminate\\Support\\Facades\\DB::connection()->getPdo();
+if (getenv('STARTER_VERIFY_TEST_DATABASES') === '1') {
+ $name = $pdo->query('SELECT DATABASE()')->fetchColumn();
+ $tables = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=? AND table_name=?');
+ foreach (['_test', '_reference_test'] as $suffix) {
+  $tables->execute([$name.$suffix, 'migrations']);
+  if (! $tables->fetchColumn()) { exit(1); }
+ }
+}
+echo json_encode([
+ 'default' => config('database.default'),
+ 'driver' => $pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
+ 'database' => $pdo->query('SELECT DATABASE()')->fetchColumn(),
+ 'mysql' => $pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
+ 'migrated' => Illuminate\\Support\\Facades\\Schema::hasTable('migrations'),
+ 'key' => hash('sha256', config('app.key') ?? ''),
+]);
+'''
+
+
+def run(command, cwd, environment, log, timeout=1200):
+    print('Running: ' + ' '.join(command), flush=True)
+    with log.open('wb') as output:
+        process = subprocess.Popen(command, cwd=cwd, env=environment,
+                                   stdout=output, stderr=subprocess.STDOUT,
+                                   start_new_session=True)
+        try:
+            status = process.wait(timeout=timeout)
+        except BaseException:
+            os.killpg(process.pid, signal.SIGTERM)
+            process.wait()
+            raise
+    if status:
+        print(log.read_text(errors='replace')[-10000:], flush=True)
+        raise RuntimeError(f'{command[0]} failed ({status}); see {log}')
+
+
+def human_install(command, cwd, environment, log):
+    print('Ordinary terminal: ' + ' '.join(command), flush=True)
+    pid, descriptor = pty.fork()
+    if pid == 0:
+        os.chdir(cwd)
+        os.execvpe(command[0], command, environment)
+    answers = {
+        'Would you like to update now?': b'n',
+        'Which testing framework do you prefer?': b'',
+        'Do you want to install Laravel Boost': b'y',
+        'Would you like to run': b'y',
+    }
+    seen, transcript = set(), ''
+    deadline = time.monotonic() + 1200
+    status = None
+    try:
+        with log.open('wb') as output:
+            while time.monotonic() < deadline:
+                ready, _, _ = select.select([descriptor], [], [], 1)
+                if ready:
+                    try:
+                        chunk = os.read(descriptor, 65536)
+                    except OSError:
+                        break
+                    if not chunk:
+                        break
+                    output.write(chunk)
+                    output.flush()
+                    transcript += chunk.decode(errors='replace')
+                    clean = ANSI.sub('', transcript)
+                    for question, answer in answers.items():
+                        if question in clean and question not in seen:
+                            time.sleep(1)
+                            if answer:
+                                os.write(descriptor, answer)
+                                time.sleep(0.5)
+                            os.write(descriptor, b'\r')
+                            seen.add(question)
+                done, status = os.waitpid(pid, os.WNOHANG)
+                if done:
+                    break
+                status = None
+            else:
+                raise TimeoutError('Ordinary-terminal installation timed out')
+            if status is None:
+                _, status = os.waitpid(pid, 0)
+        if os.waitstatus_to_exitcode(status):
+            print(log.read_text(errors='replace')[-10000:], flush=True)
+            raise RuntimeError(f'Ordinary-terminal installation failed; see {log}')
+    finally:
+        if status is None:
+            os.killpg(pid, signal.SIGTERM)
+            os.waitpid(pid, 0)
+        os.close(descriptor)
+
+
+def verify_start(project, environment, log):
+    with socket.socket() as probe:
+        probe.bind(('127.0.0.1', 0))
+        port = probe.getsockname()[1]
+    with log.open('wb') as output:
+        process = subprocess.Popen(['composer', 'dev'], cwd=project,
+                                   env=environment | {'SERVER_PORT': str(port)},
+                                   stdout=output, stderr=subprocess.STDOUT,
+                                   start_new_session=True)
+        try:
+            for _ in range(120):
+                if process.poll() is not None:
+                    raise RuntimeError(f'composer dev exited; see {log}')
+                try:
+                    with urllib.request.urlopen(f'http://127.0.0.1:{port}/login', timeout=2) as response:
+                        if response.status == 200:
+                            print('composer dev: /login returned HTTP 200', flush=True)
+                            return
+                except OSError:
+                    time.sleep(0.5)
+            raise RuntimeError(f'Application did not become ready; see {log}')
+        finally:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                process.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--public', action='store_true', help='Resolve the actual Packagist package')
+    parser.add_argument('--installer-version', default='5.32.0')
+    parser.add_argument('--installer', type=Path, help='Use an existing isolated installer binary')
+    args = parser.parse_args()
+    if os.environ.get('STARTER_INSTALLER_ISOLATED_MYSQL') != '1':
+        parser.error('Set STARTER_INSTALLER_ISOLATED_MYSQL=1 only for disposable MySQL')
+    workspace = Path(tempfile.mkdtemp(prefix='starter-installer-'))
+    print(f'Installation evidence: {workspace}', flush=True)
+    environment = dict(os.environ)
+    for key in ['DB_CONNECTION', 'DB_DATABASE', 'DB_URL', 'LARAVEL_INSTALLER_DEFER_HOOKS']:
+        environment.pop(key, None)
+    home = workspace / 'composer-home'
+    home.mkdir()
+    environment['COMPOSER_HOME'] = str(home)
+    if not args.public:
+        archive = workspace / 'starter.zip'
+        files = subprocess.check_output(['git', 'ls-files', '--cached', '--others',
+                                         '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
+        with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as output:
+            for name in sorted(set(files) - {''}):
+                source = ROOT / name
+                if source.is_file():
+                    output.write(source, 'starter/' + name)
+        package = {'name': PACKAGE, 'version': '1.0.0', 'type': 'project',
+                   'dist': {'type': 'zip', 'url': archive.as_uri(),
+                            'shasum': hashlib.sha1(archive.read_bytes()).hexdigest()}}
+        (home / 'config.json').write_text(json.dumps({'repositories': [
+            {'type': 'package', 'package': package}]}))
+    if args.installer:
+        installer = args.installer.resolve()
+        vendor = installer.parent.parent
+    else:
+        tool = workspace / 'tool'
+        tool.mkdir()
+        run(['composer', 'require', f'laravel/installer:{args.installer_version}',
+             '--no-interaction', '--no-scripts'], tool, environment, workspace / 'tool.log')
+        installer = tool / 'vendor/bin/laravel'
+        vendor = tool / 'vendor'
+    detector = vendor / 'laravel/agent-detector/src/AgentDetector.php'
+    for key in re.findall(r"'([A-Z_]+)'\s*=>", detector.read_text()) + ['AI_AGENT', 'CI']:
+        environment.pop(key, None)
+    environment['PATH'] = str(installer.parent) + os.pathsep + environment['PATH']
+    environment['TERM'] = 'xterm-256color'
+    application_environment = {key: value for key, value in environment.items()
+                               if not key.startswith('DB_')}
+    for command in [['laravel', '--version'], ['php', '--version'], ['node', '--version']]:
+        result = subprocess.check_output(command, env=environment, text=True)
+        print(result.splitlines()[0], flush=True)
+    projects, results = [], []
+    try:
+        for mode in ['agent', 'human']:
+            name = f'install-{mode}-{uuid.uuid4().hex[:8]}'
+            project = workspace / name
+            projects.append(project)
+            command = ['laravel', 'new', name, f'--using={PACKAGE}']
+            log = workspace / f'{mode}-install.log'
+            if mode == 'human':
+                human_install(command, workspace, environment, log)
+            else:
+                run(command, workspace, environment | {'AI_AGENT': 'codex'}, log)
+            result = subprocess.run(['php'], input=VERIFY, cwd=project, env=application_environment,
+                                    check=True, capture_output=True, text=True)
+            state = json.loads(result.stdout)
+            expected = name.replace('-', '_')
+            assert state['default'] == state['driver'] == 'mysql', state
+            assert state['database'] == expected and state['migrated'], state
+            assert state['key'] != hashlib.sha256(b'').hexdigest(), state
+            assert (project / 'public/build/manifest.json').is_file()
+            assert (project / '.git').is_dir()
+            assert (project / 'AGENTS.md').read_bytes() == (ROOT / 'AGENTS.md').read_bytes()
+            results.append(state)
+            print(f'{mode}: PDO MySQL {state["mysql"]}; migrated database {expected}', flush=True)
+            verify_start(project, application_environment, workspace / f'{mode}-dev.log')
+            for check in ['check', 'check:reference']:
+                run(['composer', check], project, application_environment | {'CI': 'true'},
+                    workspace / f'{mode}-{check.replace(":", "-")}.log')
+            subprocess.run(['php'], input=VERIFY, cwd=project,
+                           env=application_environment | {'STARTER_VERIFY_TEST_DATABASES': '1'},
+                           check=True, capture_output=True, text=True)
+        assert results[0]['key'] != results[1]['key'], 'Project keys must differ'
+        assert results[0]['database'] != results[1]['database'], 'Project databases must differ'
+        print('Both real installations, independent databases/keys, dev servers and all checks passed.', flush=True)
+    finally:
+        # Only generated names in this disposable service can be removed.
+        names = [p.name.replace('-', '_') + suffix for p in projects
+                 for suffix in ['', '_test', '_reference_test']]
+        cleanup = '''<?php
+$pdo = new PDO('mysql:host='.getenv('DB_HOST').';port='.getenv('DB_PORT'), getenv('DB_USERNAME'), getenv('DB_PASSWORD'));
+foreach (json_decode(getenv('STARTER_SMOKE_DATABASES')) as $name) {
+ if (! preg_match('/^install_(agent|human)_[a-f0-9]{8}(_test|_reference_test)?$/', $name)) { exit(1); }
+ $pdo->exec('DROP DATABASE IF EXISTS `'.$name.'`');
+}
+'''
+        subprocess.run(['php'], input=cleanup, env=environment | {'STARTER_SMOKE_DATABASES': json.dumps(names)},
+                       check=True, text=True)
+    for project in projects:
+        shutil.rmtree(project)
+    if not args.installer:
+        shutil.rmtree(workspace / 'tool')
+    shutil.rmtree(home)
+    if not args.public:
+        archive.unlink()
+    print(f'Logs retained at {workspace}; disposable projects and databases removed.', flush=True)
+
+
+if __name__ == '__main__':
+    main()
