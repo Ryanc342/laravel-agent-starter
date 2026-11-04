@@ -57,7 +57,7 @@ The account needs permission to create the project's databases. Keep `.env` loca
 
 ### Maintaining this starter kit
 
-The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases; updating the template does not change projects you already created.
+The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases. The short command follows the template’s main branch, as selected by Laravel Installer; updating the template does not change projects you already created. To pin a stable snapshot, use `--using=ryanc342/laravel-agent-starter:v1.0.0` instead.
 
 To work on the template itself, clone this repository and run `composer setup` with MySQL running. `composer check` verifies the source, and `composer check:reference` also verifies the reference feature. In this repository's CI, `scripts/check-installer` creates two disposable projects with the actual Laravel Installer and checks their MySQL isolation, development servers and complete checks. Derived project repositories run the regular checks.
 

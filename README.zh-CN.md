@@ -56,7 +56,7 @@ export DB_PASSWORD='your-password'
 
 ### 维护这个模板
 
-公开 Composer 包为 [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter)，稳定 Git 标签标识发布版本。模板更新不会改动已经创建的项目。
+公开 Composer 包为 [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter)，稳定 Git 标签标识发布版本。官方安装器的短命令默认使用模板主分支的最新版；模板更新不会改动已经创建的项目。需要固定稳定快照时，改用 `--using=ryanc342/laravel-agent-starter:v1.0.0` 即可。
 
 维护模板源码时，克隆本仓库，在 MySQL 运行的情况下执行 `composer setup`。`composer check` 检查源码，`composer check:reference` 同时检查参考功能。本仓库的 CI 还会通过 `scripts/check-installer`，使用真实 Laravel 安装器创建两个临时项目，验证 MySQL 隔离、开发服务器和完整检查；派生项目仓库运行常规检查。
 

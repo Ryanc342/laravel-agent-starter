@@ -34,13 +34,13 @@ composer dev
 
 - [x] M1 先证明无参数且默认 MySQL 可行，再适配：在隔离环境以 Composer 候选包执行目标短命令，先复现安装器将数据库回写 SQLite 的问题，同时覆盖普通终端交互与 AI 调用。基于官方创建生命周期和模板自身配置设计最小兼容，确认最终实际驱动为 MySQL、项目数据库正确、既有凭据没有丢失；不能只测试中间钩子状态。对齐包名和必要的官方初始化钩子，完成依赖、环境文件、密钥、迁移、前端和 Git 准备，保留 Pest、Boost 和全部检查。新增行为先有失败验证，再实现最小改动；没有安全可行方案时停在此里程碑报告证据，不推进发布。运行两个标准检查命令，通过后提交并更新 Progress。
 - [x] M2 自动验收真实安装：新增 `scripts/check-installer`，通过临时 Composer 仓库或候选包验证当前待发布提交，不改本机全局环境。用不带数据库选项的正式短命令创建两个不同名称的 MySQL 项目，验证最终驱动、独立应用库/测试库/参考库、真实迁移、构建、启动和完整检查。接入 CI，仅在模板仓库运行安装验收，派生业务项目保留常规检查。真实覆盖普通终端提示，不得仅测试偷偷补上数据库参数的脚本。两个标准检查命令通过后提交。
-- [ ] M3 发布并交付简单教程：按 `docs/prompts/review.md` 请求 reviewer，最多三轮，修复 P0/P1。准备稳定版本、包元数据、源码提交和安装证据，发布 Packagist，并从真实公开包再次验证推荐命令。账号登录或授权在技术准备完成后处理。中英文 README 只以短命令作为主要入口，更新 `docs/QUALITY.md`，确认最终 GitHub 检查通过，填写结果并归档计划。
+- [x] M3 发布并交付简单教程：按 `docs/prompts/review.md` 请求 reviewer，最多三轮，修复 P0/P1。准备稳定版本、包元数据、源码提交和安装证据，发布 Packagist，并从真实公开包再次验证推荐命令。账号登录或授权在技术准备完成后处理。中英文 README 只以短命令作为主要入口，更新 `docs/QUALITY.md`，确认最终 GitHub 检查通过，填写结果并归档计划。
 
 ## Validation
 
 - 最终推荐命令不含 `--database`，也不通过命令别名、全局配置或隐含的额外参数补上它。创建完成后，进入目录运行 `composer dev` 即可访问应用，不需要补跑 `composer setup`。环境前提是兼容的 PHP/PDO MySQL、Composer、Node、Git，以及已运行并提供适当权限的 MySQL。
 - 整个安装过程结束后，命令行应用、开发服务器和实际 PDO 连接均使用 MySQL，并连接当前项目对应的数据库；环境文件与运行配置不得出现误导性的驱动不一致。没有 MySQL 或凭据错误时应明确说明连接问题，不自动退回 SQLite。
-- 走真实 Composer `create-project` 路径。发布前验证候选包，发布后通过 Packagist 实际解析目标版本再安装；GitHub URL 下载成功不算短包名验收通过。
+- 走真实 Composer `create-project` 路径。发布前验证候选包，发布后通过 Packagist 验证短命令的实际解析结果，并另固定已发布稳定版本安装；GitHub URL 下载成功不算短包名验收通过。
 - 普通终端按正常推荐选择即可完成。已有 Pest、Boost、测试和检查配置必须保持正确，不出现“选择一种框架但留下另一种配置”的矛盾。保留所有既有测试断言与检查强度，不以忽略错误或跳过测试解决兼容问题。
 - 创建两个不同名称的项目，确认 MySQL 应用库、测试库和参考测试库分别独立，不共用回退的模板数据库或 `laravel_test`。APP_KEY 非空且不同，MySQL 中迁移表真实存在，前端 manifest 有效，Git 初始化正确，HTTP 首页可访问。不能只看安装器的成功提示或退出码。
 - 验证非默认 MySQL 凭据在创建流程结束后仍然生效，参考检查和工作树隔离继续工作，不改写现有本地 `.env` 或连接源项目业务数据库。
@@ -53,6 +53,7 @@ composer dev
 
 ## Progress
 
+- 2026-11-04 23:53 MYT M3 完成：源码 37d387043574634447bb05837bdb175e65777d12 已推送，独立稳定标签 v1.0.0 已发布，未推送旧模板标签。用户回复已登录后，使用其 Ryanc342 账号提交 Packagist；v1.0.0 索引源码与标签均指向 37d3870。GitHub push webhook 已自动启用，测试投递获 202。公开短命令（原生解析 dev-main）和固定 v1.0.0 的普通终端/AI 两种安装均通过 MySQL、独立库、密钥、Git、构建、composer dev HTTP 200、完整检查与参考检查。发布源码 GitHub CI 41859875868 全部通过（PHP 8.4.27、Node 22.23.4、MySQL 8.4.13、Installer 5.32.0）。计划归档，最终文档提交仍执行常规 CI。
 - 2026-11-04 23:38 MYT 发布候选源码完整检查通过 237 PHP tests / 919 assertions + 6 前端测试；参考检查通过 285 / 1076 + 6。第三轮发现的原生安装器凭据回写问题已修复，包含该原样文本的真实临时 MySQL 密码已通过双路径安装、启动、完整检查和参考检查。额外的分发档案验收正在验证 export-ignore 规则下的最终包。三轮审查发现均已修复并有回归证据，未放宽检查或改写原有断言。用户已告知创建了 Packagist 账号，技术准备就绪后处理登录。
 - 2026-11-04 23:34 MYT review round 3: 1 P0, 0 P1。原生安装器在钩子之后用非行首限定的 DB_CONNECTION 正则回写，可能误改密码中的同名文本。新增回归用例先失败，再用标准 dotenv 插值保护凭据内该字面值；初始化测试现 13 tests / 51 assertions 全通过，包括重复初始化不增加内部辅助变量。实际一次性 MySQL 密码已改为包含该复现文本及引号、美元符号和反斜线，重新执行完整双路径候选包验收。审查最多三轮，后续不再追加轮次；最终记录该项修复和验证证据。
 - 2026-11-04 23:28 MYT M2 已提交为 673224e。review round 2: 2 P0, 0 P1。补了两个先失败的回归用例：现有名为 laravel 的数据库必须保留；多行密码中类似 DB_HOST 的文本不能被当成配置改写。改为复用已安装 phpdotenv 的 Parser 和 Lines 识别完整条目，并在写入前验证语法；空的新项目数据库占位符替代 laravel，所有非空数据库名均保留。12 个初始化用例现通过（47 assertions）；重新运行最终候选包安装验收和全部检查。中英文教程已改为单一短命令入口。
@@ -70,6 +71,7 @@ composer dev
 
 ## Surprises & Discoveries
 
+- Laravel Installer 对社区包传递 --stability=dev，主要短命令实际选择 dev-main；发布时它与 v1.0.0 均指向 37d387043574634447bb05837bdb175e65777d12。这是安装器原生选择，教程明确默认跟随主分支，已有项目不自动变化；另外使用包名版本后缀验证稳定标签的真实公开安装，不向主要命令添加数据库参数。
 - Installer 的 DB_CONNECTION 回写正则未限定在赋值行首，也会匹配凭据中的同名字面值；模板用标准 dotenv 插值仅保护这一外部边界，保留实际密码。该保护的回归测试同时运行原生回写后解析与重复初始化，真实安装使用含该文本的临时数据库密码验证。
 - 新创建流程由应用配置声明 MySQL 默认驱动，环境文件不写显式 `DB_CONNECTION`，保留原生安装器识别的注释主机默认行。这避免其 SQLite 回写破坏实际 MySQL 配置，也保留凭据。无需修改全局安装器、命令别名或增加参数。
 - `scripts/worktree-up` 原先只识别显式的 `DB_CONNECTION=mysql`；新默认值形式使它无法派生工作树数据库。用户已追加批准并应用一行兼容补丁，使未写连接选项时按项目 MySQL 默认值处理。
@@ -102,4 +104,30 @@ composer dev
 
 ## Outcomes & Retrospective
 
-实施已获用户批准，先验证并解决官方安装器的 SQLite 回写，再完成正式包发布。当前未声明短命令已完整可用；完成后记录正式版本、最终 MySQL 连接、两个项目的安装验收、检查与审查结果、Packagist 页面及最终 GitHub 工作流链接。
+已作为正式公开 Composer Starter Kit 发布：[Packagist](https://packagist.org/packages/ryanc342/laravel-agent-starter)、[稳定标签 v1.0.0](https://github.com/Ryanc342/laravel-agent-starter/tree/v1.0.0)。稳定版本源码为 `37d387043574634447bb05837bdb175e65777d12`，对应[通过的发布源码 CI](https://github.com/Ryanc342/laravel-agent-starter/actions/runs/41859875868)。GitHub 自动同步已启用，推送新标签后无需手动重新提交包。
+
+主要使用方式保持三行：
+
+```sh
+laravel new my-project --using=ryanc342/laravel-agent-starter
+cd my-project
+composer dev
+```
+
+默认实际使用 MySQL，无数据库参数。官方安装器让未固定版本的短命令跟随主分支；已创建的项目不自动变化。需要固定快照时使用包名后缀 `:v1.0.0`，教程将其放在后续维护说明中。
+
+| 已确认的决策 | 唯一归属与实现 | 验证 |
+| --- | --- | --- |
+| 长期复用、正式短包名和稳定发布 | composer.json 包元数据；Git 标签与 Packagist；GitHub push webhook | 公共索引 v1.0.0 的 source/dist 均为 37d3870，正常短命令与固定版本均从公开仓库安装成功 |
+| 一条创建命令、进入目录即可启动 | InitializeProject::handle()，Composer setup/create-project 和原生 Installer 钩子共同调用 starter:initialize；中英文 README | 两种调用方式均自动完成配置、密钥、迁移、前端和 Git，composer dev 的登录页返回 HTTP 200 |
+| 无数据库参数且默认 MySQL | config/database.php 声明 MySQL 默认；.env.example 不设显式驱动；InitializeProject::handle() 仅为空数据库名派生项目名 | 最终默认连接、PDO 驱动和实际数据库均检查；现有自定义库及名为 laravel 的数据库保留 |
+| 保留凭据、密钥及现有数据 | InitializeProject::writeEnvironment() 使用 phpdotenv Parser/Lines；原生 key:generate 仅在缺少密钥时调用 | 13 个初始化行为用例 / 51 assertions；多行、特殊字符、DB_URL、重复初始化和原生回写边界均有先失败后通过的回归；实际临时密码包含该边界，去掉全部外部 DB_* 变量后仍连接成功 |
+| 保留 Pest、Boost、检查及 MySQL 行锁 | InstallBoost::handle() 复用原命令后调用既有 vp fmt；AppServiceProvider::register() 仅在开发依赖存在时绑定 | 普通终端保留默认选项通过全部检查；原有断言、结构规则和行锁测试均未削弱 |
+| 开发副本继续隔离数据库 | scripts/worktree-up 的一行默认 MySQL 识别，用户另行回复“修”批准 | 默认 MySQL、显式 MySQL 和 SQLite fixture 均验证，原配置文件保持不变 |
+| 自动验证当前候选包，派生项目保留常规检查 | scripts/check-installer 与 .github/workflows/tests.yml；.gitattributes 负责分发边界 | CI 实际验证当前候选源；GitHub 真实分发档案保留文档、不携带活动维护计划；只清理自己创建的进程、数据库和项目 |
+
+最终发布源码检查：237 PHP tests / 919 assertions、6 Vitest；参考检查：285 / 1076、6 Vitest。公开主分支和公开 v1.0.0 各自的 AI 项目均为同样结果；普通终端项目因官方 Pest 添加一个示例，分别为 238 / 920 和参考 286 / 1077，均另有 6 Vitest。GitHub 使用 PHP 8.4.27、Node 22.23.4、MySQL 8.4.13；本地全程未升级全局 PHP 或 Laravel Installer，未改现有本地 .env 或业务数据库。
+
+三轮审查依次发现 3、2、1 个 P0，均已修复并验证；没有留下未处理发现。第三轮修复后按三轮上限不再增加审查轮次，使用针对性回归和真实安装确认结果。本次无 UI 改动，无截图需求。无新增依赖、第三方包升级或待转入技术债的工作。
+
+经验：社区 Starter Kit 必须验证整个原生安装生命周期与真实分发档案；钩子成功和安装器退出成功均不足以证明最终驱动、凭据及检查配置正确。以后维护由 CI 重复这份验收，使用者只需要保持兼容工具与 MySQL 可用。
