@@ -17,7 +17,7 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 ## Milestones
 
 - [x] M1 Prepare the public template: audit current files and Git history, check upstream and bundled-material notices, update `README.md`, add `README.zh-CN.md`, `LICENSE`, `CONTRIBUTING.md`, and `SECURITY.md`, and record publication validation in `docs/QUALITY.md`. Run `composer check`, request the reviewer subagent's review against this plan, resolve P0/P1 findings, and commit.
-- [ ] M2 Prove installation and rename locally: install from a clean temporary checkout using a separate smoke-test database, run `composer setup`, `composer check`, and `composer check:reference`, then rename the local directory and verify Git, dependencies, configuration, and `composer check` from its new path. Record results and commit the plan updates.
+- [x] M2 Prove installation and rename locally: install from a clean temporary checkout using a separate smoke-test database, run `composer setup`, `composer check`, and `composer check:reference`, then rename the local directory and verify Git, dependencies, configuration, and `composer check` from its new path. Record results and commit the plan updates.
 - [ ] M3 Publish and verify: create `Ryanc342/laravel-agent-starter` as a public template repository, configure a private security reporting channel, connect `origin`, push `main` with the retained history, and wait for GitHub CI. Complete the reviewer round for any subsequent changes, fill in the outcome, move this plan to `completed/`, and push the final records; confirm CI passes for the final pushed commit.
 
 ## Validation
@@ -37,6 +37,8 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 - 2026-11-04 20:14 MYT The user said to start. Gitleaks v8.30.1 (download checksum verified) scanned all reachable Git history with redacted reporting: 69 commits, zero findings. The tracked-file/history path audit found no actual `.env`, credential files, or database dumps. Baseline `composer check` passed: Pint, PHPStan, frontend lint, TypeScript, 6 Vitest tests, and 224 Pest tests (868 assertions). No application test is needed for documentation and a directory rename.
 - 2026-11-04 20:17 MYT Prepared the five public documents, verified local Markdown links, and rescanned all 405 publishable files: zero secret findings. `composer check` passed again with 224 Pest tests (868 assertions) and 6 Vitest tests. Review round 1: 0 P0, 1 P1; the locked Symfony dependencies require PHP >=8.4.1 while the original CI and initial documentation specified 8.3. Corrected both READMEs; a one-line change to `.github/workflows/check.yml` requires user approval before editing.
 - 2026-11-04 20:21 MYT Review round 2: 0 P0, 0 P1; the PHP documentation finding is resolved. M1 documentation is ready. A clean checkout with no installed dependencies completed `composer setup`, `composer check` (224 Pest tests, 868 assertions; 6 Vitest tests), and `composer check:reference` (272 Pest tests, 1,025 assertions; 6 Vitest tests), using its own temporary database. `composer dev` served `/`, `/login`, and `/register` with HTTP 200. Publication remains gated on approval to correct the original CI PHP version.
+- 2026-11-04 20:21 MYT Committed M1 documentation and its validation records as `4e37f77` (`Prepare Laravel Agent Starter for public template use`).
+- 2026-11-04 20:22 MYT Renamed the project to `/Users/ryan/Projects/laravel-agent-starter`; the previous directory no longer exists. Git identifies the new worktree path, and the original history remains reachable. `composer check` passed from the new path: 224 Pest tests (868 assertions), 6 Vitest tests, and all static checks. No active configuration refers to the old absolute path. Stopped the smoke development processes and removed their temporary checkout and three isolated databases. M2 is complete; GitHub creation and push remain pending the one-line protected CI correction approval.
 
 ## Surprises & Discoveries
 
@@ -58,4 +60,4 @@ Publish this project as the public GitHub template `Ryanc342/laravel-agent-start
 
 ## Outcomes & Retrospective
 
-Implementation is in progress. Record installation results, check results, review findings, final repository URL, and the verified local path here when the work is complete.
+Public documentation is prepared and reviewed, fresh installation and both check commands pass, and the local project is now `/Users/ryan/Projects/laravel-agent-starter`. Publication is awaiting explicit approval for the one-line PHP version correction in `.github/workflows/check.yml`. No public repository has been created and no code has been pushed. Record the final repository URL and successful GitHub CI here after publication.
