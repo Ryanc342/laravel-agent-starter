@@ -1,4 +1,6 @@
-# Ezdev Template
+# Laravel Agent Starter
+
+[English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/check.yml)
 
 A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects where AI (Codex or Claude Code) writes the code.
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
@@ -11,12 +13,55 @@ The starter kit's own auth and settings code is rewritten to follow the same rul
 
 In-app notifications are built in (a notifications page and an unread badge in the sidebar). They are also the live example of scopes, Policies, bulk operations and button consistency tests; `ARCHITECTURE.md` maps each pattern to its file.
 
+## Requirements
+
+| Tool | Version or requirement |
+| ---- | ---------------------- |
+| PHP | 8.4.1 or later, with the extensions required by Composer, including PDO MySQL; this is the minimum required by the committed dependencies |
+| Composer | 2.x |
+| Node.js | 22.22.2+ on the 22.x line, 24.15.0+ on the 24.x line, or 26+; CI uses Node 22 |
+| MySQL | 8.4 recommended, matching CI; running during setup, development and checks |
+| Git | Required for cloning, plans, commits and the finish check |
+
+The development database user must be able to create the configured database and its test databases. Checks use `<DB_DATABASE>_test`; the reference check uses a separate `<DB_DATABASE>_reference_test` database.
+
 ## Start a new project
 
-1. On GitHub, click **Use this template**, create the repository and clone it.
-2. Start MySQL. Copy `.env.example` to `.env` and set `DB_DATABASE` to the project name in snake_case (and `DB_USERNAME` and `DB_PASSWORD` if your MySQL needs them).
-3. Run `composer setup`: it installs from the lock files, creates the database, migrates and builds. Then `composer check` must pass (MySQL running; the tests create their own `<database>_test`).
-4. Open it in Codex or Claude Code and describe what you need in business terms. In Codex, open `/hooks` once and trust the finish check (`.codex/hooks.json`); Claude Code runs it from `.claude/settings.json`.
+1. Click [**Use this template**](https://github.com/new?template_name=laravel-agent-starter&template_owner=Ryanc342), create your own repository, and clone it:
+
+   ```sh
+   git clone https://github.com/YOUR-ACCOUNT/YOUR-PROJECT.git
+   cd YOUR-PROJECT
+   cp .env.example .env
+   ```
+
+2. Start MySQL and edit `.env`. Set a unique `DB_DATABASE` such as `my_project`, together with your `DB_HOST`, `DB_PORT`, `DB_USERNAME` and `DB_PASSWORD`. Keep `.env` local; only `.env.example` belongs in Git.
+3. Install and verify:
+
+   ```sh
+   composer setup
+   composer check
+   ```
+
+   `composer setup` installs the PHP and Node dependencies using the committed lock files, generates the application key, creates the database if needed, runs migrations, and builds the frontend. Use it for initial setup; it generates a new application key each time.
+
+4. Start the development server:
+
+   ```sh
+   composer dev
+   ```
+
+   Open the URL printed in the terminal (normally `http://localhost:8000`) and register an account. The command runs the development processes together; stop them with Ctrl+C.
+5. Open the project in Codex or Claude Code and describe what you need in business terms. In Codex, open `/hooks` once and trust the finish check (`.codex/hooks.json`); Claude Code runs it from `.claude/settings.json`.
+
+You can also clone this repository directly to try it before creating your own project:
+
+```sh
+git clone https://github.com/Ryanc342/laravel-agent-starter.git
+cd laravel-agent-starter
+```
+
+Then follow steps 2–5 above, copying `.env.example` to `.env` first. This is a source template; it does not require publishing or installing an npm package.
 
 The lock files, the Laravel Boost setup and the skills are already committed. How the template was installed and proven on a real machine (every check passes and catches the violations it should) is recorded in `docs/exec-plans/completed/first-run.md`.
 
@@ -42,7 +87,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | `docs/PLANS.md`, `docs/exec-plans/`       | How to write a plan; active and completed plans; tech debt               |
 | `docs/rules/`                             | Detailed rules per folder (actions, controllers, models, frontend, tests) |
 | `docs/reference/tasks/`                   | A complete reference feature the AI copies the structure from            |
-| `docs/golden-principles.md`, `QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
+| `docs/golden-principles.md`, `docs/QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
 | `phpstan.neon`, `lint/phpstan/`           | PHP linter rules: forbidden calls and layers, class shapes, scopes, companion files |
 | `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter rules: React never does the backend's job, component boundaries |
 | `tests/Structure/`                        | Docs checks; code checks across folders; Resource and TypeScript type comparison |
@@ -56,6 +101,8 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | -------------------------- | --------------------------------------------------------------------- |
 | `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Feature, Structure) |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
+| `composer setup`           | Install dependencies, generate an app key, migrate and build for the first run |
+| `composer dev`             | Start the application's development processes together                  |
 | `composer lint`            | Format PHP                                                            |
 | `npm run check:fix`        | Format and lint the frontend                                          |
 | `scripts/worktree-up <name>` | Parallel workspace for one plan                                     |
@@ -74,3 +121,11 @@ The template ships a `DESIGN.md` for a quiet work tool, in Google's open DESIGN.
 - Laravel 13, Inertia 3, React 19, Vite+, Pest, Larastan, Laravel Boost
 
 To pick up later starter kit or Laravel changes, run `docs/prompts/upgrade.md`. See `CHANGELOG.md` for versions.
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow. Report vulnerabilities privately through the channel in [SECURITY.md](SECURITY.md), rather than a public issue.
+
+## License
+
+The project's own additions are licensed under [MIT](LICENSE). Laravel, the bundled Laravel skills, and the shadcn/ui components retain their upstream notices; installed dependencies retain their respective licenses. The internal Ezdev rule names identify this template's architecture checks.
