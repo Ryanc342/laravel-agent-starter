@@ -43,7 +43,7 @@ For each milestone in the plan:
 2. Place every rule using the owner table in ARCHITECTURE.md, and read the docs/rules/ file for each folder you touch.
 3. Copy the structure of the matching file in docs/reference/tasks/.
 4. Write the tests first (Pest, docs/rules/tests.md) and run them: they must fail. Then implement in this order: migration, enum, model and factory, policy, action, form request, resource and TypeScript type, controller and routes, React. Add new pages to `mainNavItems` in `resources/js/components/app-sidebar.tsx`.
-5. Run `composer check` and fix every failure. Error messages say what to call instead: follow them. For a page, follow DESIGN.md and docs/rules/visual-design.md, and look at it with the Playwright MCP server at desktop and phone width.
+5. Run `composer check` and fix every failure. Error messages say what to call instead: follow them. For a page, follow DESIGN.md and docs/rules/visual-design.md, and look at it with the headless Playwright MCP server at desktop and phone width. Close the browser when the check ends, including on errors.
 6. Commit, then add a timestamped line to Progress with how many tests failed before the code and the `composer check` result. Record any decision you made along the way in the Decision Log.
 
 Before the next milestone, search the code already written in this task for the same condition you are about to write.
@@ -56,7 +56,7 @@ If the user pastes review findings, check each one, move the rule to its one own
 
 ## 5. Report
 
-In the user's language: each agreed decision and the file and method that own it, what you reused or moved, the `composer check` result, and screenshots for UI changes. Fill in "Outcomes & Retrospective", move the plan to `docs/exec-plans/completed/`, and add anything you deferred to `docs/exec-plans/tech-debt.md`. Remove each tech-debt line you fixed and update that domain's grade and notes in docs/QUALITY.md.
+In the user's language: each agreed decision and the file and method that own it, what you reused or moved, the `composer check` result, and the UI inspection results. Include screenshots only if the user explicitly asked to keep them. Fill in "Outcomes & Retrospective", move the plan to `docs/exec-plans/completed/`, and add anything you deferred to `docs/exec-plans/tech-debt.md`. Remove each tech-debt line you fixed and update that domain's grade and notes in docs/QUALITY.md.
 
 ## Parallel work
 

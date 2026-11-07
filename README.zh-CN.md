@@ -66,7 +66,7 @@ export DB_PASSWORD='your-password'
 2. **写执行计划。** AI 在 `docs/exec-plans/active/` 记录已确认的决策、里程碑和验证方法；你说“开始”后才修改代码。
 3. **逐个里程碑实现。** 先写测试，再从底层到上层实现，运行 `composer check`，提交并更新进度。
 4. **独立审查。** reviewer 使用新上下文对照计划检查，只报告 P0、P1 问题，最多三轮。
-5. **报告结果。** 说明决策由哪些文件实现、检查结果，以及界面改动的截图；GitHub CI 再执行完整检查。
+5. **报告结果。** 说明决策由哪些文件实现、检查结果和界面检查结果；截图默认是临时文件，只有你明确要求时才保留。GitHub CI 再执行完整检查。
 
 结束检查 `scripts/hooks/finish-check.php` 会提示遗漏的计划、审批和验证步骤。每周清理可使用 `docs/prompts/cleanup.md`，升级依赖或同步 Laravel 上游可使用 `docs/prompts/upgrade.md`。
 

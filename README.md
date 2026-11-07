@@ -67,7 +67,7 @@ To work on the template itself, clone this repository and run `composer setup` w
 2. **ExecPlan.** It writes the plan to `docs/exec-plans/active/<feature>.md`: agreed decisions, milestones, how it will be checked. Say "start" when it is right.
 3. **Milestones.** For each one: tests first, then code bottom-up, then `composer check`, then a commit and a Progress line in the plan.
 4. **Review.** A `reviewer` subagent with a fresh context compares the change with the plan and reports only real problems (at most 3 rounds).
-5. **Report.** Where each decision lives, the check output, screenshots. You approve the merge; CI runs `composer check` again.
+5. **Report.** Where each decision lives, the check output and UI inspection results. Screenshots are temporary unless you ask to keep them. You approve the merge; CI runs `composer check` again.
 
 Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back a missing step: code without a plan, a fixed tech-debt line without a `docs/QUALITY.md` update, a protected file or dependency changed without your recorded approval, or code that no passing `composer check` has seen.
 

@@ -17,7 +17,7 @@ Details live in the files it points to; read them when the task needs them.
 2. Plan. When no decision is open, write docs/exec-plans/active/<feature>.md (format: docs/PLANS.md). Change no code until the user says "start". A one-line change with no open decision may skip the plan; say so.
 3. Build, one milestone at a time: Pest tests first, then code from the bottom layer up, then `composer check`, then commit, then update Progress in the plan.
 4. Review. Ask the `reviewer` subagent to compare the diff with the plan (docs/prompts/review.md). Fix P0 and P1 findings. At most 3 rounds.
-5. Report where each agreed decision lives, the check output, and screenshots for UI changes. Move the plan to docs/exec-plans/completed/. Remove fixed tech-debt lines and update docs/QUALITY.md.
+5. Report where each agreed decision lives, the check output, and UI inspection results. Move the plan to docs/exec-plans/completed/. Remove fixed tech-debt lines and update docs/QUALITY.md.
 
 Starting a new conversation? Read docs/exec-plans/active/ first and continue from Progress.
 
@@ -70,7 +70,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 ## Tools
 
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Playwright MCP (`playwright`): open pages in its own browser. Never use the user's Chrome.
+- Playwright MCP (`playwright`): use its isolated headless browser, never the user's Chrome; close it after checks. Screenshot handling: docs/rules/visual-design.md.
 - Subagents: `explorer` (read-only lookups, small model) and `reviewer` (fresh context, read-only).
 - Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back a missing step (a plan, docs/QUALITY.md, the user's approval, a passing `composer check`). Do the step.
 

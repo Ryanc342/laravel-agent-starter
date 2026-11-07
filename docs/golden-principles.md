@@ -156,4 +156,4 @@ DESIGN.md says how the app looks; docs/rules/visual-design.md says how to apply 
 - `[review]` `ui` Keyboard focus stays visible, actions are buttons and navigation is links (no clickable `div`), text is readable against its background, and light and dark mode both work.
 - `[review]` `ui` Button labels say what happens ("Save changes", "Delete task", not "Submit" or "OK"), and an error message says how to fix the problem.
 - `[review]` `ui` A change to a screen changes only what the plan names: the rest of the page stays as it was, and removing or simplifying is preferred over adding.
-- `[review]` `ui` Every changed page is opened with Playwright at desktop (1280px) and phone (390px) width, and once in dark mode, and the rules above are checked on the screenshots.
+- `[review]` `ui` Every changed page is opened with isolated headless Playwright at desktop (1280px) and phone (390px) width, and once in dark mode, and the rules above are checked on temporary screenshots before closing the browser (docs/rules/visual-design.md).

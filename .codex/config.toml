@@ -3,8 +3,8 @@
 # .codex/hooks.json for the finish check (scripts/hooks/finish-check.php).
 # Codex asks once in /hooks before it runs a new or changed hook.
 [mcp_servers.playwright]
-command = "npx"
-args = ["@playwright/mcp@0.0.83", "--isolated"]
+command = "node"
+args = ["scripts/playwright-mcp"]
 
 [mcp_servers.laravel-boost]
 command = "php"

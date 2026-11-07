@@ -5,8 +5,8 @@
             "args": ["artisan", "boost:mcp"]
         },
         "playwright": {
-            "command": "npx",
-            "args": ["@playwright/mcp@0.0.83", "--isolated"]
+            "command": "node",
+            "args": ["scripts/playwright-mcp"]
         }
     }
 }

@@ -1,0 +1,130 @@
+#!/usr/bin/env node
+
+import { spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import { mkdirSync, readdirSync, readFileSync, rmSync, lstatSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { createInterface } from 'node:readline';
+
+const root = join(process.cwd(), '.playwright-mcp');
+const marker = '.ezdev-playwright';
+const signature = 'temporary browser session';
+
+mkdirSync(root, { recursive: true });
+if (!lstatSync(root).isDirectory()) throw new Error('Playwright output directory must be a real directory');
+
+function alive(pid) {
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (error) {
+        return error.code !== 'ESRCH';
+    }
+}
+
+for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const match = /^session-(\d+)-[a-f0-9]{16}$/.exec(entry.name);
+    if (!entry.isDirectory() || !match || alive(Number(match[1]))) continue;
+    const dir = join(root, entry.name);
+    try {
+        if (readFileSync(join(dir, marker), 'utf8') === signature) rmSync(dir, { recursive: true });
+    } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+    }
+}
+
+const output = join(root, `session-${process.pid}-${randomBytes(8).toString('hex')}`);
+mkdirSync(output);
+writeFileSync(join(output, marker), signature, { flag: 'wx' });
+const npxArgs = ['@playwright/mcp@0.0.83', '--isolated', '--headless', '--idle-timeout', '0', '--output-dir', output];
+const command = process.platform === 'win32' ? process.execPath : 'npx';
+const args = process.platform === 'win32'
+    ? [join(dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npx-cli.js'), ...npxArgs]
+    : npxArgs;
+const child = spawn(command, args, {
+    stdio: ['pipe', 'pipe', 'inherit'],
+    detached: process.platform !== 'win32',
+});
+const closeRequests = new Set();
+const toolRequests = new Set();
+const automaticCloses = new Set();
+let childFailed = false;
+
+function cleanOutput() {
+    for (const name of readdirSync(output)) {
+        if (name !== marker) rmSync(join(output, name), { recursive: true, force: true });
+    }
+}
+
+function autoClose() {
+    if (automaticCloses.size || child.stdin.destroyed) return;
+    const id = `ezdev-close-${randomBytes(16).toString('hex')}`;
+    automaticCloses.add(id);
+    closeRequests.add(id);
+    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/call', params: { name: 'browser_close', arguments: {} } })}\n`);
+}
+
+function stopChild(signal = 'SIGTERM') {
+    if (!child.pid) return;
+    if (process.platform === 'win32') {
+        const killer = spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' });
+        killer.on('error', () => child.kill(signal));
+    } else {
+        try { process.kill(-child.pid, signal); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+    }
+}
+
+const input = createInterface({ input: process.stdin });
+input.on('line', (line) => {
+    try {
+        const request = JSON.parse(line);
+        if (request.method === 'tools/call') {
+            toolRequests.add(request.id);
+            if (request.params?.name === 'browser_close') closeRequests.add(request.id);
+        }
+    } catch {}
+    child.stdin.write(`${line}\n`);
+});
+input.on('close', () => child.stdin.end());
+
+createInterface({ input: child.stdout }).on('line', (line) => {
+    let automatic = false;
+    try {
+        const response = JSON.parse(line);
+        automatic = automaticCloses.delete(response.id);
+        const closed = closeRequests.delete(response.id);
+        const wasTool = toolRequests.delete(response.id);
+        const failed = response.error || response.result?.isError;
+        if (closed && !failed) cleanOutput();
+        if (automatic && failed) {
+            childFailed = true;
+            stopChild();
+        } else if (wasTool && failed) autoClose();
+    } catch (error) {
+        if (!(error instanceof SyntaxError)) {
+            process.stderr.write(`Playwright cleanup failed: ${error.message}\n`);
+            const response = JSON.parse(line);
+            line = JSON.stringify({ jsonrpc: '2.0', id: response.id, error: { code: -32603, message: 'Playwright cleanup failed' } });
+        }
+    }
+    if (!automatic) process.stdout.write(`${line}\n`);
+});
+
+child.on('error', (error) => {
+    childFailed = true;
+    process.stderr.write(`Playwright MCP failed: ${error.message}\n`);
+});
+child.on('close', (code, signal) => {
+    input.close();
+    process.stdin.destroy();
+    try {
+        rmSync(output, { recursive: true, force: true });
+    } catch (error) {
+        childFailed = true;
+        process.stderr.write(`Playwright cleanup failed: ${error.message}\n`);
+    }
+    process.exitCode = childFailed ? 1 : (code ?? (signal ? 1 : 0));
+});
+for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.on(signal, () => stopChild(signal));
+}
