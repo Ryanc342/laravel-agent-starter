@@ -29,7 +29,7 @@ if (getenv('MILESTONE_TEST_EDIT') === $phase) {
 }
 if ($phase === 'php' && getenv('CHECK_NO_SENTINEL') !== '1') {
     @mkdir(getcwd().'/storage/framework/testing', 0777, true);
-    file_put_contents(getcwd().'/storage/framework/testing/ezdev-tests-finished', (string) microtime(true));
+    file_put_contents(getcwd().'/storage/framework/testing/ezdev-tests-finished', json_encode(['id' => getenv('EZDEV_CHECK_RUN_ID'), 'time' => microtime(true)]));
 }
 exit(getenv('MILESTONE_TEST_FAIL') === $phase ? 7 : 0);
 PHP;

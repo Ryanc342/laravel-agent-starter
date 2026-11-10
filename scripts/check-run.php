@@ -12,8 +12,9 @@ final class CheckRun
         if (! is_dir($directory) && ! mkdir($directory, 0777, true)) {
             throw new RuntimeException("cannot create {$directory}");
         }
-        // Close on exec: an orphaned child must not keep its dead parent's lock.
-        $this->lock = fopen("{$directory}/check.lock", 'c+e');
+        // Keep this descriptor across exec: live descendants still belong to the
+        // check even if its runner is killed. The OS releases it when all exit.
+        $this->lock = fopen("{$directory}/check.lock", 'c+');
         if ($this->lock === false || ! flock($this->lock, LOCK_EX | LOCK_NB)) {
             $this->close();
             throw new RuntimeException('A validation check is already running in this worktree. Wait for it to finish.');

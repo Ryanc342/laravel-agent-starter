@@ -104,7 +104,8 @@ function finishCheckComposer(string $repo, string $mode): Process
 function finishCheckPass(string $repo): void
 {
     finishCheckComposer($repo, 'checking');
-    finishCheckWrite($repo, 'storage/framework/testing/ezdev-tests-finished', (string) microtime(true));
+    $id = CheckRun::read("{$repo}/.git/ezdev/run.json")['id'];
+    finishCheckWrite($repo, 'storage/framework/testing/ezdev-tests-finished', json_encode(['id' => $id, 'time' => microtime(true)]));
 
     expect(finishCheckComposer($repo, 'checked')->getErrorOutput())->toBe('');
 }

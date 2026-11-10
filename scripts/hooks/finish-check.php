@@ -412,7 +412,8 @@ function checked(string $stateDir, bool $milestone = false): string
         throw new RuntimeException("the code changed while {$command} ran. Run {$command} again.");
     }
 
-    if (! $milestone && (float) (is_file(TESTS_FINISHED) ? file_get_contents(TESTS_FINISHED) : 0) <= (float) $start['time']) {
+    $finished = readJson(TESTS_FINISHED);
+    if (! $milestone && (($finished['id'] ?? null) !== $id || ! is_numeric($finished['time'] ?? null) || (float) $finished['time'] <= (float) $start['time'])) {
         throw new RuntimeException('the tests did not run to their end (tests/Structure/RunFinishedTest.php, the last test, did not run in this check). Run the whole composer check.');
     }
 

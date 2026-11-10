@@ -61,6 +61,11 @@ git diff --check
 - 更新 `docs/QUALITY.md`，填写验收证据并归档本计划。没有页面变化，UI 检查不适用。
 
 ## Progress
+- 2026-11-10 review round 2: 0 P0, 0 P1。独立子进程复现确认：父进程被强杀后存活子进程继续持锁；子进程退出后锁释放并可成功重试；旧时间戳、外来和缺失运行身份不能提供全量结束凭据。完整范围保留，没有计划外行为。准备推送并等待发布提交的 Linux CI。
+- 2026-11-10 审查修复后最终完整验证通过：母板 `CI=true composer check` 307 PHP 项 / 1161 断言 + 6 前端项，reference `CI=true composer check:reference` 355 / 1318 + 6 前端项，auction 隔离 Hooks/Structure 131 / 368。round 2 独立审查进行中。日志已保存为 .git/ezdev/validation-state-hardening/*-r2.log。
+- 2026-11-10 review round 1: 1 P0, 0 P1。主进程被强杀后仍存活的子进程未持有锁，可与下一轮重叠并提供错误的结束时间戳。先补两项失败复现，再让锁继承至存活子进程，并将套件结束凭据绑定运行身份；成功重试断言保留在子进程结束后。修复后的初步两项测试通过，最终完整检查和 round 2 待重跑。
+- 2026-11-10 M3 提交 4241288。M4 首轮完整验证：`CI=true composer check` 通过 305 PHP 项 / 1153 断言及 6 前端项；`CI=true composer check:reference` 通过 353 / 1310 及 6 前端项。`composer validate --no-check-publish`、`git diff --check` 通过。日志保存于 .git/ezdev/validation-state-hardening/。
+- 2026-11-10 auction 兼容性：从 f889b12 创建临时副本，只在副本合入工具、对应测试和 Composer 入口，使用其依赖运行 Hooks/Structure，129 项 / 360 断言通过。原项目无修改；该结果不是 auction 全量业务验收。独立审查 round 1 已开始，发布待审查完成。
 - 2026-11-10 M2 提交 720d0e4。M3 新增 17 项跨会话/文档边界测试，先复现 10 项失败、7 项既有成功路径通过；修复后 17 项 / 41 断言通过。最终 `CI=true composer check:milestone -- tests/Unit/Hooks tests/Structure` 通过全量静态检查、129 项 / 360 断言。
 - 2026-11-10 M2：新增 13 项初始场景中 11 项失败、2 项既有行为通过；随后增加缺失运行身份和完整套件结束凭据覆盖。修复后 `CI=true composer check:milestone -- tests/Unit/Hooks tests/Structure` 全部静态检查及 112 项 / 317 断言通过。全量入口保留 static → 全部 JS → 全部 PHP；共有生命周期锁、独立运行身份、成功完成状态及版本化凭据阻止串用，进程终止和不同 worktree 并行已验证。
 - 2026-11-10 M1：新增 9 项回归先全部失败；修复后 Hooks 61 项 / 221 断言通过。`CI=true composer check:milestone -- tests/Unit/Hooks tests/Structure` 通过全量静态检查及 97 项 / 258 断言；只代表本阶段受影响范围通过。开始任一检查都撤销两类旧通过记录，无效参数也先撤销。
@@ -75,6 +80,7 @@ git diff --check
 - 现有完整标记和局部标记分离是正确的；缺失的是一致的失效规则、单次执行归属和跨会话最终验收触发条件。
 
 ## Decision Log
+- 2026-11-10 审查修复继续落实已批准 M2 的完整子进程生命周期及同次完成凭据，必要修改 tests/Structure/RunFinishedTest.php：最后一项测试写入运行身份和时间，原写入成功断言保留。测试辅助器同步新凭据格式；中断回归新增子进程存活时拒绝并发的断言，原重试成功断言仍在子进程退出后执行。
 - 2026-11-10 M3 新增 tests/Unit/Hooks/PlanAcceptanceTest.php。已有“归档文档记录齐全就放行”测试补充真正的全量通过前置步骤，并新增只写 passed 仍被拦截的断言；原有记录完整性和最终成功断言全部保留。这对应用户批准的跨会话最终验收要求。拒绝的归档记录持久保存，不能在下个会话变成免验收的历史记录。
 - 2026-11-10 M2：composer.json 的 check 改由 scripts/check.php 持有全程锁；tests/Structure/ConfigTest.php 的命令编排预期随批准的入口变化更新，完整阶段及参数由真实 runner 子进程回归验证，原有其他静态配置断言保留。FinishCheckTest 的辅助执行器使用同一 CheckRun 生命周期，原有业务/失败断言未修改。
 - 2026-11-10 M1 提交 eed130e。M2 将现有临时仓库帮助函数原样移动到 tests/Support/MilestoneWorkspace.php，让新增并发测试与已有测试共用同一 fixture；这是已批准测试实现范围内的必要提取，不改变原有断言。共享实现具体文件为 scripts/check-run.php 和 scripts/check-process.php，并新增 tests/Unit/Hooks/CheckRunTest.php。
@@ -85,4 +91,4 @@ git diff --check
 - 2026-11-10 计划先修母板，再用隔离副本核对 auction 兼容性；不自动修改 auction 的业务代码、数据库重建策略或工作分支。
 
 ## Outcomes & Retrospective
-计划已准备，尚未实施。最终交付需包含三个缺口及原重试问题的回归结果、完整检查输出、独立审查结论、发布提交和 Packagist 对应版本，不能用本次审计或专项测试结果替代这些验收证据。
+M1–M3 已实现并通过最终本地完整检查和两轮独立审查。M4 的 GitHub CI、发布及 Packagist 核对仍待执行；完成前不将本计划标为已交付。

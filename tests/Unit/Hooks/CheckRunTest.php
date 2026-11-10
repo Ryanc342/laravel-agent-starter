@@ -74,6 +74,24 @@ test('the full runner requires the end of suite proof', function () {
         ->and(is_file("{$repo}/.git/ezdev/checked"))->toBeFalse();
 });
 
+test('the full runner cannot borrow another run end of suite proof', function (bool $legacy) {
+    $repo = checkRunFixture();
+    $a = checkRunProcess($repo, 'full', ['CHECK_BLOCK_STATIC' => '1', 'CHECK_NO_SENTINEL' => '1']);
+    $a->start();
+    expect($a->waitUntil(fn ($type, $out) => str_contains($out, 'STATIC_READY')))->toBeTrue();
+    try {
+        mkdir("{$repo}/storage/framework/testing", 0777, true);
+        // A foreign test invocation finishes after this full check started.
+        $proof = $legacy ? (string) microtime(true) : json_encode(['id' => str_repeat('f', 32), 'time' => microtime(true)]);
+        file_put_contents("{$repo}/storage/framework/testing/ezdev-tests-finished", $proof);
+    } finally {
+        file_put_contents("{$repo}/runtime/release", 'go');
+        $a->wait();
+    }
+    expect($a->getExitCode())->toBe(1)
+        ->and(is_file("{$repo}/.git/ezdev/checked"))->toBeFalse();
+})->with(['legacy timestamp' => [true], 'foreign run' => [false]]);
+
 test('overlapping checks cannot overwrite the active run', function (string $first, string $second) {
     $repo = checkRunFixture();
     $a = checkRunStartBlocked($repo, $first);
@@ -129,12 +147,28 @@ test('terminating a check releases its lock without certifying it', function () 
     try {
         $a->stop(0, 9);
         expect(is_file("{$repo}/.git/ezdev/milestone-checked"))->toBeFalse();
-        $retry = checkRunProcess($repo);
-        $retry->run();
-        expect($retry->getExitCode())->toBe(0, $retry->getErrorOutput());
+        $busy = checkRunProcess($repo);
+        $busy->run();
+        expect($busy->getExitCode())->toBe(1)
+            ->and($busy->getErrorOutput())->toContain('already running');
     } finally {
         file_put_contents("{$repo}/runtime/release", 'go');
     }
+    $lock = fopen("{$repo}/.git/ezdev/check.lock", 'c+');
+    $until = microtime(true) + 10;
+    try {
+        while (! flock($lock, LOCK_EX | LOCK_NB)) {
+            if (microtime(true) > $until) {
+                throw new RuntimeException('The child exited but the validation lock was not released.');
+            }
+            usleep(10000);
+        }
+    } finally {
+        fclose($lock);
+    }
+    $retry = checkRunProcess($repo);
+    $retry->run();
+    expect($retry->getExitCode())->toBe(0, $retry->getErrorOutput());
 });
 
 test('a legacy fingerprint alone cannot establish a fresh validation pass', function () {
