@@ -2,6 +2,8 @@
 
 use Symfony\Component\Process\Process;
 
+require_once dirname(__DIR__, 3).'/scripts/check-run.php';
+
 /*
 | scripts/hooks/finish-check.php, run the way Claude Code, Codex and composer
 | check run it, in a throwaway git repository: each test starts a conversation,
@@ -16,6 +18,7 @@ function finishCheckRepo(): string
     $repo = sys_get_temp_dir().'/ezdev-finish-check-'.bin2hex(random_bytes(6));
     $root = dirname(__DIR__, 3);
 
+    finishCheckWrite($repo, 'scripts/check-run.php', file_get_contents("{$root}/scripts/check-run.php") ?: '');
     finishCheckWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents("{$root}/scripts/hooks/finish-check.php") ?: '');
     finishCheckWrite($repo, 'docs/PLANS.md', file_get_contents("{$root}/docs/PLANS.md") ?: '');
     finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
@@ -78,8 +81,19 @@ function finishCheckRun(string $repo, string $mode, string $session = 'test', st
  */
 function finishCheckComposer(string $repo, string $mode): Process
 {
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', $mode], $repo);
+    static $runs = [];
+    if ($mode === 'checking') {
+        unset($runs[$repo]);
+        $runs[$repo] = new CheckRun("{$repo}/.git/ezdev");
+    }
+    $process = new Process(['php', 'scripts/hooks/finish-check.php', $mode], $repo, ['EZDEV_CHECK_RUN_ID' => $runs[$repo]->id ?? false]);
     $process->run();
+    if ($mode === 'checked') {
+        if ($process->isSuccessful()) {
+            $runs[$repo]->succeed();
+        }
+        unset($runs[$repo]);
+    }
 
     return $process;
 }

@@ -50,6 +50,8 @@ const TESTS_FINISHED = 'storage/framework/testing/ezdev-tests-finished';
 
 const JSON_OUTPUT = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE;
 
+require_once __DIR__.'/../check-run.php';
+
 ini_set('display_errors', 'stderr');
 
 $mode = $argv[1] ?? '';
@@ -185,7 +187,7 @@ function missingSteps(array $state, string $stateDir, string $lastMessage): arra
     // Only a plan written or updated in this conversation belongs to its work: one left over in active/ does not.
     $plans = array_values(array_filter($changed, fn (string $path): bool => preg_match(PLAN_PATH, $path) === 1 && is_file($path)));
     $fingerprint = fingerprint();
-    $checked = trim((string) @file_get_contents("{$stateDir}/checked")) === $fingerprint;
+    $checked = CheckRun::passed($stateDir, $fingerprint);
 
     // 1. Code needs a plan (a one-line change with no open decision may skip it).
     if ($code !== [] && $plans === [] && ! isOneLineChange($state['base'], $code)) {
@@ -220,7 +222,7 @@ function missingSteps(array $state, string $stateDir, string $lastMessage): arra
     // 5. Only an unfinished active plan may use a fresh, separate milestone pass.
     if ($code !== [] && ! $checked) {
         $intermediate = count($plans) === 1 && isIntermediatePlan($plans[0]);
-        $milestoneChecked = trim((string) @file_get_contents("{$stateDir}/milestone-checked")) === $fingerprint;
+        $milestoneChecked = CheckRun::passed($stateDir, $fingerprint, true);
 
         if ($intermediate && ! $milestoneChecked) {
             $missing['milestone:'.$fingerprint] = ['pass milestone checks', 'Run composer check:milestone -- <affected test paths> for full static checks and affected tests, and record the scope and result in Progress. Run composer check now if shared infrastructure changed or the affected scope cannot be bounded.'];
@@ -341,12 +343,8 @@ function takeOpenSteps(string $stateDir): string
 function checking(string $stateDir, bool $milestone = false): string
 {
     $prefix = $milestone ? 'milestone-' : '';
-    foreach (['checked', 'milestone-checked'] as $marker) {
-        if (is_file("{$stateDir}/{$marker}") && ! unlink("{$stateDir}/{$marker}")) {
-            throw new RuntimeException("cannot invalidate {$marker}");
-        }
-    }
-    writeFile("{$stateDir}/{$prefix}checking.json", json_encode(['fingerprint' => fingerprint(), 'time' => microtime(true)], JSON_THROW_ON_ERROR));
+    $id = CheckRun::owner($stateDir);
+    writeFile("{$stateDir}/{$prefix}checking.json", json_encode(['id' => $id, 'fingerprint' => fingerprint(), 'time' => microtime(true)], JSON_THROW_ON_ERROR));
 
     return '';
 }
@@ -367,6 +365,11 @@ function checked(string $stateDir, bool $milestone = false): string
         throw new RuntimeException("{$command} did not record its start (scripts/hooks/finish-check.php {$prefix}checking is its first step).");
     }
 
+    $id = CheckRun::owner($stateDir);
+    if (($start['id'] ?? null) !== $id) {
+        throw new RuntimeException('The validation start belongs to another run. Run the check again.');
+    }
+
     if ($start['fingerprint'] !== $fingerprint) {
         throw new RuntimeException("the code changed while {$command} ran. Run {$command} again.");
     }
@@ -375,7 +378,7 @@ function checked(string $stateDir, bool $milestone = false): string
         throw new RuntimeException('the tests did not run to their end (tests/Structure/RunFinishedTest.php, the last test, did not run in this check). Run the whole composer check.');
     }
 
-    writeFile("{$stateDir}/{$prefix}checked", $fingerprint);
+    CheckRun::write("{$stateDir}/{$prefix}checked", ['version' => 2, 'id' => $id, 'fingerprint' => $fingerprint]);
 
     return '';
 }

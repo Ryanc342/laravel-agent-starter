@@ -63,11 +63,7 @@
         ],
         "check": [
             "Composer\\Config::disableProcessTimeout",
-            "@php scripts/hooks/finish-check.php checking",
-            "@check:static",
-            "npm test",
-            "@php artisan test --compact",
-            "@php scripts/hooks/finish-check.php checked"
+            "@php scripts/check.php"
         ],
         "check:static": [
             "Composer\\Config::disableProcessTimeout",

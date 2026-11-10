@@ -197,11 +197,7 @@ test('composer check runs every check, and the npm scripts it calls are the chec
 
     $check = [
         'Composer\\Config::disableProcessTimeout',
-        '@php scripts/hooks/finish-check.php checking',
-        '@check:static',
-        'npm test',
-        '@php artisan test --compact',
-        '@php scripts/hooks/finish-check.php checked',
+        '@php scripts/check.php',
     ];
     $static = [
         'Composer\\Config::disableProcessTimeout',
