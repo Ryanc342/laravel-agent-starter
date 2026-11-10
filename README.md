@@ -65,11 +65,11 @@ To work on the template itself, clone this repository and run `composer setup` w
 
 1. **Grilling.** The AI looks up the code, then asks every decision it needs in rounds, each with a recommended answer. Reply "yes", or answer by number ("1 yes 2 no, because...").
 2. **ExecPlan.** It writes the plan to `docs/exec-plans/active/<feature>.md`: agreed decisions, milestones, how it will be checked. Say "start" when it is right.
-3. **Milestones.** For each one: tests first, then code bottom-up, then `composer check`, then a commit and a Progress line in the plan.
+3. **Milestones.** For each one: tests first, code bottom-up, then `composer check:milestone -- <affected test paths>` for full static checks and affected tests. Include unchanged callers' tests where relevant. Commit and record the scope, command and result. Run full `composer check` when the plan is implemented, earlier for shared test/database infrastructure or unbounded impact, and again after final review code changes.
 4. **Review.** A `reviewer` subagent with a fresh context compares the change with the plan and reports only real problems (at most 3 rounds).
 5. **Report.** Where each decision lives, the check output and UI inspection results. Screenshots are temporary unless you ask to keep them. You approve the merge; CI runs `composer check` again.
 
-Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back a missing step: code without a plan, a fixed tech-debt line without a `docs/QUALITY.md` update, a protected file or dependency changed without your recorded approval, or code that no passing `composer check` has seen.
+Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back missing plans, quality updates, approvals or validation. A valid active plan with completed and remaining milestones may use a fresh milestone check. Final acceptance requires full `composer check` on the current code; a partial pass cannot replace it.
 
 Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update dependencies, take changes from the Laravel starter kit or move to a new Laravel version, run `docs/prompts/upgrade.md`.
 
@@ -96,6 +96,8 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | Command                    | Does                                                                  |
 | -------------------------- | --------------------------------------------------------------------- |
 | `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Feature, Structure) |
+| `composer check:static` | Full PHP/frontend formatting, lint, static analysis and type checks |
+| `composer check:milestone -- <test paths>` | Full static checks, then selected PHP/frontend tests; record affected scope in the plan |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
 | `composer setup`           | Install dependencies, preserve or generate the app key, migrate and build |
 | `composer dev`             | Start the application's development processes together                  |

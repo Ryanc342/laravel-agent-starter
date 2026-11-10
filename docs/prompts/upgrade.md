@@ -32,7 +32,7 @@ The starter kit code was copied into this project and rewritten to the v2 rules,
 
 1. Read the official upgrade guide (Boost `search-docs`, or https://laravel.com/docs/upgrade) and the upgrade notes of Inertia, Fortify, Pest, Larastan and Vite+ when their major version changes too.
 2. Grill the user on every change in behaviour, then write the ExecPlan docs/exec-plans/active/upgrade-<version>.md (docs/PLANS.md). Milestones: the dependencies, then each breaking change from the guide, then part B for the new starter kit, then the checks.
-3. Build one milestone at a time, with `composer check` after each, as in docs/workflow.md.
+3. Build one milestone at a time, with full static checks and affected tests after each, as in docs/workflow.md. Run full `composer check` on the final implementation, after final review code fixes, and earlier when shared infrastructure changes or impact cannot be bounded.
 4. Finish with `composer check:reference` and Playwright screenshots of the login, settings and notifications pages.
 5. Update Boost's skills (`php artisan boost:update`, or `php artisan boost:install` again if that command no longer exists). AGENTS.md and CLAUDE.md must not change.
 

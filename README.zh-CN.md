@@ -64,11 +64,11 @@ export DB_PASSWORD='your-password'
 
 1. **确认需求。** AI 先查看现有代码，再按轮次提问，并给出推荐选项。可以回复“同意”，或者按编号逐项调整。
 2. **写执行计划。** AI 在 `docs/exec-plans/active/` 记录已确认的决策、里程碑和验证方法；你说“开始”后才修改代码。
-3. **逐个里程碑实现。** 先写测试，再从底层到上层实现，运行 `composer check`，提交并更新进度。
+3. **逐个里程碑实现。** 先写测试，再从底层到上层实现。运行 `composer check:milestone -- <受影响的测试路径>`：全量格式、静态分析和类型检查，加上受影响的测试，包括没有修改但受影响的调用方测试。提交并记录检查范围、命令和结果。整份计划实现完成后运行完整 `composer check`，最终审查改动代码后重新全量验证；共享测试/数据库基础设施变更或影响范围无法可靠界定时提前全量验证。
 4. **独立审查。** reviewer 使用新上下文对照计划检查，只报告 P0、P1 问题，最多三轮。
 5. **报告结果。** 说明决策由哪些文件实现、检查结果和界面检查结果；截图默认是临时文件，只有你明确要求时才保留。GitHub CI 再执行完整检查。
 
-结束检查 `scripts/hooks/finish-check.php` 会提示遗漏的计划、审批和验证步骤。每周清理可使用 `docs/prompts/cleanup.md`，升级依赖或同步 Laravel 上游可使用 `docs/prompts/upgrade.md`。
+结束检查 `scripts/hooks/finish-check.php` 会提示遗漏的计划、审批和验证步骤。有已完成及待完成里程碑的有效进行中计划，可以使用当前代码的里程碑检查结果；最终验收必须通过完整 `composer check`，部分检查不能记作全量通过。每周清理可使用 `docs/prompts/cleanup.md`，升级依赖或同步 Laravel 上游可使用 `docs/prompts/upgrade.md`。
 
 ## 常用命令
 
@@ -77,6 +77,8 @@ export DB_PASSWORD='your-password'
 | `composer setup` | 安装依赖、保留或生成密钥、迁移数据库并构建前端 |
 | `composer dev` | 一起启动开发所需进程 |
 | `composer check` | PHP 格式、PHPStan、前端格式和 lint、TypeScript、Vitest、Pest 全部检查 |
+| `composer check:static` | 全量 PHP/前端格式、lint、静态分析和类型检查 |
+| `composer check:milestone -- <测试路径>` | 全量静态检查及指定的 PHP/前端测试；在计划里记录影响范围 |
 | `composer check:reference` | 在临时副本中加入参考功能，再运行完整检查 |
 | `composer lint` | 格式化 PHP |
 | `npm run check:fix` | 格式化并修复前端 lint 问题 |

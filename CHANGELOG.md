@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [1.1.0] - 2026-11-10
+
+Public Composer package release; the older 2.x entries below describe the template's history before its public 1.0 release.
+
+### Changed
+
+- Milestones run full formatting, static analysis and type checks plus tests for affected behavior and callers. Final plan acceptance and CI still run every check and test; shared infrastructure or unbounded impact requires an earlier full check.
+- `composer check:static` owns the shared static phase. `composer check:milestone -- <test paths>` runs that phase and selected PHP/frontend tests, rejecting empty or invalid scopes and recording a separate fresh-code result.
+- The finish check permits intermediate stops for validated incomplete active plans. Partial results cannot authorize final acceptance, satisfy a completed plan's full-check record, or survive a failed recheck or code change. The agent guide, workflow, plan format and bilingual public guides follow the same boundary.
+
 ## [2.13.0] - 2026-11-04
 
 From the first round of the Sol experiment (purchase orders): what the AI had to guess, the template now shows.

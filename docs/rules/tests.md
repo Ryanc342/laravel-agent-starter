@@ -16,6 +16,12 @@ Tests run on MySQL, like the app, in a database of their own: the app's database
 
 PHPStan checks that every Action has its test file and every Resource with `can.*` has its buttons test (lint/phpstan/CompanionFilesRule.php). `lint/`, `tests/Structure/` and `tests/Support/` belong to the template. Do not edit them without the user's approval.
 
+## Validation scope
+
+During development, run the smallest relevant tests. At each milestone, use `composer check:milestone -- <affected test files or directories>` for all static checks and the affected PHP/frontend tests. Follow changed rules through their callers; a test file need not change to be affected. Include structure tests for affected rules/tooling and UI inspection for changed pages. Record the selection, reason, command and result in the plan.
+
+The complete implementation must pass full `composer check`, including after any final review code changes. Shared test/database infrastructure changes or impact that cannot be bounded need an earlier full check. Keep all test suites and CI checks intact; selecting a milestone scope does not permit skipping tests inside the full suite. See docs/workflow.md for the acceptance boundary.
+
 ## Frontend tests
 
 React only displays, so pages and components get no tests. Two kinds of frontend code do: a hook with timing or ordering logic (wait before asking the server, the latest answer wins, retry) and the money and date formatters in `resources/js/lib/format.ts` (their test is `tests/js/lib/format.test.ts`; tests/Structure/CodeTest.php checks that it exists). They get a Vitest test in `tests/js/`, mirroring the path (`tests/js/hooks/use-network-error-toast.test.tsx`). Import from `vite-plus/test`, render a hook with `renderHook` from `@testing-library/react`. `npm test` runs them, and `composer check` includes it.

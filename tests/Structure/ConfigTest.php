@@ -198,17 +198,27 @@ test('composer check runs every check, and the npm scripts it calls are the chec
     $check = [
         'Composer\\Config::disableProcessTimeout',
         '@php scripts/hooks/finish-check.php checking',
+        '@check:static',
+        'npm test',
+        '@php artisan test --compact',
+        '@php scripts/hooks/finish-check.php checked',
+    ];
+    $static = [
+        'Composer\\Config::disableProcessTimeout',
         '@php artisan config:clear --ansi',
         '@lint:check',
         '@types:check',
         'npm run check',
         'npm run types:check',
-        'npm test',
-        '@php artisan test --compact',
-        '@php scripts/hooks/finish-check.php checked',
     ];
 
-    foreach (['check' => $check, 'lint:check' => ['pint --parallel --test'], 'types:check' => ['phpstan analyse --memory-limit=1G']] as $script => $steps) {
+    foreach ([
+        'check' => $check,
+        'check:static' => $static,
+        'check:milestone' => ['Composer\\Config::disableProcessTimeout', '@php scripts/check-milestone.php'],
+        'lint:check' => ['pint --parallel --test'],
+        'types:check' => ['phpstan analyse --memory-limit=1G'],
+    ] as $script => $steps) {
         if (($composer[$script] ?? null) !== $steps) {
             $problems[] = "composer.json: \"{$script}\" is ".implode(' && ', $steps);
         }

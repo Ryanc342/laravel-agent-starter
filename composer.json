@@ -64,14 +64,22 @@
         "check": [
             "Composer\\Config::disableProcessTimeout",
             "@php scripts/hooks/finish-check.php checking",
+            "@check:static",
+            "npm test",
+            "@php artisan test --compact",
+            "@php scripts/hooks/finish-check.php checked"
+        ],
+        "check:static": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
             "npm run check",
-            "npm run types:check",
-            "npm test",
-            "@php artisan test --compact",
-            "@php scripts/hooks/finish-check.php checked"
+            "npm run types:check"
+        ],
+        "check:milestone": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php scripts/check-milestone.php"
         ],
         "ci:check": [
             "@check"

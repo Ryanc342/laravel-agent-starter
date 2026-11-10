@@ -6,6 +6,7 @@ Details live in the files it points to; read them when the task needs them.
 ## Commands
 
 - `composer check`: every check (Pint, PHPStan with Ezdev's rules, oxlint with Ezdev's rules, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running.
+- `composer check:milestone -- <test paths>`: all static checks and affected tests between milestones. `composer check:static`: just the full static phase. Final plan acceptance still needs `composer check`.
 - `php artisan test --compact --filter=<Name>`: one test.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
 - `composer check:reference`: the reference feature still passes every check. Run it after changing rules or tooling.
@@ -15,7 +16,7 @@ Details live in the files it points to; read them when the task needs them.
 
 1. Grill. Every request starts with questions in the user's language, in the format in docs/workflow.md, a request to fix tech debt included. Look facts up yourself; put every decision to the user.
 2. Plan. When no decision is open, write docs/exec-plans/active/<feature>.md (format: docs/PLANS.md). Change no code until the user says "start". A one-line change with no open decision may skip the plan; say so.
-3. Build, one milestone at a time: Pest tests first, then code from the bottom layer up, then `composer check`, then commit, then update Progress in the plan.
+3. Build, one milestone at a time: Pest tests first, then code bottom-up, then `composer check:milestone -- <affected test paths>`, then commit and update Progress. Run full `composer check` when the plan is implemented, and earlier for shared infrastructure or unbounded impact (docs/workflow.md).
 4. Review. Ask the `reviewer` subagent to compare the diff with the plan (docs/prompts/review.md). Fix P0 and P1 findings. At most 3 rounds.
 5. Report where each agreed decision lives, the check output, and UI inspection results. Move the plan to docs/exec-plans/completed/. Remove fixed tech-debt lines and update docs/QUALITY.md.
 
@@ -72,7 +73,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
 - Playwright MCP (`playwright`): use its isolated headless browser, never the user's Chrome; close it after checks. Screenshot handling: docs/rules/visual-design.md.
 - Subagents: `explorer` (read-only lookups, small model) and `reviewer` (fresh context, read-only).
-- Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back a missing step (a plan, docs/QUALITY.md, the user's approval, a passing `composer check`). Do the step.
+- Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back missing plans, quality updates, approvals or validation. An incomplete active plan may use a fresh milestone result; final acceptance requires full `composer check`. Do the step.
 
 ## Code Review Rules
 

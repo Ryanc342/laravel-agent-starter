@@ -11,6 +11,7 @@
 |   php scripts/hooks/finish-check.php stop       compare with the start; send back what is missing
 |   php scripts/hooks/finish-check.php checking   composer check starts: remember the code it checks
 |   php scripts/hooks/finish-check.php checked    composer check passed: record that code as checked
+|   milestone-checking / milestone-checked       separate partial validation, never a full pass
 |
 | A conversation that changed no file is never stopped. The state lives in
 | .git/ezdev/ (git rev-parse --git-path ezdev), outside the repository's files.
@@ -105,6 +106,8 @@ function finishCheck(string $mode): string
         'stop' => stop($stateDir, $session, $lastMessage),
         'checking' => checking($stateDir),
         'checked' => checked($stateDir),
+        'milestone-checking' => checking($stateDir, true),
+        'milestone-checked' => checked($stateDir, true),
         default => '',
     };
 }
@@ -214,9 +217,16 @@ function missingSteps(array $state, string $stateDir, string $lastMessage): arra
         $missing['protected:'.implode(',', $unapproved)] = ['get your approval for '.implode(', ', $unapproved), 'You changed '.implode(', ', $unapproved).' (protected files or dependencies, AGENTS.md "Red lines"). Ask the user first, then add their approval to the plan\'s Decision Log as a new line naming each file. Without approval, undo the change.'];
     }
 
-    // 5. Code changed since the last passing composer check.
+    // 5. Only an unfinished active plan may use a fresh, separate milestone pass.
     if ($code !== [] && ! $checked) {
-        $missing['check:'.$fingerprint] = ['pass composer check', 'The code changed since the last passing composer check. Run composer check and fix every failure.'];
+        $intermediate = count($plans) === 1 && isIntermediatePlan($plans[0]);
+        $milestoneChecked = trim((string) @file_get_contents("{$stateDir}/milestone-checked")) === $fingerprint;
+
+        if ($intermediate && ! $milestoneChecked) {
+            $missing['milestone:'.$fingerprint] = ['pass milestone checks', 'Run composer check:milestone -- <affected test paths> for full static checks and affected tests, and record the scope and result in Progress. Run composer check now if shared infrastructure changed or the affected scope cannot be bounded.'];
+        } elseif (! $intermediate) {
+            $missing['check:'.$fingerprint] = ['pass composer check', 'The code changed since the last passing composer check. Run composer check and fix every failure.'];
+        }
     }
 
     return $missing;
@@ -328,9 +338,13 @@ function takeOpenSteps(string $stateDir): string
 /**
  * composer check starts: remember the code it is about to check, and when.
  */
-function checking(string $stateDir): string
+function checking(string $stateDir, bool $milestone = false): string
 {
-    writeFile("{$stateDir}/checking.json", json_encode(['fingerprint' => fingerprint(), 'time' => microtime(true)], JSON_THROW_ON_ERROR));
+    $prefix = $milestone ? 'milestone-' : '';
+    if ($milestone && is_file("{$stateDir}/milestone-checked")) {
+        unlink("{$stateDir}/milestone-checked");
+    }
+    writeFile("{$stateDir}/{$prefix}checking.json", json_encode(['fingerprint' => fingerprint(), 'time' => microtime(true)], JSON_THROW_ON_ERROR));
 
     return '';
 }
@@ -340,24 +354,26 @@ function checking(string $stateDir): string
  * counts (an edit during the run was not checked), and only when the tests ran to
  * their end.
  */
-function checked(string $stateDir): string
+function checked(string $stateDir, bool $milestone = false): string
 {
-    $start = readJson("{$stateDir}/checking.json");
+    $prefix = $milestone ? 'milestone-' : '';
+    $command = $milestone ? 'composer check:milestone' : 'composer check';
+    $start = readJson("{$stateDir}/{$prefix}checking.json");
     $fingerprint = fingerprint();
 
     if (! is_string($start['fingerprint'] ?? null) || ! is_numeric($start['time'] ?? null)) {
-        throw new RuntimeException('composer check did not record its start (scripts/hooks/finish-check.php checking is its first step).');
+        throw new RuntimeException("{$command} did not record its start (scripts/hooks/finish-check.php {$prefix}checking is its first step).");
     }
 
     if ($start['fingerprint'] !== $fingerprint) {
-        throw new RuntimeException('the code changed while composer check ran. Run composer check again.');
+        throw new RuntimeException("the code changed while {$command} ran. Run {$command} again.");
     }
 
-    if ((float) (is_file(TESTS_FINISHED) ? file_get_contents(TESTS_FINISHED) : 0) <= (float) $start['time']) {
+    if (! $milestone && (float) (is_file(TESTS_FINISHED) ? file_get_contents(TESTS_FINISHED) : 0) <= (float) $start['time']) {
         throw new RuntimeException('the tests did not run to their end (tests/Structure/RunFinishedTest.php, the last test, did not run in this check). Run the whole composer check.');
     }
 
-    writeFile("{$stateDir}/checked", $fingerprint);
+    writeFile("{$stateDir}/{$prefix}checked", $fingerprint);
 
     return '';
 }
@@ -607,6 +623,17 @@ function allMilestonesTicked(string $plan): bool
     return preg_match('/^\s*[-*+]\s+\[[xX]\]/m', $milestones) === 1 && preg_match('/^\s*[-*+]\s+\[ \]/m', $milestones) === 0;
 }
 
+/** A valid active plan with at least one completed and one remaining milestone. */
+function isIntermediatePlan(string $path): bool
+{
+    $plan = (string) file_get_contents($path);
+    $milestones = sections($plan)['Milestones'] ?? '';
+
+    return str_starts_with($path, 'docs/exec-plans/active/') && emptySections($plan) === []
+        && preg_match('/^\s*[-*+]\s+\[[xX]\]/m', $milestones) === 1
+        && preg_match('/^\s*[-*+]\s+\[ \]/m', $milestones) === 1;
+}
+
 /**
  * What a completed plan is missing.
  *
@@ -619,7 +646,7 @@ function missingRecords(string $plan): array
     $progress = $sections['Progress'] ?? '';
     $missing = [];
 
-    if (stripos($progress, 'composer check') === false) {
+    if (preg_match('/\bcomposer check(?![:\w-])/i', $progress) !== 1) {
         $missing[] = 'no composer check result in Progress';
     }
 

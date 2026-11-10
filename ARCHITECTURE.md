@@ -38,7 +38,7 @@ Rules about structure (where code goes, which layer uses which, what a class loo
 | `tests/Structure/ConfigTest.php`             | a check turned down: PHPStan level, paths, extensions or rules, an oxlint rule off or code ignored, TypeScript not strict, a Pest suite left out, `composer check` changed, another lint config, a `script-shell` |
 | `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section, a rule in docs/golden-principles.md without its two tags |
 | `tests/Structure/RunFinishedTest.php`        | the last test: its file proves the test run reached its end           |
-| `scripts/hooks/finish-check.php` (when the AI stops) | code without a plan written in this conversation, a fixed tech-debt line without a QUALITY.md update, a protected file without the user's recorded approval, code no full passing `composer check` has seen, a completed plan without its records |
+| `scripts/hooks/finish-check.php` (when the AI stops) | code without a plan written in this conversation, a fixed tech-debt line without a QUALITY.md update, a protected file without recorded approval, code without fresh validation (milestone checks only for an incomplete active plan; full `composer check` for final acceptance), a completed plan without its records |
 
 ## Where each rule goes
 
