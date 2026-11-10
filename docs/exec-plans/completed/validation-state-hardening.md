@@ -13,7 +13,7 @@
 - [x] M1 失败重试：先补回归测试，合入无效参数重试修复，统一撤销失败或未完成检查所对应的旧通过记录。
 - [x] M2 并发隔离：先补真实子进程回归，再让全量和局部检查使用同一工作树锁及独立运行身份，防止串用开始记录和完成凭据。
 - [x] M3 跨会话验收：先补连续会话回归，再使计划完成和归档必须检查当前代码的全量通过凭据，不依赖本会话是否修改代码。
-- [ ] M4 最终验收与发布：完整检查母板及 reference，独立审查，验证 auction 兼容性，提交推送并发布补丁版本，核对 CI 与 Packagist。
+- [x] M4 最终验收与发布：完整检查母板及 reference，独立审查，验证 auction 兼容性，提交推送并发布补丁版本，核对 CI 与 Packagist。
 
 ## Validation
 每个开发里程碑先将对应缺口写成失败测试，再修实现；已有业务断言保留。使用临时 Git 仓库和真实 runner/hook 子进程验证退出码、实际通过记录和 Stop 输出。耗时的业务检查可在这些编排单测中使用可控替身，完整验收仍运行真实套件。
@@ -61,6 +61,7 @@ git diff --check
 - 更新 `docs/QUALITY.md`，填写验收证据并归档本计划。没有页面变化，UI 检查不适用。
 
 ## Progress
+- 2026-11-10 M4 已完成：审查修复提交 aeae7b83883183e81317db50cc4b87e596699441 并推送 main；Linux CI [42791869368](https://github.com/Ryanc342/laravel-agent-starter/actions/runs/42791869368) 全部通过，包括母板、reference、两种真实 Laravel Installer 安装、独立数据库/密钥及开发服务验证。发布 [v1.1.1](https://github.com/Ryanc342/laravel-agent-starter/releases/tag/v1.1.1)，Packagist 正式版本 source/dist 均已核对为 aeae7b83883183e81317db50cc4b87e596699441。计划归档和最终 main 文档提交不改变经过验证的代码。
 - 2026-11-10 review round 2: 0 P0, 0 P1。独立子进程复现确认：父进程被强杀后存活子进程继续持锁；子进程退出后锁释放并可成功重试；旧时间戳、外来和缺失运行身份不能提供全量结束凭据。完整范围保留，没有计划外行为。准备推送并等待发布提交的 Linux CI。
 - 2026-11-10 审查修复后最终完整验证通过：母板 `CI=true composer check` 307 PHP 项 / 1161 断言 + 6 前端项，reference `CI=true composer check:reference` 355 / 1318 + 6 前端项，auction 隔离 Hooks/Structure 131 / 368。round 2 独立审查进行中。日志已保存为 .git/ezdev/validation-state-hardening/*-r2.log。
 - 2026-11-10 review round 1: 1 P0, 0 P1。主进程被强杀后仍存活的子进程未持有锁，可与下一轮重叠并提供错误的结束时间戳。先补两项失败复现，再让锁继承至存活子进程，并将套件结束凭据绑定运行身份；成功重试断言保留在子进程结束后。修复后的初步两项测试通过，最终完整检查和 round 2 待重跑。
@@ -91,4 +92,16 @@ git diff --check
 - 2026-11-10 计划先修母板，再用隔离副本核对 auction 兼容性；不自动修改 auction 的业务代码、数据库重建策略或工作分支。
 
 ## Outcomes & Retrospective
-M1–M3 已实现并通过最终本地完整检查和两轮独立审查。M4 的 GitHub CI、发布及 Packagist 核对仍待执行；完成前不将本计划标为已交付。
+已修复并发布 v1.1.1。发布代码为 aeae7b83883183e81317db50cc4b87e596699441，发布提交的 Linux CI 及两种真实安装验证均成功，Packagist 正式版本 source/dist 指向该提交。
+
+| 已同意的行为 | 实现位置与证据 |
+| --- | --- |
+| 失败重试不能借用旧结果，包括无效参数 | `CheckRun::__construct()` 统一失效两类凭据；`runValidation()` 在参数校验前开始本轮检查。六种无效参数和全量/局部失败组合已覆盖。 |
+| 检查不能串用开始记录或完成凭据 | `CheckRun` 与 `runValidation()` 持有工作树锁并绑定运行身份；存活子进程继承锁。`RunFinishedTest.php` 写入同次身份和时间，`checked()` 验证二者。 |
+| 跨会话完成计划必须经过全量验收 | finish hook 的 `newSession()`、`finalPlanPaths()`、`missingSteps()` 区分新完成、未验收归档与历史记录，核对当前代码的真实全量凭据。 |
+| 里程碑专项验证、最后完整验证 | M1–M3 的静态与 Hooks/Structure 结果见 Progress。最终母板 307 PHP / 1161 断言 + 6 前端，reference 355 / 1318 + 6 前端；完整套件和 CI 范围保留。 |
+| 复查、兼容与发布 | 两轮独立审查，最终无 P0/P1；auction 隔离兼容 131 / 368；GitHub v1.1.1 与 Packagist source/dist 已核对。 |
+
+本次没有页面变化，UI 检查不适用。没有新增依赖或更改数据库重建策略；auction 原工作区保持 f889b12，兼容验证不代表已升级该项目。已同步 `docs/QUALITY.md`，没有本次新增的待处理技术债。
+
+审查补齐了强杀父进程后子进程仍在运行的边界：锁必须覆盖真实子进程生命周期，结束凭据也必须属于本轮，单靠父进程锁和时间戳不足以证明通过。旧版本凭据不再被信任，升级现有项目后须重新运行完整检查。
