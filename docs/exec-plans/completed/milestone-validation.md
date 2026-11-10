@@ -12,7 +12,7 @@ Keep milestone feedback fast as a project grows, while requiring complete checks
 
 ## Milestones
 - [x] M1 Implement milestone validation with regression tests, synchronized instructions, full source/reference verification and independent review.
-- [ ] M2 Commit and push the reviewed change, publish the next public minor release, and verify GitHub CI and Packagist source references.
+- [x] M2 Commit and push the reviewed change, publish the next public minor release, and verify GitHub CI and Packagist source references.
 
 ## Validation
 - First run the new hook/runner regression tests against the existing behavior and observe failures.
@@ -29,6 +29,7 @@ Keep milestone feedback fast as a project grows, while requiring complete checks
 - 2026-11-10 review round 2: 0 P0, 0 P1. Real-Pest empty-suite regression failed before the fix (exit 0), then passed after it (exit 1, no partial pass recorded). Final `CI=true composer check` passed 264 PHP tests / 1005 assertions and six frontend tests; final `CI=true composer check:reference` passed 312 / 1162 and six frontend tests. `composer validate --no-check-publish` and `git diff --check` passed. M1 is ready to commit; M2 publication remains open.
 - 2026-11-10 M1 committed and pushed as 5ffc894. Packagist dev-main synchronized automatically. GitHub run 42771674804 exposed a fixture-only environment difference: with `zend.assertions=-1`, Pest's implicit generated configuration is not written and the empty-suite subprocess exits 2 before discovery. Reproduced locally with that PHP setting; supplied an explicit minimal configuration in the disposable fixture and retained the original exit-1/no-pass assertions. The regression now exercises the CI setting explicitly. Stable publication remains pending final revalidation.
 - 2026-11-10 review round 3: 0 P0, 0 P1. The CI fixture correction is within scope and preserves expected behavior and assertions. Source `CI=true composer check` passed again: 264 PHP tests / 1005 assertions and six frontend tests. `CI=true composer check:reference` also passed again: 312 / 1162 and six frontend tests. The correction is ready to push.
+- 2026-11-10 M2: correction committed and pushed as b875bc8. GitHub run [42772520887](https://github.com/Ryanc342/laravel-agent-starter/actions/runs/42772520887) passed source checks, reference checks and both real Laravel Installer paths. Published annotated tag and GitHub release [v1.1.0](https://github.com/Ryanc342/laravel-agent-starter/releases/tag/v1.1.0). Public Packagist v1.1.0 source and dist both resolve to b875bc856c9af6c4ffc6441412d304acad91afbd; dev-main also synchronized to that source. Only the new tag was pushed. This final plan/archive record does not change the verified code.
 
 ## Surprises & Discoveries
 - The stop hook currently requires a full check even between milestones. Separate partial validation is required to make the approved workflow usable without weakening final acceptance.
@@ -39,4 +40,14 @@ Keep milestone feedback fast as a project grows, while requiring complete checks
 - 2026-11-10 Publish v1.1.0: the public package is v1.0.1, and this is a workflow behavior change. Keep legacy unpublished v2.x tags untouched. No dependency changes are needed.
 
 ## Outcomes & Retrospective
-Implementation and publication are in progress.
+Delivered and published as public package v1.1.0.
+
+| Agreed behavior | Owner and evidence |
+| --- | --- |
+| Full static checks with affected PHP/frontend tests per milestone | composer.json `check:static` / `check:milestone`; scripts/check-milestone.php `milestoneTestScopes()` and checked subprocess sequence. Actual mixed-scope invocation passed. |
+| Full final acceptance, including after review code changes | composer.json `check`; scripts/hooks/finish-check.php `missingSteps()`, `checked()` and existing full-suite completion proof. Source and reference full checks passed on final code. |
+| Partial results cannot claim full acceptance | Separate milestone fingerprints, `isIntermediatePlan()` and `missingRecords()`; 19 new cases cover freshness, failures, scope validation, archived/final plans and real empty-suite behavior. |
+| Shared guidance and early full validation for broad impact | AGENTS.md, docs/workflow.md, docs/PLANS.md, docs/rules/tests.md, docs/golden-principles.md, maintenance prompts and bilingual READMEs. Static phases reuse one Composer owner. |
+| Commit, push and Packagist publication | Implementation 5ffc894, fixture correction/release b875bc8, green release CI and verified public v1.1.0 source/dist references. |
+
+No application behavior, dependencies, database isolation, CI suites or original business test assertions changed. UI inspection was not applicable. The review caught missing empty-suite enforcement; CI caught an implicit test-fixture configuration dependency, now covered with assertions disabled. Affected-test selection still requires identifying callers in each plan; projects already created from the template must adopt the updated rules/scripts explicitly. No task-specific debt was deferred.
