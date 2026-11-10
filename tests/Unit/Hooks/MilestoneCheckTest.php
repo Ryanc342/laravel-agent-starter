@@ -177,17 +177,19 @@ test('a frontend-only milestone runs no backend suite', function () {
 
 test('a PHP scope with no discovered tests cannot record a milestone pass', function () {
     $repo = milestoneWorkspace();
+    // A real configuration avoids Pest's generated-config path when PHP assertions are disabled in CI.
+    file_put_contents("{$repo}/phpunit.xml", '<phpunit bootstrap="vendor/autoload.php"/>');
     $artisan = <<<'PHP'
 <?php
 require __DIR__.'/vendor/autoload.php';
 $process = new Symfony\Component\Process\Process([
-    PHP_BINARY, PEST_BINARY, '--no-configuration', '--bootstrap', __DIR__.'/vendor/autoload.php', ...array_slice($argv, 2),
+    PHP_BINARY, '-d', 'zend.assertions=-1', PEST_BINARY, '--configuration', __DIR__.'/phpunit.xml', ...array_slice($argv, 2),
 ]);
 exit($process->run(function ($type, $output) { echo $output; }));
 PHP;
     file_put_contents("{$repo}/artisan", str_replace('PEST_BINARY', var_export(dirname(__DIR__, 3).'/vendor/bin/pest', true), $artisan));
     $run = milestoneRun($repo);
 
-    expect($run->getExitCode())->toBe(1)
+    expect($run->getExitCode())->toBe(1, $run->getOutput().$run->getErrorOutput())
         ->and(is_file("{$repo}/.git/ezdev/milestone-checked"))->toBeFalse();
 });
