@@ -341,8 +341,10 @@ function takeOpenSteps(string $stateDir): string
 function checking(string $stateDir, bool $milestone = false): string
 {
     $prefix = $milestone ? 'milestone-' : '';
-    if ($milestone && is_file("{$stateDir}/milestone-checked")) {
-        unlink("{$stateDir}/milestone-checked");
+    foreach (['checked', 'milestone-checked'] as $marker) {
+        if (is_file("{$stateDir}/{$marker}") && ! unlink("{$stateDir}/{$marker}")) {
+            throw new RuntimeException("cannot invalidate {$marker}");
+        }
     }
     writeFile("{$stateDir}/{$prefix}checking.json", json_encode(['fingerprint' => fingerprint(), 'time' => microtime(true)], JSON_THROW_ON_ERROR));
 

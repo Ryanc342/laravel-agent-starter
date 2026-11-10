@@ -193,3 +193,55 @@ PHP;
     expect($run->getExitCode())->toBe(1, $run->getOutput().$run->getErrorOutput())
         ->and(is_file("{$repo}/.git/ezdev/milestone-checked"))->toBeFalse();
 });
+
+test('an invalid milestone retry revokes the previous partial pass', function (array $paths) {
+    $repo = milestoneWorkspace();
+    expect(milestoneRun($repo)->getExitCode())->toBe(0);
+    mkdir("{$repo}/tests/Feature/Empty");
+
+    $run = milestoneRun($repo, $paths);
+
+    expect($run->getExitCode())->toBe(1)
+        ->and(is_file("{$repo}/.git/ezdev/milestone-checked"))->toBeFalse()
+        ->and(milestoneHook($repo, 'stop'))->toContain('Run composer check:milestone');
+})->with([
+    'no paths' => [[]],
+    'missing file' => [['tests/Feature/MissingTest.php']],
+    'not a test' => [['app/quote.php']],
+    'empty directory' => [['tests/Feature/Empty']],
+    'runner option' => [['--filter=Quote']],
+    'parent traversal' => [['tests/Feature/../../app']],
+]);
+
+test('a failed retry cannot borrow a prior full or partial pass', function (bool $fullBefore, bool $fullRetry) {
+    $repo = milestoneWorkspace();
+    file_put_contents("{$repo}/.git/info/exclude", "/storage/\n");
+    mkdir("{$repo}/storage/framework/testing", 0777, true);
+    if ($fullBefore) {
+        milestoneHook($repo, 'checking');
+        file_put_contents("{$repo}/storage/framework/testing/ezdev-tests-finished", (string) microtime(true));
+        milestoneHook($repo, 'checked');
+    } else {
+        expect(milestoneRun($repo)->getExitCode())->toBe(0);
+    }
+    expect(milestoneHook($repo, 'stop'))->toBe('');
+
+    if ($fullRetry) {
+        milestoneHook($repo, 'checking');
+        $run = new Process([PHP_BINARY, 'composer.php', 'check:static'], $repo, ['MILESTONE_TEST_FAIL' => 'static']);
+        $run->run();
+    } else {
+        $run = milestoneRun($repo, env: ['MILESTONE_TEST_FAIL' => 'static']);
+    }
+
+    expect($run->getExitCode())->toBe(7)
+        ->and(is_file("{$repo}/.git/ezdev/checked"))->toBeFalse()
+        ->and(is_file("{$repo}/.git/ezdev/milestone-checked"))->toBeFalse()
+        ->and(milestoneHook($repo, 'stop'))->toContain('Run composer check:milestone');
+    expect(milestoneRun($repo)->getExitCode())->toBe(0)
+        ->and(milestoneHook($repo, 'stop'))->toBe('');
+})->with([
+    'partial then full' => [false, true],
+    'full then full' => [true, true],
+    'full then partial' => [true, false],
+]);

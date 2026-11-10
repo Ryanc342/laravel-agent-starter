@@ -7,13 +7,11 @@ require __DIR__.'/../vendor/autoload.php';
 chdir(dirname(__DIR__));
 
 try {
+    runMilestoneCommand([PHP_BINARY, 'scripts/hooks/finish-check.php', 'milestone-checking']);
     $scopes = milestoneTestScopes(array_slice($argv, 1));
     $composer = getenv('COMPOSER_BINARY');
     $staticCommand = is_string($composer) && is_file($composer) ? [PHP_BINARY, $composer, 'check:static'] : ['composer', 'check:static'];
-    $commands = [
-        [PHP_BINARY, 'scripts/hooks/finish-check.php', 'milestone-checking'],
-        $staticCommand,
-    ];
+    $commands = [$staticCommand];
 
     if ($scopes['php'] !== []) {
         $commands[] = [PHP_BINARY, 'artisan', 'test', '--compact', '--fail-on-empty-test-suite', ...$scopes['php']];
@@ -24,20 +22,26 @@ try {
     $commands[] = [PHP_BINARY, 'scripts/hooks/finish-check.php', 'milestone-checked'];
 
     foreach ($commands as $command) {
-        $process = new Process($command);
-        $process->setTimeout(null);
-        $exit = $process->run(function (string $type, string $output): void {
-            fwrite($type === Process::ERR ? STDERR : STDOUT, $output);
-        });
-        if ($exit !== 0) {
-            exit($exit);
-        }
+        runMilestoneCommand($command);
     }
 
     fwrite(STDOUT, 'Milestone checks passed for: '.implode(', ', [...$scopes['php'], ...$scopes['js']]).". Full plan acceptance still requires composer check.\n");
 } catch (Throwable $error) {
     fwrite(STDERR, $error->getMessage().PHP_EOL);
     exit(1);
+}
+
+/** @param list<string> $command */
+function runMilestoneCommand(array $command): void
+{
+    $process = new Process($command);
+    $process->setTimeout(null);
+    $exit = $process->run(function (string $type, string $output): void {
+        fwrite($type === Process::ERR ? STDERR : STDOUT, $output);
+    });
+    if ($exit !== 0) {
+        exit($exit);
+    }
 }
 
 /**
