@@ -306,6 +306,9 @@ test('a completed plan without check results, review rounds and outcome is sent 
 
     finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan("- 10:00 M1 done, composer check passed\n- 10:30 review round 1: no P0/P1", 'Quotes can be sent; nothing is left.'));
 
+    expect(finishCheckRun($repo, 'stop'))->toContain('Run composer check');
+    finishCheckPass($repo);
+
     expect(finishCheckRun($repo, 'stop'))->toBe('');
 });
 

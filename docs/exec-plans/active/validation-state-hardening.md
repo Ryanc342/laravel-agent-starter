@@ -12,7 +12,7 @@
 ## Milestones
 - [x] M1 失败重试：先补回归测试，合入无效参数重试修复，统一撤销失败或未完成检查所对应的旧通过记录。
 - [x] M2 并发隔离：先补真实子进程回归，再让全量和局部检查使用同一工作树锁及独立运行身份，防止串用开始记录和完成凭据。
-- [ ] M3 跨会话验收：先补连续会话回归，再使计划完成和归档必须检查当前代码的全量通过凭据，不依赖本会话是否修改代码。
+- [x] M3 跨会话验收：先补连续会话回归，再使计划完成和归档必须检查当前代码的全量通过凭据，不依赖本会话是否修改代码。
 - [ ] M4 最终验收与发布：完整检查母板及 reference，独立审查，验证 auction 兼容性，提交推送并发布补丁版本，核对 CI 与 Packagist。
 
 ## Validation
@@ -61,6 +61,7 @@ git diff --check
 - 更新 `docs/QUALITY.md`，填写验收证据并归档本计划。没有页面变化，UI 检查不适用。
 
 ## Progress
+- 2026-11-10 M2 提交 720d0e4。M3 新增 17 项跨会话/文档边界测试，先复现 10 项失败、7 项既有成功路径通过；修复后 17 项 / 41 断言通过。最终 `CI=true composer check:milestone -- tests/Unit/Hooks tests/Structure` 通过全量静态检查、129 项 / 360 断言。
 - 2026-11-10 M2：新增 13 项初始场景中 11 项失败、2 项既有行为通过；随后增加缺失运行身份和完整套件结束凭据覆盖。修复后 `CI=true composer check:milestone -- tests/Unit/Hooks tests/Structure` 全部静态检查及 112 项 / 317 断言通过。全量入口保留 static → 全部 JS → 全部 PHP；共有生命周期锁、独立运行身份、成功完成状态及版本化凭据阻止串用，进程终止和不同 worktree 并行已验证。
 - 2026-11-10 M1：新增 9 项回归先全部失败；修复后 Hooks 61 项 / 221 断言通过。`CI=true composer check:milestone -- tests/Unit/Hooks tests/Structure` 通过全量静态检查及 97 项 / 258 断言；只代表本阶段受影响范围通过。开始任一检查都撤销两类旧通过记录，无效参数也先撤销。
 - 2026-11-10 16:47 +08:00 用户要求实施计划。已读取当前工作流、计划格式、现有 runner/hook、Composer 编排和相关测试；母板无未提交代码修改，active 目录没有其他进行中的计划。
@@ -74,6 +75,7 @@ git diff --check
 - 现有完整标记和局部标记分离是正确的；缺失的是一致的失效规则、单次执行归属和跨会话最终验收触发条件。
 
 ## Decision Log
+- 2026-11-10 M3 新增 tests/Unit/Hooks/PlanAcceptanceTest.php。已有“归档文档记录齐全就放行”测试补充真正的全量通过前置步骤，并新增只写 passed 仍被拦截的断言；原有记录完整性和最终成功断言全部保留。这对应用户批准的跨会话最终验收要求。拒绝的归档记录持久保存，不能在下个会话变成免验收的历史记录。
 - 2026-11-10 M2：composer.json 的 check 改由 scripts/check.php 持有全程锁；tests/Structure/ConfigTest.php 的命令编排预期随批准的入口变化更新，完整阶段及参数由真实 runner 子进程回归验证，原有其他静态配置断言保留。FinishCheckTest 的辅助执行器使用同一 CheckRun 生命周期，原有业务/失败断言未修改。
 - 2026-11-10 M1 提交 eed130e。M2 将现有临时仓库帮助函数原样移动到 tests/Support/MilestoneWorkspace.php，让新增并发测试与已有测试共用同一 fixture；这是已批准测试实现范围内的必要提取，不改变原有断言。共享实现具体文件为 scripts/check-run.php 和 scripts/check-process.php，并新增 tests/Unit/Hooks/CheckRunTest.php。
 - 2026-11-10 用户回复“开始”，批准本计划列明的受保护文件与实现范围，包括 scripts/check-milestone.php、scripts/hooks/finish-check.php、scripts/check.php、scripts/ 下的最小共享实现、composer.json、tests/Unit/Hooks/FinishCheckTest.php、tests/Unit/Hooks/MilestoneCheckTest.php、新增 tests/Unit/Hooks/*Test.php、tests/Structure/ConfigTest.php、docs/workflow.md、docs/golden-principles.md。提交、推送和 Packagist 发布沿用已有授权。

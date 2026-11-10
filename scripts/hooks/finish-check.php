@@ -188,6 +188,7 @@ function missingSteps(array $state, string $stateDir, string $lastMessage): arra
     $plans = array_values(array_filter($changed, fn (string $path): bool => preg_match(PLAN_PATH, $path) === 1 && is_file($path)));
     $fingerprint = fingerprint();
     $checked = CheckRun::passed($stateDir, $fingerprint);
+    $finalPlans = finalPlanPaths($plans, $state, $stateDir, $checked);
 
     // 1. Code needs a plan (a one-line change with no open decision may skip it).
     if ($code !== [] && $plans === [] && ! isOneLineChange($state['base'], $code)) {
@@ -220,18 +221,55 @@ function missingSteps(array $state, string $stateDir, string $lastMessage): arra
     }
 
     // 5. Only an unfinished active plan may use a fresh, separate milestone pass.
-    if ($code !== [] && ! $checked) {
-        $intermediate = count($plans) === 1 && isIntermediatePlan($plans[0]);
+    if (($code !== [] || $finalPlans !== []) && ! $checked) {
+        $intermediate = $finalPlans === [] && count($plans) === 1 && isIntermediatePlan($plans[0]);
         $milestoneChecked = CheckRun::passed($stateDir, $fingerprint, true);
 
         if ($intermediate && ! $milestoneChecked) {
             $missing['milestone:'.$fingerprint] = ['pass milestone checks', 'Run composer check:milestone -- <affected test paths> for full static checks and affected tests, and record the scope and result in Progress. Run composer check now if shared infrastructure changed or the affected scope cannot be bounded.'];
         } elseif (! $intermediate) {
-            $missing['check:'.$fingerprint] = ['pass composer check', 'The code changed since the last passing composer check. Run composer check and fix every failure.'];
+            $reason = $finalPlans === [] ? 'The code changed since the last passing composer check.' : 'Final acceptance of '.summary($finalPlans).' requires a full pass on the current code, even when this conversation only changed the plan.';
+            $missing['check:'.$fingerprint] = ['pass composer check', $reason.' Run composer check and fix every failure.'];
         }
     }
 
     return $missing;
+}
+
+/**
+ * Closing work needs real full validation across sessions. Remember a refused
+ * archive so the next session cannot mistake it for an accepted historical plan.
+ *
+ * @param  list<string>  $plans
+ * @param  array<string, mixed>  $state
+ * @return list<string>
+ */
+function finalPlanPaths(array $plans, array $state, string $stateDir, bool $checked): array
+{
+    $file = "{$stateDir}/pending-plans.json";
+    $pending = $before = readJson($file);
+    $final = [];
+    foreach ($plans as $plan) {
+        $name = basename($plan);
+        $active = str_starts_with($plan, 'docs/exec-plans/active/');
+        $historical = isset($state['completedPlans'])
+            ? in_array($plan, $state['completedPlans'], true)
+            : (array_key_exists($plan, $state['dirty']) || git(['cat-file', '-e', "{$state['base']}:{$plan}"]) !== null);
+        $finishing = $active ? allMilestonesTicked((string) file_get_contents($plan)) : (! $historical || isset($pending[$name]));
+        if ($finishing) {
+            $final[] = $plan;
+        }
+        if ($finishing && ! $checked) {
+            $pending[$name] = true;
+        } elseif ($checked || $active) {
+            unset($pending[$name]);
+        }
+    }
+    if ($pending !== $before) {
+        CheckRun::write($file, $pending);
+    }
+
+    return $final;
 }
 
 /**
@@ -426,6 +464,7 @@ function newSession(): array
         'base' => git(['rev-parse', 'HEAD']) ?? '',
         'dirty' => $dirty,
         'logs' => $logs,
+        'completedPlans' => glob('docs/exec-plans/completed/*.md') ?: [],
         'debt' => debtRows((string) @file_get_contents('docs/exec-plans/tech-debt.md')),
         'blocks' => [],
     ];

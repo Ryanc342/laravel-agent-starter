@@ -50,6 +50,10 @@ Run full `composer check` earlier when changing shared test/database infrastruct
 
 When all implementation milestones are finished, run full `composer check` before review and delivery. No test suite is removed from that command or from CI. `composer check:static` alone is not a milestone pass for code changes. The finish check accepts a fresh milestone result only while a valid active plan has both completed and remaining milestones; completed or archived plans and changes without such a plan still require a full pass on the current code.
 
+Full and milestone checks share one lock per worktree. A second overlapping command reports that a check is already running; it cannot replace that run's state. A new attempt revokes prior passes, and only the same attempt completing successfully can record a new pass. Interrupted runs and legacy fingerprint-only records need a new check. Use the Composer entry points, not the internal `checking` / `checked` hook modes.
+
+Final acceptance follows the plan across conversations: ticking every milestone or newly archiving a plan needs a current full pass even if this conversation only changes Markdown. A refused archive stays pending across conversations until validated; text in Progress cannot establish a pass. Ordinary documents, drafts, intermediate progress and historical completed-plan record corrections do not by themselves start a new code acceptance.
+
 Before the next milestone, search the code already written in this task for the same condition you are about to write.
 
 ## 4. Review
