@@ -1,9 +1,9 @@
 import { Form, Head } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
-import TaskController from '@/actions/App/Http/Controllers/TaskController';
 import Heading from '@/components/heading';
+import EmptyState from '@/components/shared/empty-state';
 import Pagination from '@/components/shared/pagination';
-import TaskFields from '@/components/tasks/task-fields';
+import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import TaskTable from '@/components/tasks/task-table';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/tasks';
@@ -22,50 +22,36 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
         <>
             <Head title="Tasks" />
 
-            <div className="flex flex-col gap-6 p-4">
+            <div className="flex flex-col gap-8 p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title="Tasks" />
 
-                    {can.complete_overdue && (
-                        <Form
-                            {...OverdueTaskCompletionController.store.form()}
-                            options={{ preserveScroll: true }}
-                        >
-                            {({ processing }) => (
-                                <Button
-                                    type="submit"
-                                    variant="outline"
-                                    disabled={processing}
-                                >
-                                    Complete overdue tasks
-                                </Button>
-                            )}
-                        </Form>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                        {can.complete_overdue && (
+                            <Form
+                                {...OverdueTaskCompletionController.store.form()}
+                                options={{ preserveScroll: true }}
+                            >
+                                {({ processing }) => (
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        disabled={processing}
+                                    >
+                                        Complete overdue tasks
+                                    </Button>
+                                )}
+                            </Form>
+                        )}
+
+                        <TaskFormDialog trigger={<Button>Add task</Button>} />
+                    </div>
                 </div>
 
-                <Form
-                    {...TaskController.store.form()}
-                    resetOnSuccess
-                    options={{ preserveScroll: true }}
-                    className="grid max-w-xl gap-4"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <TaskFields errors={errors} />
-                            <div>
-                                <Button type="submit" disabled={processing}>
-                                    Add task
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </Form>
-
                 {tasks.data.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                        You have no tasks yet.
-                    </p>
+                    // The header already has the create button, so the empty
+                    // state is only the line.
+                    <EmptyState message="You have no tasks yet." />
                 ) : (
                     <>
                         <TaskTable tasks={tasks.data} />

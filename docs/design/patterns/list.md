@@ -15,7 +15,7 @@ Each row becomes one card: the name first, then the status, then the other colum
 
 ## States
 
-- No records: `EmptyState` with one short line and, when the user can create one, the create button.
+- No records: `EmptyState` with one short line. The create button stays in the header row, so the empty state does not repeat it; pass it as `action` only on a page whose header has no create button.
 - Filters match nothing: `EmptyState` saying so.
 - Data arriving later: `LoadingState`. Failed to load: `ErrorState` (states.md).
 
@@ -26,4 +26,4 @@ Each row becomes one card: the name first, then the status, then the other colum
 
 ## Sample and demo
 
-Copy `docs/reference/tasks/resources/js/pages/tasks/index.tsx` and `docs/reference/tasks/resources/js/components/tasks/task-table.tsx`. Demo: `resources/js/components/style/list-demo.tsx`, shown on the style overview page.
+Copy `docs/reference/tasks/resources/js/pages/tasks/index.tsx` and `docs/reference/tasks/resources/js/components/tasks/task-table.tsx` (the columns handed to `ResponsiveTable`). Demo: `resources/js/components/style/list-demo.tsx`, shown on the style overview page.

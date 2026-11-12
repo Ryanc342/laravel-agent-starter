@@ -1,29 +1,20 @@
 import { Form } from '@inertiajs/react';
 import TaskCompletionController from '@/actions/App/Http/Controllers/TaskCompletionController';
 import TaskController from '@/actions/App/Http/Controllers/TaskController';
+import ResponsiveDialog, {
+    ResponsiveDialogClose,
+    ResponsiveDialogFooter,
+} from '@/components/shared/responsive-dialog';
+import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import type { Task } from '@/types/task';
 
 /**
  * The task page's actions. Every button is shown from task.can.*, which the
  * backend calculates.
  */
-export default function TaskActions({
-    task,
-    onEdit,
-}: {
-    task: Task;
-    onEdit: () => void;
-}) {
+export default function TaskActions({ task }: { task: Task }) {
     return (
         <div className="flex flex-wrap gap-2">
             {task.can.complete && (
@@ -39,44 +30,37 @@ export default function TaskActions({
                 </Form>
             )}
             {task.can.update && (
-                <Button variant="outline" onClick={onEdit}>
-                    Edit task
-                </Button>
+                <TaskFormDialog
+                    task={task}
+                    trigger={<Button variant="outline">Edit task</Button>}
+                />
             )}
             {task.can.delete && (
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline">Delete task</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>Delete this task?</DialogTitle>
-                        <DialogDescription>
-                            “{task.title}” will be deleted. This cannot be
-                            undone.
-                        </DialogDescription>
-                        <Form {...TaskController.destroy.form(task.id)}>
-                            {({ processing }) => (
-                                <DialogFooter className="gap-2">
-                                    <DialogClose asChild>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        disabled={processing}
-                                    >
-                                        Delete task
+                <ResponsiveDialog
+                    trigger={<Button variant="outline">Delete task</Button>}
+                    title="Delete this task?"
+                    description={`“${task.title}” will be deleted. This cannot be undone.`}
+                >
+                    <Form {...TaskController.destroy.form(task.id)}>
+                        {({ processing }) => (
+                            <ResponsiveDialogFooter>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    disabled={processing}
+                                >
+                                    {processing && <Spinner />}
+                                    Delete task
+                                </Button>
+                                <ResponsiveDialogClose asChild>
+                                    <Button type="button" variant="outline">
+                                        Cancel
                                     </Button>
-                                </DialogFooter>
-                            )}
-                        </Form>
-                    </DialogContent>
-                </Dialog>
+                                </ResponsiveDialogClose>
+                            </ResponsiveDialogFooter>
+                        )}
+                    </Form>
+                </ResponsiveDialog>
             )}
         </div>
     );

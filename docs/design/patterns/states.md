@@ -4,7 +4,7 @@ Use whenever a region of a page has nothing to show, failed to load, or is still
 
 | State | Component | Content |
 | --- | --- | --- |
-| Empty | `EmptyState` | one short line in `text-muted-foreground` saying what is missing ("You have no tasks yet."), and, when the user can create it, the create button |
+| Empty | `EmptyState` | one short line in `text-muted-foreground` saying what is missing ("You have no tasks yet."); the create button only when the page has none elsewhere (list.md keeps it in the header) |
 | Loading | `LoadingState` | `Skeleton` shaped like what is coming: rows for a list, a block for a card |
 | Error | `ErrorState` | what went wrong and how to fix it, and a retry `Button` when trying again can help |
 

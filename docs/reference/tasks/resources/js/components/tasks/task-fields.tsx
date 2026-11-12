@@ -1,6 +1,5 @@
-import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import type { Task } from '@/types/task';
 
 type TaskFieldsProps = {
@@ -9,7 +8,7 @@ type TaskFieldsProps = {
 };
 
 /**
- * The task form fields, shared by the create form and the edit form.
+ * The task form fields, shared by the create and the edit dialog.
  * Validation lives in the FormRequest; this only shows the server's errors.
  */
 export default function TaskFields({ task, errors }: TaskFieldsProps) {
@@ -17,8 +16,11 @@ export default function TaskFields({ task, errors }: TaskFieldsProps) {
 
     return (
         <>
-            <div className="grid gap-2">
-                <Label htmlFor={`${idPrefix}-title`}>Title</Label>
+            <FormField
+                label="Title"
+                htmlFor={`${idPrefix}-title`}
+                error={errors.title}
+            >
                 <Input
                     id={`${idPrefix}-title`}
                     name="title"
@@ -26,19 +28,20 @@ export default function TaskFields({ task, errors }: TaskFieldsProps) {
                     required
                     maxLength={255}
                 />
-                <InputError message={errors.title} />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-                <Label htmlFor={`${idPrefix}-due-on`}>Due date</Label>
+            <FormField
+                label="Due date"
+                htmlFor={`${idPrefix}-due-on`}
+                error={errors.due_on}
+            >
                 <Input
                     id={`${idPrefix}-due-on`}
                     name="due_on"
                     type="date"
                     defaultValue={task?.due_on ?? ''}
                 />
-                <InputError message={errors.due_on} />
-            </div>
+            </FormField>
         </>
     );
 }
