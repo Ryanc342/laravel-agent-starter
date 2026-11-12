@@ -1,0 +1,100 @@
+# Frontend design v2, batch 1: the spec, the new look and the common admin pages
+
+## Purpose
+Give the template a complete default frontend spec, so the AI builds screens that need little rework: a four-layer spec (style, foundations, components, page patterns), the new "clean and bright" look applied to every existing screen, and the first 9 page patterns. This is batch 1 of 3; batches 2 and 3 get their own plans after this one is accepted.
+
+## Agreed decisions
+Structure (the frozen blueprint, version 3, agreed 2026-11-13):
+1. The spec has four layers: style, foundations, components, page patterns.
+2. DESIGN.md becomes short: the style, plus an index saying which file to read for which task. Every page change reads it (AGENTS.md points to it). The details live in `docs/design/foundations.md`, `docs/design/components.md` and `docs/design/patterns/<pattern>.md`, read only when the task needs them.
+3. Every value (colour, radius, font, spacing scale) is defined once, in `resources/css/app.css`. The spec files name tokens and say when to use them; they never repeat a value. DESIGN.md therefore drops the YAML token block of Google's DESIGN.md format.
+4. `docs/design/components.md` says which component and variant to use for what. It does not describe how to build a component.
+5. Every pattern gets a demo, and the patterns are made as complete as possible. A page with no pattern is built freely by the AI and the user adds its pattern later; there is no fallback rule.
+6. A style overview page, open only in development, shows the tokens, components, states and pattern demos.
+7. Screenshot checks and the reviewer stay; the reviewer also compares a changed page with the overview page.
+
+Answers from the grilling (40 questions in 3 rounds, 2026-11-13):
+8. Q1: the template serves internal daily-use systems and customer-facing pages.
+9. Q2: desktop and phone are equally important.
+10. Q3, Q29, Q30: screens must hold English and Chinese text (font with a CJK fallback, room for longer and shorter labels). The default UI language stays English. The language switch itself is a separate request, not part of these plans.
+11. Q4: a project rebrands by changing only the primary colour and the logo. Q40: the default logo stays Laravel's.
+12. Q5: spec files are written in English.
+13. Q6: style direction B, "clean and bright": white surfaces, one blue primary colour, generous whitespace. Q23: customer pages use the same style.
+14. Q7: density is roomy, larger than today's compact sizes.
+15. Q8: the default appearance follows the system; light and dark both stay.
+16. Q9: the primary colour is blue (exact light and dark values are set in M3).
+17. Q10: font Instrument Sans (unchanged).
+18. Q11: radius small, 4 / 6 / 8px (unchanged).
+19. Q12: flat; borders separate things and only floating layers (dropdown, popover, dialog, sheet) have a shadow.
+20. Q13: subtle motion: quick transitions on hover, open, close and expand; nothing moves when the user asks for reduced motion.
+21. Q14: copy is short and direct.
+22. Q15: tables have horizontal row lines only.
+23. Q16: status badges have a solid fill.
+24. Q17: form labels sit to the left of the input; on a phone they move above it.
+25. Q18: the sidebar is light grey.
+26. Q19, Q24, Q36: 27 patterns in three batches. Batch 1: list, detail, form, empty / error / loading, dashboard, settings, feed, login / register, no permission / 404. Batch 2: search results, multi-step wizard, approval flow, list beside detail, detail with tabs, bulk actions, import / export, print page (invoice, receipt), charts and reports, calendar, kanban. Batch 3 (customer pages): home / landing, pricing, product or service page, customer self-service area, order / checkout, help / FAQ, contact form.
+27. Q20, Q28: creating and editing a record opens a dialog, however long the form. Q27: on a phone a dialog slides up from the bottom at full width.
+28. Q21: list filters sit in one row above the table.
+29. Q22: after login the user lands on the dashboard. Q35: the template's own dashboard shows only real things: the latest notifications and quick links.
+30. Q25: on a phone a table becomes one card per row.
+31. Q26: on a phone the sidebar collapses and slides out from a button (unchanged).
+32. Q31 and the note "all messages become sonner toasts": messages shown on the page in an Alert become sonner toasts. Field errors stay next to the field and delete confirmation stays a dialog. Action results and network errors are toasts already.
+33. Q32: three batches, each with its own plan.
+34. Q33: pattern demos are frontend code. A demo component takes its data only through props; the overview page passes the example data in. Patterns that already have a working sample (list, detail and form in `docs/reference/tasks`, feed in notifications, settings) keep it, restyled, and their pattern file points to it.
+35. Q34: recharts, react-day-picker and dnd-kit may be installed; they belong to batch 2. Batch 1 adds no package.
+36. Q37: large headings are allowed only on the home / landing and pricing pages (batch 3); everywhere else the page title is at most 20px. Q38: customer pages use a top navigation bar (batch 3). Q39: `/` becomes a home page in the new style in batch 3; until then it stays as it is.
+
+## Milestones
+- [x] M1 Spec files: rewrite DESIGN.md (style + index, no values); add `docs/design/foundations.md`, `docs/design/components.md` and one file per batch-1 pattern in `docs/design/patterns/`. Each pattern file names its demo or working sample. + DocsTest stays green.
+- [ ] M2 Rules wiring: update `docs/rules/visual-design.md`, `docs/rules/frontend.md`, principle 10 in `docs/golden-principles.md` (rules for decisions 13 to 32, two tags each), the AGENTS.md table and docs map (AGENTS.md has 91 of its 100 lines), ARCHITECTURE.md, `docs/prompts/review.md` step 5 (also compare with the overview page) and `docs/workflow.md` where it names DESIGN.md. Add `docs/design/` to the protected files in `scripts/hooks/finish-check.php`. + FinishCheckTest case for `docs/design/`, DocsTest.
+- [ ] M3 Theme: new light and dark tokens in `resources/css/app.css` for direction B (blue primary, white surfaces, light grey sidebar, status colours readable on both themes). Remove the raw colours, arbitrary sizes and `dark:` overrides outside `components/ui` (dashboard placeholder, `text-link.tsx`, `two-factor-challenge.tsx`, the `uppercase` label in `passkey-verify.tsx`). + existing tests; screenshots of every page in light and dark.
+- [ ] M4 Roomy density in `components/ui`: heights and padding of button, input, select, table cells, dialog, sheet, sidebar items, badge; quick transitions with a reduced-motion guard. + existing tests.
+- [ ] M5 Roomy density in layouts and pages: page padding, gaps and section spacing in the layouts and the 13 pages; headings at most 20px. + existing tests; screenshots at 1280px and 390px.
+- [ ] M6 Shared building blocks in `components/shared`: a dialog that becomes a full-width bottom sheet on a phone; a form field row with the label on the left that moves above on a phone; a table that becomes one card per row on a phone; empty, error and loading states. Replace `AlertError` in the two-factor components with a toast. + Vitest tests for each building block.
+- [ ] M7 Reference feature (`docs/reference/tasks`): create and edit in the responsive dialog, fields in the new field row, the task table as cards on a phone. + its existing tests, `composer check:reference`.
+- [ ] M8 Dashboard: replace the placeholder with the latest notifications (the existing optional `latestNotifications` shared prop, loaded like the bell) and quick links; DESIGN.md and its pattern file say the user lands here after login. + DashboardTest.
+- [ ] M9 Error pages: 403, 404, 500 and 503 render one Inertia error page in the new style (`bootstrap/app.php`); the login and register pages follow the login / register pattern. + feature tests for 403 and 404 responses.
+- [ ] M10 Style overview page: a development-only page showing tokens, every `components/ui` and `components/shared` component with its variants and states, and a demo of each batch-1 pattern fed with example data through props. Unreachable outside the local environment, without breaking Wayfinder generation in CI. + feature test for local and production.
+- [ ] M11 Public docs and final checks: README.md and README.zh-CN.md (the DESIGN.md section), a CHANGELOG entry, docs/QUALITY.md; full `composer check` and `composer check:reference`; Playwright pass over every changed page.
+- [ ] M12 Review and report: reviewer rounds (at most 3), fix P0 and P1, report, archive this plan.
+
+## Validation
+- Per milestone: `composer check:milestone -- <affected test paths>` passes; record the scope and the reason.
+- M1, M2: `tests/Structure/DocsTest.php` (AGENTS.md at most 100 lines, every docs path it mentions exists, every principle rule has its two tags) and `tests/Unit/Hooks/FinishCheckTest.php` (the new case for `docs/design/`).
+- M3: no default-palette class (`bg-blue-500` and the like), arbitrary size or `dark:` colour override remains outside `components/ui`, except the white QR code background in `two-factor-setup-step.tsx`, which phones need to scan it; checked with a search recorded in Progress.
+- M6: Vitest tests show the dialog as a bottom sheet and the label above the input at phone width, the table as cards at phone width, and a toast instead of the Alert for a two-factor loading error.
+- M7: `composer check:reference` passes after the reference feature changes.
+- M8: DashboardTest; the dashboard shows the latest notifications and the quick links, with no made-up numbers.
+- M9: feature tests: a missing page returns 404 with the error page component; a forbidden action returns 403 with it.
+- M10: feature test: the overview page responds in the local environment and returns 404 in production.
+- UI: every changed page is opened with the isolated headless Playwright MCP at 1280px and 390px and once in dark mode, and checked against principle 10 and the overview page. The reference feature's pages are checked in a copy with the reference feature added, as `composer check:reference` builds it.
+- Final implementation: full `composer check` and `composer check:reference` pass, repeated after any later code change. Rules, docs and shared components change, so the full checks also run after M2 and M6.
+- No package is added or upgraded in this batch.
+
+## Progress
+- 2026-11-13 04:15 MYT: Grilling finished: 3 rounds, 40 answers, collected on the user's Q&A page; the decisions are recorded above. Plan written. Waiting for the user's start and approval of the protected files listed in the Decision Log.
+- 2026-11-13 04:14 MYT: The user said "开始". M1 done on branch `frontend-design-v2-batch-1`: DESIGN.md rewritten (style and index, no values, no YAML block); added `docs/design/foundations.md`, `docs/design/components.md` and nine files in `docs/design/patterns/` (list, detail, form, states, dashboard, settings, feed, auth, error-page). 0 tests written first: documentation only, no behaviour to test. Scope: `tests/Structure/DocsTest.php` and `tests/Structure/FoldersTest.php` (the structure tests that read DESIGN.md's neighbours: AGENTS.md line count, docs paths, plan sections, principle tags; docs holds only Markdown). Command: `composer check:milestone -- tests/Structure/DocsTest.php tests/Structure/FoldersTest.php`, passed (16 tests; Pint, PHPStan, oxlint, tsc clean). Value search of DESIGN.md and docs/design: no colour, radius or font value; only the 20px page-title limit and the 390px phone width, which are rules. Milestone pass only, not a full-suite pass.
+
+## Surprises & Discoveries
+- The template's own code already breaks the current DESIGN.md: the dashboard placeholder (`rounded-xl`, `dark:border-sidebar-border`, `min-h-[100vh]`, three identical placeholder cards as the opener), `text-link.tsx` and `two-factor-challenge.tsx` (`decoration-neutral-*` with a `dark:` override), and `passkey-verify.tsx` (`uppercase`). The AI copies existing code, so M3 removes these.
+- All 18 `ui` rules of principle 10 are `[review]`; no machine check enforces them. This plan does not add one, because the user did not ask for it.
+- DESIGN.md's YAML block repeats the values of `app.css`, and nothing checks that the two agree. Decision 3 removes the copy.
+- `latestNotifications` is already an optional shared prop (`HandleInertiaRequests`), so the dashboard needs no new backend data.
+- The sidebar footer still links to Laravel's starter kit repository and documentation. Not part of this plan; a question for the user.
+- The `Alert` component is used only by `AlertError`, which the two two-factor components show when loading the QR code or the recovery codes fails.
+- The default appearance is already `system` (`use-appearance.tsx`, `app.blade.php`), so decision 15 needs no code change. `home` in `config/fortify.php` is already `/dashboard`, so decision 29 needs no change there either.
+- The pattern files name files that do not exist yet: nine demos in `resources/js/components/style/` (M10) and, after M8 and M9, the dashboard and error page samples. M8, M9 and M10 must update the pattern files to the real paths. No check reads `docs/design/` paths today.
+- Existing dialogs (`delete-user`, `two-factor-setup-modal`, the passkey components) use the plain `Dialog`. Decision 27 says a dialog slides up from the bottom on a phone, so they need `ResponsiveDialog` too. See the open point in the Decision Log.
+- The login page shows the server's `status` text as a line of `text-success`, not an `Alert`. Decision 32 does not cover it, so it stays as it is.
+
+## Decision Log
+- 2026-11-13: The user ran the grilling on a Q&A page instead of chat questions; all answers are recorded in Agreed decisions.
+- 2026-11-13: Protected files this plan changes, awaiting the user's approval at start: DESIGN.md, AGENTS.md, ARCHITECTURE.md, docs/golden-principles.md, docs/rules/visual-design.md, docs/rules/frontend.md, docs/workflow.md, docs/prompts/review.md, docs/reference/tasks/, scripts/hooks/finish-check.php, tests/Unit/Hooks/FinishCheckTest.php, and the new docs/design/ files. Ask before touching any other protected file.
+- 2026-11-13: The user said "开始" on this plan. I take that as the start and as approval of exactly the protected files listed in the entry above; any other protected file still needs a new question.
+- 2026-11-13: Names chosen in M1, so the spec and the later milestones agree: shared building blocks `ResponsiveDialog`, `FormField`, `ResponsiveTable`, `EmptyState`, `ErrorState`, `LoadingState` in `resources/js/components/shared/` (M6); demos `resources/js/components/style/<pattern>-demo.tsx` and the overview page at `/style` (M10). If a later milestone needs another name, it changes the spec files in the same commit.
+- 2026-11-13: Detail in the auth pattern the user did not state: on login and register the label sits above the input even on desktop, because the auth column is narrow; decision 24 (label left) applies everywhere else. To confirm in the final report.
+- 2026-11-13: Detail in the list pattern the user did not state: the filter row (decision 28) wraps onto more lines on a phone. To confirm in the final report.
+- 2026-11-13: Open point for the user, not blocking M2 to M5: M6 is written for the new building blocks only. Should M6 also switch the existing dialogs (`delete-user`, `two-factor-setup-modal`, the passkey components) to `ResponsiveDialog`? Recommended: yes, since the Purpose says the new look reaches every existing screen and decision 27 says a dialog slides up on a phone.
+
+## Outcomes & Retrospective
+To be filled in at the end.
