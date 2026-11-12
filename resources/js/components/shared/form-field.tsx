@@ -13,6 +13,8 @@ type Props = {
     hideLabel?: boolean;
     /** Keep the label above the input on desktop too: for narrow columns such as the sign-in pages. */
     stacked?: boolean;
+    /** A link beside the label, at its far end ("Forgot your password?"). The field is stacked then. */
+    labelAction?: ReactNode;
     className?: string;
     children: ReactNode;
 };
@@ -27,11 +29,21 @@ export default function FormField({
     error,
     hideLabel = false,
     stacked = false,
+    labelAction,
     className,
     children,
 }: Props) {
     const isMobile = useIsMobile();
-    const row = !stacked && !hideLabel && !isMobile;
+    const row = !stacked && !hideLabel && !isMobile && !labelAction;
+
+    const labelElement = (
+        <Label
+            htmlFor={htmlFor}
+            className={cn(hideLabel && 'sr-only', row && 'col-span-1 pt-2.5')}
+        >
+            {label}
+        </Label>
+    );
 
     return (
         <div
@@ -41,15 +53,14 @@ export default function FormField({
                 className,
             )}
         >
-            <Label
-                htmlFor={htmlFor}
-                className={cn(
-                    hideLabel && 'sr-only',
-                    row && 'col-span-1 pt-2.5',
-                )}
-            >
-                {label}
-            </Label>
+            {labelAction ? (
+                <div className="flex items-center justify-between gap-2">
+                    {labelElement}
+                    {labelAction}
+                </div>
+            ) : (
+                labelElement
+            )}
             <div className={cn('grid gap-2', row && 'col-span-2')}>
                 {children}
                 <InputError message={error} />

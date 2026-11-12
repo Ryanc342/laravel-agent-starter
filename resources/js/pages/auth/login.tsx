@@ -1,7 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
 import PasskeyVerify from '@/components/users/passkey-verify';
 import PasswordInput from '@/components/password-input';
+import FormField from '@/components/shared/form-field';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -32,8 +32,12 @@ export default function Login({ status, canResetPassword }: Props) {
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                            <FormField
+                                label="Email address"
+                                htmlFor="email"
+                                error={errors.email}
+                                stacked
+                            >
                                 <Input
                                     id="email"
                                     type="email"
@@ -44,22 +48,25 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
-                            </div>
+                            </FormField>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
+                            <FormField
+                                label="Password"
+                                htmlFor="password"
+                                error={errors.password}
+                                stacked
+                                labelAction={
+                                    canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="text-sm"
                                             tabIndex={5}
                                         >
                                             Forgot your password?
                                         </TextLink>
-                                    )}
-                                </div>
+                                    )
+                                }
+                            >
                                 <PasswordInput
                                     id="password"
                                     name="password"
@@ -68,8 +75,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoComplete="current-password"
                                     placeholder="Password"
                                 />
-                                <InputError message={errors.password} />
-                            </div>
+                            </FormField>
 
                             <div className="flex items-center space-x-3">
                                 <Checkbox

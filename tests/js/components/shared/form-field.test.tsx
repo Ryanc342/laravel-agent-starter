@@ -84,3 +84,18 @@ test('no error, no error text', () => {
 
     expect(container.querySelector('p')).toBeNull();
 });
+
+test('a link beside the label stays on the label row, and the field is stacked even on desktop', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    render(field({ labelAction: <a href="/forgot">Forgot it?</a> }));
+    const input = screen.getByLabelText('Title');
+    const action = screen.getByText('Forgot it?');
+    const label = screen.getByText('Title');
+
+    expect(layoutOf(input)).toBe('stacked');
+    expect(label.parentElement).toBe(action.parentElement);
+    expect(
+        label.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+});

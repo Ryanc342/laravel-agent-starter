@@ -6,14 +6,14 @@ Use for every page a signed-out person sees to get in: login, register, forgot a
 
 1. The auth layout: one centred column on the page background, with the logo above the title. The default logo is Laravel's; a project replaces it.
 2. The title on one line, in page-title size. A description only when the title alone is unclear or the user must take a step.
-3. The form: fields stacked with the label above each input, because the column is narrow (the one place a label does not sit on the left on desktop). `InputError` under each field.
+3. The form: every field is a `FormField` with `stacked`, the label above the input because the column is narrow (the one place a label does not sit on the left on desktop); it shows its own error under the input. A link that belongs to one field (login's "Forgot your password?") goes on that field's label row, on the right (`labelAction`), not under the form.
 4. One main `Button` at the full width of the column, last ("Log in", "Create account"), disabled with a `Spinner` while sending.
-5. Links under the form as `TextLink` ("Forgot your password?", "Sign up").
+5. Links to other pages under the form as `TextLink` ("Sign up", "Log in").
 
 ## Rules
 
 - After login the user lands on the dashboard (dashboard.md).
-- Field errors show next to the field (`InputError`). Network errors are toasts.
+- Field errors show under the field (`FormField` draws them with `InputError`); a page never writes its own label, input and error trio. Network errors are toasts.
 - Passkey sign-in and the "Remember me" `Checkbox` stay where the sample puts them.
 
 ## Phone

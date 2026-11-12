@@ -22,7 +22,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 
 ## Type
 
-- One family, `font-sans` (Instrument Sans, with a CJK fallback in the stack), loaded by the `fonts` list in vite.config.ts.
+- One family, `font-sans`: the stack is defined once in app.css (with a CJK fallback) and its web font is loaded by the `fonts` list in vite.config.ts. A project changes the family in those two places only.
 
 | Role | Use |
 | --- | --- |

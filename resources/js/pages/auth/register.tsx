@@ -1,9 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import NewPasswordFields from '@/components/users/new-password-fields';
 import { login } from '@/routes';
@@ -26,8 +25,12 @@ export default function Register({ passwordRules }: Props) {
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                            <FormField
+                                label="Name"
+                                htmlFor="name"
+                                error={errors.name}
+                                stacked
+                            >
                                 <Input
                                     id="name"
                                     type="text"
@@ -37,14 +40,14 @@ export default function Register({ passwordRules }: Props) {
                                     name="name"
                                     placeholder="Full name"
                                 />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
-                            </div>
+                            </FormField>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                            <FormField
+                                label="Email address"
+                                htmlFor="email"
+                                error={errors.email}
+                                stacked
+                            >
                                 <Input
                                     id="email"
                                     type="email"
@@ -53,8 +56,7 @@ export default function Register({ passwordRules }: Props) {
                                     name="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
-                            </div>
+                            </FormField>
 
                             <NewPasswordFields
                                 passwordRules={passwordRules}

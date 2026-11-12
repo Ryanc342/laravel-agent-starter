@@ -3,11 +3,10 @@ import {
     index as confirmOptions,
     store as confirmStore,
 } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
-import InputError from '@/components/input-error';
-import PasskeyVerify from '@/components/users/passkey-verify';
 import PasswordInput from '@/components/password-input';
+import FormField from '@/components/shared/form-field';
+import PasskeyVerify from '@/components/users/passkey-verify';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 
@@ -29,8 +28,12 @@ export default function ConfirmPassword() {
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                        <FormField
+                            label="Password"
+                            htmlFor="password"
+                            error={errors.password}
+                            stacked
+                        >
                             <PasswordInput
                                 id="password"
                                 name="password"
@@ -38,9 +41,7 @@ export default function ConfirmPassword() {
                                 autoComplete="current-password"
                                 autoFocus
                             />
-
-                            <InputError message={errors.password} />
-                        </div>
+                        </FormField>
 
                         <div className="flex items-center">
                             <Button
