@@ -82,6 +82,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | `docs/workflow.md`                        | Grilling format, plan, build, review, report                             |
 | `docs/PLANS.md`, `docs/exec-plans/`       | How to write a plan; active and completed plans; tech debt               |
 | `docs/rules/`                             | Detailed rules per folder (actions, controllers, models, frontend, tests) |
+| `DESIGN.md`, `docs/design/`               | How the app looks: the style, foundations, components and one file per page pattern |
 | `docs/reference/tasks/`                   | A complete reference feature the AI copies the structure from            |
 | `docs/golden-principles.md`, `docs/QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
 | `phpstan.neon`, `lint/phpstan/`           | PHP linter rules: forbidden calls and layers, class shapes, scopes, companion files |
@@ -109,9 +110,9 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (a test checks it): add details to `docs/`, not to the map. When a structure rule is broken twice, turn it into a check (`phpstan.neon`, `lint/phpstan/`, `lint/oxlint/ezdev.js` or `tests/Structure/`) with an error message that says what to do instead; business rules stay with the reviewer. The weekly cleanup lists gaps in the checks and rules to merge or remove; you decide, and a check only ever gets stricter. After changing rules or tooling, run `composer check:reference`.
 
-## DESIGN.md: how the app looks
+## Design: how the app looks
 
-The template ships a `DESIGN.md` for a quiet work tool, in Google's open DESIGN.md format: exact values (colors, type, corners, spacing) at the top, then eight sections that explain them, ending with Do's and Don'ts. Its values are the theme in `resources/css/app.css`. The AI follows it on every page and looks at the page at desktop and phone width; the reviewer opens the changed pages, takes screenshots and checks them against the `ui` rules (principle 10). For a project with its own brand, replace the file and keep its section order; it is protected, so the AI asks you first. Details: `docs/rules/visual-design.md`.
+The template ships a design for a clean and bright work tool, in four layers that the AI reads only as far as the task needs: `DESIGN.md` (the style, and an index of which file to read for which task), `docs/design/foundations.md` (colour, type, space, messages), `docs/design/components.md` (which component for which need) and `docs/design/patterns/` (one file per kind of page: list, detail, form, empty / error / loading states, dashboard, settings, feed, login and register, error pages). The values are the theme in `resources/css/app.css`, not text in the documents. Every pattern has a demo: in development, open `/style` to see the tokens, the components and the pattern demos (it answers 404 outside the local environment). The AI follows the patterns and looks at each changed page at desktop and phone width and in light and dark mode; the reviewer compares it with the style overview page and checks the `ui` rules (principle 10). For a project with its own brand, change `DESIGN.md` and the theme tokens; they are protected, so the AI asks you first. Details: `docs/rules/visual-design.md`.
 
 ## Based on
 

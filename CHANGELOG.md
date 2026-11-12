@@ -2,6 +2,25 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [1.2.0] - 2026-11-13
+
+Frontend design, batch 1: a clean and bright look, a design spec in four layers, and the first nine page patterns.
+
+### Added
+
+- `docs/design/`: foundations (colour, type, space, messages), components (which component for which need) and nine pattern files (list, detail, form, empty / error / loading states, dashboard, settings, feed, login and register, error pages). `DESIGN.md` is now the style and an index of which file to read for which task, with no values: the values are the theme in `resources/css/app.css`.
+- A style overview page at `/style` with the tokens, every used `components/ui` component, the shared blocks and one demo per pattern, fed with example data through props. It is development only: `OnlyInLocalEnvironment` answers 404 elsewhere, and the route stays registered so Wayfinder generates the same routes in every environment.
+- Shared blocks in `components/shared`: `ResponsiveDialog` (a centred dialog, a sheet from the bottom on a phone), `FormField` (label on the left, above on a phone), `ResponsiveTable` (cards on a phone), `EmptyState`, `ErrorState`, `LoadingState`, `FeedRow`, `QuickLinks` and `ErrorContent`; the hook `useErrorsToast`.
+- One Inertia error page, `errors/show`, for 403, 404, 500 and 503, rendered from `bootstrap/app.php` (never for JSON; a 500 keeps Laravel's page while `APP_DEBUG` is on).
+- The dashboard shows the latest notifications and quick links instead of placeholders.
+
+### Changed
+
+- Theme: a blue primary, white surfaces, a light sidebar; `components/ui` is roomier, flat (no soft shadows) and quick, and respects reduced motion; pages have larger padding and gaps.
+- Principle 10 holds 28 `ui` rules, each tagged for the reviewer; `docs/design/` is a protected path of the finish check; the review compares a changed page with `/style` and looks at it at 1280px, 390px and in dark mode.
+- Existing dialogs, settings forms and sign-in pages use the new blocks; two-factor loading errors are toasts, so `alert-error.tsx` is gone. A long record title no longer wraps the breadcrumb in the top bar.
+- The reference feature creates and edits in one `TaskFormDialog`, and its list is cards on a phone.
+
 ## [1.1.0] - 2026-11-10
 
 Public Composer package release; the older 2.x entries below describe the template's history before its public 1.0 release.
