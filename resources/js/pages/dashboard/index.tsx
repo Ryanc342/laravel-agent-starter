@@ -6,8 +6,8 @@ export default function Dashboard() {
     return (
         <>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
+                <div className="grid auto-rows-min gap-6 md:grid-cols-3">
                     <div className="relative aspect-video overflow-hidden rounded-lg border border-border">
                         <PlaceholderPattern className="absolute inset-0 size-full stroke-foreground/20" />
                     </div>

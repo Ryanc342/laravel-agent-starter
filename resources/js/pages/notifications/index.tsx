@@ -20,7 +20,7 @@ export default function Notifications({
         <>
             <Head title="Notifications" />
 
-            <div className="flex flex-col gap-6 p-4">
+            <div className="flex flex-col gap-8 p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title="Notifications" />
 
@@ -35,7 +35,7 @@ export default function Notifications({
                     </p>
                 ) : (
                     <>
-                        <ul className="grid gap-2">
+                        <ul className="grid gap-3">
                             {notifications.data.map((notification) => (
                                 <NotificationRow
                                     key={notification.id}
