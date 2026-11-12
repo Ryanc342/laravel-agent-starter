@@ -6,8 +6,8 @@ The page the user lands on after login (`/dashboard`, set by `home` in config/fo
 
 1. Header row: `<Heading>` "Dashboard".
 2. Blocks, each with a `<Heading variant="small">` and no description. On desktop they sit side by side, the wider one for the feed and the narrower one for the quick links; on a phone they stack in the same order.
-    - Latest notifications: the newest rows (feed.md) and a link to the notifications page. `EmptyState` when there are none.
-    - Quick links: one row per main page of the app (the destinations of the sidebar's main items), each an icon and the page name as a link.
+    - Latest notifications: the newest rows (feed.md) and a link to the notifications page. They load after the page opens, like the bell's (`LoadingState` while waiting); `EmptyState` when there are none.
+    - Quick links: one row per page the user comes back to, each an icon and the page name as a link. The dashboard itself is not listed, and a project adds its main pages as it grows.
 
 ## Rules
 
@@ -21,4 +21,4 @@ A block with nothing in it uses `EmptyState`; a block that failed to load uses `
 
 ## Sample and demo
 
-The page is `resources/js/pages/dashboard/index.tsx`; its notification rows are `resources/js/components/notifications/notification-row.tsx`. Demo: `resources/js/components/style/dashboard-demo.tsx`.
+The page is `resources/js/pages/dashboard/index.tsx`; its blocks are `resources/js/components/notifications/latest-notifications.tsx` (loading, empty and error states included; its rows are `notification-row.tsx`) and `resources/js/components/dashboard/quick-links.tsx`. Demo: `resources/js/components/style/dashboard-demo.tsx`.
