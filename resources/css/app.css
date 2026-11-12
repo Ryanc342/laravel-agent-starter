@@ -167,3 +167,19 @@
         @apply bg-background text-foreground;
     }
 }
+
+/*
+ * Motion is a quick transition on hover, open, close and expand. When the
+ * user asks for reduced motion, nothing moves: transitions and animations
+ * (dialog, sheet, dropdown, caret blink) finish at once.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
