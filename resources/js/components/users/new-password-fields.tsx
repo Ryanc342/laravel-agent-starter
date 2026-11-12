@@ -1,30 +1,36 @@
 import type { Ref } from 'react';
-import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
-import { Label } from '@/components/ui/label';
+import FormField from '@/components/shared/form-field';
 
 /**
  * A new password and its confirmation, as the register, reset-password and
  * security pages ask for them. The browser gets the server's password rules
- * (passwordRules) for its password generator.
+ * (passwordRules) for its password generator. `stacked` keeps the labels above
+ * the inputs, for the narrow sign-in column.
  */
 export default function NewPasswordFields({
     passwordRules,
     errors,
     label = 'Password',
     autoFocus = false,
+    stacked = false,
     passwordRef,
 }: {
     passwordRules: string;
     errors: { password?: string; password_confirmation?: string };
     label?: string;
     autoFocus?: boolean;
+    stacked?: boolean;
     passwordRef?: Ref<HTMLInputElement>;
 }) {
     return (
         <>
-            <div className="grid gap-2">
-                <Label htmlFor="password">{label}</Label>
+            <FormField
+                label={label}
+                htmlFor="password"
+                error={errors.password}
+                stacked={stacked}
+            >
                 <PasswordInput
                     id="password"
                     ref={passwordRef}
@@ -35,11 +41,14 @@ export default function NewPasswordFields({
                     placeholder={label}
                     passwordrules={passwordRules}
                 />
-                <InputError message={errors.password} />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-                <Label htmlFor="password_confirmation">Confirm password</Label>
+            <FormField
+                label="Confirm password"
+                htmlFor="password_confirmation"
+                error={errors.password_confirmation}
+                stacked={stacked}
+            >
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
@@ -48,8 +57,7 @@ export default function NewPasswordFields({
                     placeholder="Confirm password"
                     passwordrules={passwordRules}
                 />
-                <InputError message={errors.password_confirmation} />
-            </div>
+            </FormField>
         </>
     );
 }

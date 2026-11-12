@@ -2,11 +2,10 @@ import { Form, Head, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/users/delete-user';
 import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
@@ -46,44 +45,36 @@ export default function Profile({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-
+                            <FormField
+                                label="Name"
+                                htmlFor="name"
+                                error={errors.name}
+                            >
                                 <Input
                                     id="name"
-                                    className="mt-1 block w-full"
                                     defaultValue={auth.user.name}
                                     name="name"
                                     required
                                     autoComplete="name"
                                     placeholder="Full name"
                                 />
+                            </FormField>
 
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-
+                            <FormField
+                                label="Email address"
+                                htmlFor="email"
+                                error={errors.email}
+                            >
                                 <Input
                                     id="email"
                                     type="email"
-                                    className="mt-1 block w-full"
                                     defaultValue={auth.user.email}
                                     name="email"
                                     required
                                     autoComplete="username"
                                     placeholder="Email address"
                                 />
-
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.email}
-                                />
-                            </div>
+                            </FormField>
 
                             {emailNeedsVerification && (
                                 <div>

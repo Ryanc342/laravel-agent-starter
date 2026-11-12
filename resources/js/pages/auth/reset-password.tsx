@@ -46,6 +46,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             passwordRules={passwordRules}
                             errors={errors}
                             autoFocus
+                            stacked
                         />
 
                         <Button

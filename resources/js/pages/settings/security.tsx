@@ -2,7 +2,7 @@ import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import ManagePasskeys from '@/components/users/manage-passkeys';
 import type { Props as ManagePasskeysProps } from '@/components/users/manage-passkeys';
 import ManageTwoFactor from '@/components/users/manage-two-factor';
@@ -10,7 +10,6 @@ import type { Props as ManageTwoFactorProps } from '@/components/users/manage-tw
 import NewPasswordFields from '@/components/users/new-password-fields';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/security';
 
 type Props = {
@@ -55,22 +54,19 @@ export default function Security(props: Props) {
                 >
                     {({ errors, processing }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="current_password">
-                                    Current password
-                                </Label>
-
+                            <FormField
+                                label="Current password"
+                                htmlFor="current_password"
+                                error={errors.current_password}
+                            >
                                 <PasswordInput
                                     id="current_password"
                                     ref={currentPasswordInput}
                                     name="current_password"
-                                    className="mt-1 block w-full"
                                     autoComplete="current-password"
                                     placeholder="Current password"
                                 />
-
-                                <InputError message={errors.current_password} />
-                            </div>
+                            </FormField>
 
                             <NewPasswordFields
                                 passwordRules={props.passwordRules}

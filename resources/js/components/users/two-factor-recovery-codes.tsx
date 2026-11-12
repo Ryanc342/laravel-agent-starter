@@ -1,7 +1,7 @@
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import AlertError from '@/components/alert-error';
+import ErrorState from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { useErrorsToast } from '@/hooks/use-errors-toast';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
 
 type Props = {
@@ -26,6 +27,8 @@ export default function TwoFactorRecoveryCodes({
     const [codesAreVisible, setCodesAreVisible] = useState<boolean>(false);
     const codesSectionRef = useRef<HTMLDivElement | null>(null);
     const canRegenerateCodes = recoveryCodesList.length > 0 && codesAreVisible;
+
+    useErrorsToast(errors, 'two-factor-load-error');
 
     const toggleCodesVisibility = useCallback(async () => {
         if (!codesAreVisible && !recoveryCodesList.length) {
@@ -105,7 +108,10 @@ export default function TwoFactorRecoveryCodes({
                 >
                     <div className="mt-3 space-y-3">
                         {errors?.length ? (
-                            <AlertError errors={errors} />
+                            <ErrorState
+                                message="Could not load your recovery codes."
+                                onRetry={() => void fetchRecoveryCodes()}
+                            />
                         ) : (
                             <>
                                 <div

@@ -59,6 +59,7 @@ export default function Register({ passwordRules }: Props) {
                             <NewPasswordFields
                                 passwordRules={passwordRules}
                                 errors={errors}
+                                stacked
                             />
 
                             <Button

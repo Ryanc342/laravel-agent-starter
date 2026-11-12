@@ -1,9 +1,8 @@
 import { usePasskeyRegister } from '@laravel/passkeys/react';
 import { useState } from 'react';
-import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 type Props = {
     onSuccess: () => void;
@@ -53,23 +52,23 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
             onSubmit={handleSubmit}
             className="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
         >
-            <div className="grid gap-2">
-                <Label htmlFor="passkey-name">Passkey name</Label>
+            <FormField
+                label="Passkey name"
+                htmlFor="passkey-name"
+                error={error ?? undefined}
+            >
                 <Input
                     id="passkey-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g., MacBook Pro, iPhone"
-                    className="mt-1 block w-full border-foreground/20"
                     autoFocus
                 />
                 <p className="text-xs text-muted-foreground">
                     A name helps you identify this passkey later.
                 </p>
-            </div>
-
-            {error && <InputError message={error} />}
+            </FormField>
 
             <div className="flex gap-2">
                 <Button type="submit" disabled={isLoading || !name.trim()}>

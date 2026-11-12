@@ -1,9 +1,10 @@
 import { Check, Copy } from 'lucide-react';
-import AlertError from '@/components/alert-error';
+import ErrorState from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useClipboard } from '@/hooks/use-clipboard';
+import { useErrorsToast } from '@/hooks/use-errors-toast';
 
 /**
  * The first step of the setup dialog: the QR code and the setup key to copy.
@@ -25,10 +26,12 @@ export default function TwoFactorSetupStep({
     const [copiedText, copy] = useClipboard();
     const IconComponent = copiedText === manualSetupKey ? Check : Copy;
 
+    useErrorsToast(errors, 'two-factor-load-error');
+
     return (
         <>
             {errors?.length ? (
-                <AlertError errors={errors} />
+                <ErrorState message="Could not load the setup code. Close this window and try again." />
             ) : (
                 <>
                     <div className="mx-auto flex max-w-md overflow-hidden">

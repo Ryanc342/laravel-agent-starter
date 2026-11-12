@@ -1,16 +1,11 @@
 import { KeyRound, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import ResponsiveDialog, {
+    ResponsiveDialogClose,
+    ResponsiveDialogFooter,
+} from '@/components/shared/responsive-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
 import type { Passkey } from '@/types/auth';
 
 type Props = {
@@ -55,8 +50,8 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                 </div>
             </div>
 
-            <Dialog>
-                <DialogTrigger asChild>
+            <ResponsiveDialog
+                trigger={
                     <Button
                         variant="ghost"
                         size="sm"
@@ -65,28 +60,23 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Remove</span>
                     </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogTitle>Remove passkey</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to remove the "{passkey.name}"
-                        passkey? You will no longer be able to use it to sign
-                        in.
-                    </DialogDescription>
-                    <DialogFooter className="gap-2">
-                        <DialogClose asChild>
-                            <Button variant="secondary">Cancel</Button>
-                        </DialogClose>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                        >
-                            {isDeleting ? 'Removing...' : 'Remove passkey'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                }
+                title="Remove passkey"
+                description={`Are you sure you want to remove the "${passkey.name}" passkey? You will no longer be able to use it to sign in.`}
+            >
+                <ResponsiveDialogFooter>
+                    <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? 'Removing...' : 'Remove passkey'}
+                    </Button>
+                    <ResponsiveDialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </ResponsiveDialogClose>
+                </ResponsiveDialogFooter>
+            </ResponsiveDialog>
         </div>
     );
 }

@@ -1,12 +1,8 @@
 import { ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import ResponsiveDialog, {
+    ResponsiveDialogBody,
+} from '@/components/shared/responsive-dialog';
 import TwoFactorSetupStep from '@/components/users/two-factor-setup-step';
 import TwoFactorVerificationStep from '@/components/users/two-factor-verification-step';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
@@ -130,33 +126,30 @@ export default function TwoFactorSetupModal({
     }, [isOpen, qrCodeSvg]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader className="flex items-center justify-center">
-                    <GridScanIcon />
-                    <DialogTitle>{modalConfig.title}</DialogTitle>
-                    <DialogDescription className="text-center">
-                        {modalConfig.description}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="flex flex-col items-center space-y-5">
-                    {showVerificationStep ? (
-                        <TwoFactorVerificationStep
-                            onClose={handleClose}
-                            onBack={() => setShowVerificationStep(false)}
-                        />
-                    ) : (
-                        <TwoFactorSetupStep
-                            qrCodeSvg={qrCodeSvg}
-                            manualSetupKey={manualSetupKey}
-                            buttonText={modalConfig.buttonText}
-                            onNextStep={handleModalNextStep}
-                            errors={errors}
-                        />
-                    )}
-                </div>
-            </DialogContent>
-        </Dialog>
+        <ResponsiveDialog
+            open={isOpen}
+            onOpenChange={(open) => !open && handleClose()}
+            title={modalConfig.title}
+            description={modalConfig.description}
+            icon={<GridScanIcon />}
+            narrow
+        >
+            <ResponsiveDialogBody className="items-center">
+                {showVerificationStep ? (
+                    <TwoFactorVerificationStep
+                        onClose={handleClose}
+                        onBack={() => setShowVerificationStep(false)}
+                    />
+                ) : (
+                    <TwoFactorSetupStep
+                        qrCodeSvg={qrCodeSvg}
+                        manualSetupKey={manualSetupKey}
+                        buttonText={modalConfig.buttonText}
+                        onNextStep={handleModalNextStep}
+                        errors={errors}
+                    />
+                )}
+            </ResponsiveDialogBody>
+        </ResponsiveDialog>
     );
 }
