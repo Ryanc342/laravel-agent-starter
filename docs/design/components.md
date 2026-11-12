@@ -31,7 +31,7 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | Need | Use |
 | --- | --- |
 | A list of records | `ResponsiveTable` (`components/shared`): a `Table` on desktop, one card per row on a phone |
-| A stream of messages | rows like `NotificationRow` (patterns/feed.md) |
+| A stream of messages | `FeedRow` (`components/shared`), as `NotificationRow` uses it (patterns/feed.md) |
 | The facts of one record | a `dl`: `dt` in `text-muted-foreground`, `dd` the value |
 | A status | `Badge`: `secondary` a neutral state (open, draft), `success` done or paid, `warning` needs attention, `destructive` failed, overdue or an error. The text is the label the backend sends |
 | A user | `Avatar` |

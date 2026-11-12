@@ -25,4 +25,4 @@ The same column at full width with the page padding.
 
 ## Sample and demo
 
-Copy `resources/js/pages/errors/show.tsx` and `resources/js/components/errors/error-content.tsx`; the page is rendered from `bootstrap/app.php` (`$exceptions->respond`). Demo: `resources/js/components/style/error-page-demo.tsx`, shown on the style overview page.
+Copy `resources/js/pages/errors/show.tsx` and `resources/js/components/shared/error-content.tsx`; the page is rendered from `bootstrap/app.php` (`$exceptions->respond`). Demo: `resources/js/components/style/error-page-demo.tsx`, shown on the style overview page.

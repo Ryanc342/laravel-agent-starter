@@ -11,7 +11,7 @@ Use for a stream of messages the user reads and clears: notifications, activity,
 ## Rules
 
 - The message text and the flags that say whether a row's action is possible come from the backend; React shows them.
-- The same row component serves the page (the `list` variant) and the bell's `Popover` (the `menu` variant, the newest few rows).
+- The same row component serves the page (the `list` variant) and the bell's `Popover` (the `menu` variant, the newest few rows). `FeedRow` (`components/shared`) draws the row; a domain wraps it with its own action, as `NotificationRow` does.
 
 ## Phone
 
@@ -23,4 +23,4 @@ No messages: `EmptyState` ("You have no notifications."). Failed to load: `Error
 
 ## Sample and demo
 
-Copy `resources/js/pages/notifications/index.tsx` and `resources/js/components/notifications/notification-row.tsx`. Demo: `resources/js/components/style/feed-demo.tsx`.
+Copy `resources/js/pages/notifications/index.tsx`, `resources/js/components/notifications/notification-row.tsx` and the `FeedRow` it uses (`resources/js/components/shared/feed-row.tsx`). Demo: `resources/js/components/style/feed-demo.tsx`.

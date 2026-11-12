@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
-import ErrorContent from '@/components/errors/error-content';
-import type { ErrorStatus } from '@/components/errors/error-content';
+import ErrorContent from '@/components/shared/error-content';
+import type { ErrorStatus } from '@/components/shared/error-content';
 
 type ErrorPageProps = {
     status: ErrorStatus;

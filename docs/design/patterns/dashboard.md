@@ -21,4 +21,4 @@ A block with nothing in it uses `EmptyState`; a block that failed to load uses `
 
 ## Sample and demo
 
-The page is `resources/js/pages/dashboard/index.tsx`; its blocks are `resources/js/components/notifications/latest-notifications.tsx` (loading, empty and error states included; its rows are `notification-row.tsx`) and `resources/js/components/dashboard/quick-links.tsx`. Demo: `resources/js/components/style/dashboard-demo.tsx`.
+The page is `resources/js/pages/dashboard/index.tsx`; its blocks are `resources/js/components/notifications/latest-notifications.tsx` (loading, empty and error states included; its rows are `notification-row.tsx`) and `resources/js/components/shared/quick-links.tsx` (the page hands it the list of links). Demo: `resources/js/components/style/dashboard-demo.tsx`.
