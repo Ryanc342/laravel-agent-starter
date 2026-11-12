@@ -3,6 +3,8 @@ import { Bell } from 'lucide-react';
 import { useState } from 'react';
 import MarkAllReadButton from '@/components/notifications/mark-all-read-button';
 import NotificationRow from '@/components/notifications/notification-row';
+import EmptyState from '@/components/shared/empty-state';
+import LoadingState from '@/components/shared/loading-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +12,6 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
     Tooltip,
     TooltipContent,
@@ -80,15 +81,13 @@ export default function NotificationMenu() {
                 </div>
 
                 {latestNotifications === undefined ? (
-                    <div className="grid gap-3 p-4">
-                        <Skeleton className="h-10" />
-                        <Skeleton className="h-10" />
-                        <Skeleton className="h-10" />
+                    <div className="p-4">
+                        <LoadingState rows={3} />
                     </div>
                 ) : latestNotifications.length === 0 ? (
-                    <p className="px-4 py-6 text-sm text-muted-foreground">
-                        You have no notifications.
-                    </p>
+                    <div className="px-4 py-6">
+                        <EmptyState message="You have no notifications." />
+                    </div>
                 ) : (
                     <ul className="max-h-96 divide-y overflow-y-auto">
                         {latestNotifications.map((notification) => (

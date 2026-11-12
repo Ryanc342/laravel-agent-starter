@@ -55,7 +55,7 @@ class HandleInertiaRequests extends Middleware
                     'mark_all_read' => $user->can('markAllRead', Notification::class) && $user->hasUnreadNotifications(),
                 ],
             ],
-            // Sent only when the bell asks for it (router.reload({ only: ['latestNotifications'] })).
+            // Sent only when the bell or the dashboard block asks for it (router.reload({ only: ['latestNotifications'] })).
             'latestNotifications' => Inertia::optional(fn () => $user === null
                 ? []
                 : NotificationResource::collection(

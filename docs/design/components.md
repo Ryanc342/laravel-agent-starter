@@ -11,7 +11,7 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | A quiet action in a toolbar or a row | `Button` `ghost` |
 | A filled neutral action next to the main one | `Button` `secondary` |
 | The confirm button of something that cannot be undone | `Button` `destructive` |
-| An action that looks like text inside a sentence | `Button` `link` |
+| An action that looks like text inside a sentence | `Button` `link` with `size="inline"` (no height or padding of its own) |
 | An icon-only action | `Button` `icon` with a `Tooltip` and an `aria-label` |
 | A button that is sending | the same `Button`, `disabled`, with a `Spinner` |
 | Previous and next in a list | `Pagination` (`components/shared`) |

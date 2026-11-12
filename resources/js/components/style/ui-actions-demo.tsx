@@ -44,6 +44,12 @@ export default function UiActionsDemo() {
                 <Button size="sm">Small</Button>
                 <Button>Default</Button>
                 <Button size="lg">Large</Button>
+                <span className="text-sm text-muted-foreground">
+                    or in a sentence:{' '}
+                    <Button variant="link" size="inline">
+                        inline
+                    </Button>
+                </span>
             </Specimen>
 
             <Specimen label="Button states: disabled, and sending (disabled with a Spinner)">

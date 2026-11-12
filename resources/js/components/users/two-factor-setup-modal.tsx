@@ -7,32 +7,6 @@ import TwoFactorSetupStep from '@/components/users/two-factor-setup-step';
 import TwoFactorVerificationStep from '@/components/users/two-factor-verification-step';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 
-function GridScanIcon() {
-    return (
-        <div className="mb-3 rounded-full border border-border bg-card p-0.5">
-            <div className="relative overflow-hidden rounded-full border border-border bg-muted p-2.5">
-                <div className="absolute inset-0 grid grid-cols-5 opacity-50">
-                    {Array.from({ length: 5 }, (_, i) => (
-                        <div
-                            key={`col-${i + 1}`}
-                            className="border-r border-border last:border-r-0"
-                        />
-                    ))}
-                </div>
-                <div className="absolute inset-0 grid grid-rows-5 opacity-50">
-                    {Array.from({ length: 5 }, (_, i) => (
-                        <div
-                            key={`row-${i + 1}`}
-                            className="border-b border-border last:border-b-0"
-                        />
-                    ))}
-                </div>
-                <ScanLine className="relative z-20 size-6 text-foreground" />
-            </div>
-        </div>
-    );
-}
-
 type Props = {
     isOpen: boolean;
     onClose: () => void;
@@ -131,7 +105,7 @@ export default function TwoFactorSetupModal({
             onOpenChange={(open) => !open && handleClose()}
             title={modalConfig.title}
             description={modalConfig.description}
-            icon={<GridScanIcon />}
+            icon={<ScanLine className="size-6" />}
             narrow
         >
             <ResponsiveDialogBody className="items-center">

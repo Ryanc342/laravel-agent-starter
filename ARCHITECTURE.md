@@ -115,7 +115,7 @@ alone cannot, because it has only one record per user:
 | Bulk Action that reuses the single Action  | `MarkAllNotificationsRead` calls `MarkNotificationRead`                    |
 | State rule refused in the Action           | "already read" in `MarkNotificationRead`                                   |
 | `can.*` from the Policy and the model      | `NotificationResource` `can.mark_read`; the shared `notificationSummary.can.mark_all_read` |
-| Shared props; one loaded on demand         | `HandleInertiaRequests`: `notificationSummary` on every page, `latestNotifications` (`Inertia::optional`) when the bell opens |
+| Shared props; one loaded on demand         | `HandleInertiaRequests`: `notificationSummary` on every page, `latestNotifications` (`Inertia::optional`) when the bell opens or the dashboard block loads |
 | Button consistency test                    | `tests/Feature/Notifications/NotificationButtonsTest.php`                  |
 | Domain components                          | `resources/js/components/notifications/` (the bell in the top bar, the rows, the mark-all button) |
 | Paginated list                             | `NotificationController::index()`, `resources/js/components/shared/pagination.tsx` |

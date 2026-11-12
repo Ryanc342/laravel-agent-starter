@@ -19,14 +19,14 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
+        {{-- Paints the page before app.css loads. These two values repeat --background (in :root and in .dark) of resources/css/app.css; change them together (tests/js/theme-background.test.ts checks). --}}
         <style>
             html {
                 background-color: oklch(1 0 0);
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: oklch(0.16 0.01 265);
             }
         </style>
 

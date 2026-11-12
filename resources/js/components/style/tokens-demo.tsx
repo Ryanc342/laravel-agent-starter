@@ -12,11 +12,11 @@ const surfaces = [
 ];
 
 const fills = [
-    { name: 'primary', classes: 'bg-primary text-primary-foreground' },
-    { name: 'secondary', classes: 'bg-secondary text-secondary-foreground' },
-    { name: 'destructive', classes: 'bg-destructive text-white' },
-    { name: 'success', classes: 'bg-success text-success-foreground' },
-    { name: 'warning', classes: 'bg-warning text-warning-foreground' },
+    { name: 'primary', classes: 'bg-primary' },
+    { name: 'secondary', classes: 'bg-secondary' },
+    { name: 'destructive', classes: 'bg-destructive' },
+    { name: 'success', classes: 'bg-success' },
+    { name: 'warning', classes: 'bg-warning' },
 ];
 
 const charts = [
@@ -40,6 +40,17 @@ function Swatch({ name, classes }: { name: string; classes: string }) {
     );
 }
 
+// A fill has no text of its own here: the Button, Badge or status that uses it
+// sets the text on top (destructive has no -foreground token for that).
+function FillSwatch({ name, classes }: { name: string; classes: string }) {
+    return (
+        <div className="grid gap-1.5">
+            <div className={cn('h-16 w-32 rounded-lg border', classes)} />
+            <span className="text-xs text-muted-foreground">{name}</span>
+        </div>
+    );
+}
+
 /** Colour, radius and type: the tokens every other example is made of. */
 export default function TokensDemo() {
     return (
@@ -50,9 +61,9 @@ export default function TokensDemo() {
                 ))}
             </Specimen>
 
-            <Specimen label="Fills: a button, a badge, a status. White or its own foreground on top">
+            <Specimen label="Fills: a button, a badge, a status. The component sets the text on top">
                 {fills.map((token) => (
-                    <Swatch key={token.name} {...token} />
+                    <FillSwatch key={token.name} {...token} />
                 ))}
             </Specimen>
 

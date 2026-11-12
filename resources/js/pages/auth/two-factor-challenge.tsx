@@ -101,7 +101,7 @@ export default function TwoFactorChallenge() {
                                 <Button
                                     type="button"
                                     variant="link"
-                                    className="h-auto p-0 text-sm"
+                                    size="inline"
                                     onClick={() =>
                                         toggleRecoveryMode(clearErrors)
                                     }

@@ -17,7 +17,7 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 ### Changed
 
 - Theme: a blue primary, white surfaces, a light sidebar; `components/ui` is roomier, flat (no soft shadows) and quick, and respects reduced motion; pages have larger padding and gaps.
-- Principle 10 holds 28 `ui` rules, each tagged for the reviewer; `docs/design/` is a protected path of the finish check; the review compares a changed page with `/style` and looks at it at 1280px, 390px and in dark mode.
+- Principle 10 holds 26 `ui` rules, each tagged for the reviewer; `docs/design/` is a protected path of the finish check; the review compares a changed page with `/style` and looks at it at 1280px, 390px and in dark mode.
 - Existing dialogs, settings forms and sign-in pages use the new blocks; two-factor loading errors are toasts, so `alert-error.tsx` is gone. A long record title no longer wraps the breadcrumb in the top bar.
 - The reference feature creates and edits in one `TaskFormDialog`, and its list is cards on a phone.
 
