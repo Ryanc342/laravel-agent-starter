@@ -299,6 +299,19 @@ test('the test setup, artisan, .gitignore, .npmrc, DESIGN.md and the workflow do
     expect(explode(', ', $protected[1] ?? ''))->toEqualCanonicalizing($paths);
 });
 
+test('the design spec in docs/design/ is protected, like DESIGN.md', function () {
+    $repo = finishCheckRepo();
+    $paths = ['docs/design/foundations.md', 'docs/design/components.md', 'docs/design/patterns/list.md'];
+
+    foreach ($paths as $path) {
+        finishCheckWrite($repo, $path, "changed\n");
+    }
+
+    preg_match('/You changed (.*) \(protected files/', finishCheckRun($repo, 'stop'), $protected);
+
+    expect(explode(', ', $protected[1] ?? ''))->toEqualCanonicalizing($paths);
+});
+
 test('a completed plan without check results, review rounds and outcome is sent back', function () {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan('- 10:00 M1 done', ''));

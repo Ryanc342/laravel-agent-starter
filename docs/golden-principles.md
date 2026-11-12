@@ -15,7 +15,7 @@ The second says what the rule is about:
 - `structure`: where code goes, which layer may use which, what a class or file looks like, which companion files it needs.
 - `business`: the business logic itself is correct and written once.
 - `process`: the steps of the work.
-- `ui`: how a screen looks and behaves for the person using it (DESIGN.md).
+- `ui`: how a screen looks and behaves for the person using it (DESIGN.md and docs/design/).
 
 Machines check `structure` and `process` rules only where they can tell by position, imports, calls and files. Whether code decides a business rule needs someone who reads it, so `business` rules, and the `structure` rules that need reading, belong to the reviewer. Whether a screen looks right needs someone who looks at it, so the `ui` rules are the reviewer's too, checked on screenshots.
 
@@ -137,25 +137,33 @@ docs/workflow.md has the steps. A request to fix tech debt or review findings is
 - `[Structure]` `process` No check is silenced: no `@phpstan-ignore`, `oxlint-disable`, `eslint-disable`, `@ts-ignore` or `@ts-expect-error`, no skipped or unfinished test (Pest fails on them), and no `ignoreErrors`, `excludePaths` or baseline in phpstan.neon.
 - `[Structure]` `process` The checks stay as set: PHPStan's level, paths, includes and rules, every Ezdev oxlint rule on with only generated code ignored, strict TypeScript, the three Pest suites, the steps of `composer check`, no other lint config file, and no `script-shell` in .npmrc. Changing them is a protected change.
 
-## 10. Screens follow DESIGN.md
+## 10. Screens follow DESIGN.md and docs/design
 
-DESIGN.md says how the app looks; docs/rules/visual-design.md says how to apply it. The reviewer checks these rules in the changed code and on screenshots of the changed pages.
+DESIGN.md says what the style is and which design file to read; docs/design/ holds the details (foundations, components, one file per page pattern); docs/rules/visual-design.md says how to apply them. The reviewer checks these rules in the changed code, on screenshots of the changed pages, and against the style overview page.
 
-- `[review]` `ui` Colors, fonts, corners and spacing come from the theme tokens DESIGN.md sets in resources/css/app.css: no raw colors (`bg-blue-500`, `#hex`), no arbitrary sizes (`text-[13px]`), no `dark:` color overrides.
-- `[review]` `ui` One primary color, for the main action of a screen; `destructive`, `success` and `warning` only mean a status, never decoration.
+- `[review]` `ui` Colors, fonts, corners and spacing come from the theme tokens in resources/css/app.css that docs/design/foundations.md names: no raw colors (`bg-blue-500`, `#hex`), no arbitrary sizes (`text-[13px]`), no `dark:` color overrides, and no `h-*` or `p-*` that resizes a component instead of using its `size` variant.
+- `[review]` `ui` One primary color, blue, for the main action of a screen; `destructive`, `success` and `warning` only mean a status, never decoration.
 - `[review]` `ui` Cards hold only repeated items, dialogs and framed tools: no card inside a card, no page section styled as a floating card, and corners from the radius scale.
-- `[review]` `ui` The page title is `<Heading>` and sections, panels, rows and tables use smaller headings; nothing in the app uses marketing-size type; one font family, as DESIGN.md sets.
+- `[review]` `ui` The page title is `<Heading>`, at most 20px, and sections, panels, rows and tables use smaller headings; larger headings appear only on the home / landing and pricing pages; one font family.
 - `[review]` `ui` None of the looks DESIGN.md's Don'ts name: gradients, glows, decorative backgrounds, a row of identical stat cards as the page opener, all-caps or letter-spaced labels.
-- `[review]` `ui` The first screen after login is the working screen, and the layout does the explaining: no secondary labels or descriptions, no description under a heading unless the title alone is unclear, no slogans, no text about how the screen was built or what was asked for, and nothing shown twice.
+- `[review]` `ui` Flat: no shadow except on what floats over the page (dropdown, popover, dialog, sheet, toast); borders separate everything else.
+- `[review]` `ui` Motion is a quick transition on hover, open, close or expand, and nothing moves when the user asks for reduced motion; no looping or decorative animation.
+- `[review]` `ui` The first screen after login is the dashboard, a working screen, and the layout does the explaining: no secondary labels or descriptions, no description under a heading unless the title alone is unclear, no slogans, no text about how the screen was built or what was asked for, and nothing shown twice.
+- `[review]` `ui` A dashboard shows only data that arrives from the backend: no placeholders and no made-up numbers.
 - `[review]` `ui` Explaining text appears only for an unusual state (an error, an empty list, a locked record) or a step the user must take; other details sit behind a Tooltip, a collapsible section or a detail page.
-- `[review]` `ui` Pages of the same kind (list, detail, form) use the layout DESIGN.md describes and the reference feature shows: header row with the heading and the page's actions, then filters, content and pagination. A list of records is a Table, with its name, status and amount first.
+- `[review]` `ui` A page that matches a pattern in docs/design/patterns uses that pattern and copies the structure of the sample or demo it names; a page with no pattern is built from foundations.md and components.md, and the report says so.
+- `[review]` `ui` A list of records is a `ResponsiveTable`: its name, status and amount first, horizontal row lines only, filters in one row above it, and one card per row on a phone.
 - `[review]` `ui` A page about one record has a breadcrumb that ends at that record, built from its data, and no separate back button.
-- `[review]` `ui` At desktop and phone width, text stays inside its box and nothing overlaps; long text wraps or truncates, and a wide table scrolls inside its own container.
+- `[review]` `ui` Creating or editing a record opens in a `ResponsiveDialog`, however long the form, and on a phone a dialog slides up from the bottom at full width; account settings and sign-in forms stay on their page.
+- `[review]` `ui` A form field is a `FormField`: the label to the left of the input on desktop and above it on a phone (above it on the sign-in pages), with `InputError` under the input.
+- `[review]` `ui` A status is a `Badge` with a solid fill (`secondary`, `success`, `warning` or `destructive`) and the label the backend sends.
+- `[review]` `ui` Messages are toasts: results of actions, network errors and what an `Alert` used to show. Field errors stay next to the field and a delete asks in a dialog; no `Alert` on a page.
+- `[review]` `ui` At desktop and phone width, in English and in Chinese, text stays inside its box and nothing overlaps; long text wraps or truncates, and no page scrolls sideways.
 - `[review]` `ui` An existing component (components/ui, components/shared) is used instead of hand-styled markup, and restyled through its variants, not by overriding its colors with `className`.
 - `[review]` `ui` Familiar controls: a Select for a list of options, a Checkbox for yes or no, a ToggleGroup for two to seven modes, tabs for views; an icon-only button has a Tooltip and an `aria-label`.
-- `[review]` `ui` An empty list shows a short message, data that arrives later shows a Skeleton, and an action that cannot be undone asks for confirmation in a Dialog first.
+- `[review]` `ui` An empty list shows `EmptyState`, a region that failed to load `ErrorState`, data that arrives later `LoadingState`, and an action that cannot be undone asks for confirmation in a dialog first.
 - `[review]` `ui` Every input has a label. It is visible unless the layout already says what the field is (a search box next to a Search button), and then it is hidden with `sr-only` or `aria-label`, never left out. Errors show next to the field with `InputError`, and the submit button is disabled while the form is sending.
 - `[review]` `ui` Keyboard focus stays visible, actions are buttons and navigation is links (no clickable `div`), text is readable against its background, and light and dark mode both work.
 - `[review]` `ui` Button labels say what happens ("Save changes", "Delete task", not "Submit" or "OK"), and an error message says how to fix the problem.
 - `[review]` `ui` A change to a screen changes only what the plan names: the rest of the page stays as it was, and removing or simplifying is preferred over adding.
-- `[review]` `ui` Every changed page is opened with isolated headless Playwright at desktop (1280px) and phone (390px) width, and once in dark mode, and the rules above are checked on temporary screenshots before closing the browser (docs/rules/visual-design.md).
+- `[review]` `ui` Every changed page is opened with isolated headless Playwright at desktop (1280px) and phone (390px) width, and once in dark mode, compared with the style overview page, and the rules above are checked on temporary screenshots before closing the browser (docs/rules/visual-design.md).

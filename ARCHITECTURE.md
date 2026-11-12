@@ -74,7 +74,7 @@ The rules are grouped under ten principles. docs/golden-principles.md lists ever
 7. Files go where the conventions say.
 8. Every feature is tested.
 9. Work follows the steps: plan, check, review, report (docs/workflow.md). The finish check in scripts/hooks/ sends back a missing step.
-10. Screens follow DESIGN.md. The reviewer checks them on screenshots at desktop and phone width.
+10. Screens follow DESIGN.md and the files in docs/design/. The reviewer checks them on screenshots at desktop and phone width, and against the style overview page.
 
 ## Request flow
 
