@@ -16,12 +16,13 @@ One centred column on the page background with no sidebar, so it also works for 
 ## Rules
 
 - No illustration, no decoration and no technical detail (no stack trace, no exception name).
-- The status and the text come from the response; React does not decide which status a page has.
+- The status and the text come from the response; React does not decide which status a page has. `bootstrap/app.php` renders the page for 403, 404, 500 and 503 only, never for a JSON request, and while `APP_DEBUG` is on a 500 keeps Laravel's own page so a developer sees the exception.
+- The server sends `signedIn`. A URL that matches no route has no session, so there the button is Log in even for someone signed in; the login page then takes them on to the dashboard.
 
 ## Phone
 
 The same column at full width with the page padding.
 
-## Demo
+## Sample and demo
 
-`resources/js/components/style/error-page-demo.tsx`, shown on the style overview page.
+Copy `resources/js/pages/errors/show.tsx` and `resources/js/components/errors/error-content.tsx`; the page is rendered from `bootstrap/app.php` (`$exceptions->respond`). Demo: `resources/js/components/style/error-page-demo.tsx`, shown on the style overview page.

@@ -1,8 +1,10 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
 import { store } from '@/routes/two-factor/login';
 
@@ -57,18 +59,21 @@ export default function TwoFactorChallenge() {
                     {({ errors, processing, clearErrors }) => (
                         <>
                             {showRecoveryInput ? (
-                                <>
+                                <FormField
+                                    label="Recovery code"
+                                    htmlFor="recovery_code"
+                                    hideLabel
+                                    error={errors.recovery_code}
+                                >
                                     <Input
+                                        id="recovery_code"
                                         name="recovery_code"
                                         type="text"
                                         placeholder="Enter recovery code"
                                         autoFocus={showRecoveryInput}
                                         required
                                     />
-                                    <InputError
-                                        message={errors.recovery_code}
-                                    />
-                                </>
+                                </FormField>
                             ) : (
                                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
                                     <div className="flex w-full items-center justify-center">
@@ -87,6 +92,7 @@ export default function TwoFactorChallenge() {
                                 className="w-full"
                                 disabled={processing}
                             >
+                                {processing && <Spinner />}
                                 Continue
                             </Button>
 
