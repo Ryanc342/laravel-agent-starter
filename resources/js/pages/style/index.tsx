@@ -21,6 +21,7 @@ import UiActionsDemo from '@/components/style/ui-actions-demo';
 import UiFieldsDemo from '@/components/style/ui-fields-demo';
 import UiSurfacesDemo from '@/components/style/ui-surfaces-demo';
 import AppearanceToggleTab from '@/components/users/appearance-tabs';
+import { style } from '@/routes';
 import { edit as editAppearance } from '@/routes/appearance';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { edit as editProfile } from '@/routes/profile';
@@ -64,10 +65,10 @@ const tasks: ExampleTask[] = [
 const pagination: ResourceCollection<ExampleTask> = {
     data: tasks,
     links: {
-        first: '/style?page=1',
-        last: '/style?page=3',
+        first: style({ query: { page: 1 } }).url,
+        last: style({ query: { page: 3 } }).url,
         prev: null,
-        next: '/style?page=2',
+        next: style({ query: { page: 2 } }).url,
     },
     meta: {
         current_page: 1,

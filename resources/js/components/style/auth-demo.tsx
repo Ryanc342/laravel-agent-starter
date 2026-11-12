@@ -3,6 +3,7 @@ import FormField from '@/components/shared/form-field';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { style } from '@/routes';
 
 type AuthField = {
     id: string;
@@ -60,7 +61,8 @@ export default function AuthDemo({
             </form>
 
             <div className="text-center text-sm text-muted-foreground">
-                {footer} <TextLink href="/style#auth">{footerLink}</TextLink>
+                {footer}{' '}
+                <TextLink href={`${style().url}#auth`}>{footerLink}</TextLink>
             </div>
         </div>
     );
