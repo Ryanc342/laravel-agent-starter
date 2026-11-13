@@ -52,6 +52,7 @@ Changed
 
 - Every native date input is the shared `DatePicker` (a calendar in a popover; the URL and the form still hold `YYYY-MM-DD`). `useUrlParam` returns `value` and `commit`.
 - Hover and press states on the Select trigger, Checkbox, badge links and navigation menu (guarded by `tests/js/hover-press.test.ts`); the bell shows an error state with a retry.
+- Batch 2 feedback: the search demo draws its top bar as a full-width strip with a line under it, like the app's header, instead of a bordered box in a bordered frame; `DESIGN.md` and principle 10 say that any bordered box directly inside another counts, hand-drawn or `Card`, and `DESIGN.md` says a `/style` demo has no backend (what a backend would answer comes with the page's example data). On a phone, where cards have no header checkbox, the bulk bar offers "Select this page" once one card is ticked and then "Select all N results" (`useRowSelection.selectPage`, `BulkActionBar` `onSelectPage`); with a link it uses two lines on a phone. A printed page no longer has the grey frame of the inset layout around it. The 404 fallback is a plain `Route::fallback` in `routes/web.php` and `tests/Structure/RoutesTest.php` skips fallback routes in its wildcard test.
 - The `reviewer` subagent has its own model (`opus` for Claude Code, `gpt-6.1-sol` for Codex).
 
 Removed
