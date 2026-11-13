@@ -14,6 +14,14 @@
         'Noto Sans SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
+    /* The display size: the home hero and the pricing page only (foundations.md). */
+    --text-display: 2.25rem;
+    --text-display--line-height: 1.15;
+    --text-display--font-weight: 600;
+    --text-display-lg: 3rem;
+    --text-display-lg--line-height: 1.1;
+    --text-display-lg--font-weight: 600;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);

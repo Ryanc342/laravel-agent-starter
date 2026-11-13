@@ -33,7 +33,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 
 ## Milestones
 - [x] M1 Spec: DESIGN.md index rows; new `docs/design/patterns/`: `landing.md`, `pricing.md`, `product.md`, `customer-area.md`, `checkout.md`, `help.md`, `contact.md`; `foundations.md` (the display size, decision 2), `components.md` (the public layout and every new shared block), `patterns/list.md` (decision 11), `patterns/print.md` (decision 16); principle 10 in `docs/golden-principles.md` for a new `[review]` rule where one is needed (decision 3's "no invented reviews, logos or numbers"). + DocsTest.
-- [ ] M2 Public layout and display size: decisions 1 and 2. + Vitest (signed in and out, the phone menu).
+- [x] M2 Public layout and display size: decisions 1 and 2. + Vitest (signed in and out, the phone menu).
 - [ ] M3 Home page: `/` rebuilt with the public layout as decisions 3 and 10. + Pest (signed out sees Log in and Get started, signed in sees Dashboard) and Vitest; the existing tests unchanged.
 - [ ] M4 Shared blocks in `components/shared`, each with Vitest: hero, feature grid, pricing plans with the billing toggle (URL), FAQ list with its search, account navigation, line items, order summary, contact form, `formatMoney`.
 - [ ] M5 Validation toasts for array names: decision 14.
@@ -54,6 +54,8 @@ Working overnight (the user is asleep): when something is unclear, take the most
 ## Progress
 - 2026-11-14 03:05 MYT: The user chose, in chat, batch 3 plus the tech debt with Claude's defaults, and the full Chinese PDF font with a higher memory limit. The batch 2 feedback plan is archived; its PDF findings are in the tech-debt row this plan closes. Plan written; waiting for the user to say start.
 - 2026-11-14: The user said start. M1 done: seven pattern files, DESIGN.md index, foundations (display tokens), components (public layout and shared blocks, `Textarea`), list.md (amount unit), print.md (PDF font and memory), principle 10 rule on invented content. 0 tests failed before (docs only, the existing DocsTest checks the new files). Affected scope: tests/Structure/DocsTest.php; `composer check:milestone -- tests/Structure/DocsTest.php` passed (6 tests). The pattern files name their demos by component name, not path, until M6 creates the files.
+
+- 2026-11-14: M2 done: display tokens in app.css; `PublicHeader`, `PublicFooter` (components/shared) and `layouts/public-layout.tsx`. 9 Vitest tests failed before the code (3 files). Scope: the three new test files plus tests/Structure. `composer check:milestone -- tests/js/components/shared/public-header.test.tsx tests/js/components/shared/public-layout.test.tsx tests/js/display-size.test.ts tests/Structure` passed.
 
 ## Surprises & Discoveries
 - The home page is `Route::inertia('/', 'welcome/index')->name('home')`; DashboardTest asserts the component `welcome/index`, and several tests use `route('home')`.
