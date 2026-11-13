@@ -138,8 +138,8 @@ export default function SharedDemo({
 
             <div className="grid gap-3">
                 <p className="text-sm text-muted-foreground">
-                    Pagination: previous and next, only when the list has more
-                    than one page
+                    Pagination: the page links when the list has more than one
+                    page, and the rows per page (10, 20, 50, 100) next to them
                 </p>
                 <Pagination collection={pagination} />
             </div>

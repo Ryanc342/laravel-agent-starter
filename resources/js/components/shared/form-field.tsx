@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
-import { useFieldError } from '@/hooks/use-field-error';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -23,8 +22,9 @@ type Props = {
 /**
  * One field of a form: the label on the left of the input on desktop and above
  * it on a phone. An error is not shown under the input: it is a toast, the
- * input gets a red border and the first field with an error is focused
- * (`useFieldError`). Screen readers still get the message.
+ * input gets a red border (`aria-invalid`, which the inputs style) and the
+ * first field with an error is focused (`useValidationErrorToasts`). Screen
+ * readers still get the message.
  */
 export default function FormField({
     label,
@@ -38,7 +38,17 @@ export default function FormField({
 }: Props) {
     const isMobile = useIsMobile();
 
-    useFieldError(error, htmlFor);
+    const invalid = Boolean(error);
+
+    useEffect(() => {
+        const input = document.getElementById(htmlFor);
+
+        if (invalid) {
+            input?.setAttribute('aria-invalid', 'true');
+        } else {
+            input?.removeAttribute('aria-invalid');
+        }
+    }, [invalid, htmlFor]);
 
     const row = !stacked && !hideLabel && !isMobile && !labelAction;
 

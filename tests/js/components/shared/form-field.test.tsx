@@ -1,16 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
-import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
+import { afterEach, expect, test, vi } from 'vite-plus/test';
 import FormField from '@/components/shared/form-field';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
-
-beforeEach(() => {
-    Element.prototype.scrollIntoView = vi.fn();
-    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
-});
 
 afterEach(() => {
     vi.mocked(useIsMobile).mockReset();
@@ -72,21 +67,32 @@ test('a hidden label is still there for screen readers and the field takes the f
     expect(layoutOf(input)).toBe('stacked');
 });
 
-test('an error is a toast and a red border, with no visible text under the input', async () => {
+test('an error is a red border and screen-reader text, with no visible text under the input', async () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
 
     render(field({ error: 'Enter a title.' }));
     const input = screen.getByLabelText('Title');
-    const error = screen.getByText('Enter a title.');
 
     await waitFor(() =>
-        expect(toast.error).toHaveBeenCalledWith('Enter a title.', {
-            id: 'field-error-title',
-        }),
+        expect(input.getAttribute('aria-invalid')).toBe('true'),
     );
-    expect(input.getAttribute('aria-invalid')).toBe('true');
-    expect(error.className).toContain('sr-only');
-    expect(document.activeElement).toBe(input);
+    expect(screen.getByText('Enter a title.').className).toContain('sr-only');
+    // The toast and the focus belong to useValidationErrorToasts, not to the field.
+    expect(toast.error).not.toHaveBeenCalled();
+});
+
+test('a field whose error is fixed is no longer marked invalid', async () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    const { rerender } = render(field({ error: 'Enter a title.' }));
+    const input = screen.getByLabelText('Title');
+    await waitFor(() =>
+        expect(input.getAttribute('aria-invalid')).toBe('true'),
+    );
+
+    rerender(field());
+
+    await waitFor(() => expect(input.hasAttribute('aria-invalid')).toBe(false));
 });
 
 test('no error, no error text', () => {

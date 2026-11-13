@@ -3,6 +3,7 @@ import { useState } from 'react';
 import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useErrorsToast } from '@/hooks/use-errors-toast';
 
 type Props = {
     onSuccess: () => void;
@@ -19,6 +20,9 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
             onSuccess();
         },
     });
+
+    // The browser's passkey error is not an Inertia error, so it toasts here.
+    useErrorsToast(error ? [error] : undefined, 'passkey-register-error');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -13,6 +13,8 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 - Shared blocks in `components/shared`: `ResponsiveDialog` (a centred dialog, a sheet from the bottom on a phone), `FormField` (label on the left, above on a phone), `ResponsiveTable` (cards on a phone), `EmptyState`, `ErrorState`, `LoadingState`, `FeedRow`, `QuickLinks` and `ErrorContent`; the hook `useErrorsToast`.
 - One Inertia error page, `errors/show`, for 403, 404, 500 and 503, rendered from `bootstrap/app.php` (never for JSON; a 500 keeps Laravel's page while `APP_DEBUG` is on).
 - The dashboard shows the latest notifications and quick links instead of placeholders.
+- A rows-per-page choice (10, 20, 50 or 100; default 20) under every paginated list, in the URL only (`?per_page=50`): the enum `PerPage` owns the sizes, the trait `ReadsPerPage` and one FormRequest per list read it, and the sizes reach React as the shared prop `perPageOptions`. A value that is not offered counts as 20.
+- `FeedList` in `components/shared`: the notification list as one bordered box with line-separated rows.
 
 ### Changed
 
@@ -20,6 +22,11 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 - Principle 10 holds 26 `ui` rules, each tagged for the reviewer; `docs/design/` is a protected path of the finish check; the review compares a changed page with `/style` and looks at it at 1280px, 390px and in dark mode.
 - Existing dialogs, settings forms and sign-in pages use the new blocks; two-factor loading errors are toasts, so `alert-error.tsx` is gone. A long record title no longer wraps the breadcrumb in the top bar.
 - The reference feature creates and edits in one `TaskFormDialog`, and its list is cards on a phone.
+- Field errors are toasts at the top centre, one per error (`useValidationErrorToasts`, registered by the Toaster); the field keeps a red border, and after a failed submit the page or dialog scrolls to the first field with an error and focuses it (a jump under reduced motion). `FormField` no longer shows error text under the input.
+- No description line under any title (page, section, card, dialog or sign-in page): `Heading`, the auth layouts and `StyleSection` lost their `description`. One sentence stays in the confirmations that cannot be undone and in the two-factor setup dialog. The "Delete account" warning box is gone.
+- A table or list with no records keeps its header row (on a phone its box) and shows the empty line inside it; `ResponsiveTable` takes `emptyMessage`.
+- Notification rows have no card and no grey background: an unread row has the blue dot and darker text.
+- A record's breadcrumb ends at its list (`Tasks`) and stays a link; the name appears once, as the heading. `Breadcrumbs` shows its last crumb as plain text only when it is the current page.
 
 ## [1.1.0] - 2026-11-10
 

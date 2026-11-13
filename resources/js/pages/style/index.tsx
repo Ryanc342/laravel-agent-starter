@@ -74,9 +74,9 @@ const pagination: ResourceCollection<ExampleTask> = {
         current_page: 1,
         from: 1,
         last_page: 3,
-        per_page: 4,
-        to: 4,
-        total: 9,
+        per_page: 20,
+        to: 20,
+        total: 45,
     },
 };
 
