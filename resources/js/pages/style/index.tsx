@@ -155,7 +155,7 @@ export default function Style() {
                             <a
                                 key={id}
                                 href={`#${id}`}
-                                className="text-muted-foreground transition-colors hover:text-foreground"
+                                className="text-muted-foreground transition-colors hover:text-foreground active:text-primary-pressed"
                             >
                                 {label}
                             </a>

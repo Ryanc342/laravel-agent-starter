@@ -22,7 +22,7 @@ function taskColumns(statusOptions: Choice[]): TableColumn<Task>[] {
             cell: (task) => (
                 <Link
                     href={show(task.id)}
-                    className="underline-offset-4 hover:underline"
+                    className="underline-offset-4 hover:underline active:text-primary-pressed"
                 >
                     {task.title}
                 </Link>

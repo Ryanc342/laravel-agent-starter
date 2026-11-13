@@ -19,7 +19,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
             cell: (task) => (
                 <a
                     href="#detail"
-                    className="underline-offset-4 hover:underline"
+                    className="underline-offset-4 hover:underline active:text-primary-pressed"
                 >
                     {task.title}
                 </a>
