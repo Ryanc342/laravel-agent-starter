@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react';
+import ColumnMenu, {
+    type ColumnMenuConfig,
+} from '@/components/shared/column-menu';
 import RegionState, {
     type RegionError,
 } from '@/components/shared/region-state';
@@ -19,6 +22,8 @@ export type TableColumn<Row> = {
     hideLabelOnCard?: boolean;
     /** Classes for this column's cells on desktop, such as a maximum width with `truncate`. */
     className?: string;
+    /** Makes the header a button that opens this column's sort, search, tick list or range. */
+    menu?: ColumnMenuConfig;
 };
 
 type Props<Row> = {
@@ -109,7 +114,14 @@ export default function ResponsiveTable<Row>({
                     <TableRow>
                         {columns.map((column) => (
                             <TableHead key={column.header}>
-                                {column.header}
+                                {column.menu ? (
+                                    <ColumnMenu
+                                        header={column.header}
+                                        menu={column.menu}
+                                    />
+                                ) : (
+                                    column.header
+                                )}
                             </TableHead>
                         ))}
                     </TableRow>

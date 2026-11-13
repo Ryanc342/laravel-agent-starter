@@ -6,6 +6,10 @@ import ResponsiveTable, {
 import { useIsMobile } from '@/hooks/use-mobile';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
+vi.mock('@inertiajs/react', () => ({
+    router: { get: vi.fn() },
+    usePage: () => ({ url: '/tasks' }),
+}));
 
 afterEach(() => {
     vi.mocked(useIsMobile).mockReset();
@@ -190,4 +194,33 @@ test('on a phone a loading or failed list is a box with the state inside', () =>
     expect(
         container.querySelectorAll('[data-slot="loading-card"]'),
     ).toHaveLength(0);
+});
+
+test('a column with a menu shows its header as the menu button, one without stays plain text', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    render(
+        <ResponsiveTable
+            columns={[
+                {
+                    header: 'Title',
+                    cell: (row: Row) => row.title,
+                    menu: { sortKey: 'title' },
+                },
+                { header: 'Status', cell: (row: Row) => row.status },
+            ]}
+            rows={rows}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+        />,
+    );
+
+    expect(
+        within(screen.getAllByRole('columnheader')[0]).getByRole('button', {
+            name: 'Title',
+        }),
+    ).toBeTruthy();
+    expect(
+        within(screen.getAllByRole('columnheader')[1]).queryByRole('button'),
+    ).toBeNull();
 });
