@@ -6,8 +6,9 @@ import SearchResults, {
 
 /**
  * Search across more than one kind of record: the box in the top bar (a mock
- * bar here; a project mounts the box in its own layout) and the results page,
- * grouped by type with the matched text marked.
+ * strip here, drawn like the app's header; a project mounts the box in its own
+ * layout) and the results page, grouped by type with the matched text marked.
+ * Used in a `flush` DemoFrame: the strip and the page padding are its own.
  */
 export default function SearchDemo({
     query,
@@ -20,11 +21,11 @@ export default function SearchDemo({
     groups: SearchGroup[];
 }) {
     return (
-        <div className="grid gap-6">
-            <div className="flex h-14 items-center rounded-lg border px-4">
+        <div>
+            <header className="flex h-16 items-center border-b px-4 md:px-6">
                 <SearchBox action={action} defaultValue={query} />
-            </div>
-            <div className="grid gap-6">
+            </header>
+            <div className="grid gap-6 p-4 md:p-6">
                 <Heading title="Search results" />
                 <SearchResults query={query} groups={groups} />
             </div>

@@ -15,7 +15,7 @@ From the user's review of batch 2 (a screenshot of the /style search results dem
 
 ## Milestones
 - [x] M1 Spec: DESIGN.md (decisions 2 and 7), principle 10 in `docs/golden-principles.md` (decision 2), `docs/design/patterns/print.md` (the font, decision 3), `docs/design/patterns/bulk-actions.md` (decision 5). + DocsTest.
-- [ ] M2 Search demo: `components/style/search-demo.tsx` and its place in `pages/style/index.tsx` as decision 1. + Vitest only if a class decides behaviour; screenshots at 1280px and 390px, light and dark.
+- [x] M2 Search demo: `components/style/search-demo.tsx` and its place in `pages/style/index.tsx` as decision 1. + Vitest only if a class decides behaviour; screenshots at 1280px and 390px, light and dark.
 - [ ] M3 Chinese in PDFs: the font files and licence in `resources/fonts/`; the DOMPDF font and subsetting settings; the reference PDF view (`docs/reference/tasks/resources/views/tasks/pdf.blade.php`) uses the font. + Pest: the PDF of a task titled 寄发票给供应商 embeds a Noto Sans SC font; record both font files' sizes and that PDF's size in Progress; `composer check:reference`.
 - [ ] M4 Browser checks and fixes: decision 4 in the browser, each result recorded in Progress; any failure fixed with a Vitest test where jsdom can reach it; decision 5 in `BulkActionBar` and `use-row-selection.ts`. + Vitest for decision 5; `composer check:reference` (the reference task list uses the bar).
 - [ ] M5 Fallback route: decision 6 in `tests/Structure/RoutesTest.php` and `routes/web.php`. + the existing signed-in and signed-out 404 tests pass unchanged.
@@ -33,6 +33,7 @@ From the user's review of batch 2 (a screenshot of the /style search results dem
 ## Progress
 - 2026-11-14 02:25 MYT: The user reviewed batch 2 (the nested box in the search demo; the rest is fine) and answered grilling round 15 (Q92 to Q95) on the Q&A page, recorded above. Batch 2 is archived (final `composer check` and `composer check:reference` passed; review round 1 found ten P1, fixed; round 2 none). Plan written; waiting for the user to say start.
 - 2026-11-14: The user said start. M1 done: DESIGN.md (Don't reworded, /style row says a demo has no backend), principle 10, print.md (the font), bulk-actions.md (phone). `composer check:milestone -- tests/Structure/DocsTest.php` passed (Pint, PHPStan, vp check, tsc, 6 tests): doc-only milestone, DocsTest is the test that reads them.
+- 2026-11-14: M2 done. `search-demo.tsx` draws the top bar as a `header` strip (`h-16 border-b px-4 md:px-6`, as `app-sidebar-header.tsx`), the results below have `p-4 md:p-6`, and the demo's `DemoFrame` is `flush`. Seen in the headless browser at 1280px light and 390px dark/light (no sideways scroll): the strip reaches the frame's edges with a line under it. A script over the section found a bordered rounded element inside another only for the search `Input`, the result lists inside the demo frame (as in every demo) and their status badges: no box directly around another box. No Vitest: no class decides behaviour. `composer check:milestone -- tests/Feature/StyleTest.php` passed.
 
 ## Surprises & Discoveries
 - `search-demo.tsx` draws the mock top bar as `flex h-14 items-center rounded-lg border px-4` inside `DemoFrame`, which is itself `rounded-lg border`: frame, box, input. The app's real header (`app-sidebar-header.tsx`) is a strip with `border-b`.

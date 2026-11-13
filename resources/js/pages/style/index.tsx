@@ -540,7 +540,7 @@ export default function Style() {
                 </StyleSection>
 
                 <StyleSection id="search" title="Search results">
-                    <DemoFrame>
+                    <DemoFrame flush>
                         <SearchDemo
                             query="invoice"
                             action={style().url}
