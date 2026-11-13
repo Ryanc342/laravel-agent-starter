@@ -34,7 +34,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 ## Milestones
 - [x] M1 Spec: DESIGN.md index rows; new `docs/design/patterns/`: `landing.md`, `pricing.md`, `product.md`, `customer-area.md`, `checkout.md`, `help.md`, `contact.md`; `foundations.md` (the display size, decision 2), `components.md` (the public layout and every new shared block), `patterns/list.md` (decision 11), `patterns/print.md` (decision 16); principle 10 in `docs/golden-principles.md` for a new `[review]` rule where one is needed (decision 3's "no invented reviews, logos or numbers"). + DocsTest.
 - [x] M2 Public layout and display size: decisions 1 and 2. + Vitest (signed in and out, the phone menu).
-- [ ] M3 Home page: `/` rebuilt with the public layout as decisions 3 and 10. + Pest (signed out sees Log in and Get started, signed in sees Dashboard) and Vitest; the existing tests unchanged.
+- [x] M3 Home page: `/` rebuilt with the public layout as decisions 3 and 10. + Pest (signed out sees Log in and Get started, signed in sees Dashboard) and Vitest; the existing tests unchanged.
 - [ ] M4 Shared blocks in `components/shared`, each with Vitest: hero, feature grid, pricing plans with the billing toggle (URL), FAQ list with its search, account navigation, line items, order summary, contact form, `formatMoney`.
 - [ ] M5 Validation toasts for array names: decision 14.
 - [ ] M6 /style demos for the seven patterns (decisions 3 to 9), fed through props from `pages/style/index.tsx`, with example data in English and one Chinese example per demo where text length matters (Q29).
@@ -56,6 +56,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: The user said start. M1 done: seven pattern files, DESIGN.md index, foundations (display tokens), components (public layout and shared blocks, `Textarea`), list.md (amount unit), print.md (PDF font and memory), principle 10 rule on invented content. 0 tests failed before (docs only, the existing DocsTest checks the new files). Affected scope: tests/Structure/DocsTest.php; `composer check:milestone -- tests/Structure/DocsTest.php` passed (6 tests). The pattern files name their demos by component name, not path, until M6 creates the files.
 
 - 2026-11-14: M2 done: display tokens in app.css; `PublicHeader`, `PublicFooter` (components/shared) and `layouts/public-layout.tsx`. 9 Vitest tests failed before the code (3 files). Scope: the three new test files plus tests/Structure. `composer check:milestone -- tests/js/components/shared/public-header.test.tsx tests/js/components/shared/public-layout.test.tsx tests/js/display-size.test.ts tests/Structure` passed.
+- 2026-11-14: M3 done: `/` rebuilt (hero, six features, a closing line) with `PublicLayout` via `app.tsx`; the page keeps `welcome/index` and `home`. 2 Vitest files failed before the code; the 2 new Pest tests (HomeTest) passed at once because the route already behaved that way, they lock it in. Scope: HomeTest, DashboardTest, ExampleTest, SharedDataTest, AppearanceTest, hero, welcome and public-layout Vitest. `composer check:milestone -- <those paths>` passed. Browser look is part of M10.
 
 ## Surprises & Discoveries
 - The home page is `Route::inertia('/', 'welcome/index')->name('home')`; DashboardTest asserts the component `welcome/index`, and several tests use `route('home')`.
@@ -70,6 +71,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: The real home page passes no page links to the public layout: Product, Pricing, Help and Contact exist only as /style demos in the starter, and a link to a missing page would be a 404. The layout takes a `links` prop and shows what it is given; docs say a project adds a link when its page exists. The /style demo of the layout shows all four.
 - 2026-11-14: `PublicHeader` and `PublicFooter` live in `components/shared` as prop-driven blocks (signed in or not comes in as a prop); `layouts/public-layout.tsx` reads `auth` from the page props and composes them. This lets /style demos draw the bar without a full-page layout.
 - 2026-11-14: A `Textarea` is added to `components/ui` (the contact form's message field); it is shadcn markup, not a package.
+- 2026-11-14: `Hero` and `FeatureGrid` are built in M3, not M4, because the home page needs them; M4 builds the rest of its list.
 
 ## Outcomes & Retrospective
 Not started.
