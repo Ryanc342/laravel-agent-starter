@@ -72,11 +72,13 @@ export default function SortFilterSheet({
                             <h3 className="text-sm font-medium">
                                 {column.header}
                             </h3>
-                            <ColumnMenuContent
-                                header={column.header}
-                                menu={column.menu!}
-                                clearable={false}
-                            />
+                            <div className="px-1">
+                                <ColumnMenuContent
+                                    header={column.header}
+                                    menu={column.menu!}
+                                    clearable={false}
+                                />
+                            </div>
                         </section>
                     ))}
                 </div>

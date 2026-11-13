@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
-import ColumnMenu from '@/components/shared/column-menu';
+import ColumnMenu, { ColumnMenuContent } from '@/components/shared/column-menu';
 
 const state = vi.hoisted(() => ({ url: '/tasks', get: vi.fn() }));
 
@@ -333,4 +333,179 @@ test('a blank search or a status the menu does not offer does not light the funn
     expect(
         container.querySelectorAll('[data-slot="filter-indicator"]'),
     ).toHaveLength(0);
+});
+
+function menu(): HTMLElement {
+    return document.querySelector('[data-slot="popover-content"]')!;
+}
+
+function separators(): Element[] {
+    return Array.from(menu().querySelectorAll('[data-slot="separator-root"]'));
+}
+
+/** Whether `a` comes before `b` in the document. */
+function before(a: Element, b: Element): boolean {
+    return Boolean(
+        a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+}
+
+test.each([
+    ['a text menu', title, 'Title'],
+    ['a tick list menu', status, 'Status'],
+    ['a range menu', due, 'Due date'],
+])(
+    '%s: every choice sits in a row with the same marker',
+    (_name, build, header) => {
+        render(build());
+        open(header);
+
+        const choices = menu().querySelectorAll(
+            'button, [role="checkbox"], input',
+        );
+
+        expect(choices.length).toBeGreaterThan(0);
+
+        for (const choice of Array.from(choices)) {
+            expect(
+                choice.closest('[data-slot="column-menu-row"]'),
+            ).not.toBeNull();
+        }
+    },
+);
+
+test('the popover uses the dropdown menu padding and no bordered button is left in the menu', () => {
+    render(status());
+    open('Status');
+
+    expect(menu().classList.contains('p-1')).toBe(true);
+    expect(
+        menu().querySelectorAll(
+            'button:not([role="checkbox"]).border-input, button:not([role="checkbox"]).w-full.border',
+        ),
+    ).toHaveLength(0);
+});
+
+test('the rows of a tick list menu come in the agreed order, divided by lines', () => {
+    render(status());
+    open('Status');
+
+    const rows = Array.from(
+        menu().querySelectorAll('[data-slot="column-menu-row"]'),
+    ).map((row) => row.textContent?.trim());
+
+    expect(rows).toEqual([
+        'Sort ascending',
+        'Sort descending',
+        'Select all',
+        'Unselect all',
+        'Open',
+        'Done',
+        'Archived',
+        'Clear',
+    ]);
+
+    const lines = separators();
+    const row = (name: string) =>
+        screen.getByRole('button', { name }) as HTMLElement;
+
+    expect(lines).toHaveLength(3);
+    expect(
+        before(row('Sort descending'), lines[0]) &&
+            before(lines[0], row('Select all')),
+    ).toBe(true);
+    expect(
+        before(row('Unselect all'), lines[1]) &&
+            before(lines[1], screen.getByRole('checkbox', { name: 'Open' })),
+    ).toBe(true);
+    expect(
+        before(screen.getByRole('checkbox', { name: 'Archived' }), lines[2]) &&
+            before(lines[2], row('Clear')),
+    ).toBe(true);
+});
+
+test('a text menu and a range menu have a line between sort, the filter and Clear', () => {
+    const { unmount } = render(title());
+    open('Title');
+    const lines = separators();
+    const search = screen.getByRole('searchbox', { name: 'Search Title' });
+
+    expect(lines).toHaveLength(2);
+    expect(
+        before(
+            screen.getByRole('button', { name: 'Sort descending' }),
+            lines[0],
+        ) && before(lines[0], search),
+    ).toBe(true);
+    expect(
+        before(search, lines[1]) &&
+            before(lines[1], screen.getByRole('button', { name: 'Clear' })),
+    ).toBe(true);
+    unmount();
+
+    render(due());
+    open('Due date');
+
+    expect(separators()).toHaveLength(2);
+    expect(
+        menu().querySelectorAll('[data-slot="column-menu-row"]'),
+    ).toHaveLength(5);
+});
+
+test('the range ends are one row each, the label before the input', () => {
+    render(due());
+    open('Due date');
+
+    for (const label of ['From', 'To']) {
+        const input = screen.getByLabelText(label);
+        const row = input.closest('[data-slot="column-menu-row"]')!;
+
+        expect(row.querySelectorAll('input')).toHaveLength(1);
+        expect(
+            before(row.querySelector(`label[for="${input.id}"]`)!, input),
+        ).toBe(true);
+    }
+});
+
+test('a tick row is clickable all over: its label wraps the checkbox', () => {
+    render(status());
+    open('Status');
+
+    const checkbox = screen.getByRole('checkbox', { name: 'Done' });
+    const row = checkbox.closest('[data-slot="column-menu-row"]')!;
+
+    expect(row.tagName).toBe('LABEL');
+    expect(row.contains(checkbox)).toBe(true);
+});
+
+test('only the sort row in use has the selected colour', () => {
+    state.url = '/tasks?sort=title&direction=desc';
+    render(title());
+    open('Title');
+
+    const ascending = screen.getByRole('button', { name: 'Sort ascending' });
+    const descending = screen.getByRole('button', { name: 'Sort descending' });
+
+    expect(descending.getAttribute('aria-pressed')).toBe('true');
+    expect(descending.classList.contains('bg-accent-pressed')).toBe(true);
+    expect(ascending.getAttribute('aria-pressed')).toBe('false');
+    expect(ascending.classList.contains('bg-accent-pressed')).toBe(false);
+});
+
+test('without Clear the menu ends with its filter and has no trailing line', () => {
+    render(
+        <ColumnMenuContent
+            header="Status"
+            menu={{
+                sortKey: 'status',
+                options: { param: 'status', choices: statuses },
+            }}
+            clearable={false}
+        />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+    expect(
+        document.querySelectorAll('[data-slot="separator-root"]'),
+    ).toHaveLength(2);
 });

@@ -1,5 +1,13 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, Filter } from 'lucide-react';
-import { useId } from 'react';
+import {
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
+    Filter,
+    ListChecks,
+    ListX,
+    X,
+} from 'lucide-react';
+import { Fragment, useId, type ComponentProps, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -10,6 +18,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { useListQuery } from '@/hooks/use-list-query';
 import { useUrlParam } from '@/hooks/use-url-param';
 import { listParam, listParams, type ParamChange } from '@/lib/list-query';
@@ -61,11 +70,6 @@ export function clearedChanges(
     return changes;
 }
 
-/**
- * Whether this column's own controls show a choice: text in its search box, a
- * ticked option the tick list offers, an end of its range. The funnel mirrors
- * what the menu displays; what the backend applies is its own decision.
- */
 /** Whether the list is sorted by this column, and which way. */
 function sortState(
     menu: ColumnMenuConfig,
@@ -78,6 +82,11 @@ function sortState(
     };
 }
 
+/**
+ * Whether this column's own controls show a choice: text in its search box, a
+ * ticked option the tick list offers, an end of its range. The funnel mirrors
+ * what the menu displays; what the backend applies is its own decision.
+ */
 function isFiltered(menu: ColumnMenuConfig, url: string): boolean {
     return (
         Boolean(
@@ -97,6 +106,51 @@ function isFiltered(menu: ColumnMenuConfig, url: string): boolean {
     );
 }
 
+/**
+ * The look of every choice in the menu, the same as a dropdown menu's item:
+ * one height, one left edge, a 16px icon slot, grey on hover, darker on press.
+ */
+const rowClass =
+    "flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent active:bg-accent-pressed [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground";
+
+/** One choice of the menu that does something when clicked. */
+function MenuRow({
+    selected = false,
+    className,
+    ...props
+}: ComponentProps<'button'> & { selected?: boolean }) {
+    return (
+        <button
+            type="button"
+            data-slot="column-menu-row"
+            className={cn(
+                rowClass,
+                selected && 'bg-accent-pressed hover:bg-accent-pressed',
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+/** A row that holds a box instead of a click: the left padding is the same as the other rows'. */
+function InputRow({ className, ...props }: ComponentProps<'div'>) {
+    return (
+        <div
+            data-slot="column-menu-row"
+            className={cn('flex items-center gap-2 px-2 py-1', className)}
+            {...props}
+        />
+    );
+}
+
+/** The thin line between two groups, edge to edge of the popover (which pads by `p-1`). */
+function MenuLine() {
+    return (
+        <Separator className="-mx-1 my-1 data-[orientation=horizontal]:w-auto" />
+    );
+}
+
 function RangeEnd({
     label,
     param,
@@ -111,10 +165,12 @@ function RangeEnd({
     const { inputProps } = useUrlParam(param, type === 'date' ? 0 : 400);
 
     return (
-        <div className="grid gap-1.5">
-            <Label htmlFor={id}>{label}</Label>
-            <Input id={id} type={type} {...inputProps} />
-        </div>
+        <InputRow>
+            <Label htmlFor={id} className="w-10 shrink-0 font-normal">
+                {label}
+            </Label>
+            <Input id={id} type={type} className="h-8" {...inputProps} />
+        </InputRow>
     );
 }
 
@@ -124,57 +180,59 @@ function TickList({ param, choices }: { param: string; choices: Choice[] }) {
     const id = useId();
 
     return (
-        <div className="grid gap-2">
-            <div className="flex gap-2">
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+        <>
+            <div className="grid">
+                <MenuRow
                     onClick={() =>
                         change({
                             [param]: choices.map((choice) => choice.value),
                         })
                     }
                 >
+                    <ListChecks />
                     Select all
-                </Button>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => change({ [param]: [] })}
-                >
+                </MenuRow>
+                <MenuRow onClick={() => change({ [param]: [] })}>
+                    <ListX />
                     Unselect all
-                </Button>
+                </MenuRow>
             </div>
-            {choices.map((choice) => (
-                <div key={choice.value} className="flex items-center gap-2">
-                    <Checkbox
-                        id={`${id}-${choice.value}`}
-                        checked={ticked.includes(choice.value)}
-                        onCheckedChange={(checked) =>
-                            change({
-                                [param]: checked
-                                    ? [...ticked, choice.value]
-                                    : ticked.filter(
-                                          (value) => value !== choice.value,
-                                      ),
-                            })
-                        }
-                    />
-                    <Label htmlFor={`${id}-${choice.value}`}>
+            <MenuLine />
+            <div className="grid">
+                {choices.map((choice) => (
+                    <label
+                        key={choice.value}
+                        htmlFor={`${id}-${choice.value}`}
+                        data-slot="column-menu-row"
+                        className={cn(rowClass, 'cursor-pointer')}
+                    >
+                        <Checkbox
+                            id={`${id}-${choice.value}`}
+                            className="size-4"
+                            checked={ticked.includes(choice.value)}
+                            onCheckedChange={(checked) =>
+                                change({
+                                    [param]: checked
+                                        ? [...ticked, choice.value]
+                                        : ticked.filter(
+                                              (value) => value !== choice.value,
+                                          ),
+                                })
+                            }
+                        />
                         {choice.label}
-                    </Label>
-                </div>
-            ))}
-        </div>
+                    </label>
+                ))}
+            </div>
+        </>
     );
 }
 
 /**
- * The choices of one column: sort, a search inside it, a tick list or a
- * from-to range, as its config says. Used by the header's popover and, on a
- * phone, by the "Sort & filter" sheet (which has one Clear for all columns).
+ * The choices of one column as one column of rows: sort, a search inside it, a
+ * tick list or a from-to range as its config says, and Clear, with a thin line
+ * between the groups. Used by the header's popover and, on a phone, by the
+ * "Sort & filter" sheet (which has one Clear for all columns).
  */
 export function ColumnMenuContent({
     header,
@@ -187,66 +245,85 @@ export function ColumnMenuContent({
 }) {
     const { url, change } = useListQuery();
     const { sorted, direction } = sortState(menu, url);
+    const groups: ReactNode[] = [];
+
+    if (menu.sortKey) {
+        groups.push(
+            <div key="sort" className="grid">
+                {(['asc', 'desc'] as const).map((way) => (
+                    <MenuRow
+                        key={way}
+                        selected={sorted && direction === way}
+                        aria-pressed={sorted && direction === way}
+                        onClick={() =>
+                            change({ sort: menu.sortKey!, direction: way })
+                        }
+                    >
+                        {way === 'asc' ? <ArrowUp /> : <ArrowDown />}
+                        {way === 'asc' ? 'Sort ascending' : 'Sort descending'}
+                    </MenuRow>
+                ))}
+            </div>,
+        );
+    }
+
+    if (menu.search || menu.options || menu.range) {
+        groups.push(
+            <div key="filter" className="grid">
+                {menu.search && (
+                    <InputRow>
+                        <UrlSearchInput
+                            param={menu.search.param}
+                            aria-label={`Search ${header}`}
+                            placeholder={`Search ${header.toLowerCase()}`}
+                            className="h-8"
+                        />
+                    </InputRow>
+                )}
+                {menu.options && (
+                    <TickList
+                        param={menu.options.param}
+                        choices={menu.options.choices}
+                    />
+                )}
+                {menu.range && (
+                    <>
+                        <RangeEnd
+                            label="From"
+                            param={menu.range.fromParam}
+                            type={menu.range.type}
+                        />
+                        <RangeEnd
+                            label="To"
+                            param={menu.range.toParam}
+                            type={menu.range.type}
+                        />
+                    </>
+                )}
+            </div>,
+        );
+    }
+
+    if (clearable) {
+        groups.push(
+            <MenuRow
+                key="clear"
+                onClick={() => change(clearedChanges(menu, url))}
+            >
+                <X />
+                Clear
+            </MenuRow>,
+        );
+    }
 
     return (
-        <div className="grid gap-4">
-            {menu.sortKey && (
-                <div className="grid gap-1">
-                    {(['asc', 'desc'] as const).map((way) => (
-                        <Button
-                            key={way}
-                            type="button"
-                            variant="ghost"
-                            className="justify-start"
-                            aria-pressed={sorted && direction === way}
-                            onClick={() =>
-                                change({ sort: menu.sortKey!, direction: way })
-                            }
-                        >
-                            {way === 'asc' ? <ArrowUp /> : <ArrowDown />}
-                            {way === 'asc'
-                                ? 'Sort ascending'
-                                : 'Sort descending'}
-                        </Button>
-                    ))}
-                </div>
-            )}
-            {menu.search && (
-                <UrlSearchInput
-                    param={menu.search.param}
-                    aria-label={`Search ${header}`}
-                    placeholder={`Search ${header.toLowerCase()}`}
-                />
-            )}
-            {menu.options && (
-                <TickList
-                    param={menu.options.param}
-                    choices={menu.options.choices}
-                />
-            )}
-            {menu.range && (
-                <div className="grid grid-cols-2 gap-3">
-                    <RangeEnd
-                        label="From"
-                        param={menu.range.fromParam}
-                        type={menu.range.type}
-                    />
-                    <RangeEnd
-                        label="To"
-                        param={menu.range.toParam}
-                        type={menu.range.type}
-                    />
-                </div>
-            )}
-            {clearable && (
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => change(clearedChanges(menu, url))}
-                >
-                    Clear
-                </Button>
-            )}
+        <div className="grid">
+            {groups.map((group, index) => (
+                <Fragment key={index}>
+                    {index > 0 && <MenuLine />}
+                    {group}
+                </Fragment>
+            ))}
         </div>
     );
 }
@@ -315,7 +392,7 @@ export default function ColumnMenu({
                     {filtered && <span className="sr-only">, filtered</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent align="start">
+            <PopoverContent align="start" className="p-1">
                 <ColumnMenuContent header={header} menu={menu} />
             </PopoverContent>
         </Popover>
