@@ -35,7 +35,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - [x] M1 Spec: DESIGN.md index rows; new `docs/design/patterns/`: `landing.md`, `pricing.md`, `product.md`, `customer-area.md`, `checkout.md`, `help.md`, `contact.md`; `foundations.md` (the display size, decision 2), `components.md` (the public layout and every new shared block), `patterns/list.md` (decision 11), `patterns/print.md` (decision 16); principle 10 in `docs/golden-principles.md` for a new `[review]` rule where one is needed (decision 3's "no invented reviews, logos or numbers"). + DocsTest.
 - [x] M2 Public layout and display size: decisions 1 and 2. + Vitest (signed in and out, the phone menu).
 - [x] M3 Home page: `/` rebuilt with the public layout as decisions 3 and 10. + Pest (signed out sees Log in and Get started, signed in sees Dashboard) and Vitest; the existing tests unchanged.
-- [ ] M4 Shared blocks in `components/shared`, each with Vitest: hero, feature grid, pricing plans with the billing toggle (URL), FAQ list with its search, account navigation, line items, order summary, contact form, `formatMoney`.
+- [x] M4 Shared blocks in `components/shared`, each with Vitest: hero, feature grid, pricing plans with the billing toggle (URL), FAQ list with its search, account navigation, line items, order summary, contact form, `formatMoney`.
 - [ ] M5 Validation toasts for array names: decision 14.
 - [ ] M6 /style demos for the seven patterns (decisions 3 to 9), fed through props from `pages/style/index.tsx`, with example data in English and one Chinese example per demo where text length matters (Q29).
 - [ ] M7 Chinese PDF font: decision 16. + Pest: the PDF of a task titled 寄发票给供应商 embeds the Noto Sans SC subset; the PDF looked at as an image shows the characters; record the file sizes and the PDF's size; `composer check:reference` passes with the new memory limit.
@@ -57,6 +57,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 
 - 2026-11-14: M2 done: display tokens in app.css; `PublicHeader`, `PublicFooter` (components/shared) and `layouts/public-layout.tsx`. 9 Vitest tests failed before the code (3 files). Scope: the three new test files plus tests/Structure. `composer check:milestone -- tests/js/components/shared/public-header.test.tsx tests/js/components/shared/public-layout.test.tsx tests/js/display-size.test.ts tests/Structure` passed.
 - 2026-11-14: M3 done: `/` rebuilt (hero, six features, a closing line) with `PublicLayout` via `app.tsx`; the page keeps `welcome/index` and `home`. 2 Vitest files failed before the code; the 2 new Pest tests (HomeTest) passed at once because the route already behaved that way, they lock it in. Scope: HomeTest, DashboardTest, ExampleTest, SharedDataTest, AppearanceTest, hero, welcome and public-layout Vitest. `composer check:milestone -- <those paths>` passed. Browser look is part of M10.
+- 2026-11-14: M4 done: `Textarea`, `PricingPlans`, `FaqList`, `AccountNav`, `LineItems`, `OrderSummary`, `ContactForm` and `formatMoney(minor, currency?)`; `Hero` and `FeatureGrid` came in M3, `PublicHeader` in M2. 5 new Vitest files and 1 new format test failed before the code. Scope: all of tests/js and tests/Structure. `composer check:milestone -- tests/js tests/Structure` passed (53 files, 301 tests).
 
 ## Surprises & Discoveries
 - The home page is `Route::inertia('/', 'welcome/index')->name('home')`; DashboardTest asserts the component `welcome/index`, and several tests use `route('home')`.
@@ -72,6 +73,8 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: `PublicHeader` and `PublicFooter` live in `components/shared` as prop-driven blocks (signed in or not comes in as a prop); `layouts/public-layout.tsx` reads `auth` from the page props and composes them. This lets /style demos draw the bar without a full-page layout.
 - 2026-11-14: A `Textarea` is added to `components/ui` (the contact form's message field); it is shadcn markup, not a package.
 - 2026-11-14: `Hero` and `FeatureGrid` are built in M3, not M4, because the home page needs them; M4 builds the rest of its list.
+- 2026-11-14: `ContactForm` is the fields and the button only and sits inside the page's own Inertia `<Form>`, which gives `errors` and `processing`; the /style demo wraps it in a plain `<form>`. `LineItems` takes errors keyed the way Laravel sends them (`items.0.quantity`) and names its inputs `items[0][quantity]`.
+- 2026-11-14: `FormField` still renders the error as `sr-only` text for screen readers; the tests of the new blocks check that, not that the text is absent.
 
 ## Outcomes & Retrospective
 Not started.

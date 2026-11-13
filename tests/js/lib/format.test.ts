@@ -10,6 +10,12 @@ test('money shows integer cents as ringgit with two decimals and grouping', () =
     expect(formatMoney(123456750)).toBe(`RM${nbsp}1,234,567.50`);
 });
 
+test('money takes the currency of the amount, and reads the minor unit from it', () => {
+    expect(formatMoney(4900, 'USD')).toBe('US$49.00');
+    expect(formatMoney(4900, 'JPY')).toBe('JP¥4,900');
+    expect(formatMoney(16400, 'MYR')).toBe(`RM${nbsp}164.00`);
+});
+
 test('quantities show without trailing zeros, up to three decimals', () => {
     expect(formatQuantity('2.550')).toBe('2.55');
     expect(formatQuantity('8.000')).toBe('8');
