@@ -104,3 +104,19 @@ test('every pattern file in docs/design/patterns is in the DESIGN.md index and n
 
     expect($problems)->toBe([]);
 });
+
+test('every file a pattern file names (a sample, a demo) exists: fix the path or add the file', function () use ($root) {
+    $missing = [];
+
+    foreach (glob("{$root}/docs/design/patterns/*.md") ?: [] as $file) {
+        preg_match_all('#`((?:resources|docs|app)/[\w./-]*\.(?:tsx?|php))`#', file_get_contents($file), $matches);
+
+        foreach (array_unique($matches[1]) as $path) {
+            if (! file_exists("{$root}/{$path}")) {
+                $missing[] = basename($file).": {$path}";
+            }
+        }
+    }
+
+    expect($missing)->toBe([]);
+});

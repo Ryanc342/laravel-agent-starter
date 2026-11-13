@@ -147,3 +147,33 @@ test('on a phone a month with no events says so', () => {
 
     expect(screen.getByText('Nothing this month.')).toBeTruthy();
 });
+
+test('a page can set the month to show when the URL has none, and the URL still wins', () => {
+    state.url = '/calendar';
+    const { unmount } = render(
+        <TooltipProvider>
+            <MonthCalendar
+                events={[]}
+                onEvent={vi.fn()}
+                onMore={vi.fn()}
+                defaultMonth="2027-03"
+            />
+        </TooltipProvider>,
+    );
+
+    expect(screen.getByRole('heading', { name: 'March 2027' })).toBeTruthy();
+    unmount();
+
+    state.url = '/calendar?month=2026-11';
+    render(
+        <TooltipProvider>
+            <MonthCalendar
+                events={[]}
+                onEvent={vi.fn()}
+                onMore={vi.fn()}
+                defaultMonth="2027-03"
+            />
+        </TooltipProvider>,
+    );
+    expect(screen.getByRole('heading', { name: 'November 2026' })).toBeTruthy();
+});

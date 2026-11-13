@@ -45,6 +45,7 @@ export default function MonthCalendar({
     locale = 'en',
     weekStartsOn = 0,
     today = toDateValue(new Date()),
+    defaultMonth,
 }: {
     events: CalendarEvent[];
     onEvent: (event: CalendarEvent) => void;
@@ -53,10 +54,14 @@ export default function MonthCalendar({
     weekStartsOn?: number;
     /** The day that counts as today, `YYYY-MM-DD`. */
     today?: string;
+    /** The month shown when the URL has none (`YYYY-MM`); this month by default. */
+    defaultMonth?: string;
 }) {
     const isMobile = useIsMobile();
     const { url, change } = useListQuery();
-    const month = monthValue(parseMonth(listParam(url, 'month')));
+    const month = monthValue(
+        parseMonth(listParam(url, 'month') || defaultMonth || ''),
+    );
     const byDate = new Map<string, CalendarEvent[]>();
 
     for (const event of events) {
