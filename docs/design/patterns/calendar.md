@@ -14,9 +14,9 @@ An event opens in a `ResponsiveDialog` (form.md) with its facts as a `dl` and it
 
 ## Rules
 
-- The month's events come from the backend, already grouped by date; React places them and never decides which events belong to a day.
+- The month's events come from the backend, with their dates; React places them and never decides which events belong to a day.
 - Dates are formatted through `lib/format.ts`; the grid is built with `Intl` and `Date`, with no date library.
-- The first day of the week and weekday names follow the language; every day cell is a button, so the keyboard works.
+- The weekday names follow the language and the week starts on the day the page passes (Sunday by default). Each event and each "+N more" is a button, so the keyboard works.
 
 ## Phone
 
