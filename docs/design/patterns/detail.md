@@ -5,7 +5,7 @@ Use for one record's own page: a task, an order, a customer.
 ## Layout, top to bottom
 
 1. Header row: the record's name or number as `<Heading>`, its status as a `Badge` next to it (one more `Badge` for a flag such as overdue), its actions on the right. Actions are shown from the record's `can.*` flags.
-2. The breadcrumb ends at the list (`Tasks`); the record's name appears once, as the page heading. It is the way back, so there is no back button.
+2. The breadcrumb ends at the list (`Tasks`); the record's name appears once, as the page heading. `Tasks` is a link, because the last crumb is plain text only when it is the page the user is on (`Breadcrumbs`). It is the way back, so there is no back button.
 3. The record's facts: a `dl`, each fact a `dt` (label, `text-muted-foreground`) above its `dd` (value). A fact with no value says so in a few words ("No due date").
 4. Related records: each group under a `<Heading variant="small">`, as a list without its own header row (list.md).
 

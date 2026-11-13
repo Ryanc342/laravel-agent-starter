@@ -6,13 +6,11 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
 
-/** One record's page: the breadcrumb that ends at it, its name, status and actions, then its facts. */
+/** One record's page: the breadcrumb that ends at the list, its name, status and actions, then its facts. */
 export default function DetailDemo({ task }: { task: ExampleTask }) {
     return (
         <div className="flex flex-col gap-8">
@@ -20,10 +18,6 @@ export default function DetailDemo({ task }: { task: ExampleTask }) {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink href="#list">Tasks</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                        <BreadcrumbPage>{task.title}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>

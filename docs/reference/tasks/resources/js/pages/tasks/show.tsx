@@ -3,7 +3,7 @@ import Heading from '@/components/heading';
 import TaskActions from '@/components/tasks/task-actions';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/format';
-import { index, show } from '@/routes/tasks';
+import { index } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
 type ShowTaskProps = {
@@ -43,11 +43,8 @@ export default function ShowTask({ task }: ShowTaskProps) {
     );
 }
 
-// The breadcrumb ends at this page and uses its data, so the title shows and
-// the page needs no separate "back" button.
-ShowTask.layout = (props: ShowTaskProps) => ({
-    breadcrumbs: [
-        { title: 'Tasks', href: index() },
-        { title: props.task.title, href: show(props.task.id) },
-    ],
-});
+// The breadcrumb ends at the list and is the way back, so the page needs no
+// separate "back" button. The task's name shows once, as the heading.
+ShowTask.layout = {
+    breadcrumbs: [{ title: 'Tasks', href: index() }],
+};
