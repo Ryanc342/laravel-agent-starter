@@ -47,7 +47,7 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | Need | Use |
 | --- | --- |
 | One field in a form | `FormField` (`components/shared`): label on the left of the input on desktop, above it on a phone. An error gives the input a red border and shows no text under it; the message is a toast, and screen readers still get it |
-| Text | `Input` |
+| Text | `Input`: 40px high; `size="sm"` (32px) only for a box inside a menu row |
 | A password | `PasswordInput` |
 | A one-time code | `InputOTP` |
 | A list of options | `Select` |

@@ -511,3 +511,21 @@ test('without Clear the menu ends with its filter and has no trailing line', () 
         document.querySelectorAll('[data-slot="separator-root"]'),
     ).toHaveLength(2);
 });
+
+test('the search box and the range ends use the small Input size, not a height class', () => {
+    const { unmount } = render(title());
+    open('Title');
+    const search = screen.getByRole('searchbox', { name: 'Search Title' });
+
+    expect(search.getAttribute('data-size')).toBe('sm');
+    unmount();
+
+    render(due());
+    open('Due date');
+
+    for (const label of ['From', 'To']) {
+        expect(screen.getByLabelText(label).getAttribute('data-size')).toBe(
+            'sm',
+        );
+    }
+});

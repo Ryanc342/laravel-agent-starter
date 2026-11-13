@@ -8,7 +8,9 @@ export default function PasswordInput({
     className,
     ref,
     ...props
-}: Omit<ComponentProps<'input'>, 'type'> & { ref?: Ref<HTMLInputElement> }) {
+}: Omit<ComponentProps<'input'>, 'type' | 'size'> & {
+    ref?: Ref<HTMLInputElement>;
+}) {
     const [showPassword, setShowPassword] = useState(false);
 
     return (

@@ -172,7 +172,7 @@ function RangeEnd({
             <Label htmlFor={id} className="w-10 shrink-0 font-normal">
                 {label}
             </Label>
-            <Input id={id} type={type} className="h-8" {...inputProps} />
+            <Input id={id} type={type} size="sm" {...inputProps} />
         </InputRow>
     );
 }
@@ -279,7 +279,7 @@ export function ColumnMenuContent({
                             param={menu.search.param}
                             aria-label={`Search ${header}`}
                             placeholder={`Search ${header.toLowerCase()}`}
-                            className="h-8"
+                            size="sm"
                         />
                     </InputRow>
                 )}
