@@ -83,6 +83,9 @@ export default function TokensDemo() {
                 <div className="flex h-16 w-32 items-end rounded-lg border-2 border-border p-2 text-xs">
                     border
                 </div>
+                <div className="flex h-16 w-32 items-end rounded-lg border-2 border-input-focus p-2 text-xs">
+                    input-focus
+                </div>
                 <div className="flex h-16 w-32 items-end rounded-lg p-2 text-xs ring-2 ring-ring">
                     ring
                 </div>

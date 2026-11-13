@@ -24,7 +24,7 @@ The complete implementation must pass full `composer check`, including after any
 
 ## Frontend tests
 
-React only displays, so pages and components get no tests. Two kinds of frontend code do: a hook with timing or ordering logic (wait before asking the server, the latest answer wins, retry) and the money and date formatters in `resources/js/lib/format.ts` (their test is `tests/js/lib/format.test.ts`; tests/Structure/CodeTest.php checks that it exists). They get a Vitest test in `tests/js/`, mirroring the path (`tests/js/hooks/use-network-error-toast.test.tsx`). Import from `vite-plus/test`, render a hook with `renderHook` from `@testing-library/react`. `npm test` runs them, and `composer check` includes it.
+React only displays, so pages and components get no tests. Two kinds of frontend code do: a hook with timing or ordering logic (wait before asking the server, the latest answer wins, retry) and the money and date formatters in `resources/js/lib/format.ts` (their test is `tests/js/lib/format.test.ts`; tests/Structure/CodeTest.php checks that it exists). They get a Vitest test in `tests/js/`, mirroring the path (`tests/js/hooks/use-network-error-toast.test.tsx`). A Pest test that renders a page added since the last build needs `npm run build` first, or Vite cannot find the page in its manifest. Import from `vite-plus/test`, render a hook with `renderHook` from `@testing-library/react`. `npm test` runs them, and `composer check` includes it.
 
 ## Consistency tests
 

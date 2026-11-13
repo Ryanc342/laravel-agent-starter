@@ -108,7 +108,6 @@ test('components live in resources/js/components/{domain}/ or components/shared/
     // The starter kit's own components. A new component goes in a domain
     // folder or components/shared, never next to these.
     $starterKit = [
-        'alert-error.tsx',
         'app-content.tsx',
         'app-logo-icon.tsx',
         'app-logo.tsx',

@@ -560,3 +560,76 @@ test('the search box and the range ends use the small Input size, not a height c
         );
     }
 });
+
+test('a typed amount asks for the list after a pause of 400 ms, not on each key', () => {
+    vi.useFakeTimers();
+
+    try {
+        render(
+            <ColumnMenu
+                header="Amount"
+                menu={{
+                    sortKey: 'amount',
+                    range: {
+                        fromParam: 'amount_from',
+                        toParam: 'amount_to',
+                        type: 'number',
+                    },
+                }}
+            />,
+        );
+        open('Amount');
+
+        const from = screen.getByLabelText('From');
+
+        fireEvent.change(from, { target: { value: '1' } });
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+        fireEvent.change(from, { target: { value: '12' } });
+        act(() => {
+            vi.advanceTimersByTime(399);
+        });
+
+        expect(state.get).not.toHaveBeenCalled();
+
+        act(() => {
+            vi.advanceTimersByTime(1);
+        });
+
+        expect(state.get).toHaveBeenCalledTimes(1);
+        expect(visited().searchParams.get('amount_from')).toBe('12');
+    } finally {
+        vi.useRealTimers();
+    }
+});
+
+test('Enter asks for a typed amount at once', () => {
+    vi.useFakeTimers();
+
+    try {
+        render(
+            <ColumnMenu
+                header="Amount"
+                menu={{
+                    sortKey: 'amount',
+                    range: {
+                        fromParam: 'amount_from',
+                        toParam: 'amount_to',
+                        type: 'number',
+                    },
+                }}
+            />,
+        );
+        open('Amount');
+
+        const to = screen.getByLabelText('To');
+
+        fireEvent.change(to, { target: { value: '90' } });
+        fireEvent.keyDown(to, { key: 'Enter' });
+
+        expect(visited().searchParams.get('amount_to')).toBe('90');
+    } finally {
+        vi.useRealTimers();
+    }
+});

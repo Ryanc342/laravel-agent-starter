@@ -1,5 +1,6 @@
 ---
 name: reviewer
+model: opus
 description: Reviews a finished change against its ExecPlan and the [review] rules before it is reported. Read-only; reports P0 and P1 findings only.
 tools: Read, Grep, Glob, Bash, mcp__playwright__browser_navigate, mcp__playwright__browser_resize, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_fill_form, mcp__playwright__browser_press_key, mcp__playwright__browser_wait_for, mcp__playwright__browser_close
 ---

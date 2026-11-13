@@ -1,9 +1,10 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
 import { useState } from 'react';
 import MarkAllReadButton from '@/components/notifications/mark-all-read-button';
 import NotificationRow from '@/components/notifications/notification-row';
 import EmptyState from '@/components/shared/empty-state';
+import ErrorState from '@/components/shared/error-state';
 import LoadingState from '@/components/shared/loading-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,9 +18,8 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useLatestNotifications } from '@/hooks/use-latest-notifications';
 import { index } from '@/routes/notifications';
-
-const loadLatest = () => router.reload({ only: ['latestNotifications'] });
 
 /**
  * The bell in the top bar. The unread count comes with every page
@@ -27,7 +27,8 @@ const loadLatest = () => router.reload({ only: ['latestNotifications'] });
  * opens (latestNotifications, an optional prop of HandleInertiaRequests).
  */
 export default function NotificationMenu() {
-    const { notificationSummary, latestNotifications } = usePage().props;
+    const { notificationSummary } = usePage().props;
+    const { latest, failed, load: loadLatest } = useLatestNotifications();
     const [open, setOpen] = useState(false);
 
     if (notificationSummary === null) {
@@ -80,17 +81,24 @@ export default function NotificationMenu() {
                     )}
                 </div>
 
-                {latestNotifications === undefined ? (
+                {failed ? (
+                    <div className="px-4 py-6">
+                        <ErrorState
+                            message="Could not load your notifications."
+                            onRetry={loadLatest}
+                        />
+                    </div>
+                ) : latest === undefined ? (
                     <div className="p-4">
                         <LoadingState rows={3} />
                     </div>
-                ) : latestNotifications.length === 0 ? (
+                ) : latest.length === 0 ? (
                     <div className="px-4 py-6">
                         <EmptyState message="You have no notifications." />
                     </div>
                 ) : (
                     <ul className="max-h-96 divide-y overflow-y-auto">
-                        {latestNotifications.map((notification) => (
+                        {latest.map((notification) => (
                             <NotificationRow
                                 key={notification.id}
                                 notification={notification}
