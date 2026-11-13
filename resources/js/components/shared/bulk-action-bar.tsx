@@ -40,9 +40,9 @@ export default function BulkActionBar({
                 role="region"
                 aria-label="Bulk actions"
                 data-slot="bulk-action-bar"
-                className="pointer-events-auto flex max-w-full flex-wrap items-center gap-3 rounded-lg border bg-popover px-4 py-2 text-popover-foreground shadow-md"
+                className="pointer-events-auto flex w-full max-w-full items-center gap-2 rounded-lg border bg-popover px-3 py-2 text-popover-foreground shadow-md sm:w-auto sm:flex-wrap sm:gap-3 sm:px-4"
             >
-                <span className="text-sm font-medium tabular-nums">
+                <span className="text-sm font-medium whitespace-nowrap tabular-nums">
                     {allResults && total !== undefined
                         ? `All ${total} selected`
                         : `${count} selected`}
@@ -56,7 +56,9 @@ export default function BulkActionBar({
                         Select all {total} results
                     </Button>
                 ) : null}
-                <div className="flex items-center gap-2">{children}</div>
+                <div className="flex flex-1 items-center gap-2 sm:flex-none">
+                    {children}
+                </div>
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
