@@ -16,20 +16,33 @@ type ContactValues = Partial<
  * and the focus come from `useValidationErrorToasts`. `defaultValues` bring
  * back what was typed.
  */
+const defaultLabels = {
+    name: 'Name',
+    email: 'Email',
+    subject: 'Subject',
+    message: 'Message',
+};
+
 export default function ContactForm({
     errors = {},
     processing = false,
     defaultValues = {},
     submitLabel = 'Send message',
+    labels = defaultLabels,
 }: {
     errors?: Record<string, string>;
     processing?: boolean;
     defaultValues?: ContactValues;
     submitLabel?: string;
+    labels?: typeof defaultLabels;
 }) {
     return (
         <div className="grid gap-6">
-            <FormField label="Name" htmlFor="contact-name" error={errors.name}>
+            <FormField
+                label={labels.name}
+                htmlFor="contact-name"
+                error={errors.name}
+            >
                 <Input
                     id="contact-name"
                     name="name"
@@ -38,7 +51,7 @@ export default function ContactForm({
                 />
             </FormField>
             <FormField
-                label="Email"
+                label={labels.email}
                 htmlFor="contact-email"
                 error={errors.email}
             >
@@ -51,7 +64,7 @@ export default function ContactForm({
                 />
             </FormField>
             <FormField
-                label="Subject"
+                label={labels.subject}
                 htmlFor="contact-subject"
                 error={errors.subject}
             >
@@ -62,7 +75,7 @@ export default function ContactForm({
                 />
             </FormField>
             <FormField
-                label="Message"
+                label={labels.message}
                 htmlFor="contact-message"
                 error={errors.message}
             >

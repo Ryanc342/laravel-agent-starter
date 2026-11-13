@@ -176,11 +176,10 @@ test('the Chinese checkout has Chinese steps, errors and CNY amounts', () => {
         '购物车',
     );
 
-    fireEvent.change(
-        screen.getByRole('spinbutton', { name: /Quantity of 备件/ }),
-        { target: { value: '' } },
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.change(screen.getByRole('spinbutton', { name: /数量.*备件/ }), {
+        target: { value: '' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
 
     expect(failed.mock.calls[0][0]['lines.0.quantity']).toContain('请输入');
     expect(document.body.textContent).toContain('CN¥');
@@ -244,6 +243,49 @@ test('a failed contact send keeps what was typed', () => {
     );
 });
 
+test('the Chinese contact demo has Chinese labels and button, and Chinese checkout buttons', () => {
+    const { unmount } = render(
+        <ContactDemo
+            links={publicLinksZh}
+            {...contact.zh}
+            answer={(values) => answerContact(values, true)}
+        />,
+    );
+
+    expect(screen.getByLabelText('姓名')).toBeTruthy();
+    expect(screen.getByLabelText('留言').tagName).toBe('TEXTAREA');
+    expect(screen.getByRole('button', { name: '发送留言' })).toBeTruthy();
+    unmount();
+
+    renderCheckout(true);
+    expect(screen.getByRole('button', { name: '下一步' })).toBeTruthy();
+    expect(
+        screen.getByRole('button', { name: '移除 备件，每箱 20 件' }),
+    ).toBeTruthy();
+});
+
+test('the contact and checkout stand-ins use one rule for a name, an email and a quantity', () => {
+    expect(
+        answerContact({ name: ' ', email: 'x', subject: 's', message: 'm' }),
+    ).toEqual({
+        name: 'Enter your name.',
+        email: 'Enter an email address like name@example.com.',
+    });
+    expect(
+        answerCheckout(1, { name: ' ', email: 'x', address: 'a' }, []),
+    ).toMatchObject({
+        name: 'Enter your name.',
+        email: 'Enter an email address like name@example.com.',
+    });
+
+    const item = { id: 1, name: 'A', unit: 100, quantity: '1.5', total: 0 };
+
+    expect(Object.keys(answerCheckout(0, {}, [item]))).toEqual([
+        'items.0.quantity',
+    ]);
+    expect(priceCart([item], checkout.en.labels).total.amount).toBe(0);
+});
+
 test('the landing demo shows the hero in the display size, the features and a closing button, in English and in Chinese', () => {
     const { unmount } = render(
         <LandingDemo links={publicLinks} {...landing.en} />,
@@ -266,6 +308,9 @@ test('the landing demo shows the hero in the display size, the features and a cl
 
 test('the pricing demo has the title in the display size and the plans, in Chinese with yuan', () => {
     render(<PricingDemo links={publicLinksZh} {...pricing.zh} />);
+
+    expect(screen.getByRole('radio', { name: '按年' })).toBeTruthy();
+    expect(screen.getByText('推荐')).toBeTruthy();
 
     expect(screen.getByRole('heading', { level: 1 }).className).toContain(
         'text-display',

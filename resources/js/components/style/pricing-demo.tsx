@@ -12,18 +12,20 @@ export default function PricingDemo({
     links,
     title,
     plans,
+    labels,
     helpLabel,
 }: {
     links: PublicLink[];
     title: string;
     plans: Plan[];
+    labels: React.ComponentProps<typeof PricingPlans>['labels'];
     helpLabel: string;
 }) {
     return (
         <PublicFrame links={links}>
             <div className="grid gap-8">
                 <h1 className="text-display md:text-display-lg">{title}</h1>
-                <PricingPlans plans={plans} />
+                <PricingPlans plans={plans} labels={labels} />
                 <p className="text-sm">
                     <TextLink href="#help">{helpLabel}</TextLink>
                 </p>

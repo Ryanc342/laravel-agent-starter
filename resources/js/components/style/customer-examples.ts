@@ -186,8 +186,32 @@ const plansZh: Plan[] = [
 ];
 
 export const pricing = {
-    en: { title: 'Pricing', plans, helpLabel: 'Questions about plans?' },
-    zh: { title: '价格', plans: plansZh, helpLabel: '对套餐有疑问？' },
+    en: {
+        title: 'Pricing',
+        plans,
+        labels: {
+            billing: 'Billing period',
+            monthly: 'Monthly',
+            yearly: 'Yearly',
+            recommended: 'Recommended',
+            perMonth: '/ month',
+            perYear: '/ year',
+        },
+        helpLabel: 'Questions about plans?',
+    },
+    zh: {
+        title: '价格',
+        plans: plansZh,
+        labels: {
+            billing: '计费周期',
+            monthly: '按月',
+            yearly: '按年',
+            recommended: '推荐',
+            perMonth: '/ 月',
+            perYear: '/ 年',
+        },
+        helpLabel: '对套餐有疑问？',
+    },
 };
 
 export const product = {
@@ -376,6 +400,9 @@ export const checkout = {
             "The payment provider's own payment element goes here. This page never asks for a card number.",
         placeLabel: 'Place order',
         placed: 'Order placed.',
+        nextLabel: 'Next',
+        backLabel: 'Back',
+        lineLabels: { quantityOf: 'Quantity of', remove: 'Remove' },
         labels: { subtotal: 'Subtotal', tax: 'Tax (6%)', total: 'Total' },
     },
     zh: {
@@ -395,22 +422,51 @@ export const checkout = {
             '支付服务商自己的支付组件显示在这里。本页不会索要银行卡号。',
         placeLabel: '提交订单',
         placed: '订单已提交。',
+        nextLabel: '下一步',
+        backLabel: '返回',
+        lineLabels: { quantityOf: '数量：', remove: '移除' },
         labels: { subtotal: '小计', tax: '税费（6%）', total: '合计' },
     },
 };
 
-// Stands in for the server: what it answers to a changed quantity. A quantity
-// that is not a whole number of 1 or more counts as nothing.
+// Stands in for the server. Each rule below is written once and every
+// stand-in answer calls it: what counts as a quantity, a name and an email.
+const isQuantity = (value: string) =>
+    Number.isInteger(Number(value)) && Number(value) >= 1;
+
+function nameError(value: string | undefined, zh: boolean) {
+    return value?.trim() ? null : zh ? '请输入姓名。' : 'Enter your name.';
+}
+
+function emailError(value: string | undefined, zh: boolean) {
+    return /^\S+@\S+\.\S+$/.test(value ?? '')
+        ? null
+        : zh
+          ? '请输入像 name@example.com 这样的邮箱。'
+          : 'Enter an email address like name@example.com.';
+}
+
+/** Only the fields that failed, by name. */
+function onlyErrors(found: Record<string, string | null>) {
+    return Object.fromEntries(
+        Object.entries(found).filter(
+            (entry): entry is [string, string] => entry[1] !== null,
+        ),
+    );
+}
+
+// What the server answers to a changed quantity: a line that is not a whole
+// number of 1 or more counts as nothing.
 export function priceCart(
     items: LineItem[],
     labels: { subtotal: string; tax: string; total: string },
 ): PricedCart {
-    const priced = items.map((item) => {
-        const quantity = Number(item.quantity);
-        const valid = Number.isInteger(quantity) && quantity >= 1;
-
-        return { ...item, total: valid ? item.unit * quantity : 0 };
-    });
+    const priced = items.map((item) => ({
+        ...item,
+        total: isQuantity(item.quantity)
+            ? item.unit * Number(item.quantity)
+            : 0,
+    }));
     const subtotal = priced.reduce((sum, item) => sum + item.total, 0);
     const tax = Math.round(subtotal * 0.06);
 
@@ -424,8 +480,8 @@ export function priceCart(
     };
 }
 
-// Stands in for the FormRequest of each step. Errors are keyed as Laravel
-// sends them: `items.0.quantity`, `email`.
+// The FormRequest of each checkout step. Errors are keyed as Laravel sends
+// them: `items.0.quantity`, `email`.
 export function answerCheckout(
     step: number,
     values: Record<string, string>,
@@ -433,39 +489,34 @@ export function answerCheckout(
     field = 'items',
     zh = false,
 ): Record<string, string> {
-    const errors: Record<string, string> = {};
-
     if (step === 0) {
-        items.forEach((item, index) => {
-            const quantity = Number(item.quantity);
-
-            if (!Number.isInteger(quantity) || quantity < 1) {
-                errors[`${field}.${index}.quantity`] = zh
-                    ? `请输入 ${item.name} 的数量，至少为 1。`
-                    : `Enter a quantity of 1 or more for ${item.name}.`;
-            }
-        });
+        return onlyErrors(
+            Object.fromEntries(
+                items.map((item, index) => [
+                    `${field}.${index}.quantity`,
+                    isQuantity(item.quantity)
+                        ? null
+                        : zh
+                          ? `请输入 ${item.name} 的数量，至少为 1。`
+                          : `Enter a quantity of 1 or more for ${item.name}.`,
+                ]),
+            ),
+        );
     }
 
     if (step === 1) {
-        if (!values.name?.trim()) {
-            errors.name = zh ? '请输入姓名。' : 'Enter your name.';
-        }
-
-        if (!/^\S+@\S+\.\S+$/.test(values.email ?? '')) {
-            errors.email = zh
-                ? '请输入像 name@example.com 这样的邮箱。'
-                : 'Enter an email address like name@example.com.';
-        }
-
-        if (!values.address?.trim()) {
-            errors.address = zh
-                ? '请输入收货地址。'
-                : 'Enter the delivery address.';
-        }
+        return onlyErrors({
+            name: nameError(values.name, zh),
+            email: emailError(values.email, zh),
+            address: values.address?.trim()
+                ? null
+                : zh
+                  ? '请输入收货地址。'
+                  : 'Enter the delivery address.',
+        });
     }
 
-    return errors;
+    return {};
 }
 
 const faqTopics: FaqTopic[] = [
@@ -543,6 +594,7 @@ export const help = {
         title: 'Help',
         topics: faqTopics,
         searchLabel: 'Search help',
+        emptyMessage: 'No questions match your search.',
         stillNeedHelp: 'Still need help?',
         contactLabel: 'Contact us',
     },
@@ -550,40 +602,54 @@ export const help = {
         title: '帮助',
         topics: faqTopicsZh,
         searchLabel: '搜索帮助',
+        emptyMessage: '没有符合搜索的问题。',
         stillNeedHelp: '还需要帮助？',
         contactLabel: '联系我们',
     },
 };
 
-// Stands in for the FormRequest of the contact form.
+// The FormRequest of the contact form.
 export function answerContact(
     values: Record<string, string>,
     zh = false,
 ): Record<string, string> {
-    const errors: Record<string, string> = {};
-
-    if (!values.name?.trim()) {
-        errors.name = zh ? '请输入姓名。' : 'Enter your name.';
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(values.email ?? '')) {
-        errors.email = zh
-            ? '请输入像 name@example.com 这样的邮箱。'
-            : 'Enter an email address like name@example.com.';
-    }
-
-    if (!values.subject?.trim()) {
-        errors.subject = zh ? '请输入主题。' : 'Enter a subject.';
-    }
-
-    if (!values.message?.trim()) {
-        errors.message = zh ? '请写下你的留言。' : 'Write your message.';
-    }
-
-    return errors;
+    return onlyErrors({
+        name: nameError(values.name, zh),
+        email: emailError(values.email, zh),
+        subject: values.subject?.trim()
+            ? null
+            : zh
+              ? '请输入主题。'
+              : 'Enter a subject.',
+        message: values.message?.trim()
+            ? null
+            : zh
+              ? '请写下你的留言。'
+              : 'Write your message.',
+    });
 }
 
 export const contact = {
-    en: { title: 'Contact us', sent: 'Message sent.' },
-    zh: { title: '联系我们', sent: '留言已发送。' },
+    en: {
+        title: 'Contact us',
+        sent: 'Message sent.',
+        labels: {
+            name: 'Name',
+            email: 'Email',
+            subject: 'Subject',
+            message: 'Message',
+        },
+        submitLabel: 'Send message',
+    },
+    zh: {
+        title: '联系我们',
+        sent: '留言已发送。',
+        labels: {
+            name: '姓名',
+            email: '电子邮箱',
+            subject: '主题',
+            message: '留言',
+        },
+        submitLabel: '发送留言',
+    },
 };

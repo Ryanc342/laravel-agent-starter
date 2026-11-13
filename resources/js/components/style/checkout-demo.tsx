@@ -40,6 +40,9 @@ export default function CheckoutDemo({
     paymentNote,
     placeLabel,
     placed,
+    nextLabel,
+    backLabel,
+    lineLabels,
 }: {
     links: PublicLink[];
     title: string;
@@ -58,6 +61,9 @@ export default function CheckoutDemo({
     paymentNote: string;
     placeLabel: string;
     placed: string;
+    nextLabel: string;
+    backLabel: string;
+    lineLabels: { quantityOf: string; remove: string };
 }) {
     const [cart, setCart] = useState<PricedCart>(() => price(initialItems));
     const [values, setValues] = useState<Record<string, string>>({});
@@ -111,7 +117,7 @@ export default function CheckoutDemo({
                     footer={
                         <>
                             <Button onClick={next}>
-                                {last ? placeLabel : 'Next'}
+                                {last ? placeLabel : nextLabel}
                             </Button>
                             {current > 0 && (
                                 <Button
@@ -121,7 +127,7 @@ export default function CheckoutDemo({
                                         setCurrent(current - 1);
                                     }}
                                 >
-                                    Back
+                                    {backLabel}
                                 </Button>
                             )}
                         </>
@@ -135,6 +141,7 @@ export default function CheckoutDemo({
                                     currency={currency}
                                     errors={errors}
                                     field={field}
+                                    labels={lineLabels}
                                     onQuantityChange={changeQuantity}
                                     onRemove={(id) =>
                                         setCart(

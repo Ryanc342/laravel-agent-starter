@@ -140,3 +140,12 @@ test('the price is in the display size', () => {
         within(plan('Team')).getByText(shown(`RM${nbsp}49.00`)).className,
     ).toContain('text-display');
 });
+
+test('the recommended badge is a neutral badge: the one blue thing next to the plan is its button', () => {
+    render(<PricingPlans plans={plans} />);
+
+    expect(screen.getByText('Recommended').className).toContain('bg-secondary');
+    expect(screen.getByText('Recommended').className).not.toContain(
+        'bg-primary',
+    );
+});

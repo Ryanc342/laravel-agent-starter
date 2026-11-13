@@ -13,6 +13,7 @@ export default function HelpDemo({
     title,
     topics,
     searchLabel,
+    emptyMessage,
     stillNeedHelp,
     contactLabel,
 }: {
@@ -20,6 +21,7 @@ export default function HelpDemo({
     title: string;
     topics: FaqTopic[];
     searchLabel: string;
+    emptyMessage: string;
     stillNeedHelp: string;
     contactLabel: string;
 }) {
@@ -27,7 +29,11 @@ export default function HelpDemo({
         <PublicFrame links={links}>
             <div className="grid max-w-3xl gap-8">
                 <Heading title={title} />
-                <FaqList topics={topics} searchLabel={searchLabel} />
+                <FaqList
+                    topics={topics}
+                    searchLabel={searchLabel}
+                    emptyMessage={emptyMessage}
+                />
                 <p className="text-sm">
                     {stillNeedHelp}{' '}
                     <TextLink href="#contact">{contactLabel}</TextLink>

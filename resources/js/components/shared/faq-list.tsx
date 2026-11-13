@@ -23,9 +23,11 @@ export type FaqTopic = { id: string; title: string; items: FaqItem[] };
 export default function FaqList({
     topics,
     searchLabel = 'Search help',
+    emptyMessage = 'No questions match your search.',
 }: {
     topics: FaqTopic[];
     searchLabel?: string;
+    emptyMessage?: string;
 }) {
     const [search, setSearch] = useState('');
     const needle = search.trim().toLowerCase();
@@ -59,7 +61,7 @@ export default function FaqList({
 
             {shown.length === 0 && (
                 <div className="rounded-lg border p-8">
-                    <EmptyState message="No questions match your search." />
+                    <EmptyState message={emptyMessage} />
                 </div>
             )}
 

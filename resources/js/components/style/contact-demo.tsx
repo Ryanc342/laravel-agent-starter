@@ -16,11 +16,15 @@ export default function ContactDemo({
     title,
     answer,
     sent,
+    labels,
+    submitLabel,
 }: {
     links: PublicLink[];
     title: string;
     answer: (values: Record<string, string>) => Record<string, string>;
     sent: string;
+    labels: { name: string; email: string; subject: string; message: string };
+    submitLabel: string;
 }) {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [values, setValues] = useState<Record<string, string>>({});
@@ -58,7 +62,12 @@ export default function ContactDemo({
             <div className="grid max-w-2xl gap-8">
                 <Heading title={title} />
                 <form key={formKey} onSubmit={submit} noValidate>
-                    <ContactForm errors={errors} defaultValues={values} />
+                    <ContactForm
+                        errors={errors}
+                        defaultValues={values}
+                        labels={labels}
+                        submitLabel={submitLabel}
+                    />
                 </form>
             </div>
         </PublicFrame>

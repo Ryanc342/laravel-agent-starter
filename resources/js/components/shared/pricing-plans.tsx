@@ -24,9 +24,13 @@ export type Plan = {
     action: { label: string; href: NavItem['href'] };
 };
 
-const periods: Record<Billing, string> = {
-    monthly: '/ month',
-    yearly: '/ year',
+const defaultLabels = {
+    billing: 'Billing period',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    recommended: 'Recommended',
+    perMonth: '/ month',
+    perYear: '/ year',
 };
 
 /**
@@ -36,7 +40,14 @@ const periods: Record<Billing, string> = {
  * of the backend's two prices to show: nothing is calculated here. One plan is
  * recommended: a primary border and a badge. The plans stack on a phone.
  */
-export default function PricingPlans({ plans }: { plans: Plan[] }) {
+export default function PricingPlans({
+    plans,
+    labels = defaultLabels,
+}: {
+    plans: Plan[];
+    /** The words on the page, for a project that is not in English. */
+    labels?: typeof defaultLabels;
+}) {
     const { url, change } = useListQuery();
     const billing: Billing =
         listParam(url, 'billing') === 'yearly' ? 'yearly' : 'monthly';
@@ -53,11 +64,15 @@ export default function PricingPlans({ plans }: { plans: Plan[] }) {
                         change({ billing: value === 'yearly' ? value : null });
                     }
                 }}
-                aria-label="Billing period"
+                aria-label={labels.billing}
                 className="w-fit"
             >
-                <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
-                <ToggleGroupItem value="yearly">Yearly</ToggleGroupItem>
+                <ToggleGroupItem value="monthly">
+                    {labels.monthly}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="yearly">
+                    {labels.yearly}
+                </ToggleGroupItem>
             </ToggleGroup>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -73,7 +88,11 @@ export default function PricingPlans({ plans }: { plans: Plan[] }) {
                     >
                         <div className="flex items-center justify-between gap-2">
                             <Heading variant="small" title={plan.name} />
-                            {plan.recommended && <Badge>Recommended</Badge>}
+                            {plan.recommended && (
+                                <Badge variant="secondary">
+                                    {labels.recommended}
+                                </Badge>
+                            )}
                         </div>
                         <p className="flex flex-wrap items-baseline gap-x-2">
                             <span className="text-display">
@@ -83,7 +102,9 @@ export default function PricingPlans({ plans }: { plans: Plan[] }) {
                                 )}
                             </span>
                             <span className="text-sm text-muted-foreground">
-                                {periods[billing]}
+                                {billing === 'yearly'
+                                    ? labels.perYear
+                                    : labels.perMonth}
                             </span>
                         </p>
                         <ul className="grid gap-2 text-sm">

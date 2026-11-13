@@ -36,6 +36,7 @@ export default function LineItems({
     currency,
     errors = {},
     field = 'items',
+    labels = { quantityOf: 'Quantity of', remove: 'Remove' },
     onQuantityChange,
     onRemove,
 }: {
@@ -44,6 +45,7 @@ export default function LineItems({
     errors?: Record<string, string>;
     /** The name of the array the inputs belong to, as the FormRequest calls it. */
     field?: string;
+    labels?: { quantityOf: string; remove: string };
     onQuantityChange: (id: LineItem['id'], quantity: string) => void;
     onRemove: (id: LineItem['id']) => void;
 }) {
@@ -66,7 +68,7 @@ export default function LineItems({
                     </div>
                     <FormField
                         hideLabel
-                        label={`Quantity of ${item.name}`}
+                        label={`${labels.quantityOf} ${item.name}`}
                         htmlFor={`${uid}-${index}-quantity`}
                         error={errors[`${field}.${index}.quantity`]}
                         className="md:w-24"
@@ -93,13 +95,13 @@ export default function LineItems({
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    aria-label={`Remove ${item.name}`}
+                                    aria-label={`${labels.remove} ${item.name}`}
                                     onClick={() => onRemove(item.id)}
                                 >
                                     <Trash2 />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Remove</TooltipContent>
+                            <TooltipContent>{labels.remove}</TooltipContent>
                         </Tooltip>
                     </div>
                 </li>
