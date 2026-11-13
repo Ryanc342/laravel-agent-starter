@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Filter } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Filter } from 'lucide-react';
 import { useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -252,9 +252,10 @@ export function ColumnMenuContent({
 }
 
 /**
- * A table header that opens its column's menu. A sorted column shows an arrow
- * and a filtered one a funnel, both in the primary colour; a column that is
- * neither looks like plain text.
+ * A table header that opens its column's menu. It always shows a faint grey
+ * up-down arrow, so the user sees it can be clicked; a sorted column shows an
+ * up or down arrow instead and a filtered one adds a funnel, both in the
+ * primary colour. A column without a menu is plain text (the caller decides).
  */
 export default function ColumnMenu({
     header,
@@ -277,6 +278,13 @@ export default function ColumnMenu({
                     className="-ml-3 font-medium"
                 >
                     {header}
+                    {!sorted && (
+                        <ArrowUpDown
+                            data-slot="sortable-indicator"
+                            aria-hidden="true"
+                            className="text-muted-foreground/60"
+                        />
+                    )}
                     {sorted &&
                         (direction === 'asc' ? (
                             <ArrowUp

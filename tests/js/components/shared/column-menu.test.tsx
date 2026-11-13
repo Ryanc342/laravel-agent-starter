@@ -121,6 +121,69 @@ test('a sorted column shows an arrow in the primary colour, another column shows
     ).toBeTruthy();
 });
 
+test('a header that can be clicked shows a faint grey up-down arrow at rest', () => {
+    state.url = '/tasks';
+    const { container } = render(
+        <>
+            {title()}
+            {status()}
+        </>,
+    );
+    const arrows = container.querySelectorAll(
+        '[data-slot="sortable-indicator"]',
+    );
+
+    expect(arrows).toHaveLength(2);
+    expect(arrows[0].getAttribute('class')).toContain('text-muted-foreground');
+    expect(arrows[0].getAttribute('class')).not.toContain('text-primary');
+    expect(
+        container.querySelectorAll('[data-slot="sort-indicator"]'),
+    ).toHaveLength(0);
+    expect(
+        container.querySelectorAll('[data-slot="filter-indicator"]'),
+    ).toHaveLength(0);
+});
+
+test('a sorted header swaps the up-down arrow for the blue direction', () => {
+    state.url = '/tasks?sort=title&direction=desc';
+    const { container } = render(
+        <>
+            {title()}
+            {status()}
+        </>,
+    );
+    const titleButton = screen.getByRole('button', { name: /^Title/ });
+    const statusButton = screen.getByRole('button', { name: /^Status/ });
+
+    expect(
+        titleButton.querySelector('[data-slot="sortable-indicator"]'),
+    ).toBeNull();
+    expect(
+        titleButton.querySelector('[data-slot="sort-indicator"]'),
+    ).not.toBeNull();
+    expect(
+        statusButton.querySelector('[data-slot="sortable-indicator"]'),
+    ).not.toBeNull();
+    expect(
+        container.querySelectorAll('[data-slot="sortable-indicator"]'),
+    ).toHaveLength(1);
+});
+
+test('a filtered header keeps the up-down arrow and adds the blue funnel', () => {
+    state.url = '/tasks?status[]=open';
+    render(status());
+    const button = screen.getByRole('button', { name: /^Status/ });
+
+    expect(
+        button.querySelector('[data-slot="sortable-indicator"]'),
+    ).not.toBeNull();
+    expect(
+        button
+            .querySelector('[data-slot="filter-indicator"]')
+            ?.getAttribute('class'),
+    ).toContain('text-primary');
+});
+
 test('a filtered column shows a funnel in the primary colour', () => {
     state.url = '/tasks?status[]=open';
     const { container } = render(

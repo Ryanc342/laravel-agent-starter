@@ -1,0 +1,54 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { expect, test } from 'vite-plus/test';
+
+const root = join(import.meta.dirname, '../..');
+const css = readFileSync(join(root, 'resources/css/app.css'), 'utf8');
+const button = readFileSync(
+    join(root, 'resources/js/components/ui/button.tsx'),
+    'utf8',
+);
+
+// The light values sit in `:root`, the dark values in `.dark`.
+const light = /:root \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+const dark = /\.dark \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+
+const pressed = [
+    'primary-pressed',
+    'secondary-pressed',
+    'destructive-pressed',
+    'accent-pressed',
+    'sidebar-accent-pressed',
+];
+
+test('every press colour is defined once for light and once for dark, and mapped to a Tailwind colour', () => {
+    for (const token of pressed) {
+        expect(light).toContain(`--${token}:`);
+        expect(dark).toContain(`--${token}:`);
+        expect(css).toContain(`--color-${token}: var(--${token});`);
+    }
+});
+
+test('hover is a neutral grey: the accent colours have no chroma', () => {
+    for (const token of ['accent', 'accent-pressed', 'sidebar-accent']) {
+        for (const theme of [light, dark]) {
+            expect(theme).toMatch(
+                new RegExp(`--${token}: oklch\\([\\d.]+ 0 0\\);`),
+            );
+        }
+    }
+});
+
+test('every Button variant has a press state', () => {
+    const variants = /variant: \{([\s\S]*?)\n {6}\},/.exec(button)?.[1] ?? '';
+    const entries = variants
+        .split(/\n {8}(?=\w+:)/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
+    expect(entries.length).toBe(6);
+
+    for (const entry of entries) {
+        expect(entry).toContain('active:');
+    }
+});

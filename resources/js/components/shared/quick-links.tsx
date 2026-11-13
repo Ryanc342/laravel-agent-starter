@@ -13,7 +13,7 @@ export default function QuickLinks({ links }: { links: NavItem[] }) {
                     <Link
                         href={item.href}
                         prefetch
-                        className="flex h-12 items-center gap-3 px-4 text-sm transition-colors hover:bg-muted"
+                        className="flex h-12 items-center gap-3 px-4 text-sm transition-colors hover:bg-accent active:bg-accent-pressed"
                     >
                         {item.icon && (
                             <item.icon className="size-4 text-muted-foreground" />
