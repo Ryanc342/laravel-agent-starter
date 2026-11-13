@@ -44,7 +44,7 @@ The template serves two kinds of screen: internal systems that people use every 
 | A stream of messages (notifications, activity) | docs/design/patterns/feed.md |
 | Login, register and the other sign-in pages | docs/design/patterns/auth.md |
 | No permission, page not found, server error | docs/design/patterns/error-page.md |
-| See everything in the running app | the style overview page at `/style` (development only) |
+| See everything in the running app | the style overview page at `/style` (development only). It has no backend: what a backend would answer (a status, a validation result, an import's errors) comes with the page's example data through props |
 
 A page that matches no pattern is built freely from foundations.md and components.md. Tell the user, who adds its pattern later.
 
@@ -64,7 +64,7 @@ Do:
 Don't:
 
 - Gradients, glows, blurred orbs or decorative backgrounds.
-- A card inside a card, or page sections styled as floating cards.
+- A bordered box directly inside another bordered box, or page sections styled as floating cards. A hand-drawn `rounded-lg border` counts like `Card`: a mock top bar in a demo is a full-width strip with a line under it, not a box.
 - A row of identical stat cards with big numbers as the page opener, unless the plan asks for it on a dashboard or the page is a report (patterns/report.md).
 - Marketing-size headlines (only the home and pricing pages may have them), all-caps or letter-spaced labels, or a second accent colour.
 - Secondary labels and descriptions the layout already makes clear: a description line under any title (page, section, card or dialog), help text under every field, a sentence that explains what a feature does, a warning box above a button that already asks for confirmation.
