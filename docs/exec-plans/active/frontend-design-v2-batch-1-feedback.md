@@ -65,6 +65,7 @@ From the user's review of the batch 1 screens and grilling rounds 4 to 6 (Q41 to
 - 2026-11-13: Protected files this plan changes, awaiting the user's approval at start: DESIGN.md, docs/design/, docs/golden-principles.md, docs/rules/frontend.md, docs/rules/controllers.md and docs/reference/tasks/. Ask before touching any other protected file.
 - 2026-11-13 (M6): `resources/js/components/breadcrumbs.tsx` is not a protected file; it changed so that a breadcrumb ending at the list stays a link. Reported to the user in the final report.
 - 2026-11-13: The user said "开始", which approves the files above and the branch decision. docs/reference/tasks/ is changed in M5 and M6, not before.
+- 2026-11-13: The user approved, when asked after the work was done, every protected file this plan changed, named one by one: DESIGN.md; docs/design/components.md, docs/design/foundations.md; docs/design/patterns/auth.md, dashboard.md, detail.md, feed.md, form.md, list.md, settings.md, states.md; docs/golden-principles.md; docs/rules/controllers.md, docs/rules/frontend.md; docs/reference/tasks/README.md, docs/reference/tasks/app/Http/Controllers/TaskController.php, docs/reference/tasks/app/Http/Requests/Tasks/IndexTaskRequest.php (new), docs/reference/tasks/resources/js/components/tasks/task-table.tsx, docs/reference/tasks/resources/js/pages/tasks/index.tsx, docs/reference/tasks/resources/js/pages/tasks/show.tsx, docs/reference/tasks/tests/Feature/Tasks/TaskControllerTest.php.
 
 ## Outcomes & Retrospective
 To be filled in at the end.
