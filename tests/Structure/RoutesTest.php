@@ -59,7 +59,8 @@ test('a fixed path comes before a wildcard path that would catch it (quotes/crea
         $path = '/'.ltrim((string) preg_replace('/\{[^}]+\}/', 'x', $route->uri()), '/');
 
         foreach (array_slice($routes, 0, $later) as $earlier) {
-            if ($earlier->uri() === $route->uri() || array_intersect($earlier->methods(), $route->methods()) === [] || $earlier->getDomain() !== $route->getDomain()) {
+            // Laravel matches the fallback route last, whatever its place in the list.
+            if ($earlier->isFallback || $earlier->uri() === $route->uri() || array_intersect($earlier->methods(), $route->methods()) === [] || $earlier->getDomain() !== $route->getDomain()) {
                 continue;
             }
 
