@@ -53,3 +53,21 @@ test('the list counts as narrowed when any named parameter has a value', () => {
     expect(hasListParams('/tasks?status[]=open', keys)).toBe(true);
     expect(hasListParams('/tasks?search=', keys)).toBe(false);
 });
+
+test('the values of a list are read back even when Inertia numbers them (status[0])', () => {
+    const url = '/tasks?status%5B0%5D=open&status%5B1%5D=done&per_page=20';
+
+    expect(listParams(url, 'status')).toEqual(['open', 'done']);
+    expect(hasListParams(url, ['status'])).toBe(true);
+});
+
+test('a change to a list replaces the numbered values too', () => {
+    const url = withListParams('/tasks?status%5B0%5D=open&status%5B1%5D=done', {
+        status: ['done'],
+    });
+    const address = new URL(url, 'http://localhost');
+
+    expect([...address.searchParams.keys()]).toEqual(['status[]']);
+    expect(address.searchParams.getAll('status[]')).toEqual(['done']);
+    expect(withListParams(url, { status: [] })).toBe('/tasks');
+});

@@ -15,7 +15,9 @@ export function withListParams(
 
     for (const [key, value] of Object.entries(changes)) {
         address.searchParams.delete(key);
-        address.searchParams.delete(`${key}[]`);
+        listKeys(address, key).forEach((name) =>
+            address.searchParams.delete(name),
+        );
 
         if (Array.isArray(value)) {
             value.forEach((item) =>
@@ -36,9 +38,22 @@ export function listParam(url: string, key: string): string {
     return new URL(url, 'http://localhost').searchParams.get(key) ?? '';
 }
 
-/** The values of a bracket parameter (`status[]`). */
+/** The values of a bracket parameter: `status[]`, and `status[0]` as Inertia writes it back. */
 export function listParams(url: string, key: string): string[] {
-    return new URL(url, 'http://localhost').searchParams.getAll(`${key}[]`);
+    const address = new URL(url, 'http://localhost');
+
+    return listKeys(address, key).flatMap((name) =>
+        address.searchParams.getAll(name),
+    );
+}
+
+/** The parameter names that carry one list: `status[]`, `status[0]`, `status[1]`. */
+function listKeys(address: URL, key: string): string[] {
+    const own = new RegExp(`^${key}\\[\\d*\\]$`);
+
+    return [...new Set(address.searchParams.keys())].filter((name) =>
+        own.test(name),
+    );
 }
 
 /** Whether the address holds any value for these parameters, such as a search or a filter. */

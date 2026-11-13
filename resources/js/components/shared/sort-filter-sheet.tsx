@@ -62,7 +62,7 @@ export default function SortFilterSheet({
                 <SheetHeader>
                     <SheetTitle>Sort & filter</SheetTitle>
                 </SheetHeader>
-                <div className="grid gap-6 px-4">
+                <div className="grid gap-6 px-6">
                     {withMenu.map((column) => (
                         <section
                             key={column.header}

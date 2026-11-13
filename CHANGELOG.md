@@ -15,6 +15,9 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 - The dashboard shows the latest notifications and quick links instead of placeholders.
 - A rows-per-page choice (10, 20, 50 or 100; default 20) under every paginated list, in the URL only (`?per_page=50`): the enum `PerPage` owns the sizes, the trait `ReadsPerPage` and one FormRequest per list read it, and the sizes reach React as the shared prop `perPageOptions`. A value that is not offered counts as 20.
 - `FeedList` in `components/shared`: the notification list as one bordered box with line-separated rows.
+- Sort, filter and search from the column headers: `ColumnMenu` (sort, a search inside the column, a tick list with Select all and Unselect all, a from-to range, Clear; an arrow marks a sorted column and a funnel a filtered one), `ListToolbar` (the search box above the table) and, on a phone, the "Sort & filter" sheet (`SortFilterSheet`). They live only in the URL (`lib/list-query.ts`, `useListQuery`, `useUrlParam`): a change goes back to page 1 and keeps `per_page`.
+- The reference task list has real search, sort and filters: `IndexTaskRequest` reads `search`, `sort`, `direction`, `status[]`, `due_from` and `due_to` and ignores values that are not allowed, `TaskSort` and `TaskStatus::options()` own the allowed values, and the `Task` scopes `matching`, `withStatuses`, `dueBetween` and `sortedBy` do the work.
+- `RegionState` and the `loading` and `error` props of `ResponsiveTable` and `FeedList`: the empty, failed and loading states are drawn inside the frame of the table or box.
 
 ### Changed
 
@@ -27,6 +30,9 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 - A table or list with no records keeps its header row (on a phone its box) and shows the empty line inside it; `ResponsiveTable` takes `emptyMessage`.
 - Notification rows have no card and no grey background: an unread row has the blue dot and darker text.
 - A record's breadcrumb ends at its list (`Tasks`) and stays a link; the name appears once, as the heading. `Breadcrumbs` shows its last crumb as plain text only when it is the current page.
+- `EmptyState` and `ErrorState` are centred with an icon (red for a failure) and sit inside the table or box, like the loading state. The style page's list demo has an amount column with a range.
+- Every enabled clickable element shows the pointing-hand cursor and a disabled one the arrow: one unlayered rule in `resources/css/app.css`.
+- A notification is marked as read by clicking its row (the per-row "Mark as read" buttons are gone; "Mark all as read" stays), and marking one or all as read leaves the user on the page they were on instead of going to the notifications page. `FeedRow` takes `onClick` instead of `action`.
 
 ## [1.1.0] - 2026-11-10
 
