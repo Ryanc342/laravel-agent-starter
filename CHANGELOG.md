@@ -4,7 +4,7 @@ Versions follow [Semantic Versioning](https://semver.org): a new rule or behavio
 
 ## [1.2.0] - 2026-11-13
 
-Frontend design, batch 1: a clean and bright look, a design spec in four layers, and the first nine page patterns.
+Frontend design, batch 1: a clean and bright look, a design spec in four layers, and the first nine page patterns. Batch 2 (below, under "Batch 2") adds ten more patterns and real bulk actions, CSV and print to the reference task list.
 
 ### Added
 
@@ -37,6 +37,26 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 - A column header that can be clicked always shows a faint grey up-down arrow; sorted turns it into a blue up or down arrow, filtered adds the blue funnel.
 - The column menu is one column of equal rows, like a dropdown menu: the same height, left edge and 16px icon slot for every choice, grey on hover, darker on press, thin lines between the groups (sort, the column's filter, Clear). "Select all" and "Unselect all" are rows of their own, a tick row is clickable all over, the search box and the From and To inputs sit in rows with the same left padding, and the sort row in use shows the selected colour. The phone "Sort & filter" sheet shows the same rows and lines.
 - Form fields are quiet: no glow when clicked into or with an error. `Input`, the `Select` trigger, `Checkbox` and the `InputOTP` slot turn their border the dark grey `input-focus` (a new token, light and dark) when focused and keep a red border with an error, also while focused. Buttons, toggles and badges keep the blue keyboard ring. A Vitest guard (`tests/js/field-focus.test.ts`) keeps rings off fields.
+
+### Batch 2 (still part of 1.2.0)
+
+Added
+
+- Ten page patterns in `docs/design/patterns/`, each with a spec and a demo on `/style`: search results, wizard, approval, list and detail, bulk actions, import and export, print, report, calendar, kanban. `DESIGN.md` and principle 10 of `docs/golden-principles.md` list them; `DocsTest` checks that each pattern is in the index, names a Sample or Demo, and that every file it names exists.
+- Shared blocks in `components/shared`: `DatePicker`, `UrlTabs`, `BulkActionBar` (with the hook `useRowSelection`), `WizardLayout`, `Timeline`, `ListDetailLayout`, `SearchBox`, `SearchResults`, `ReportRange`, `ReportChart`, `MonthCalendar`, `KanbanBoard` and `LabeledDivider`; `components/ui` gained `tabs`, `calendar` and `chart`. New npm packages: `@radix-ui/react-tabs`, `react-day-picker`, `recharts`, `@dnd-kit/core`, `@dnd-kit/sortable`.
+- The reference task list has bulk Complete and Delete on ticked rows or on every row the list matches (`BulkTaskCompletionController`, `BulkTaskDeletionController`, `BulkTaskRequest`, `CompleteTasks`, `DeleteTasks`), a CSV export of the filtered list, a CSV import with a downloadable template (up to 1 MB and 1000 rows; the first five errors are shown, with "And N more errors."), and a print page and PDF of one task (`spatie/laravel-pdf` with `dompdf/dompdf`, `LARAVEL_PDF_DRIVER=dompdf`). DOMPDF's default font has no Chinese characters; `docs/design/patterns/print.md` says what to do.
+- A fallback route (`NotFoundController`) so a URL that matches no route runs the web middleware and the 404 page knows who is signed in.
+- `hooks/use-latest-notifications.ts`, shared by the bell and the dashboard block.
+
+Changed
+
+- Every native date input is the shared `DatePicker` (a calendar in a popover; the URL and the form still hold `YYYY-MM-DD`). `useUrlParam` returns `value` and `commit`.
+- Hover and press states on the Select trigger, Checkbox, badge links and navigation menu (guarded by `tests/js/hover-press.test.ts`); the bell shows an error state with a retry.
+- The `reviewer` subagent has its own model (`opus` for Claude Code, `gpt-6.1-sol` for Codex).
+
+Removed
+
+- `components/ui/alert.tsx` and `components/ui/placeholder-pattern.tsx` (unused).
 
 ## [1.1.0] - 2026-11-10
 

@@ -16,7 +16,7 @@ Enums                             app/Enums/                    fixed values and
 A layer may use the layers below it, never the ones above it. Side folders:
 
 - `app/Integrations/`: the only entry for external services (payment, SMS, maps). Only Actions call it.
-- `app/Support/`: small helpers any layer may use (money with `Brick\Math\BigDecimal`, dates).
+- `app/Support/`: small helpers any layer may use (money with `Brick\Math\BigDecimal`, dates, reading and writing a CSV file).
 - `app/Concerns/`: validation rule traits shared by FormRequests (`PasswordValidationRules`).
 - `app/Notifications/`: messages to a user (`PasswordChanged`). Only Actions send them, with `$user->notify()`.
 

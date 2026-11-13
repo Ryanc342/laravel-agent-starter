@@ -91,7 +91,7 @@ export DB_PASSWORD='your-password'
 | [AGENTS.md](AGENTS.md) | AI 每次开始工作的入口；`CLAUDE.md` 指向同一文件 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 分层、业务规则归属和对应检查 |
 | [DESIGN.md](DESIGN.md) | 界面风格，以及按任务查看哪份设计文件的索引 |
-| [docs/design/](docs/design/) | 设计基础、组件选择和九种页面模式（列表、详情、表单、空 / 错误 / 加载状态、仪表盘、设置、消息流、登录注册、错误页）；开发时打开 `/style` 查看全部演示 |
+| [docs/design/](docs/design/) | 设计基础、组件选择和十九种页面模式（列表、详情、表单、空 / 错误 / 加载状态、仪表盘、设置、消息流、登录注册、错误页，以及批量操作、导入导出、打印、搜索结果、向导、审批、列表加详情、报表、日历、看板）；开发时打开 `/style` 查看全部演示 |
 | [docs/workflow.md](docs/workflow.md) | 提问、计划、实现、验证和审查流程 |
 | [docs/PLANS.md](docs/PLANS.md) | 执行计划格式 |
 | [docs/golden-principles.md](docs/golden-principles.md) | 十项原则及其检查方式 |
