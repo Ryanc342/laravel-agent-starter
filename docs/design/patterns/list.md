@@ -15,11 +15,19 @@ Each row becomes one card on a phone: the name first, then the status, then the 
 
 A column header that can be sorted or filtered is a button that opens a `Popover` under it (`ColumnMenu`, `components/shared`). Every menu ends with "Clear", which removes that column's sort and filter.
 
+The menu is one column of rows, like a dropdown menu. The `Popover` uses the dropdown menu's padding (`p-1`) and every choice is one row with the `DropdownMenuItem` look: the same height and padding (`px-2 py-1.5`, `text-sm`, `gap-2`, `rounded-sm`), a 16px icon slot on the left, hover `bg-accent` and press `bg-accent-pressed`. All rows start on the same left edge and carry `data-slot="column-menu-row"`. No bordered or full-width button is left in the menu.
+
+1. The sort rows: "Sort ascending" (`ArrowUp`) and "Sort descending" (`ArrowDown`). The row in use has the selected colour (`bg-accent-pressed`, the selected-toggle rule in foundations.md), so the current order is visible inside the menu as well as to a screen reader (`aria-pressed`).
+2. The column's filter: the search box, the tick list or the range, as the table below says.
+3. "Clear" (`X`), the last row.
+
+A thin `Separator`, edge to edge, divides the groups: sort, the column's filter, Clear. In a tick list the rows "Select all" (`ListChecks`) and "Unselect all" (`ListX`) are a group of their own, one row each, and a line divides them from the options.
+
 | Column | The menu offers |
 | --- | --- |
-| Text (a title) | Sort ascending, sort descending, and a search box inside that column |
-| Fixed options (a status) | Sort, and a tick list where several options can be ticked, with "Select all" and "Unselect all" |
-| Date or amount | Sort, and a from-to range (native date or number inputs; both ends included) |
+| Text (a title) | Sort ascending, sort descending, and a search box inside that column, in a row with the same left padding as the other rows |
+| Fixed options (a status) | Sort, and a tick list where several options can be ticked: one row per option (its checkbox in the icon slot, the whole row clickable), after the rows "Select all" and "Unselect all" |
+| Date or amount | Sort, and a from-to range (native date or number inputs; both ends included): "From" and "To" are one row each, the label on the left of its input |
 
 - A header that can be clicked always shows a faint grey up-down arrow next to its name (`text-muted-foreground`), so the user sees it is clickable before the mouse arrives; a header that cannot be clicked shows nothing. A sorted column replaces the arrow with an up or down arrow in `text-primary`; a filtered column adds a `text-primary` funnel.
 - Sort, filters and search live only in the URL (`?sort=due_on&direction=desc&status[]=open&due_from=2026-11-01&search=x`), like rows per page. Changing any of them goes back to page 1 and keeps `per_page`; leaving the list and coming back shows the default order. A value that is not allowed is ignored, as an unknown `per_page` is.
@@ -27,7 +35,7 @@ A column header that can be sorted or filtered is a button that opens a `Popover
 
 ## Phone
 
-The "Sort & filter" `Button` opens a `Sheet` from the bottom with the same choices, one section per column, and "Clear". The cards have no header row, so there are no header menus.
+The "Sort & filter" `Button` opens a `Sheet` from the bottom with the same choices, one section per column, and "Clear". Each section shows the column menu's rows and lines (without its own Clear: the sheet keeps its one Clear in the footer). The cards have no header row, so there are no header menus.
 
 ## States
 
