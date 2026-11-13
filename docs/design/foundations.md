@@ -9,7 +9,8 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 | Page and surfaces | `background`, `card`, `popover` | the page, tables and inputs; cards, dropdowns, popovers and dialogs |
 | Sidebar | `sidebar`, `sidebar-foreground`, `sidebar-accent`, `sidebar-border` | the app sidebar only (light grey) |
 | Text | `foreground`, `muted-foreground` | text; secondary text, captions and empty lines |
-| Quiet fills | `secondary`, `muted`, `accent` | a neutral button or badge; hover |
+| Quiet fills | `secondary`, `muted`, `accent` | a neutral button or badge; hover (`accent` is a neutral grey, never blue) |
+| Press | `primary-pressed`, `secondary-pressed`, `destructive-pressed`, `accent-pressed`, `sidebar-accent-pressed` | the colour of a fill while it is pressed, and of a selected toggle or the sidebar's current page; one step darker than that fill's hover colour |
 | Brand | `primary`, `primary-foreground` | the main action of a screen, links, the selected item, the unread dot |
 | Lines and focus | `border`, `input`, `ring` | dividers and boxes; input borders; the focus ring |
 | Status | `destructive`, `success`, `warning`, each with its `-foreground` | a status and nothing else: an error or a delete, something done or paid, something that needs attention |
@@ -17,6 +18,8 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 
 - One primary colour, blue, for the one main action of a screen. No other accent colour.
 - Everything that carries the brand (focus ring, selected sidebar item, links, `chart-1`) follows `--primary` in app.css, so a project rebrands by changing `--primary` (light and dark) and the logo.
+- Hover is grey, not blue: hovering over anything clickable (outline and ghost buttons, menu and select items, column headers, the sidebar, rows) turns it the `accent` grey (`sidebar-accent` in the sidebar), in light and dark mode.
+- Press feedback is the same everywhere: every clickable element has an `active:` state one step darker than its hover colour (every button variant, menu and select items, toggles, column headers, notification rows, quick links, sidebar items); a link's text gets darker. Nothing moves or changes size. A selected toggle and the sidebar's current page use the press colour, so hover and selected stay distinguishable.
 - Text on a status fill uses that status's `-foreground` token, so it stays readable in both themes.
 - Every screen works in light and dark mode from the same tokens. The default follows the system.
 

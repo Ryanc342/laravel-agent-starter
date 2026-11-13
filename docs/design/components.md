@@ -18,6 +18,8 @@ Read when choosing a component or a variant. It says which one to use for what; 
 
 Every enabled clickable element (button, link, tab, menu item, checkbox, clickable row) shows the pointing-hand cursor; a disabled one keeps the normal arrow. The cursor comes from `resources/css/app.css`, never from a `className`.
 
+Every enabled clickable element also has a hover state (grey, foundations.md) and a press state one step darker (`active:` with a `-pressed` token), in every variant of `Button` and in the shared blocks that are clickable (menu and select items, toggles, column headers, notification rows, quick links, sidebar items). A new clickable component gets both.
+
 ## Navigation
 
 | Need | Use |
@@ -34,7 +36,7 @@ Every enabled clickable element (button, link, tab, menu item, checkbox, clickab
 | --- | --- |
 | A list of records | `ResponsiveTable` (`components/shared`): a `Table` on desktop, one card per row on a phone. With no records, or when it failed to load, it still shows its header row (on a phone its box) with the centred state inside |
 | A stream of messages | `FeedList` and `FeedRow` (`components/shared`), as `NotificationRow` uses them (patterns/feed.md): one bordered box, rows separated by lines |
-| Sort, filter and search of a column | `ColumnMenu` (`components/shared`): the header button and the `Popover` it opens (sort, column search, tick list with Select all and Unselect all, from-to range, Clear), with the arrow and funnel indicators. On a phone `SortFilterSheet` (`components/shared`) holds the same choices in a `Sheet` |
+| Sort, filter and search of a column | `ColumnMenu` (`components/shared`): the header button and the `Popover` it opens (sort, column search, tick list with Select all and Unselect all, from-to range, Clear), with its indicators: a faint grey up-down arrow at rest on every header that can be clicked, the blue up or down arrow when sorted and the blue funnel when filtered. On a phone `SortFilterSheet` (`components/shared`) holds the same choices in a `Sheet` |
 | The facts of one record | a `dl`: `dt` in `text-muted-foreground`, `dd` the value |
 | A status | `Badge`: `secondary` a neutral state (open, draft), `success` done or paid, `warning` needs attention, `destructive` failed, overdue or an error. The text is the label the backend sends, and it starts with a capital letter ("Open", "Done") |
 | A user | `Avatar` |

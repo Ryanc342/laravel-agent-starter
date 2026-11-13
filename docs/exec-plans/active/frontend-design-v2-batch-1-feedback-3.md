@@ -1,0 +1,43 @@
+# Frontend design v2, batch 1 feedback 3: grey hover, press feedback, visible sortable headers
+
+## Purpose
+Apply the user's third review of batch 1 before it is merged: a neutral grey instead of light blue on hover, the same press feedback on everything clickable, and column headers that show they can be clicked before the mouse reaches them.
+
+## Agreed decisions
+From the user's third review and grilling round 8 (Q62 to Q64), 2026-11-13:
+1. Q62: hovering over something clickable turns it light grey, not light blue: outline and ghost buttons, menu and select items, column headers and the sidebar. Dark mode uses the matching dark grey. This is the `accent` token (and `sidebar-accent`) in `resources/css/app.css`.
+2. Q63: pressing something clickable makes it one step darker than its hover colour, everywhere: every button variant (the blue primary becomes a darker blue), menu and select items, toggles, column headers, notification rows, quick links and sidebar items. A link's text gets darker. Nothing moves or changes size.
+3. Q64: a column header that can be clicked always shows a faint grey up-down arrow next to its name; a header that cannot be clicked shows nothing. Sorted, the arrow becomes up or down and turns blue; filtered, a blue funnel shows (decision 6 of feedback 2, Q58, unchanged).
+4. Consequence of decisions 1 and 2, raised to the user with the plan: a selected toggle and the sidebar's current page used the same colour as hover. They now use the press colour, one step darker than hover, so hover and selected stay distinguishable.
+
+## Milestones
+- [x] M1 Spec and rules: `docs/design/foundations.md` (hover, press and selected colours), `docs/design/components.md` (every clickable element has a hover and a press state; the column header arrow), `docs/design/patterns/list.md` (clickable headers show the arrow at rest), principle 10 in `docs/golden-principles.md`, DESIGN.md where it names these. + DocsTest.
+- [ ] M2 Colours and press states: neutral grey `accent` and `sidebar-accent` in light and dark, plus one darker step for press and selected, defined once in `resources/css/app.css`; `active:` styles on every variant in `components/ui/button.tsx`, on menu, select, toggle and sidebar items, and on the shared clickable blocks (column header, notification row, quick links); selected toggles and the sidebar's current page use the darker step. + Vitest where a class decides behaviour; screenshots at rest, hover and pressed.
+- [ ] M3 Column header arrow: `ColumnMenu`'s trigger always shows the faint up-down arrow; sorted shows up or down in blue; filtered adds the blue funnel; a plain header shows no icon. + Vitest; `composer check:reference` (the reference task list uses it).
+- [ ] M4 Checks, review and report: full `composer check` and `composer check:reference`; Playwright at 1280px and 390px, light and dark: hover and pressed on each button variant, a menu, a toggle group, the sidebar, a column header and a notification row; CHANGELOG entry; reviewer rounds (at most 3); report; archive this plan.
+
+## Validation
+- Per milestone: `composer check:milestone -- <affected test paths>` passes; record the scope and the reason.
+- M1: `tests/Structure/DocsTest.php`.
+- M2: a search recorded in Progress finds an `active:` state on every button variant and every clickable shared block; in the browser, hover is grey (not blue) in light and dark, pressed is one step darker, and a selected toggle differs from a hovered one.
+- M3: Vitest: a sortable header shows the up-down arrow at rest; sorted shows the direction in blue; filtered shows the funnel; a plain header has no icon.
+- UI: every changed page opened with the isolated headless Playwright MCP at 1280px and 390px, light and dark.
+- Final implementation: full `composer check` and `composer check:reference` pass, repeated after any later code change. No package is added or upgraded.
+
+## Progress
+- 2026-11-13 18:00 MYT: The user reviewed the screens a third time; grilling round 8 (Q62 to Q64) is answered on the user's Q&A page and recorded above. Plan written. The user said start and approved the protected files (Decision Log).
+- 2026-11-13: M1 done. Updated foundations.md (grey hover, `-pressed` tokens, press rule), components.md (hover and press on every clickable, arrow at rest), patterns/list.md (clickable headers show the arrow), principle 10 and DESIGN.md. `composer check:milestone -- tests/Structure/DocsTest.php` passed (static checks plus 4 DocsTest tests); scope: docs only, no code.
+
+## Surprises & Discoveries
+- The hover colour is the `accent` token, `oklch(0.955 0.02 262)` in light mode, a light blue; `sidebar-accent` is slightly blue too. Changing the two tokens changes every component that uses them.
+- No file in `resources/js` has an `active:` style, so nothing gives press feedback today.
+- A selected toggle (`data-[state=on]:bg-accent`) and the sidebar's current page (`data-[active=true]:bg-sidebar-accent`) use the hover colour (decision 4).
+- `ColumnMenu`'s trigger is a ghost button that shows only the header text until a sort or filter is in use.
+
+## Decision Log
+- 2026-11-13: Work continues on the branch `frontend-design-v2-batch-1`, not merged yet, so batch 1 and the three feedback rounds are merged together. The user confirms this at start.
+- 2026-11-13: The user said "开始" (start): work stays on the branch `frontend-design-v2-batch-1`, and the protected files this plan changes are approved: DESIGN.md, docs/design/foundations.md, docs/design/components.md, docs/design/patterns/list.md and docs/golden-principles.md. Ask before touching any other protected file or any existing assertion.
+- 2026-11-13: The darker press step is five tokens in `resources/css/app.css`: `primary-pressed`, `secondary-pressed`, `destructive-pressed`, `accent-pressed`, `sidebar-accent-pressed` (named in foundations.md).
+
+## Outcomes & Retrospective
+To be filled in at the end.

@@ -21,7 +21,7 @@ A column header that can be sorted or filtered is a button that opens a `Popover
 | Fixed options (a status) | Sort, and a tick list where several options can be ticked, with "Select all" and "Unselect all" |
 | Date or amount | Sort, and a from-to range (native date or number inputs; both ends included) |
 
-- A sorted column shows an up or down arrow next to its name, a filtered column a funnel; both are `text-primary` while in use and absent otherwise.
+- A header that can be clicked always shows a faint grey up-down arrow next to its name (`text-muted-foreground`), so the user sees it is clickable before the mouse arrives; a header that cannot be clicked shows nothing. A sorted column replaces the arrow with an up or down arrow in `text-primary`; a filtered column adds a `text-primary` funnel.
 - Sort, filters and search live only in the URL (`?sort=due_on&direction=desc&status[]=open&due_from=2026-11-01&search=x`), like rows per page. Changing any of them goes back to page 1 and keeps `per_page`; leaving the list and coming back shows the default order. A value that is not allowed is ignored, as an unknown `per_page` is.
 - The allowed columns, directions and ranges are decided by the list's FormRequest. The tick list's options arrive from the backend as `{ value, label }` pairs (the same enum method that builds a form's Select).
 

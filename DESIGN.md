@@ -13,7 +13,7 @@ The template serves two kinds of screen: internal systems that people use every 
 - Flat: borders separate things; only what floats over the page (dropdown, popover, dialog, sheet) has a shadow.
 - Small corners, one font family, a light grey sidebar.
 - Motion is subtle and quick, and stops when the user asks for reduced motion.
-- Everything the user can click shows the pointing-hand cursor; a disabled control keeps the arrow.
+- Everything the user can click shows the pointing-hand cursor; a disabled control keeps the arrow. It turns grey on hover and one step darker while pressed (never blue, nothing moves).
 - Copy is short and direct.
 - The appearance follows the system by default; light and dark both work from the same tokens.
 
