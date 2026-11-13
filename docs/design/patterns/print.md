@@ -15,6 +15,7 @@ Use for something the user prints or saves as a PDF: an invoice, a receipt, a ta
 ## PDF
 
 - "Download PDF" is a backend route that returns `application/pdf`, made by `spatie/laravel-pdf` with the DOMPDF driver (`LARAVEL_PDF_DRIVER=dompdf` in `.env`). DOMPDF reads CSS 2.1 only: no flexbox and no grid, so the PDF's Blade view is laid out with tables and keeps the same order and facts as the on-screen sheet.
+- DOMPDF's built-in fonts (DejaVu Sans) have no Chinese characters: a PDF that must show Chinese text needs a CJK font installed for DOMPDF (`laravel-pdf.dompdf.font_dir`, a project decision), or another driver such as Browsershot. The starter does not ship a CJK font.
 - The file name says what it is ("task-42.pdf", "invoice-2026-0012.pdf").
 
 ## Rules

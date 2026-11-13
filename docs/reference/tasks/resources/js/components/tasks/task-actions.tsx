@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { Form, Link } from '@inertiajs/react';
 import TaskCompletionController from '@/actions/App/Http/Controllers/TaskCompletionController';
 import TaskController from '@/actions/App/Http/Controllers/TaskController';
 import ResponsiveDialog, {
@@ -8,6 +8,7 @@ import ResponsiveDialog, {
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { print as printTask } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
 /**
@@ -35,6 +36,9 @@ export default function TaskActions({ task }: { task: Task }) {
                     trigger={<Button variant="outline">Edit task</Button>}
                 />
             )}
+            <Button variant="outline" asChild>
+                <Link href={printTask(task.id)}>Print</Link>
+            </Button>
             {task.can.delete && (
                 <ResponsiveDialog
                     trigger={<Button variant="outline">Delete task</Button>}

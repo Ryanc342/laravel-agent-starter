@@ -236,3 +236,42 @@ input[type='button']:not(:disabled) {
         scroll-behavior: auto !important;
     }
 }
+
+/*
+ * A page is printed on A4 in black on white, without the app's chrome (the
+ * sidebar, the top bar, toasts): docs/design/patterns/print.md. The buttons of
+ * a print page hide themselves with Tailwind's `print:hidden`. The colour
+ * tokens are set to their light values, so a printout from dark mode is
+ * readable.
+ */
+@media print {
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+
+    :root,
+    .dark {
+        --background: oklch(1 0 0);
+        --foreground: oklch(0.21 0.02 265);
+        --muted-foreground: oklch(0.4 0.025 265);
+        --border: oklch(0.8 0.006 265);
+        color-scheme: light;
+    }
+
+    html,
+    body {
+        background: var(--background);
+    }
+
+    [data-slot='sidebar'],
+    [data-slot='sidebar-inset'] > header,
+    [data-sonner-toaster] {
+        display: none !important;
+    }
+
+    [data-slot='sidebar-inset'] {
+        margin: 0 !important;
+        min-height: 0 !important;
+    }
+}
