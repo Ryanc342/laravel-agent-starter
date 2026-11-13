@@ -78,7 +78,7 @@ function renderCheckout(zh = false) {
             {...data}
             price={(items) => priceCart(items, data.labels)}
             answer={(step, values, items) =>
-                answerCheckout(step, values, items, zh)
+                answerCheckout(step, values, items, zh ? 'lines' : 'items', zh)
             }
         />,
     );
@@ -182,7 +182,7 @@ test('the Chinese checkout has Chinese steps, errors and CNY amounts', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    expect(failed.mock.calls[0][0]['items.0.quantity']).toContain('请输入');
+    expect(failed.mock.calls[0][0]['lines.0.quantity']).toContain('请输入');
     expect(document.body.textContent).toContain('CN¥');
 });
 

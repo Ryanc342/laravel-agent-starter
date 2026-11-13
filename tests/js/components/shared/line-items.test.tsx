@@ -129,3 +129,34 @@ test('the order summary lists its rows and ends with the total', () => {
         'tabular-nums',
     );
 });
+
+test('two lists on one page keep their own ids, and a list can name its array', () => {
+    render(
+        <TooltipProvider>
+            <LineItems
+                items={items}
+                currency="MYR"
+                onQuantityChange={vi.fn()}
+                onRemove={vi.fn()}
+                errors={{ 'lines.0.quantity': 'Enter a quantity.' }}
+                field="lines"
+            />
+            <LineItems
+                items={items}
+                currency="MYR"
+                onQuantityChange={vi.fn()}
+                onRemove={vi.fn()}
+            />
+        </TooltipProvider>,
+    );
+
+    const inputs = screen.getAllByRole('spinbutton', {
+        name: /Quantity of Spare parts/,
+    });
+
+    expect(inputs[0].getAttribute('name')).toBe('lines[0][quantity]');
+    expect(inputs[1].getAttribute('name')).toBe('items[0][quantity]');
+    expect(inputs[0].id).not.toBe(inputs[1].id);
+    expect(inputs[0].getAttribute('aria-invalid')).toBe('true');
+    expect(inputs[1].getAttribute('aria-invalid')).toBeNull();
+});

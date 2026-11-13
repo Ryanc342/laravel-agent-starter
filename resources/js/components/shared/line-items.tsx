@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+import { useId } from 'react';
 import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,9 +23,11 @@ export type LineItem = {
 /**
  * The items of a cart (docs/design/patterns/checkout.md): name and unit price,
  * a quantity box and the line total, one row per item, and an icon button to
- * remove it. The quantity inputs are named `items[0][quantity]`, so Laravel's
- * `items.0.quantity` error finds its field (`useValidationErrorToasts`); an
- * error here is keyed the way Laravel sends it. The page sends a changed
+ * remove it. The quantity inputs are named `items[0][quantity]` (`field` is
+ * the array's name), so Laravel's `items.0.quantity` error finds its field
+ * (`useValidationErrorToasts`); an error here is keyed the way Laravel sends
+ * it. The input ids are unique to each list, so two lists on a page do not
+ * share labels. The page sends a changed
  * quantity to the server, which answers with new totals: nothing is multiplied
  * here. On a phone each row stacks.
  */
@@ -32,15 +35,20 @@ export default function LineItems({
     items,
     currency,
     errors = {},
+    field = 'items',
     onQuantityChange,
     onRemove,
 }: {
     items: LineItem[];
     currency: string;
     errors?: Record<string, string>;
+    /** The name of the array the inputs belong to, as the FormRequest calls it. */
+    field?: string;
     onQuantityChange: (id: LineItem['id'], quantity: string) => void;
     onRemove: (id: LineItem['id']) => void;
 }) {
+    const uid = useId();
+
     return (
         <ul className="divide-y rounded-lg border">
             {items.map((item, index) => (
@@ -59,13 +67,13 @@ export default function LineItems({
                     <FormField
                         hideLabel
                         label={`Quantity of ${item.name}`}
-                        htmlFor={`items-${index}-quantity`}
-                        error={errors[`items.${index}.quantity`]}
+                        htmlFor={`${uid}-${index}-quantity`}
+                        error={errors[`${field}.${index}.quantity`]}
                         className="md:w-24"
                     >
                         <Input
-                            id={`items-${index}-quantity`}
-                            name={`items[${index}][quantity]`}
+                            id={`${uid}-${index}-quantity`}
+                            name={`${field}[${index}][quantity]`}
                             type="number"
                             inputMode="numeric"
                             min={1}

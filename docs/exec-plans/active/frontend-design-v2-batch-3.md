@@ -88,5 +88,8 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: The fonts: `NotoSansSC[wght].ttf` (17.7 MB) and `OFL.txt` were downloaded from google/fonts into an empty scratch folder, and fontTools 4.68.0 (in a temporary venv outside the project, run with `python -I`) cut `wght=400` and `wght=700` with `--update-name-table`: `NotoSansSC-Regular.ttf` 10,595,876 bytes, `NotoSansSC-Bold.ttf` 10,585,400 bytes, both static TrueType (`glyf`, no `fvar`, 31,036 glyphs). `package.json` and `composer.json` are untouched.
 - 2026-11-14: The PDF of a task titled 寄发票给供应商 (with an English word and a number) is 10,897 bytes and embeds `NotoSansSC-Bold` and `NotoSansSC-Regular` subsets (`pdffonts`: emb yes, sub yes); looked at as an image with `pdftoppm`, the characters show. One render in a plain script peaks at 114 MB (real allocation), warm or cold font cache; under Pest it is higher (119 to 129 MB measured in the batch 2 feedback), hence 256M in `phpunit.xml`.
 
+- 2026-11-14: The browser check found that the English and Chinese checkout demos on `/style` shared input ids and names, so `aria-invalid` and the focus went to the English cart. `LineItems` now builds unique ids with `useId` and takes a `field` name; the Chinese demo's array is `lines` (`lines[0][quantity]`, error key `lines.0.quantity`), the English one stays `items`. Checked again in the browser at 390px: the Chinese cart's own input is marked, focused and scrolled to the middle.
+- 2026-11-14: The `/style` page logs one React hydration warning in the browser console for `UiFieldsDemo`, a file this plan does not touch; not investigated here.
+
 ## Outcomes & Retrospective
 Not started.

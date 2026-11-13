@@ -732,7 +732,13 @@ export default function Style() {
                                 priceCart(items, checkout.zh.labels)
                             }
                             answer={(step, values, items) =>
-                                answerCheckout(step, values, items, true)
+                                answerCheckout(
+                                    step,
+                                    values,
+                                    items,
+                                    'lines',
+                                    true,
+                                )
                             }
                         />
                     </Variant>

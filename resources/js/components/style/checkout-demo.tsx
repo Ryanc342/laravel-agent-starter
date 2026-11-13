@@ -33,6 +33,7 @@ export default function CheckoutDemo({
     steps,
     currency,
     items: initialItems,
+    field,
     details,
     price,
     answer,
@@ -45,6 +46,8 @@ export default function CheckoutDemo({
     steps: [string, string, string];
     currency: string;
     items: LineItem[];
+    /** The array's name in the form: `items`, so an error is `items.0.quantity`. */
+    field: string;
     details: { id: string; label: string }[];
     price: (items: LineItem[]) => PricedCart;
     answer: (
@@ -131,6 +134,7 @@ export default function CheckoutDemo({
                                     items={cart.items}
                                     currency={currency}
                                     errors={errors}
+                                    field={field}
                                     onQuantityChange={changeQuantity}
                                     onRemove={(id) =>
                                         setCart(

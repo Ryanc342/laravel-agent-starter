@@ -366,6 +366,7 @@ export const checkout = {
         steps: ['Cart', 'Details', 'Review'] as [string, string, string],
         currency: 'MYR',
         items: cartItems,
+        field: 'items',
         details: [
             { id: 'name', label: 'Name' },
             { id: 'email', label: 'Email' },
@@ -382,6 +383,9 @@ export const checkout = {
         steps: ['购物车', '收货信息', '确认'] as [string, string, string],
         currency: 'CNY',
         items: cartItemsZh,
+        // Another array name than the English demo's, so the two carts on one
+        // page do not share input names and each focuses its own field.
+        field: 'lines',
         details: [
             { id: 'name', label: '姓名' },
             { id: 'email', label: '电子邮箱' },
@@ -426,6 +430,7 @@ export function answerCheckout(
     step: number,
     values: Record<string, string>,
     items: LineItem[],
+    field = 'items',
     zh = false,
 ): Record<string, string> {
     const errors: Record<string, string> = {};
@@ -435,7 +440,7 @@ export function answerCheckout(
             const quantity = Number(item.quantity);
 
             if (!Number.isInteger(quantity) || quantity < 1) {
-                errors[`items.${index}.quantity`] = zh
+                errors[`${field}.${index}.quantity`] = zh
                     ? `请输入 ${item.name} 的数量，至少为 1。`
                     : `Enter a quantity of 1 or more for ${item.name}.`;
             }
