@@ -18,6 +18,6 @@ class NotificationReadController extends Controller
 
         $markNotificationRead->handle($notification);
 
-        return to_route('notifications.index');
+        return back();
     }
 }

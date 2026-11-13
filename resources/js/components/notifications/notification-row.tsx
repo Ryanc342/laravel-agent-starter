@@ -1,19 +1,15 @@
-import { Form } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { useState } from 'react';
 import NotificationReadController from '@/actions/App/Http/Controllers/NotificationReadController';
 import FeedRow from '@/components/shared/feed-row';
-import { Button } from '@/components/ui/button';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { AppNotification } from '@/types/notification';
 
 /**
  * One notification, as a row of the notifications page ("list") or of the
- * bell's card ("menu"). The button is shown from notification.can.mark_read,
- * which the backend calculates.
+ * bell's card ("menu"). An unread row is one button: clicking it marks the
+ * notification as read and leaves the user on the page. A read row is plain
+ * text. The row is a button from notification.can.mark_read, which the backend
+ * calculates.
  */
 export default function NotificationRow({
     notification,
@@ -24,7 +20,7 @@ export default function NotificationRow({
     variant?: 'list' | 'menu';
     onMarkedRead?: () => void;
 }) {
-    const menu = variant === 'menu';
+    const [processing, setProcessing] = useState(false);
 
     return (
         <FeedRow
@@ -32,46 +28,20 @@ export default function NotificationRow({
             time={notification.created_at_diff}
             unread={notification.is_unread}
             variant={variant}
-            action={
-                notification.can.mark_read && (
-                    <Form
-                        {...NotificationReadController.store.form(
-                            notification.id,
-                        )}
-                        options={{ preserveScroll: true }}
-                        onSuccess={onMarkedRead}
-                    >
-                        {({ processing }) =>
-                            menu ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            type="submit"
-                                            size="icon"
-                                            variant="ghost"
-                                            disabled={processing}
-                                            aria-label="Mark as read"
-                                        >
-                                            <Check />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Mark as read
-                                    </TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Button
-                                    type="submit"
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={processing}
-                                >
-                                    Mark as read
-                                </Button>
-                            )
-                        }
-                    </Form>
-                )
+            disabled={processing}
+            onClick={
+                notification.can.mark_read
+                    ? () =>
+                          router.visit(
+                              NotificationReadController.store(notification.id),
+                              {
+                                  preserveScroll: true,
+                                  onStart: () => setProcessing(true),
+                                  onFinish: () => setProcessing(false),
+                                  onSuccess: onMarkedRead,
+                              },
+                          )
+                    : undefined
             }
         />
     );

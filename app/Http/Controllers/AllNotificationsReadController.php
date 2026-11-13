@@ -25,6 +25,6 @@ class AllNotificationsReadController extends Controller
             'message' => trans_choice(':count notification marked as read.|:count notifications marked as read.', $marked),
         ]);
 
-        return to_route('notifications.index');
+        return back();
     }
 }

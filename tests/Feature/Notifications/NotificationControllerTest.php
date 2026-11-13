@@ -105,11 +105,22 @@ test('a user can mark their own notification as read', function () {
     $notification = Notification::factory()->for($user, 'notifiable')->create();
 
     $this->actingAs($user)
+        ->from(route('notifications.index'))
         ->post(route('notifications.read.store', $notification))
         ->assertRedirect(route('notifications.index'));
 
     expect($notification->refresh()->read_at)->not->toBeNull();
 });
+
+test('marking one notification as read leaves the user on the page they were on', function (string $page) {
+    $user = User::factory()->create();
+    $notification = Notification::factory()->for($user, 'notifiable')->create();
+
+    $this->actingAs($user)
+        ->from(route($page))
+        ->post(route('notifications.read.store', $notification))
+        ->assertRedirect(route($page));
+})->with(['dashboard', 'notifications.index', 'profile.edit']);
 
 test('a user cannot mark another user\'s notification as read', function () {
     $user = User::factory()->create();
@@ -127,8 +138,19 @@ test('a user can mark all of their notifications as read', function () {
     Notification::factory()->for($user, 'notifiable')->count(2)->create();
 
     $this->actingAs($user)
+        ->from(route('notifications.index'))
         ->post(route('notifications.read-all.store'))
         ->assertRedirect(route('notifications.index'));
 
     expect(Notification::query()->ownedBy($user)->unread()->count())->toBe(0);
 });
+
+test('marking all notifications as read leaves the user on the page they were on', function (string $page) {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(2)->create();
+
+    $this->actingAs($user)
+        ->from(route($page))
+        ->post(route('notifications.read-all.store'))
+        ->assertRedirect(route($page));
+})->with(['dashboard', 'notifications.index', 'profile.edit']);

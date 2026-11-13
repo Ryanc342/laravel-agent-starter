@@ -4,7 +4,7 @@ import FeedRow from '@/components/shared/feed-row';
 import type { ExampleNotification } from '@/components/style/types';
 import { Button } from '@/components/ui/button';
 
-/** A stream of messages: one bordered box, rows separated by lines, unread ones marked, with the row's action on the right. */
+/** A stream of messages: one bordered box, rows separated by lines, unread ones marked. An unread row is one button: clicking it marks it as read. */
 export default function FeedDemo({
     notifications,
 }: {
@@ -24,13 +24,7 @@ export default function FeedDemo({
                         message={notification.message}
                         time={notification.time}
                         unread={notification.unread}
-                        action={
-                            notification.unread && (
-                                <Button size="sm" variant="outline">
-                                    Mark as read
-                                </Button>
-                            )
-                        }
+                        onClick={notification.unread ? () => {} : undefined}
                     />
                 ))}
             </FeedList>

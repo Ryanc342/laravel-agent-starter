@@ -1,9 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import NotificationRow from '@/components/notifications/notification-row';
-import ErrorState from '@/components/shared/error-state';
 import FeedList from '@/components/shared/feed-list';
-import LoadingState from '@/components/shared/loading-state';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/notifications';
 
@@ -36,41 +34,40 @@ export default function LatestNotifications() {
         loadLatest(() => setFailed(true));
     }, []);
 
-    if (failed) {
-        return (
-            <ErrorState
-                message="Could not load your notifications."
-                onRetry={() => {
-                    setFailed(false);
-                    loadLatest(() => setFailed(true));
-                }}
-            />
-        );
-    }
-
-    if (latestNotifications === undefined) {
-        return <LoadingState rows={3} />;
-    }
-
     return (
         <div className="grid gap-4">
-            <FeedList emptyMessage="You have no notifications.">
-                {latestNotifications.map((notification) => (
+            <FeedList
+                emptyMessage="You have no notifications."
+                loading={latestNotifications === undefined && !failed}
+                error={
+                    failed
+                        ? {
+                              message: 'Could not load your notifications.',
+                              onRetry: () => {
+                                  setFailed(false);
+                                  loadLatest(() => setFailed(true));
+                              },
+                          }
+                        : undefined
+                }
+            >
+                {(latestNotifications ?? []).map((notification) => (
                     <NotificationRow
                         key={notification.id}
                         notification={notification}
                     />
                 ))}
             </FeedList>
-            {latestNotifications.length > 0 && (
-                <Button
-                    variant="outline"
-                    className="justify-self-start"
-                    asChild
-                >
-                    <Link href={index()}>View all notifications</Link>
-                </Button>
-            )}
+            {latestNotifications !== undefined &&
+                latestNotifications.length > 0 && (
+                    <Button
+                        variant="outline"
+                        className="justify-self-start"
+                        asChild
+                    >
+                        <Link href={index()}>View all notifications</Link>
+                    </Button>
+                )}
         </div>
     );
 }
