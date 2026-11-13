@@ -476,6 +476,8 @@ test('a tick row is clickable all over: its label wraps the checkbox', () => {
 
     expect(row.tagName).toBe('LABEL');
     expect(row.contains(checkbox)).toBe(true);
+    // The grey of a row's icon must not reach the check mark inside the checkbox.
+    expect(row.getAttribute('class')).not.toContain('text-muted-foreground');
 });
 
 test('only the sort row in use has the selected colour', () => {

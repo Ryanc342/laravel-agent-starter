@@ -109,9 +109,11 @@ function isFiltered(menu: ColumnMenuConfig, url: string): boolean {
 /**
  * The look of every choice in the menu, the same as a dropdown menu's item:
  * one height, one left edge, a 16px icon slot, grey on hover, darker on press.
+ * The grey of the icon is `MenuRow`'s: a tick row's check mark keeps the
+ * checkbox's own colour.
  */
 const rowClass =
-    "flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent active:bg-accent-pressed [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground";
+    "flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent active:bg-accent-pressed [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4";
 
 /** One choice of the menu that does something when clicked. */
 function MenuRow({
@@ -125,6 +127,7 @@ function MenuRow({
             data-slot="column-menu-row"
             className={cn(
                 rowClass,
+                "[&_svg:not([class*='text-'])]:text-muted-foreground",
                 selected && 'bg-accent-pressed hover:bg-accent-pressed',
                 className,
             )}
