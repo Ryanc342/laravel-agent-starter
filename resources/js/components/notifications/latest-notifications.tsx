@@ -1,8 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import NotificationRow from '@/components/notifications/notification-row';
-import EmptyState from '@/components/shared/empty-state';
 import ErrorState from '@/components/shared/error-state';
+import FeedList from '@/components/shared/feed-list';
 import LoadingState from '@/components/shared/loading-state';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/notifications';
@@ -52,23 +52,25 @@ export default function LatestNotifications() {
         return <LoadingState rows={3} />;
     }
 
-    if (latestNotifications.length === 0) {
-        return <EmptyState message="You have no notifications." />;
-    }
-
     return (
         <div className="grid gap-4">
-            <ul className="grid gap-3">
+            <FeedList emptyMessage="You have no notifications.">
                 {latestNotifications.map((notification) => (
                     <NotificationRow
                         key={notification.id}
                         notification={notification}
                     />
                 ))}
-            </ul>
-            <Button variant="outline" className="justify-self-start" asChild>
-                <Link href={index()}>View all notifications</Link>
-            </Button>
+            </FeedList>
+            {latestNotifications.length > 0 && (
+                <Button
+                    variant="outline"
+                    className="justify-self-start"
+                    asChild
+                >
+                    <Link href={index()}>View all notifications</Link>
+                </Button>
+            )}
         </div>
     );
 }

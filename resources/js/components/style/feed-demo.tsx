@@ -1,9 +1,10 @@
 import Heading from '@/components/heading';
+import FeedList from '@/components/shared/feed-list';
 import FeedRow from '@/components/shared/feed-row';
 import type { ExampleNotification } from '@/components/style/types';
 import { Button } from '@/components/ui/button';
 
-/** A stream of messages: one box per message, unread ones marked, with the row's action on the right. */
+/** A stream of messages: one bordered box, rows separated by lines, unread ones marked, with the row's action on the right. */
 export default function FeedDemo({
     notifications,
 }: {
@@ -16,7 +17,7 @@ export default function FeedDemo({
                 <Button variant="outline">Mark all as read</Button>
             </div>
 
-            <ul className="grid gap-3">
+            <FeedList emptyMessage="You have no notifications.">
                 {notifications.map((notification) => (
                     <FeedRow
                         key={notification.id}
@@ -32,7 +33,16 @@ export default function FeedDemo({
                         }
                     />
                 ))}
-            </ul>
+            </FeedList>
+
+            <div className="grid gap-3">
+                <p className="text-sm text-muted-foreground">
+                    With no messages the box stays
+                </p>
+                <FeedList emptyMessage="You have no notifications.">
+                    {[]}
+                </FeedList>
+            </div>
         </div>
     );
 }

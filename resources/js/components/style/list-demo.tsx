@@ -83,6 +83,7 @@ export default function ListDemo({
                 columns={columns}
                 rows={tasks}
                 getRowKey={(task) => task.id}
+                emptyMessage="You have no tasks yet."
             />
             <Pagination collection={pagination} />
         </div>

@@ -39,7 +39,9 @@ const columns: TableColumn<Task>[] = [
 
 /**
  * The task list: a table on desktop, one card per task on a phone. The title
- * opens the task's page, where its actions are. The status comes right after
+ * opens the task's page, where its actions are. With no tasks the table keeps
+ * its header row and shows the empty line inside it (the header already has
+ * the create button, so the line is all it says). The status comes right after
  * the title, so a card shows both first.
  */
 export default function TaskTable({ tasks }: { tasks: Task[] }) {
@@ -48,6 +50,7 @@ export default function TaskTable({ tasks }: { tasks: Task[] }) {
             columns={columns}
             rows={tasks}
             getRowKey={(task) => task.id}
+            emptyMessage="You have no tasks yet."
         />
     );
 }

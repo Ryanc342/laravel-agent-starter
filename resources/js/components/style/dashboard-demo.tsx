@@ -1,4 +1,5 @@
 import Heading from '@/components/heading';
+import FeedList from '@/components/shared/feed-list';
 import FeedRow from '@/components/shared/feed-row';
 import QuickLinks from '@/components/shared/quick-links';
 import type { ExampleNotification } from '@/components/style/types';
@@ -20,7 +21,7 @@ export default function DashboardDemo({
             <div className="grid gap-8 md:grid-cols-3">
                 <section className="grid content-start gap-4 md:col-span-2">
                     <Heading variant="small" title="Latest notifications" />
-                    <ul className="grid gap-3">
+                    <FeedList emptyMessage="You have no notifications.">
                         {notifications.map((notification) => (
                             <FeedRow
                                 key={notification.id}
@@ -29,7 +30,7 @@ export default function DashboardDemo({
                                 unread={notification.unread}
                             />
                         ))}
-                    </ul>
+                    </FeedList>
                     <Button variant="outline" className="justify-self-start">
                         View all notifications
                     </Button>

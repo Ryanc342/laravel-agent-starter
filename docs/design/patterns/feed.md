@@ -11,7 +11,7 @@ Use for a stream of messages the user reads and clears: notifications, activity,
 ## Rules
 
 - The message text and the flags that say whether a row's action is possible come from the backend; React shows them.
-- The same row component serves the page (the `list` variant) and the bell's `Popover` (the `menu` variant, the newest few rows). `FeedRow` (`components/shared`) draws the row; a domain wraps it with its own action, as `NotificationRow` does.
+- The same row component serves the page (the `list` variant) and the bell's `Popover` (the `menu` variant, the newest few rows). `FeedRow` (`components/shared`) draws the row and `FeedList` the bordered box around the rows (it also shows the empty line); a domain wraps `FeedRow` with its own action, as `NotificationRow` does.
 
 ## Phone
 

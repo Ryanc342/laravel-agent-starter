@@ -24,12 +24,13 @@ const columns: TableColumn<Row>[] = [
     { header: 'Due date', cell: (row) => row.due },
 ];
 
-function table() {
+function table(records: Row[] = rows) {
     return (
         <ResponsiveTable
             columns={columns}
-            rows={rows}
+            rows={records}
             getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
         />
     );
 }
@@ -77,4 +78,38 @@ test('a status shown without its label on a card has no label there', () => {
 
     expect(within(card).queryByText('Status')).toBeNull();
     expect(within(card).getByText('Open')).toBeTruthy();
+});
+
+test('on desktop an empty table keeps its header row and the empty line sits inside it', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    render(table([]));
+    const grid = screen.getByRole('table');
+
+    expect(
+        screen.getAllByRole('columnheader').map((cell) => cell.textContent),
+    ).toEqual(['Title', 'Status', 'Due date']);
+    expect(within(grid).getByText('You have no tasks yet.')).toBeTruthy();
+    expect(screen.getAllByRole('cell')).toHaveLength(1);
+    expect(screen.getAllByRole('cell')[0].getAttribute('colspan')).toBe('3');
+});
+
+test('on a phone an empty list is still a box with the empty line inside', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    const { container } = render(table([]));
+    const box = container.firstElementChild as HTMLElement;
+
+    expect(box.className).toContain('rounded-lg');
+    expect(box.className).toContain('border');
+    expect(within(box).getByText('You have no tasks yet.')).toBeTruthy();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+});
+
+test('a table with records shows no empty line', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    render(table());
+
+    expect(screen.queryByText('You have no tasks yet.')).toBeNull();
 });

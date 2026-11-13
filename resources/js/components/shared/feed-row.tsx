@@ -3,8 +3,9 @@ import { cn } from '@/lib/utils';
 
 /**
  * One message of a feed: an unread dot, the message, its time, and the row's
- * action on the right. The page ("list") shows it as a box; the bell's card
- * ("menu") as a plain row. The message and the action come from the caller, who
+ * action on the right. The page ("list") sits in a `FeedList`'s box; the bell's
+ * card ("menu") shows it as a plain row. An unread row has the dot and darker
+ * text; no row has a background of its own. The message and the action come from the caller, who
  * got them from the backend.
  */
 export default function FeedRow({
@@ -24,8 +25,7 @@ export default function FeedRow({
         <li
             className={cn(
                 'flex items-center justify-between gap-4',
-                variant === 'menu' ? 'px-4 py-3' : 'rounded-lg border p-4',
-                unread && 'bg-muted/50',
+                variant === 'menu' ? 'px-4 py-3' : 'p-4',
             )}
         >
             <div className="flex min-w-0 items-start gap-3">
@@ -39,7 +39,9 @@ export default function FeedRow({
                     <span
                         className={cn(
                             'text-sm break-words',
-                            unread && 'font-medium',
+                            unread
+                                ? 'text-foreground'
+                                : 'text-muted-foreground',
                         )}
                     >
                         {message}

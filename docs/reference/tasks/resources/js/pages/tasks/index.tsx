@@ -1,7 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
 import Heading from '@/components/heading';
-import EmptyState from '@/components/shared/empty-state';
 import Pagination from '@/components/shared/pagination';
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import TaskTable from '@/components/tasks/task-table';
@@ -48,16 +47,8 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
                     </div>
                 </div>
 
-                {tasks.data.length === 0 ? (
-                    // The header already has the create button, so the empty
-                    // state is only the line.
-                    <EmptyState message="You have no tasks yet." />
-                ) : (
-                    <>
-                        <TaskTable tasks={tasks.data} />
-                        <Pagination collection={tasks} />
-                    </>
-                )}
+                <TaskTable tasks={tasks.data} />
+                <Pagination collection={tasks} />
             </div>
         </>
     );

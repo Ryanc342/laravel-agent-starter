@@ -2,7 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import Heading from '@/components/heading';
 import MarkAllReadButton from '@/components/notifications/mark-all-read-button';
 import NotificationRow from '@/components/notifications/notification-row';
-import EmptyState from '@/components/shared/empty-state';
+import FeedList from '@/components/shared/feed-list';
 import Pagination from '@/components/shared/pagination';
 import { index } from '@/routes/notifications';
 import type { AppNotification } from '@/types/notification';
@@ -30,21 +30,15 @@ export default function Notifications({
                     )}
                 </div>
 
-                {notifications.data.length === 0 ? (
-                    <EmptyState message="You have no notifications." />
-                ) : (
-                    <>
-                        <ul className="grid gap-3">
-                            {notifications.data.map((notification) => (
-                                <NotificationRow
-                                    key={notification.id}
-                                    notification={notification}
-                                />
-                            ))}
-                        </ul>
-                        <Pagination collection={notifications} />
-                    </>
-                )}
+                <FeedList emptyMessage="You have no notifications.">
+                    {notifications.data.map((notification) => (
+                        <NotificationRow
+                            key={notification.id}
+                            notification={notification}
+                        />
+                    ))}
+                </FeedList>
+                <Pagination collection={notifications} />
             </div>
         </>
     );

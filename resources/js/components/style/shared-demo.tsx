@@ -110,6 +110,29 @@ export default function SharedDemo({
                     ]}
                     rows={tasks.slice(0, 2)}
                     getRowKey={(task) => task.id}
+                    emptyMessage="You have no tasks yet."
+                />
+            </div>
+
+            <div className="grid gap-3">
+                <p className="text-sm text-muted-foreground">
+                    ResponsiveTable with no records: the header row stays
+                </p>
+                <ResponsiveTable
+                    columns={[
+                        { header: 'Title', cell: (task) => task.title },
+                        { header: 'Status', cell: (task) => task.status },
+                        {
+                            header: 'Due date',
+                            cell: (task) =>
+                                task.due_on
+                                    ? formatDate(task.due_on)
+                                    : 'No due date',
+                        },
+                    ]}
+                    rows={tasks.slice(0, 0)}
+                    getRowKey={(task) => task.id}
+                    emptyMessage="You have no tasks yet."
                 />
             </div>
 

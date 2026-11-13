@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import EmptyState from '@/components/shared/empty-state';
 import {
     Table,
     TableBody,
@@ -23,21 +24,33 @@ type Props<Row> = {
     columns: TableColumn<Row>[];
     rows: Row[];
     getRowKey: (row: Row) => string | number;
+    /** The line shown inside the table (its header row stays) or the box when there are no rows. */
+    emptyMessage: string;
 };
 
 /**
  * A list of records: a table on desktop (horizontal row lines only), one card
- * per record on a phone, so the page never scrolls sideways.
+ * per record on a phone, so the page never scrolls sideways. With no records
+ * it keeps its header row (on a phone its box) and shows the empty line inside.
  */
 export default function ResponsiveTable<Row>({
     columns,
     rows,
     getRowKey,
+    emptyMessage,
 }: Props<Row>) {
     const isMobile = useIsMobile();
 
     if (isMobile) {
         const [title, ...others] = columns;
+
+        if (rows.length === 0) {
+            return (
+                <div className="rounded-lg border p-4">
+                    <EmptyState message={emptyMessage} />
+                </div>
+            );
+        }
 
         return (
             <ul className="grid gap-3">
@@ -89,6 +102,13 @@ export default function ResponsiveTable<Row>({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
+                    {rows.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={columns.length}>
+                                <EmptyState message={emptyMessage} />
+                            </TableCell>
+                        </TableRow>
+                    )}
                     {rows.map((row) => (
                         <TableRow key={getRowKey(row)}>
                             {columns.map((column) => (
