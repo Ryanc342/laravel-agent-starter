@@ -1,11 +1,13 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
 import Heading from '@/components/heading';
 import type { Choice } from '@/components/shared/column-menu';
 import Pagination from '@/components/shared/pagination';
+import TaskBulkActions from '@/components/tasks/task-bulk-actions';
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import TaskTable from '@/components/tasks/task-table';
 import { Button } from '@/components/ui/button';
+import { useRowSelection } from '@/hooks/use-row-selection';
 import { index } from '@/routes/tasks';
 import type { ResourceCollection } from '@/types/resource';
 import type { Task } from '@/types/task';
@@ -25,6 +27,13 @@ export default function Tasks({
     narrowed,
     can,
 }: TasksPageProps) {
+    const { url } = usePage();
+    // Ticked rows start again whenever the list's address changes: search, sort, filters or page.
+    const selection = useRowSelection(
+        tasks.data.map((task) => task.id),
+        url,
+    );
+
     return (
         <>
             <Head title="Tasks" />
@@ -59,8 +68,20 @@ export default function Tasks({
                     tasks={tasks.data}
                     statusOptions={statusOptions}
                     narrowed={narrowed}
+                    selection={{
+                        pageState: selection.pageState,
+                        onTogglePage: selection.togglePage,
+                        isSelected: (task) => selection.isSelected(task.id),
+                        onToggle: (task) => selection.toggle(task.id),
+                        rowLabel: (task) => `Select ${task.title}`,
+                    }}
                 />
                 <Pagination collection={tasks} />
+                <TaskBulkActions
+                    selection={selection}
+                    total={tasks.meta?.total ?? tasks.data.length}
+                    pageSize={tasks.data.length}
+                />
             </div>
         </>
     );

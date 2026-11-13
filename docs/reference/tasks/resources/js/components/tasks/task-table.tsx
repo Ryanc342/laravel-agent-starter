@@ -2,7 +2,10 @@ import { Link } from '@inertiajs/react';
 import type { Choice } from '@/components/shared/column-menu';
 import ListToolbar from '@/components/shared/list-toolbar';
 import ResponsiveTable from '@/components/shared/responsive-table';
-import type { TableColumn } from '@/components/shared/responsive-table';
+import type {
+    TableColumn,
+    TableSelection,
+} from '@/components/shared/responsive-table';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/format';
 import { show } from '@/routes/tasks';
@@ -72,11 +75,14 @@ export default function TaskTable({
     tasks,
     statusOptions,
     narrowed,
+    selection,
 }: {
     tasks: Task[];
     statusOptions: Choice[];
     /** From the backend: the search or a filter really narrows the list. */
     narrowed: boolean;
+    /** Ticking rows for the bulk actions (patterns/bulk-actions.md). */
+    selection?: TableSelection<Task>;
 }) {
     const columns = taskColumns(statusOptions);
 
@@ -87,6 +93,7 @@ export default function TaskTable({
                 columns={columns}
                 rows={tasks}
                 getRowKey={(task) => task.id}
+                selection={selection}
                 emptyMessage={
                     narrowed
                         ? 'No tasks match your search or filters.'

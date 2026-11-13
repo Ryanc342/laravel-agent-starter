@@ -32,6 +32,31 @@ enum TaskStatus: string
     }
 
     /**
+     * Business rule: the statuses a query value names. A value that is not a list, and an item that
+     * is not a status, are dropped, as an unknown sort is ignored.
+     *
+     * @return list<self>
+     */
+    public static function fromQuery(mixed $values): array
+    {
+        if (! is_array($values)) {
+            return [];
+        }
+
+        $statuses = [];
+
+        foreach ($values as $value) {
+            $status = is_string($value) ? self::tryFrom($value) : null;
+
+            if ($status !== null) {
+                $statuses[] = $status;
+            }
+        }
+
+        return $statuses;
+    }
+
+    /**
      * Whether a task in this status still needs work.
      * The only place that decides which statuses are open.
      */

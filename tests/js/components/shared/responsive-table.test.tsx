@@ -1,7 +1,8 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vite-plus/test';
 import ResponsiveTable, {
     type TableColumn,
+    type TableSelection,
 } from '@/components/shared/responsive-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -223,4 +224,121 @@ test('a column with a menu shows its header as the menu button, one without stay
     expect(
         within(screen.getAllByRole('columnheader')[1]).queryByRole('button'),
     ).toBeNull();
+});
+
+function selectableTable(
+    selection: Partial<TableSelection<Row>> = {},
+    records: Row[] = rows,
+) {
+    const full: TableSelection<Row> = {
+        pageState: 'none',
+        onTogglePage: vi.fn(),
+        isSelected: () => false,
+        onToggle: vi.fn(),
+        rowLabel: (row) => `Select ${row.title}`,
+        ...selection,
+    };
+
+    render(
+        <ResponsiveTable
+            columns={columns}
+            rows={records}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+            selection={full}
+        />,
+    );
+
+    return full;
+}
+
+test('with a selection the table has a checkbox column first and a checkbox in each row', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    selectableTable();
+
+    const header = screen.getAllByRole('columnheader')[0];
+
+    expect(
+        within(header).getByRole('checkbox', {
+            name: 'Select all rows on this page',
+        }),
+    ).toBeTruthy();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(rows.length + 1);
+    expect(
+        screen.getByRole('checkbox', { name: 'Select Buy milk' }),
+    ).toBeTruthy();
+});
+
+test('a table without a selection has no checkbox', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    render(table());
+
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+});
+
+test('ticking a row and the header checkbox ask the owner of the selection', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    const selection = selectableTable();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select Buy milk' }));
+    expect(selection.onToggle).toHaveBeenCalledWith(rows[0]);
+
+    fireEvent.click(
+        screen.getByRole('checkbox', { name: 'Select all rows on this page' }),
+    );
+    expect(selection.onTogglePage).toHaveBeenCalledTimes(1);
+});
+
+test('the header checkbox is ticked for a whole page and half ticked for some rows', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    const state = (pageState: TableSelection<Row>['pageState']) => {
+        selectableTable({ pageState });
+        const box = screen.getByRole('checkbox', {
+            name: 'Select all rows on this page',
+        });
+        const value = box.getAttribute('data-state');
+
+        document.body.innerHTML = '';
+
+        return value;
+    };
+
+    expect(state('none')).toBe('unchecked');
+    expect(state('some')).toBe('indeterminate');
+    expect(state('all')).toBe('checked');
+});
+
+test('a ticked row is marked as selected', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    selectableTable({ isSelected: (row) => row.id === 2 });
+
+    const dataRows = screen.getAllByRole('row').slice(1);
+
+    expect(dataRows[0].getAttribute('data-state')).toBeNull();
+    expect(dataRows[1].getAttribute('data-state')).toBe('selected');
+});
+
+test('on a phone each card has its own checkbox before the name', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    const selection = selectableTable();
+
+    const card = screen.getAllByRole('listitem')[0];
+    const box = within(card).getByRole('checkbox', { name: 'Select Buy milk' });
+
+    expect(
+        box.compareDocumentPosition(within(card).getByText('Buy milk')) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.queryByRole('table')).toBeNull();
+
+    fireEvent.click(box);
+    expect(selection.onToggle).toHaveBeenCalledWith(rows[0]);
+});
+
+test('an empty table with a selection still spans every column, the checkbox one too', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    selectableTable({}, []);
+
+    expect(screen.getAllByRole('cell')[0].getAttribute('colspan')).toBe('4');
 });

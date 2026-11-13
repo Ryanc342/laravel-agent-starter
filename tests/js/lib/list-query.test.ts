@@ -1,5 +1,10 @@
 import { expect, test } from 'vite-plus/test';
-import { listParam, listParams, withListParams } from '@/lib/list-query';
+import {
+    bulkPayload,
+    listParam,
+    listParams,
+    withListParams,
+} from '@/lib/list-query';
 
 test('a change sets the parameter, keeps the rest and goes back to page 1', () => {
     expect(
@@ -54,4 +59,44 @@ test('a change to a list replaces the numbered values too', () => {
     expect([...address.searchParams.keys()]).toEqual(['status[]']);
     expect(address.searchParams.getAll('status[]')).toEqual(['done']);
     expect(withListParams(url, { status: [] })).toBe('/tasks');
+});
+
+const filters = {
+    single: ['search', 'due_from', 'due_to'],
+    multiple: ['status'],
+};
+
+test('a bulk action with ticked rows sends their ids and no filter', () => {
+    expect(
+        bulkPayload(
+            '/tasks?search=milk&status[]=open',
+            { allResults: false, ids: [3, 5] },
+            filters,
+        ),
+    ).toEqual({ ids: [3, 5] });
+});
+
+test("a bulk action on all results sends the list's own search and filters, read from its address", () => {
+    expect(
+        bulkPayload(
+            '/tasks?search=milk&status[]=open&status[]=done&due_from=2026-11-01&per_page=50&page=2&sort=title',
+            { allResults: true, ids: [3, 5] },
+            filters,
+        ),
+    ).toEqual({
+        all: true,
+        search: 'milk',
+        status: ['open', 'done'],
+        due_from: '2026-11-01',
+    });
+});
+
+test('all results of an unfiltered list send only `all`', () => {
+    expect(
+        bulkPayload(
+            '/tasks?per_page=20',
+            { allResults: true, ids: [] },
+            filters,
+        ),
+    ).toEqual({ all: true });
 });

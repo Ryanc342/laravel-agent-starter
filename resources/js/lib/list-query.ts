@@ -1,3 +1,5 @@
+import type { FormDataConvertible } from '@inertiajs/core';
+
 /**
  * Sort, filters and search of a list live only in the URL. These helpers read
  * and write them on an address (a path with its query, as Inertia's
@@ -54,4 +56,40 @@ function listKeys(address: URL, key: string): string[] {
     return [...new Set(address.searchParams.keys())].filter((name) =>
         own.test(name),
     );
+}
+
+/**
+ * What a bulk action sends: the ticked ids, or `all: true` with the list's own
+ * search and filters, read from its address, so the backend acts on exactly the
+ * rows the list shows. `single` names the parameters that hold one value
+ * (`search`, `due_from`), `multiple` the ones that hold a list (`status`).
+ */
+export function bulkPayload(
+    url: string,
+    selection: { allResults: boolean; ids: (string | number)[] },
+    filters: { single: string[]; multiple: string[] },
+): Record<string, FormDataConvertible> {
+    if (!selection.allResults) {
+        return { ids: selection.ids };
+    }
+
+    const payload: Record<string, FormDataConvertible> = { all: true };
+
+    for (const key of filters.single) {
+        const value = listParam(url, key);
+
+        if (value !== '') {
+            payload[key] = value;
+        }
+    }
+
+    for (const key of filters.multiple) {
+        const values = listParams(url, key);
+
+        if (values.length > 0) {
+            payload[key] = values;
+        }
+    }
+
+    return payload;
 }

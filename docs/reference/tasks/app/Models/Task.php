@@ -197,6 +197,42 @@ class Task extends Model
     }
 
     /**
+     * The tasks the list shows for a search and filters: the one place that says how they combine. The
+     * list, its export and the bulk actions all ask it.
+     *
+     * @param  Builder<self>  $query
+     * @param  list<TaskStatus>  $statuses
+     */
+    #[Scope]
+    protected function narrowedBy(Builder $query, ?string $search, array $statuses, ?string $dueFrom, ?string $dueTo): void
+    {
+        $query->matching($search)
+            ->withStatuses($statuses)
+            ->dueBetween($dueFrom, $dueTo);
+    }
+
+    /**
+     * The tasks a bulk action acts on: the ticked ids as they are (so a task of another user is found
+     * and refused by the Policy, not skipped), or, with no ids, every task of the user that the list's
+     * search and filters show.
+     *
+     * @param  Builder<self>  $query
+     * @param  list<int>|null  $ids  null means "all results"
+     * @param  list<TaskStatus>  $statuses
+     */
+    #[Scope]
+    protected function pickedBy(Builder $query, User $user, ?array $ids, ?string $search, array $statuses, ?string $dueFrom, ?string $dueTo): void
+    {
+        if ($ids !== null) {
+            $query->whereKey($ids);
+
+            return;
+        }
+
+        $query->ownedBy($user)->narrowedBy($search, $statuses, $dueFrom, $dueTo);
+    }
+
+    /**
      * The order the user asked for; tasks without a due date come last either way, and equal rows
      * show the newest first. No sort asked means listOrder().
      *

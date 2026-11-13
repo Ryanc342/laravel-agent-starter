@@ -5,6 +5,7 @@ import ColumnMenu, {
 import RegionState, {
     type RegionError,
 } from '@/components/shared/region-state';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -26,6 +27,20 @@ export type TableColumn<Row> = {
     menu?: ColumnMenuConfig;
 };
 
+/**
+ * Ticking rows (patterns/bulk-actions.md): a checkbox column first on desktop,
+ * a checkbox on each card on a phone. The header checkbox ticks the rows of
+ * this page; `useRowSelection` (hooks) holds the state.
+ */
+export type TableSelection<Row> = {
+    pageState: 'none' | 'some' | 'all';
+    onTogglePage: () => void;
+    isSelected: (row: Row) => boolean;
+    onToggle: (row: Row) => void;
+    /** Names a row's checkbox for screen readers ("Select Buy milk"). */
+    rowLabel: (row: Row) => string;
+};
+
 type Props<Row> = {
     /** The first column is the record's name or number: the card's title on a phone. */
     columns: TableColumn<Row>[];
@@ -37,6 +52,7 @@ type Props<Row> = {
     loading?: boolean;
     /** The data could not load: the failure sits inside the frame, under the header row. */
     error?: RegionError;
+    selection?: TableSelection<Row>;
 };
 
 /**
@@ -52,6 +68,7 @@ export default function ResponsiveTable<Row>({
     emptyMessage,
     loading = false,
     error,
+    selection,
 }: Props<Row>) {
     const isMobile = useIsMobile();
     const showState = loading || error !== undefined || rows.length === 0;
@@ -77,8 +94,19 @@ export default function ResponsiveTable<Row>({
                         key={getRowKey(row)}
                         className="grid gap-3 rounded-lg border p-4"
                     >
-                        <div className="min-w-0 font-medium break-words">
-                            {title.cell(row)}
+                        <div className="flex min-w-0 items-start gap-3">
+                            {selection && (
+                                <Checkbox
+                                    aria-label={selection.rowLabel(row)}
+                                    checked={selection.isSelected(row)}
+                                    onCheckedChange={() =>
+                                        selection.onToggle(row)
+                                    }
+                                />
+                            )}
+                            <div className="min-w-0 font-medium break-words">
+                                {title.cell(row)}
+                            </div>
                         </div>
                         <dl className="grid gap-2 text-sm">
                             {others.map((column) =>
@@ -112,6 +140,21 @@ export default function ResponsiveTable<Row>({
             <Table>
                 <TableHeader>
                     <TableRow>
+                        {selection && (
+                            <TableHead className="w-10">
+                                <Checkbox
+                                    aria-label="Select all rows on this page"
+                                    checked={
+                                        selection.pageState === 'all'
+                                            ? true
+                                            : selection.pageState === 'some'
+                                              ? 'indeterminate'
+                                              : false
+                                    }
+                                    onCheckedChange={selection.onTogglePage}
+                                />
+                            </TableHead>
+                        )}
                         {columns.map((column) => (
                             <TableHead key={column.header}>
                                 {column.menu ? (
@@ -129,14 +172,35 @@ export default function ResponsiveTable<Row>({
                 <TableBody>
                     {showState && (
                         <TableRow>
-                            <TableCell colSpan={columns.length} className="p-0">
+                            <TableCell
+                                colSpan={columns.length + (selection ? 1 : 0)}
+                                className="p-0"
+                            >
                                 {state}
                             </TableCell>
                         </TableRow>
                     )}
                     {!showState &&
                         rows.map((row) => (
-                            <TableRow key={getRowKey(row)}>
+                            <TableRow
+                                key={getRowKey(row)}
+                                data-state={
+                                    selection?.isSelected(row)
+                                        ? 'selected'
+                                        : undefined
+                                }
+                            >
+                                {selection && (
+                                    <TableCell className="w-10">
+                                        <Checkbox
+                                            aria-label={selection.rowLabel(row)}
+                                            checked={selection.isSelected(row)}
+                                            onCheckedChange={() =>
+                                                selection.onToggle(row)
+                                            }
+                                        />
+                                    </TableCell>
+                                )}
                                 {columns.map((column) => (
                                     <TableCell
                                         key={column.header}

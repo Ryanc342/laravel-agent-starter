@@ -25,6 +25,16 @@ class TaskPolicy
         return true;
     }
 
+    public function completeMany(User $user): bool
+    {
+        return true;
+    }
+
+    public function deleteMany(User $user): bool
+    {
+        return true;
+    }
+
     public function view(User $user, Task $task): bool
     {
         return $task->isOwnedBy($user);

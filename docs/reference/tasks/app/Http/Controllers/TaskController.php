@@ -31,9 +31,7 @@ class TaskController extends Controller
 
         $tasks = Task::query()
             ->ownedBy($user)
-            ->matching($request->search())
-            ->withStatuses($request->statuses())
-            ->dueBetween($request->dueFrom(), $request->dueTo())
+            ->narrowedBy($request->search(), $request->statuses(), $request->dueFrom(), $request->dueTo())
             ->sortedBy($request->sort(), $request->direction())
             ->paginate($request->perPage())
             ->withQueryString();
