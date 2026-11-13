@@ -17,7 +17,7 @@ function Listener() {
 }
 
 /** Fail a submit: Inertia fires its global `error` event with the errors. */
-function fail(errors: Record<string, string>) {
+function fail(errors: Record<string, unknown>) {
     const handler = on.mock.calls[0][1] as (event: CustomEvent) => void;
 
     handler(new CustomEvent('inertia:error', { detail: { errors } }));
@@ -155,6 +155,33 @@ test('no errors, no toast', () => {
     form();
 
     fail({});
+
+    expect(toast.error).not.toHaveBeenCalled();
+});
+
+test("errors in an error bag (Fortify's two-factor confirmation) are flattened: a toast per message and the field named inside the bag is focused", async () => {
+    render(
+        <>
+            <Listener />
+            <input name="code" aria-label="code" />
+        </>,
+    );
+
+    fail({ confirmTwoFactorAuthentication: { code: 'The code is invalid.' } });
+
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith('The code is invalid.', {
+        id: 'field-error-code',
+    });
+    await waitFor(() =>
+        expect(document.activeElement).toBe(screen.getByLabelText('code')),
+    );
+});
+
+test('a value that is not a message is never given to the toast', () => {
+    form();
+
+    fail({ title: ['Enter a title.'], notes: null, due_on: 42 });
 
     expect(toast.error).not.toHaveBeenCalled();
 });

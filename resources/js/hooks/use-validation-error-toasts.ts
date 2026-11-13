@@ -3,6 +3,30 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 /**
+ * The field errors of a failed submit as `name => message`. Errors that sit in
+ * an error bag (Fortify's two-factor confirmation arrives as
+ * `{ confirmTwoFactorAuthentication: { code: '…' } }`) are flattened to the
+ * field names inside it; anything that is not a message is left out.
+ */
+function fieldErrors(errors: unknown): Record<string, string> {
+    const found: Record<string, string> = {};
+
+    if (typeof errors !== 'object' || errors === null) {
+        return found;
+    }
+
+    for (const [name, value] of Object.entries(errors)) {
+        if (typeof value === 'string') {
+            found[name] = value;
+        } else if (typeof value === 'object' && !Array.isArray(value)) {
+            Object.assign(found, fieldErrors(value));
+        }
+    }
+
+    return found;
+}
+
+/**
  * The first input in page order whose name has an error. Inside an open dialog
  * only the dialog is searched, so a field of the page behind it with the same
  * name (`password`) is not taken.
@@ -38,8 +62,7 @@ function focusField(field: HTMLElement): void {
 export function useValidationErrorToasts(): void {
     useEffect(() => {
         return router.on('error', (event) => {
-            const errors: Record<string, string> =
-                (event as CustomEvent).detail?.errors ?? {};
+            const errors = fieldErrors((event as CustomEvent).detail?.errors);
             const names = Object.keys(errors);
 
             for (const name of names) {
