@@ -36,7 +36,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - [x] M2 Public layout and display size: decisions 1 and 2. + Vitest (signed in and out, the phone menu).
 - [x] M3 Home page: `/` rebuilt with the public layout as decisions 3 and 10. + Pest (signed out sees Log in and Get started, signed in sees Dashboard) and Vitest; the existing tests unchanged.
 - [x] M4 Shared blocks in `components/shared`, each with Vitest: hero, feature grid, pricing plans with the billing toggle (URL), FAQ list with its search, account navigation, line items, order summary, contact form, `formatMoney`.
-- [ ] M5 Validation toasts for array names: decision 14.
+- [x] M5 Validation toasts for array names: decision 14.
 - [ ] M6 /style demos for the seven patterns (decisions 3 to 9), fed through props from `pages/style/index.tsx`, with example data in English and one Chinese example per demo where text length matters (Q29).
 - [ ] M7 Chinese PDF font: decision 16. + Pest: the PDF of a task titled 寄发票给供应商 embeds the Noto Sans SC subset; the PDF looked at as an image shows the characters; record the file sizes and the PDF's size; `composer check:reference` passes with the new memory limit.
 - [ ] M8 Kanban announcements: decision 17.
@@ -58,6 +58,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: M2 done: display tokens in app.css; `PublicHeader`, `PublicFooter` (components/shared) and `layouts/public-layout.tsx`. 9 Vitest tests failed before the code (3 files). Scope: the three new test files plus tests/Structure. `composer check:milestone -- tests/js/components/shared/public-header.test.tsx tests/js/components/shared/public-layout.test.tsx tests/js/display-size.test.ts tests/Structure` passed.
 - 2026-11-14: M3 done: `/` rebuilt (hero, six features, a closing line) with `PublicLayout` via `app.tsx`; the page keeps `welcome/index` and `home`. 2 Vitest files failed before the code; the 2 new Pest tests (HomeTest) passed at once because the route already behaved that way, they lock it in. Scope: HomeTest, DashboardTest, ExampleTest, SharedDataTest, AppearanceTest, hero, welcome and public-layout Vitest. `composer check:milestone -- <those paths>` passed. Browser look is part of M10.
 - 2026-11-14: M4 done: `Textarea`, `PricingPlans`, `FaqList`, `AccountNav`, `LineItems`, `OrderSummary`, `ContactForm` and `formatMoney(minor, currency?)`; `Hero` and `FeatureGrid` came in M3, `PublicHeader` in M2. 5 new Vitest files and 1 new format test failed before the code. Scope: all of tests/js and tests/Structure. `composer check:milestone -- tests/js tests/Structure` passed (53 files, 301 tests).
+- 2026-11-14: M5 done: `use-validation-error-toasts.ts` looks for `items[0][quantity]` as well as `items.0.quantity` (any depth). 2 of 4 new Vitest tests failed before the code. Scope: tests/js/hooks/use-validation-error-toasts.test.tsx; `composer check:milestone -- tests/js/hooks/use-validation-error-toasts.test.tsx` passed (16 tests).
 
 ## Surprises & Discoveries
 - The home page is `Route::inertia('/', 'welcome/index')->name('home')`; DashboardTest asserts the component `welcome/index`, and several tests use `route('home')`.

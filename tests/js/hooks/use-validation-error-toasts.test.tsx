@@ -223,3 +223,74 @@ test('a file error focuses the file field of the open dialog', async () => {
         expect(document.activeElement).toBe(screen.getByLabelText('CSV file')),
     );
 });
+
+test('an error for items.0.quantity focuses the input named items[0][quantity]', async () => {
+    render(
+        <>
+            <Listener />
+            <input name="items[0][quantity]" aria-label="first quantity" />
+            <input name="items[1][quantity]" aria-label="second quantity" />
+        </>,
+    );
+
+    fail({ 'items.1.quantity': 'Enter a quantity of 1 or more.' });
+
+    expect(toast.error).toHaveBeenCalledWith('Enter a quantity of 1 or more.', {
+        id: 'field-error-items.1.quantity',
+    });
+    await waitFor(() =>
+        expect(document.activeElement).toBe(
+            screen.getByLabelText('second quantity'),
+        ),
+    );
+    expect(scrollIntoView.mock.contexts[0]).toBe(
+        screen.getByLabelText('second quantity'),
+    );
+});
+
+test('a key with more than two parts finds its bracket name, and the first field in page order wins', async () => {
+    render(
+        <>
+            <Listener />
+            <input name="lines[0][tax][rate]" aria-label="tax rate" />
+            <input name="lines.0.name" aria-label="dotted name" />
+        </>,
+    );
+
+    fail({ 'lines.0.name': 'Second.', 'lines.0.tax.rate': 'First.' });
+
+    await waitFor(() =>
+        expect(document.activeElement).toBe(screen.getByLabelText('tax rate')),
+    );
+});
+
+test('an input named with dots still matches the dotted key', async () => {
+    render(
+        <>
+            <Listener />
+            <input name="items.0.quantity" aria-label="dotted quantity" />
+        </>,
+    );
+
+    fail({ 'items.0.quantity': 'Enter a quantity.' });
+
+    await waitFor(() =>
+        expect(document.activeElement).toBe(
+            screen.getByLabelText('dotted quantity'),
+        ),
+    );
+});
+
+test('a key with no dots is looked up as it is, and the wrong index finds nothing', async () => {
+    render(
+        <>
+            <Listener />
+            <input name="items[0][quantity]" aria-label="first quantity" />
+        </>,
+    );
+
+    fail({ 'items.5.quantity': 'Enter a quantity.' });
+    await Promise.resolve();
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+});

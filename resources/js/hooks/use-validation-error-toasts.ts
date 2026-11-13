@@ -27,6 +27,19 @@ function fieldErrors(errors: unknown): Record<string, string> {
 }
 
 /**
+ * The names an input may carry for an error key. Laravel keys an error for a
+ * list as `items.0.quantity`; an input of such a list is named
+ * `items[0][quantity]`, so both are looked for.
+ */
+function fieldNames(key: string): string[] {
+    const [first, ...rest] = key.split('.');
+
+    return rest.length === 0
+        ? [key]
+        : [key, `${first}${rest.map((part) => `[${part}]`).join('')}`];
+}
+
+/**
  * The first input in page order whose name has an error. Inside an open dialog
  * only the dialog is searched, so a field of the page behind it with the same
  * name (`password`) is not taken.
@@ -35,6 +48,7 @@ function firstFieldWithError(names: string[]): HTMLElement | null {
     const dialogs = document.querySelectorAll('[role="dialog"]');
     const scope = dialogs.item(dialogs.length - 1) ?? document;
     const selector = names
+        .flatMap(fieldNames)
         .map((name) => `[name="${CSS.escape(name)}"]`)
         .join(',');
 
