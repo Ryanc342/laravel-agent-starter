@@ -43,7 +43,7 @@ export default function PublicHeader({
         </Button>
     ) : (
         <>
-            <Button asChild variant="ghost">
+            <Button asChild variant={isMobile ? 'outline' : 'ghost'}>
                 <Link href={login()}>Log in</Link>
             </Button>
             <Button asChild>
@@ -91,7 +91,7 @@ export default function PublicHeader({
                                             key={link.title}
                                             asChild
                                             variant="ghost"
-                                            className="justify-start"
+                                            className="justify-start px-3"
                                         >
                                             <Link href={link.href}>
                                                 {link.title}

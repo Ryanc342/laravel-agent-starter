@@ -75,23 +75,25 @@ export default function LineItems({
                             }
                         />
                     </FormField>
-                    <p className="text-sm font-medium tabular-nums md:w-28 md:text-right">
-                        {formatMoney(item.total, currency)}
-                    </p>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                aria-label={`Remove ${item.name}`}
-                                onClick={() => onRemove(item.id)}
-                            >
-                                <Trash2 />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Remove</TooltipContent>
-                    </Tooltip>
+                    <div className="flex items-center justify-between gap-4 md:contents">
+                        <p className="text-sm font-medium tabular-nums md:w-28 md:text-right">
+                            {formatMoney(item.total, currency)}
+                        </p>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label={`Remove ${item.name}`}
+                                    onClick={() => onRemove(item.id)}
+                                >
+                                    <Trash2 />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Remove</TooltipContent>
+                        </Tooltip>
+                    </div>
                 </li>
             ))}
         </ul>

@@ -33,7 +33,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 | Section title | `<Heading variant="small">` |
 | Body | `text-sm` |
 | Secondary text | `text-sm text-muted-foreground`; captions `text-xs` |
-| Display | `text-display md:text-display-lg` (36px on a phone, 48px on a computer, semibold): the home hero heading, the pricing page title and its prices, nowhere else |
+| Display | `text-display md:text-display-lg` (36px on a phone, 48px on a computer, semibold): the home hero heading and the pricing page title. A plan's price takes `text-display` alone (36px), so a long price still fits its card. Nowhere else |
 
 - Larger headings are allowed only on the home / landing and pricing pages, and only through the display tokens `--text-display` and `--text-display-lg` in `resources/css/app.css` (the classes `text-display` and `text-display-lg`). Every other heading is at most 20px.
 - Numbers that line up in tables or totals use `tabular-nums`. Money, quantities and dates go through `resources/js/lib/format.ts` (`formatMoney`, `formatQuantity`, `formatDate`), never formatted by hand. `formatMoney` takes an amount in minor units (cents) and, when it is not the project's default, a currency code.

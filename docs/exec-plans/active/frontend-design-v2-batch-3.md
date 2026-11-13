@@ -80,5 +80,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: A demo's failed step or send fires the document event `inertia:error` (the one Inertia fires), so the Toaster's real `useValidationErrorToasts` shows the toasts and focuses the first field, including `items[0][quantity]`; no demo-only focus code.
 - 2026-11-14: The demos' example data and stand-in server answers (cart totals with 6% tax, errors keyed `items.0.quantity`) live in `components/style/customer-examples.ts` so `pages/style/index.tsx` does not grow by 300 more lines; the page still passes them to the demos through props.
 
+- 2026-11-14: Browser check found the yearly price "RM 1,990.00" at 48px wider than a plan card, so a plan's price uses `text-display` (36px) alone; the page title keeps the pair. foundations.md and pricing.md say so.
+
 ## Outcomes & Retrospective
 Not started.

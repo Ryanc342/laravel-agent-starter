@@ -76,7 +76,7 @@ export default function PricingPlans({ plans }: { plans: Plan[] }) {
                             {plan.recommended && <Badge>Recommended</Badge>}
                         </div>
                         <p className="flex flex-wrap items-baseline gap-x-2">
-                            <span className="text-display md:text-display-lg">
+                            <span className="text-display">
                                 {formatMoney(
                                     plan.price[billing],
                                     plan.currency,
