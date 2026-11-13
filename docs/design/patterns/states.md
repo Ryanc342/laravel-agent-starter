@@ -12,6 +12,7 @@ Use whenever a region of a page has nothing to show, failed to load, or is still
 
 - Never a blank region. Never a spinner in place of content: a `Spinner` belongs inside a button that is sending.
 - The empty line is the only explaining text on an empty page: no heading above it and nothing else.
+- A table or list with no records keeps its header row, or its box, and the empty line sits inside it. The region never collapses to a bare line.
 - Results of actions and network errors are toasts, not an `ErrorState` (foundations.md, Messages). `ErrorState` is for a region that could not load.
 - A page that does not exist, or that the user may not open, is an error page (error-page.md), not a state.
 

@@ -14,7 +14,7 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | An action that looks like text inside a sentence | `Button` `link` with `size="inline"` (no height or padding of its own) |
 | An icon-only action | `Button` `icon` with a `Tooltip` and an `aria-label` |
 | A button that is sending | the same `Button`, `disabled`, with a `Spinner` |
-| Previous and next in a list | `Pagination` (`components/shared`) |
+| Previous and next in a list, and how many rows a page shows (10, 20, 50 or 100) | `Pagination` (`components/shared`) |
 
 ## Navigation
 
@@ -30,18 +30,18 @@ Read when choosing a component or a variant. It says which one to use for what; 
 
 | Need | Use |
 | --- | --- |
-| A list of records | `ResponsiveTable` (`components/shared`): a `Table` on desktop, one card per row on a phone |
-| A stream of messages | `FeedRow` (`components/shared`), as `NotificationRow` uses it (patterns/feed.md) |
+| A list of records | `ResponsiveTable` (`components/shared`): a `Table` on desktop, one card per row on a phone. With no records it still shows its header row (on a phone its box) with the empty line inside |
+| A stream of messages | `FeedRow` (`components/shared`), as `NotificationRow` uses it (patterns/feed.md): one bordered box, rows separated by lines |
 | The facts of one record | a `dl`: `dt` in `text-muted-foreground`, `dd` the value |
-| A status | `Badge`: `secondary` a neutral state (open, draft), `success` done or paid, `warning` needs attention, `destructive` failed, overdue or an error. The text is the label the backend sends |
+| A status | `Badge`: `secondary` a neutral state (open, draft), `success` done or paid, `warning` needs attention, `destructive` failed, overdue or an error. The text is the label the backend sends, and it starts with a capital letter ("Open", "Done") |
 | A user | `Avatar` |
-| Repeated items, a dialog, a framed tool | `Card` (never a card inside a card) |
+| Repeated items, a dialog, a framed tool | `Card` (never a card inside a card). Its title has no description under it |
 
 ## Inputs
 
 | Need | Use |
 | --- | --- |
-| One field in a form | `FormField` (`components/shared`): label on the left of the input on desktop, above it on a phone, `InputError` under the input |
+| One field in a form | `FormField` (`components/shared`): label on the left of the input on desktop, above it on a phone. An error gives the input a red border and shows no text under it; the message is a toast, and screen readers still get it |
 | Text | `Input` |
 | A password | `PasswordInput` |
 | A one-time code | `InputOTP` |
@@ -65,7 +65,7 @@ Read when choosing a component or a variant. It says which one to use for what; 
 
 | Need | Use |
 | --- | --- |
-| The result of an action, a network error | a toast (foundations.md, Messages) |
+| The result of an action, a network error, a field error | a toast at the top centre, one per message (foundations.md, Messages) |
 | A list or region with nothing in it | `EmptyState` (`components/shared`) |
 | A region that could not load | `ErrorState` (`components/shared`) |
 | A region that is loading | `LoadingState` (`components/shared`), made of `Skeleton` |
@@ -74,7 +74,7 @@ Read when choosing a component or a variant. It says which one to use for what; 
 
 | Need | Use |
 | --- | --- |
-| The page title, or a section title | `Heading` (`variant="small"` for a section) |
+| The page title, or a section title | `Heading` (`variant="small"` for a section). No description under it |
 | A signed-in page | `AppLayout` |
 | A sign-in page | `AuthLayout` |
 | A settings page | `SettingsLayout` |

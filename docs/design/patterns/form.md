@@ -10,19 +10,19 @@ Use for creating or editing something.
 
 ## Layout, top to bottom
 
-1. The dialog title names the action in full ("Add task", "Edit task").
-2. The fields in one column, each a `FormField`: the label on the left of the input on desktop and above it on a phone, `InputError` under the input. A label is hidden (`sr-only`) only when the layout already says what the field is; it is never left out.
+1. The dialog title names the action in full ("Add task", "Edit task"), with no description under it.
+2. The fields in one column, each a `FormField`: the label on the left of the input on desktop and above it on a phone; a field with an error has a red border and no text under it. A label is hidden (`sr-only`) only when the layout already says what the field is; it is never left out.
 3. The buttons last: the main one first ("Save changes", "Add task"), then Cancel (`outline`). While sending, the main button is disabled and shows a `Spinner`.
 
 ## After sending
 
 - Success: the dialog closes, the page shows the new data and a toast says what happened ("Task created."); the controller flashes it.
-- Validation errors: the dialog stays open and each error shows next to its field.
+- Validation errors: the dialog stays open and each error is a toast. The dialog scrolls smoothly to the first field with an error and puts the cursor in it (it jumps there under reduced motion).
 - A network or server error: a toast.
 
 ## Rules
 
-- Use Inertia's `<Form>` with Wayfinder routes, and show errors with `InputError` (docs/rules/frontend.md). Validation lives in the FormRequest; React adds only HTML attributes.
+- Use Inertia's `<Form>` with Wayfinder routes, and turn errors into toasts with the shared form-errors hook (docs/rules/frontend.md). Validation lives in the FormRequest; React adds only HTML attributes.
 - One `…-form-dialog.tsx` component is both the create and the edit dialog: it owns `open` and closes it in the form's `onSuccess`. One `…-fields.tsx` component holds the fields it shows.
 - Choices: `Select` for a list, `Checkbox` for yes or no, `ToggleGroup` for two to seven modes.
 

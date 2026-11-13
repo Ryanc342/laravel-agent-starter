@@ -50,7 +50,7 @@ return Inertia::render('tasks/index', [
 ]);
 ```
 
-A list page is paginated (`paginate(20)` unless the plan agreed another size, never `take()`), and the page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
+A list page is paginated (`paginate(20)` unless the plan agreed another size, never `take()`). A list that offers a rows-per-page choice (10, 20, 50 or 100; anything else counts as 20) reads `per_page` through the FormRequest for its query string, and the page links keep it (`withQueryString()`). The page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
 
 Conditions are written only in model scopes: PHPStan rejects `where…` and `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 

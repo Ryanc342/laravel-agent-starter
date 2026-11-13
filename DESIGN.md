@@ -45,6 +45,8 @@ Do:
 - Write errors that say how to fix the problem.
 - Keep every text inside its box at phone and desktop width, in English and in Chinese; long names wrap or truncate.
 - Show explaining text only for an unusual state (an error, an empty list, a locked record) or a step the user must take. Put other details behind a Tooltip, a collapsible section or a detail page.
+- Title and nothing under it. The only sentences next to a title are in a confirmation for something that cannot be undone (it says what will happen) and in a step the user must take (the two-factor setup dialog says what to do).
+- Show a field error as a toast, and mark the field with a red border.
 - Change only the part of a screen the plan names, and keep the rest as it was. Prefer removing or simplifying to adding.
 
 Don't:
@@ -53,7 +55,8 @@ Don't:
 - A card inside a card, or page sections styled as floating cards.
 - A row of identical stat cards with big numbers as the page opener, unless the plan asks for it on a dashboard.
 - Marketing-size headlines (only the home and pricing pages may have them), all-caps or letter-spaced labels, or a second accent colour.
-- Secondary labels and descriptions the layout already makes clear: a description under a heading that repeats it ("Tasks: your to-do list"), help text under every field, a sentence that explains what a feature does.
+- Secondary labels and descriptions the layout already makes clear: a description line under any title (page, section, card or dialog), help text under every field, a sentence that explains what a feature does, a warning box above a button that already asks for confirmation.
+- Error text under a field, a status word that starts with a lowercase letter, a card or a grey background on a feed row.
 - Slogans, text about how the screen was built or what was asked for, and the same information shown twice.
 - Raw colours (`bg-blue-500`, `#3366ff`), arbitrary sizes (`text-[13px]`, `p-[18px]`) or `dark:` colour overrides: use the tokens.
 - A "Back to …" button next to a breadcrumb that already links back.

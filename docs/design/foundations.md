@@ -9,7 +9,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 | Page and surfaces | `background`, `card`, `popover` | the page, tables and inputs; cards, dropdowns, popovers and dialogs |
 | Sidebar | `sidebar`, `sidebar-foreground`, `sidebar-accent`, `sidebar-border` | the app sidebar only (light grey) |
 | Text | `foreground`, `muted-foreground` | text; secondary text, captions and empty lines |
-| Quiet fills | `secondary`, `muted`, `accent` | a neutral button or badge; an unread row; hover |
+| Quiet fills | `secondary`, `muted`, `accent` | a neutral button or badge; hover |
 | Brand | `primary`, `primary-foreground` | the main action of a screen, links, the selected item, the unread dot |
 | Lines and focus | `border`, `input`, `ring` | dividers and boxes; input borders; the focus ring |
 | Status | `destructive`, `success`, `warning`, each with its `-foreground` | a status and nothing else: an error or a delete, something done or paid, something that needs attention |
@@ -65,7 +65,8 @@ Icons come from `lucide-react`. An icon next to text takes its size from the com
 
 - Short and direct. Titles, labels and buttons are in sentence case.
 - A button says what happens ("Save changes", "Delete task"). An error says how to fix the problem ("Enter a date after today").
-- Explaining text appears only for an unusual state or a step the user must take.
+- Explaining text appears only for an unusual state or a step the user must take. No description line under a title (page, section, card or dialog). Two exceptions, one sentence each: a confirmation for something that cannot be undone says what will happen, and a step the user must take says what to do.
+- A status word starts with a capital letter ("Open", "Done").
 
 ## Messages
 
@@ -74,11 +75,14 @@ Icons come from `lucide-react`. An icon next to text takes its size from the com
 | An action finished (saved, deleted, sent) | a toast: `Inertia::flash('toast', ...)` in the controller, shown by the layout |
 | A network error | a toast, shown by the layout |
 | A message that used to be an `Alert` on the page | a toast |
-| A field is wrong | `InputError` next to the field |
+| A field is wrong | a toast, one per error; the field keeps only its red border and no text under it |
 | An action cannot be undone | a confirmation dialog first, with the action named in full ("Delete task") |
 | A region could not load | `ErrorState` (patterns/states.md) |
 
 No `Alert` on a page.
+
+- Toasts appear at the top centre. Many at once use sonner's default: the newest few show, the rest stack behind and spread out on hover.
+- After a failed submit the page or dialog scrolls smoothly to the first field with an error and puts the cursor in it. When the user asks for reduced motion it jumps there without the animation.
 
 ## Accessibility
 
