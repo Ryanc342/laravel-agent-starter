@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import EmptyState from '@/components/shared/empty-state';
+import RegionState, {
+    type RegionError,
+} from '@/components/shared/region-state';
 import {
     Table,
     TableBody,
@@ -26,30 +28,41 @@ type Props<Row> = {
     getRowKey: (row: Row) => string | number;
     /** The line shown inside the table (its header row stays) or the box when there are no rows. */
     emptyMessage: string;
+    /** The data is still arriving: the skeleton sits inside the frame, under the header row. */
+    loading?: boolean;
+    /** The data could not load: the failure sits inside the frame, under the header row. */
+    error?: RegionError;
 };
 
 /**
  * A list of records: a table on desktop (horizontal row lines only), one card
- * per record on a phone, so the page never scrolls sideways. With no records
- * it keeps its header row (on a phone its box) and shows the empty line inside.
+ * per record on a phone, so the page never scrolls sideways. Empty, loading and
+ * failed all keep the header row (on a phone the box) and draw the state inside
+ * it, centred.
  */
 export default function ResponsiveTable<Row>({
     columns,
     rows,
     getRowKey,
     emptyMessage,
+    loading = false,
+    error,
 }: Props<Row>) {
     const isMobile = useIsMobile();
+    const showState = loading || error !== undefined || rows.length === 0;
+    const state = (
+        <RegionState
+            emptyMessage={emptyMessage}
+            loading={loading}
+            error={error}
+        />
+    );
 
     if (isMobile) {
         const [title, ...others] = columns;
 
-        if (rows.length === 0) {
-            return (
-                <div className="rounded-lg border p-4">
-                    <EmptyState message={emptyMessage} />
-                </div>
-            );
+        if (showState) {
+            return <div className="rounded-lg border">{state}</div>;
         }
 
         return (
@@ -102,25 +115,26 @@ export default function ResponsiveTable<Row>({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {rows.length === 0 && (
+                    {showState && (
                         <TableRow>
-                            <TableCell colSpan={columns.length}>
-                                <EmptyState message={emptyMessage} />
+                            <TableCell colSpan={columns.length} className="p-0">
+                                {state}
                             </TableCell>
                         </TableRow>
                     )}
-                    {rows.map((row) => (
-                        <TableRow key={getRowKey(row)}>
-                            {columns.map((column) => (
-                                <TableCell
-                                    key={column.header}
-                                    className={column.className}
-                                >
-                                    {column.cell(row)}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
+                    {!showState &&
+                        rows.map((row) => (
+                            <TableRow key={getRowKey(row)}>
+                                {columns.map((column) => (
+                                    <TableCell
+                                        key={column.header}
+                                        className={column.className}
+                                    >
+                                        {column.cell(row)}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
                 </TableBody>
             </Table>
         </div>

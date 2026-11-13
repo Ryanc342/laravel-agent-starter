@@ -4,15 +4,25 @@ import { useIsMobile } from '@/hooks/use-mobile';
 /**
  * Data that arrives later: skeletons shaped like what is coming. A phone gets
  * cards, like the list it stands for (ResponsiveTable); desktop gets rows.
+ * Inside a table or a box that already frames it, `framed={false}` draws bare
+ * rows with no border of their own, on a phone too.
  */
-export default function LoadingState({ rows = 3 }: { rows?: number }) {
-    const isMobile = useIsMobile();
+export default function LoadingState({
+    rows = 3,
+    framed = true,
+}: {
+    rows?: number;
+    framed?: boolean;
+}) {
+    const isMobile = useIsMobile() && framed;
 
     return (
         <div
             role="status"
             aria-busy="true"
-            className={isMobile ? 'grid gap-3' : 'rounded-lg border'}
+            className={
+                isMobile ? 'grid gap-3' : framed ? 'rounded-lg border' : ''
+            }
         >
             <span className="sr-only">Loading</span>
             {Array.from({ length: rows }, (_, index) =>

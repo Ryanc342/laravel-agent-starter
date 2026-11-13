@@ -18,7 +18,7 @@ From the user's second review of the batch 1 screens and grilling round 7 (Q53 t
 
 ## Milestones
 - [x] M1 Spec and rules: `docs/design/patterns/list.md` (column menus, top search, ranges, mobile sheet, URL, indicators), `states.md` (centred inside the table), `feed.md` (click to mark as read, no row buttons), `docs/design/components.md` (new shared blocks, cursor), DESIGN.md where it names these, principle 10 in `docs/golden-principles.md`, `docs/rules/frontend.md` (sort, filter and search come from the list's FormRequest; filter options come from the backend as `{ value, label }`). + DocsTest.
-- [ ] M2 Cursor and states: the pointing-hand cursor for every enabled clickable element in `resources/css/app.css` (disabled ones keep the arrow); `EmptyState` and `ErrorState` centred with an icon; `ResponsiveTable` and the feed list show empty, failed and loading inside their frame. + Vitest.
+- [x] M2 Cursor and states: the pointing-hand cursor for every enabled clickable element in `resources/css/app.css` (disabled ones keep the arrow); `EmptyState` and `ErrorState` centred with an icon; `ResponsiveTable` and the feed list show empty, failed and loading inside their frame. + Vitest.
 - [ ] M3 Column menus (frontend, `components/shared`): a column header menu with sort, column search, tick list with Select all and Unselect all, from-to range and Clear; the arrow and funnel indicators; the "Sort & filter" sheet on a phone; every change goes to the URL through Inertia and resets the page to 1, keeping `per_page`. No new package (date ranges use the native date input). + Vitest.
 - [ ] M4 Reference feature backend: `IndexTaskRequest` reads `search`, `sort`, `direction`, `status[]`, `due_from` and `due_to` from allowed values only (anything else ignored); `Task` scopes do the search, filters and order; the status options come from `TaskStatus`; page links keep the query string. + feature tests for each filter, sort direction, combinations, ignored values and kept links; `composer check:reference`.
 - [ ] M5 Reference feature frontend and style page: the task list uses the column menus, the top search and the phone sheet; the style page's list demo shows an amount column with a range, with example data passed through props. + `composer check:reference`.
@@ -39,12 +39,14 @@ From the user's second review of the batch 1 screens and grilling round 7 (Q53 t
 - 2026-11-13 16:15 MYT: The user reviewed the screens again; grilling round 7 (Q53 to Q61) is answered on the user's Q&A page and recorded above, with two notes (Select all / Unselect all in a tick list; the pointing-hand cursor). Plan written. Waiting for the user's start and approval of the protected files and the changed assertions listed in the Decision Log.
 - 2026-11-13: The user said "开始" (start). Taken as the start, as confirmation of the branch, and as approval of the protected files and the two changed assertions named in the Decision Log. M1 begins.
 - 2026-11-13: M1 done (docs only, so no test written first; 0 failing before). Scope: the spec files in the Decision Log, tests/Structure/DocsTest.php. `composer check:milestone -- tests/Structure/DocsTest.php`: passed (static checks, 4 tests). Milestone/affected-test pass, not a full-suite pass.
+- 2026-11-13: M2 done. 10 Vitest tests failed before the code. Scope: tests/js (every Vitest file, because `EmptyState`, `ErrorState` and `LoadingState` are used by the bell, the users components and the demos). `composer check:milestone -- tests/js`: passed (static checks, 19 files, 94 tests). Milestone/affected-test pass. The cursor rule is unlayered in `resources/css/app.css` (components set `cursor-default`); its browser check is in M7.
 
 ## Surprises & Discoveries
 - `EmptyState` and `ErrorState` lay out their line and button to the left (`items-start`); only the loading state was drawn inside a table frame.
 - Search and the status filter existed only in the style page's demo; the reference task list had no search, sort or filter in its backend.
 - Both read controllers end with `to_route('notifications.index')`, which is why marking as read from the bell or the dashboard left the page.
 - Tailwind 4 gives buttons the normal arrow; `resources/css/app.css` sets no cursor today.
+- The cursor rule has to sit outside `@layer`: shadcn menu and select items set `cursor-default`, and a layered rule would lose to that utility. The sidebar rail keeps its resize cursor.
 
 ## Decision Log
 - 2026-11-13: Work continues on the branch `frontend-design-v2-batch-1`, not merged yet, so batch 1 and both feedback rounds are merged together. The user confirms this at start.

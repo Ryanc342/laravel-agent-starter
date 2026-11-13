@@ -169,6 +169,41 @@
 }
 
 /*
+ * Everything the user can click shows the pointing hand; a disabled control
+ * keeps the arrow. These rules sit outside @layer on purpose: components set
+ * `cursor-default` on their menu items, and an unlayered rule beats every
+ * utility class, so the cursor stays decided in this one place.
+ */
+button:not(:disabled):not([aria-disabled='true']):not([data-disabled]):not(
+        [data-slot='sidebar-rail']
+    ),
+[role='button']:not([aria-disabled='true']):not([data-disabled]),
+[role='tab']:not([aria-disabled='true']):not([data-disabled]),
+[role='menuitem']:not([aria-disabled='true']):not([data-disabled]),
+[role='menuitemcheckbox']:not([aria-disabled='true']):not([data-disabled]),
+[role='menuitemradio']:not([aria-disabled='true']):not([data-disabled]),
+[role='option']:not([aria-disabled='true']):not([data-disabled]),
+[role='checkbox']:not([aria-disabled='true']):not([data-disabled]),
+[role='radio']:not([aria-disabled='true']):not([data-disabled]),
+[role='switch']:not([aria-disabled='true']):not([data-disabled]),
+a[href],
+summary,
+label[for],
+select:not(:disabled),
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled),
+input[type='submit']:not(:disabled),
+input[type='button']:not(:disabled) {
+    cursor: pointer;
+}
+
+:disabled,
+[aria-disabled='true'],
+[data-disabled] {
+    cursor: default;
+}
+
+/*
  * Motion is a quick transition on hover, open, close and expand. When the
  * user asks for reduced motion, nothing moves: transitions and animations
  * (dialog, sheet, dropdown, caret blink) finish at once.

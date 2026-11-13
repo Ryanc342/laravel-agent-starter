@@ -113,3 +113,81 @@ test('a table with records shows no empty line', () => {
 
     expect(screen.queryByText('You have no tasks yet.')).toBeNull();
 });
+
+test('on desktop a loading table keeps its header row and shows the skeleton inside it', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    render(
+        <ResponsiveTable
+            columns={columns}
+            rows={[]}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+            loading
+        />,
+    );
+    const grid = screen.getByRole('table');
+
+    expect(
+        screen.getAllByRole('columnheader').map((cell) => cell.textContent),
+    ).toEqual(['Title', 'Status', 'Due date']);
+    expect(within(grid).getByRole('status')).toBeTruthy();
+    expect(within(grid).queryByText('You have no tasks yet.')).toBeNull();
+});
+
+test('on desktop a failed table keeps its header row and shows the centred failure inside it', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    const retry = vi.fn();
+
+    render(
+        <ResponsiveTable
+            columns={columns}
+            rows={[]}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+            error={{ message: 'Could not load your tasks.', onRetry: retry }}
+        />,
+    );
+    const grid = screen.getByRole('table');
+
+    expect(
+        screen.getAllByRole('columnheader').map((cell) => cell.textContent),
+    ).toEqual(['Title', 'Status', 'Due date']);
+    expect(within(grid).getByRole('alert').textContent).toContain(
+        'Could not load your tasks.',
+    );
+    expect(within(grid).queryByText('You have no tasks yet.')).toBeNull();
+});
+
+test('on a phone a loading or failed list is a box with the state inside', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    const { container, rerender } = render(
+        <ResponsiveTable
+            columns={columns}
+            rows={[]}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+            loading
+        />,
+    );
+    const box = container.firstElementChild as HTMLElement;
+
+    expect(box.className).toContain('rounded-lg');
+    expect(within(box).getByRole('status')).toBeTruthy();
+
+    rerender(
+        <ResponsiveTable
+            columns={columns}
+            rows={[]}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+            error={{ message: 'Could not load your tasks.' }}
+        />,
+    );
+
+    expect(within(container).getByRole('alert')).toBeTruthy();
+    expect(
+        container.querySelectorAll('[data-slot="loading-card"]'),
+    ).toHaveLength(0);
+});
