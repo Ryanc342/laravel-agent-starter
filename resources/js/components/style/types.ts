@@ -5,6 +5,8 @@ export type ExampleTask = {
     status: string;
     overdue: boolean;
     due_on: string | null;
+    /** In cents; shown through `formatMoney`. */
+    amount: number;
 };
 
 export type ExampleNotification = {

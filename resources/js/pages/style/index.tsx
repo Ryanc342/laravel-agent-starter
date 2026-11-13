@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Bell, Palette, ShieldCheck, UserRound } from 'lucide-react';
 import Heading from '@/components/heading';
+import type { Choice } from '@/components/shared/column-menu';
 import AuthDemo from '@/components/style/auth-demo';
 import DashboardDemo from '@/components/style/dashboard-demo';
 import DetailDemo from '@/components/style/detail-demo';
@@ -38,6 +39,7 @@ const tasks: ExampleTask[] = [
         status: 'Open',
         overdue: true,
         due_on: '2026-11-11',
+        amount: 48000,
     },
     {
         id: 2,
@@ -45,6 +47,7 @@ const tasks: ExampleTask[] = [
         status: 'Open',
         overdue: false,
         due_on: '2026-11-17',
+        amount: 125000,
     },
     {
         id: 3,
@@ -52,6 +55,7 @@ const tasks: ExampleTask[] = [
         status: 'Open',
         overdue: false,
         due_on: null,
+        amount: 9900,
     },
     {
         id: 4,
@@ -59,7 +63,14 @@ const tasks: ExampleTask[] = [
         status: 'Done',
         overdue: false,
         due_on: null,
+        amount: 0,
     },
+];
+
+// The tick list's options come from the backend in a real list.
+const statusChoices: Choice[] = [
+    { value: 'open', label: 'Open' },
+    { value: 'done', label: 'Done' },
 ];
 
 const pagination: ResourceCollection<ExampleTask> = {
@@ -168,7 +179,11 @@ export default function Style() {
 
                 <StyleSection id="list" title="List">
                     <DemoFrame>
-                        <ListDemo tasks={tasks} pagination={pagination} />
+                        <ListDemo
+                            tasks={tasks}
+                            pagination={pagination}
+                            statusChoices={statusChoices}
+                        />
                     </DemoFrame>
                 </StyleSection>
 

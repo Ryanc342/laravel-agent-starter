@@ -1,6 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
 import Heading from '@/components/heading';
+import type { Choice } from '@/components/shared/column-menu';
 import Pagination from '@/components/shared/pagination';
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import TaskTable from '@/components/tasks/task-table';
@@ -11,12 +12,13 @@ import type { Task } from '@/types/task';
 
 type TasksPageProps = {
     tasks: ResourceCollection<Task>;
+    statusOptions: Choice[];
     can: {
         complete_overdue: boolean;
     };
 };
 
-export default function Tasks({ tasks, can }: TasksPageProps) {
+export default function Tasks({ tasks, statusOptions, can }: TasksPageProps) {
     return (
         <>
             <Head title="Tasks" />
@@ -47,7 +49,7 @@ export default function Tasks({ tasks, can }: TasksPageProps) {
                     </div>
                 </div>
 
-                <TaskTable tasks={tasks.data} />
+                <TaskTable tasks={tasks.data} statusOptions={statusOptions} />
                 <Pagination collection={tasks} />
             </div>
         </>

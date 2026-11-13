@@ -1,56 +1,90 @@
 import Heading from '@/components/heading';
-import FormField from '@/components/shared/form-field';
+import type { Choice } from '@/components/shared/column-menu';
+import ListToolbar from '@/components/shared/list-toolbar';
 import Pagination from '@/components/shared/pagination';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import type { TableColumn } from '@/components/shared/responsive-table';
 import type { ExampleTask } from '@/components/style/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatMoney } from '@/lib/format';
 import type { ResourceCollection } from '@/types/resource';
 
-const columns: TableColumn<ExampleTask>[] = [
-    {
-        header: 'Title',
-        className: 'max-w-80 truncate font-medium',
-        cell: (task) => (
-            <a href="#detail" className="underline-offset-4 hover:underline">
-                {task.title}
-            </a>
-        ),
-    },
-    {
-        header: 'Status',
-        hideLabelOnCard: true,
-        cell: (task) => (
-            <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{task.status}</Badge>
-                {task.overdue && <Badge variant="destructive">Overdue</Badge>}
-            </div>
-        ),
-    },
-    {
-        header: 'Due date',
-        cell: (task) => (task.due_on ? formatDate(task.due_on) : 'No due date'),
-    },
-];
+function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
+    return [
+        {
+            header: 'Title',
+            className: 'max-w-80 truncate font-medium',
+            menu: { sortKey: 'title', search: { param: 'search' } },
+            cell: (task) => (
+                <a
+                    href="#detail"
+                    className="underline-offset-4 hover:underline"
+                >
+                    {task.title}
+                </a>
+            ),
+        },
+        {
+            header: 'Status',
+            hideLabelOnCard: true,
+            menu: {
+                sortKey: 'status',
+                options: { param: 'status', choices: statusChoices },
+            },
+            cell: (task) => (
+                <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">{task.status}</Badge>
+                    {task.overdue && (
+                        <Badge variant="destructive">Overdue</Badge>
+                    )}
+                </div>
+            ),
+        },
+        {
+            header: 'Amount',
+            menu: {
+                sortKey: 'amount',
+                range: {
+                    fromParam: 'amount_from',
+                    toParam: 'amount_to',
+                    type: 'number',
+                },
+            },
+            cell: (task) => formatMoney(task.amount),
+        },
+        {
+            header: 'Due date',
+            menu: {
+                sortKey: 'due_on',
+                range: {
+                    fromParam: 'due_from',
+                    toParam: 'due_to',
+                    type: 'date',
+                },
+            },
+            cell: (task) =>
+                task.due_on ? formatDate(task.due_on) : 'No due date',
+        },
+    ];
+}
 
-/** A list of records: header with the create button, one filter row, the table, the pages. */
+/**
+ * A list of records: header with the create button, the search box (and on a
+ * phone the "Sort & filter" button), the table with its column menus, the
+ * pages. The example data does not filter; the menus change the address only.
+ */
 export default function ListDemo({
     tasks,
     pagination,
+    statusChoices,
 }: {
     tasks: ExampleTask[];
     pagination: ResourceCollection<ExampleTask>;
+    statusChoices: Choice[];
 }) {
+    const columns = demoColumns(statusChoices);
+
     return (
         <div className="flex flex-col gap-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -58,33 +92,15 @@ export default function ListDemo({
                 <Button>Add task</Button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-                <FormField
-                    label="Search tasks"
-                    htmlFor="list-demo-search"
-                    hideLabel
-                    className="w-full sm:w-64"
-                >
-                    <Input id="list-demo-search" placeholder="Search tasks" />
-                </FormField>
-                <Select defaultValue="all">
-                    <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All statuses</SelectItem>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="done">Done</SelectItem>
-                    </SelectContent>
-                </Select>
+            <div className="flex flex-col gap-4">
+                <ListToolbar columns={columns} searchLabel="Search tasks" />
+                <ResponsiveTable
+                    columns={columns}
+                    rows={tasks}
+                    getRowKey={(task) => task.id}
+                    emptyMessage="You have no tasks yet."
+                />
             </div>
-
-            <ResponsiveTable
-                columns={columns}
-                rows={tasks}
-                getRowKey={(task) => task.id}
-                emptyMessage="You have no tasks yet."
-            />
             <Pagination collection={pagination} />
         </div>
     );

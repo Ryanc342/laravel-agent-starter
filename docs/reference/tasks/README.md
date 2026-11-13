@@ -30,6 +30,7 @@ Do not copy the Task domain itself into the app, and do not "fix" files here wit
 | Detail page, breadcrumb that ends at the list   | `resources/js/pages/tasks/show.tsx` (`ShowTask.layout`)                      |
 | Actions shown from `can.*`, delete confirmation | `resources/js/components/tasks/task-actions.tsx`                             |
 | Paginated list                                  | `TaskController::index()` and `<Pagination>` in the page                     |
+| Search, sort and filters of a list              | `IndexTaskRequest` (allowed values only), `Task` scopes `matching`, `withStatuses`, `dueBetween`, `sortedBy`; `ListToolbar` and the column `menu`s in `task-table.tsx` |
 | Shared UI block                                 | `resources/js/components/tasks/task-fields.tsx` (the dialog's fields)        |
 | Dates shown through `lib/format.ts`             | `formatDate()` in `task-table.tsx` and `show.tsx`                            |
 | Tests                                           | `tests/Feature/Tasks/`                                                       |

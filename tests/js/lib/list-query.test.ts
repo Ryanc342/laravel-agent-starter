@@ -1,5 +1,10 @@
 import { expect, test } from 'vite-plus/test';
-import { listParam, listParams, withListParams } from '@/lib/list-query';
+import {
+    hasListParams,
+    listParam,
+    listParams,
+    withListParams,
+} from '@/lib/list-query';
 
 test('a change sets the parameter, keeps the rest and goes back to page 1', () => {
     expect(
@@ -37,4 +42,14 @@ test('the parameters are read back from the address', () => {
     expect(listParam(url, 'sort')).toBe('');
     expect(listParams(url, 'status')).toEqual(['open', 'done']);
     expect(listParams(url, 'other')).toEqual([]);
+});
+
+test('the list counts as narrowed when any named parameter has a value', () => {
+    const keys = ['search', 'status', 'due_from'];
+
+    expect(hasListParams('/tasks', keys)).toBe(false);
+    expect(hasListParams('/tasks?per_page=50&sort=title', keys)).toBe(false);
+    expect(hasListParams('/tasks?search=milk', keys)).toBe(true);
+    expect(hasListParams('/tasks?status[]=open', keys)).toBe(true);
+    expect(hasListParams('/tasks?search=', keys)).toBe(false);
 });
