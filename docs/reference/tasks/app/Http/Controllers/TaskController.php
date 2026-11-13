@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Tasks\CreateTask;
 use App\Actions\Tasks\DeleteTask;
 use App\Actions\Tasks\UpdateTask;
+use App\Http\Requests\Tasks\IndexTaskRequest;
 use App\Http\Requests\Tasks\StoreTaskRequest;
 use App\Http\Requests\Tasks\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
@@ -18,9 +19,9 @@ use Inertia\Response;
 class TaskController extends Controller
 {
     /**
-     * Show the user's tasks, 20 per page.
+     * Show the user's tasks, with the rows per page the user picked (20 by default).
      */
-    public function index(Request $request): Response
+    public function index(IndexTaskRequest $request): Response
     {
         Gate::authorize('viewAny', Task::class);
 
@@ -29,7 +30,8 @@ class TaskController extends Controller
         $tasks = Task::query()
             ->ownedBy($user)
             ->listOrder()
-            ->paginate(20);
+            ->paginate($request->perPage())
+            ->withQueryString();
 
         return Inertia::render('tasks/index', [
             'tasks' => TaskResource::collection($tasks)->response($request)->getData(true),

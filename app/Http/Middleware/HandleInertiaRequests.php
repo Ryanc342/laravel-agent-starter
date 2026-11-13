@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\PerPage;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\UserResource;
 use App\Models\Notification;
@@ -61,6 +62,8 @@ class HandleInertiaRequests extends Middleware
                 : NotificationResource::collection(
                     Notification::query()->ownedBy($user)->listOrder()->limit(5)->get(),
                 )->resolve($request)),
+            // The rows-per-page choices under every paginated list (components/shared/pagination.tsx).
+            'perPageOptions' => PerPage::values(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

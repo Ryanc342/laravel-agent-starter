@@ -56,6 +56,50 @@ test('the list shows 20 notifications per page', function () {
             ->where('notifications.meta.total', 21));
 });
 
+test('the list pages by the rows per page in the URL', function (int $perPage) {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(101)->create();
+
+    $this->actingAs($user)
+        ->get(route('notifications.index', ['per_page' => $perPage]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('notifications.data', $perPage)
+            ->where('notifications.meta.per_page', $perPage)
+            ->where('notifications.meta.total', 101));
+})->with([10, 20, 50, 100]);
+
+test('a rows-per-page value that is not offered pages by 20', function (mixed $value) {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(25)->create();
+
+    $this->actingAs($user)
+        ->get(route('notifications.index', ['per_page' => $value]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('notifications.data', 20)
+            ->where('notifications.meta.per_page', 20));
+})->with(['999', '0', '-5', 'abc', '50abc', [['10']]]);
+
+test('without a rows-per-page value the list pages by 20', function () {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(25)->create();
+
+    $this->actingAs($user)
+        ->get(route('notifications.index'))
+        ->assertInertia(fn (Assert $page) => $page->has('notifications.data', 20));
+});
+
+test('the page links keep the rows per page', function () {
+    $user = User::factory()->create();
+    Notification::factory()->for($user, 'notifiable')->count(25)->create();
+
+    $this->actingAs($user)
+        ->get(route('notifications.index', ['per_page' => 10]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('notifications.links.next', fn (string $url) => str_contains($url, 'per_page=10') && str_contains($url, 'page=2')));
+});
+
 test('a user can mark their own notification as read', function () {
     $user = User::factory()->create();
     $notification = Notification::factory()->for($user, 'notifiable')->create();

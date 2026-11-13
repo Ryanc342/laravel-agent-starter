@@ -59,6 +59,41 @@ test('the list shows 20 tasks per page', function () {
             ->where('tasks.meta.total', 21));
 });
 
+test('the list pages by the rows per page in the URL', function (int $perPage) {
+    $user = User::factory()->create();
+    Task::factory()->for($user)->count(101)->create();
+
+    $this->actingAs($user)
+        ->get(route('tasks.index', ['per_page' => $perPage]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('tasks.data', $perPage)
+            ->where('tasks.meta.per_page', $perPage)
+            ->where('tasks.meta.total', 101));
+})->with([10, 20, 50, 100]);
+
+test('a rows-per-page value that is not offered pages by 20', function (mixed $value) {
+    $user = User::factory()->create();
+    Task::factory()->for($user)->count(25)->create();
+
+    $this->actingAs($user)
+        ->get(route('tasks.index', ['per_page' => $value]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('tasks.data', 20)
+            ->where('tasks.meta.per_page', 20));
+})->with(['999', '0', '-5', 'abc', '50abc', [['10']]]);
+
+test('the page links keep the rows per page', function () {
+    $user = User::factory()->create();
+    Task::factory()->for($user)->count(25)->create();
+
+    $this->actingAs($user)
+        ->get(route('tasks.index', ['per_page' => 10]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tasks.links.next', fn (string $url) => str_contains($url, 'per_page=10') && str_contains($url, 'page=2')));
+});
+
 test('a user can create a task', function () {
     $user = User::factory()->create();
 

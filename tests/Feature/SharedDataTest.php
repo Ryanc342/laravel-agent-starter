@@ -65,3 +65,11 @@ test('the notification bell gets the user\'s five newest notifications only when
             ),
         );
 });
+
+test('every page receives the rows-per-page choices a list offers', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('perPageOptions', [10, 20, 50, 100]));
+});

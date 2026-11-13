@@ -17,6 +17,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             notificationSummary: NotificationSummary | null;
             latestNotifications?: AppNotification[];
+            perPageOptions: number[];
             sidebarOpen: boolean;
             [key: string]: unknown;
         };
