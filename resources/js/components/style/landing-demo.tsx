@@ -1,5 +1,8 @@
 import { Link } from '@inertiajs/react';
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import FeatureGrid, { type Feature } from '@/components/shared/feature-grid';
 import Hero from '@/components/shared/hero';
 import PublicFrame from '@/components/style/public-frame';
@@ -12,6 +15,7 @@ import { Button } from '@/components/ui/button';
  */
 export default function LandingDemo({
     links,
+    barLabels,
     title,
     summary,
     primary,
@@ -20,6 +24,7 @@ export default function LandingDemo({
     closing,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     title: string;
     summary: string;
     primary: string;
@@ -28,7 +33,7 @@ export default function LandingDemo({
     closing: string;
 }) {
     return (
-        <PublicFrame links={links}>
+        <PublicFrame links={links} barLabels={barLabels}>
             <div className="grid gap-12 md:gap-16">
                 <Hero
                     title={title}

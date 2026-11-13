@@ -2,7 +2,10 @@ import { type FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import ContactForm from '@/components/shared/contact-form';
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import PublicFrame from '@/components/style/public-frame';
 
 /**
@@ -13,6 +16,7 @@ import PublicFrame from '@/components/style/public-frame';
  */
 export default function ContactDemo({
     links,
+    barLabels,
     title,
     answer,
     sent,
@@ -20,6 +24,7 @@ export default function ContactDemo({
     submitLabel,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     title: string;
     answer: (values: Record<string, string>) => Record<string, string>;
     sent: string;
@@ -58,7 +63,7 @@ export default function ContactDemo({
     };
 
     return (
-        <PublicFrame links={links}>
+        <PublicFrame links={links} barLabels={barLabels}>
             <div className="grid max-w-2xl gap-8">
                 <Heading title={title} />
                 <form key={formKey} onSubmit={submit} noValidate>

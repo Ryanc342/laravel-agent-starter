@@ -1,6 +1,9 @@
 import Heading from '@/components/heading';
 import FaqList, { type FaqTopic } from '@/components/shared/faq-list';
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import PublicFrame from '@/components/style/public-frame';
 import TextLink from '@/components/text-link';
 
@@ -10,6 +13,7 @@ import TextLink from '@/components/text-link';
  */
 export default function HelpDemo({
     links,
+    barLabels,
     title,
     topics,
     searchLabel,
@@ -18,6 +22,7 @@ export default function HelpDemo({
     contactLabel,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     title: string;
     topics: FaqTopic[];
     searchLabel: string;
@@ -26,7 +31,7 @@ export default function HelpDemo({
     contactLabel: string;
 }) {
     return (
-        <PublicFrame links={links}>
+        <PublicFrame links={links} barLabels={barLabels}>
             <div className="grid max-w-3xl gap-8">
                 <Heading title={title} />
                 <FaqList

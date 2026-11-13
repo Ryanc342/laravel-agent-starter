@@ -4,7 +4,10 @@ import Heading from '@/components/heading';
 import FormField from '@/components/shared/form-field';
 import LineItems, { type LineItem } from '@/components/shared/line-items';
 import OrderSummary from '@/components/shared/order-summary';
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import WizardLayout from '@/components/shared/wizard-layout';
 import PublicFrame from '@/components/style/public-frame';
 import { Button } from '@/components/ui/button';
@@ -29,6 +32,7 @@ export type PricedCart = Summary & { items: LineItem[] };
  */
 export default function CheckoutDemo({
     links,
+    barLabels,
     title,
     steps,
     currency,
@@ -45,6 +49,7 @@ export default function CheckoutDemo({
     lineLabels,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     title: string;
     steps: [string, string, string];
     currency: string;
@@ -108,7 +113,7 @@ export default function CheckoutDemo({
     };
 
     return (
-        <PublicFrame links={links}>
+        <PublicFrame links={links} barLabels={barLabels}>
             <div className="grid gap-6">
                 <Heading title={title} />
                 <WizardLayout

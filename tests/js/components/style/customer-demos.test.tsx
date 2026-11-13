@@ -243,6 +243,14 @@ test('a failed contact send keeps what was typed', () => {
     );
 });
 
+test('every Chinese demo has a Chinese top bar, not only Chinese page text', () => {
+    render(<PricingDemo links={publicLinksZh} {...pricing.zh} />);
+
+    expect(screen.getByRole('link', { name: '登录' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '立即开始' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Log in' })).toBeNull();
+});
+
 test('the Chinese contact demo has Chinese labels and button, and Chinese checkout buttons', () => {
     const { unmount } = render(
         <ContactDemo

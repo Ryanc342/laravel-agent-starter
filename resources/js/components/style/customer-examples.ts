@@ -35,6 +35,14 @@ export const publicLinks: PublicLink[] = [
     { title: 'Contact', href: '#contact' },
 ];
 
+export const barLabelsZh = {
+    login: '登录',
+    getStarted: '立即开始',
+    dashboard: '控制台',
+    openMenu: '打开菜单',
+    menu: '菜单',
+};
+
 export const publicLinksZh: PublicLink[] = [
     { title: '产品', href: '#product' },
     { title: '价格', href: '#pricing' },
@@ -116,6 +124,7 @@ export const landing = {
         closing: 'Ready to build?',
     },
     zh: {
+        barLabels: barLabelsZh,
         title: '开始搭建你的应用',
         summary: '一个已经带有登录、设置和通知的 Laravel 和 React 起步项目。',
         primary: '立即开始',
@@ -200,6 +209,7 @@ export const pricing = {
         helpLabel: 'Questions about plans?',
     },
     zh: {
+        barLabels: barLabelsZh,
         title: '价格',
         plans: plansZh,
         labels: {
@@ -236,6 +246,7 @@ export const product = {
         action: 'Request a quote',
     },
     zh: {
+        barLabels: barLabelsZh,
         title: '备件订阅服务',
         summary: '在你用完之前，把机器需要的备件送到。',
         sections: [
@@ -337,6 +348,7 @@ export const customerArea = {
         ],
     },
     zh: {
+        barLabels: barLabelsZh,
         nav: [
             { title: '概览', href: '#customer-area', isActive: true },
             { title: '订单', href: '#customer-area' },
@@ -406,6 +418,7 @@ export const checkout = {
         labels: { subtotal: 'Subtotal', tax: 'Tax (6%)', total: 'Total' },
     },
     zh: {
+        barLabels: barLabelsZh,
         title: '结账',
         steps: ['购物车', '收货信息', '确认'] as [string, string, string],
         currency: 'CNY',
@@ -599,6 +612,7 @@ export const help = {
         contactLabel: 'Contact us',
     },
     zh: {
+        barLabels: barLabelsZh,
         title: '帮助',
         topics: faqTopicsZh,
         searchLabel: '搜索帮助',
@@ -642,6 +656,7 @@ export const contact = {
         submitLabel: 'Send message',
     },
     zh: {
+        barLabels: barLabelsZh,
         title: '联系我们',
         sent: '留言已发送。',
         labels: {

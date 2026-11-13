@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import PublicFooter from '@/components/shared/public-footer';
 import PublicHeader, {
+    type PublicHeaderLabels,
     type PublicLink,
 } from '@/components/shared/public-header';
 
@@ -13,15 +14,21 @@ import PublicHeader, {
 export default function PublicFrame({
     links,
     signedIn = false,
+    barLabels,
     children,
 }: {
     links: PublicLink[];
     signedIn?: boolean;
+    barLabels?: PublicHeaderLabels;
     children: ReactNode;
 }) {
     return (
         <div className="overflow-hidden rounded-lg border bg-background">
-            <PublicHeader links={links} signedIn={signedIn} />
+            <PublicHeader
+                links={links}
+                signedIn={signedIn}
+                labels={barLabels}
+            />
             <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-6 md:py-12">
                 {children}
             </div>

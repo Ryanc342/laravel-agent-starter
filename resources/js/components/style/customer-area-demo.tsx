@@ -1,6 +1,9 @@
 import Heading from '@/components/heading';
 import AccountNav from '@/components/shared/account-nav';
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import QuickLinks from '@/components/shared/quick-links';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import PublicFrame from '@/components/style/public-frame';
@@ -26,6 +29,7 @@ export type ExampleOrder = {
  */
 export default function CustomerAreaDemo({
     links,
+    barLabels,
     nav,
     title,
     ordersTitle,
@@ -37,6 +41,7 @@ export default function CustomerAreaDemo({
     emptyMessage,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     nav: NavItem[];
     title: string;
     ordersTitle: string;
@@ -48,7 +53,7 @@ export default function CustomerAreaDemo({
     emptyMessage: string;
 }) {
     return (
-        <PublicFrame links={links} signedIn>
+        <PublicFrame links={links} barLabels={barLabels} signedIn>
             <div className="grid gap-8">
                 <AccountNav items={nav} />
                 <Heading title={title} />

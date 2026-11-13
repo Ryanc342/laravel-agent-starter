@@ -1,4 +1,7 @@
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import PricingPlans, { type Plan } from '@/components/shared/pricing-plans';
 import PublicFrame from '@/components/style/public-frame';
 import TextLink from '@/components/text-link';
@@ -10,19 +13,21 @@ import TextLink from '@/components/text-link';
  */
 export default function PricingDemo({
     links,
+    barLabels,
     title,
     plans,
     labels,
     helpLabel,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     title: string;
     plans: Plan[];
     labels: React.ComponentProps<typeof PricingPlans>['labels'];
     helpLabel: string;
 }) {
     return (
-        <PublicFrame links={links}>
+        <PublicFrame links={links} barLabels={barLabels}>
             <div className="grid gap-8">
                 <h1 className="text-display md:text-display-lg">{title}</h1>
                 <PricingPlans plans={plans} labels={labels} />

@@ -1,6 +1,9 @@
 import { Link } from '@inertiajs/react';
 import Heading from '@/components/heading';
-import type { PublicLink } from '@/components/shared/public-header';
+import type {
+    PublicHeaderLabels,
+    PublicLink,
+} from '@/components/shared/public-header';
 import PublicFrame from '@/components/style/public-frame';
 import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
@@ -14,6 +17,7 @@ import { cn } from '@/lib/utils';
  */
 export default function ProductDemo({
     links,
+    barLabels,
     title,
     summary,
     sections,
@@ -22,6 +26,7 @@ export default function ProductDemo({
     action,
 }: {
     links: PublicLink[];
+    barLabels?: PublicHeaderLabels;
     title: string;
     summary: string;
     sections: { title: string; text: string }[];
@@ -30,7 +35,7 @@ export default function ProductDemo({
     action: string;
 }) {
     return (
-        <PublicFrame links={links}>
+        <PublicFrame links={links} barLabels={barLabels}>
             <div className="grid gap-10">
                 <div className="grid gap-2">
                     <Heading title={title} />

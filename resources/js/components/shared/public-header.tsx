@@ -20,6 +20,16 @@ import type { NavItem } from '@/types';
 
 export type PublicLink = Pick<NavItem, 'title' | 'href'>;
 
+const defaultLabels = {
+    login: 'Log in',
+    getStarted: 'Get started',
+    dashboard: 'Dashboard',
+    openMenu: 'Open menu',
+    menu: 'Menu',
+};
+
+export type PublicHeaderLabels = typeof defaultLabels;
+
 /**
  * The top bar of a public page: the logo, the page links, and on the right
  * "Log in" and "Get started" (or "Dashboard" when signed in). On a phone the
@@ -30,24 +40,27 @@ export type PublicLink = Pick<NavItem, 'title' | 'href'>;
 export default function PublicHeader({
     links,
     signedIn,
+    labels = defaultLabels,
 }: {
     links: PublicLink[];
     signedIn: boolean;
+    /** The words on the bar, for a project that is not in English. */
+    labels?: PublicHeaderLabels;
 }) {
     const { name } = usePage().props;
     const isMobile = useIsMobile();
 
     const buttons = signedIn ? (
         <Button asChild>
-            <Link href={dashboard()}>Dashboard</Link>
+            <Link href={dashboard()}>{labels.dashboard}</Link>
         </Button>
     ) : (
         <>
             <Button asChild variant={isMobile ? 'outline' : 'ghost'}>
-                <Link href={login()}>Log in</Link>
+                <Link href={login()}>{labels.login}</Link>
             </Button>
             <Button asChild>
-                <Link href={register()}>Get started</Link>
+                <Link href={register()}>{labels.getStarted}</Link>
             </Button>
         </>
     );
@@ -72,17 +85,17 @@ export default function PublicHeader({
                                         variant="ghost"
                                         size="icon"
                                         className="ml-auto shrink-0"
-                                        aria-label="Open menu"
+                                        aria-label={labels.openMenu}
                                     >
                                         <Menu />
                                     </Button>
                                 </SheetTrigger>
                             </TooltipTrigger>
-                            <TooltipContent>Open menu</TooltipContent>
+                            <TooltipContent>{labels.openMenu}</TooltipContent>
                         </Tooltip>
                         <SheetContent side="right" className="gap-6 p-4">
                             <SheetHeader className="p-0">
-                                <SheetTitle>Menu</SheetTitle>
+                                <SheetTitle>{labels.menu}</SheetTitle>
                             </SheetHeader>
                             {links.length > 0 && (
                                 <nav aria-label="Pages" className="grid gap-1">
