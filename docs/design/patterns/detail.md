@@ -15,9 +15,13 @@ Use for one record's own page: a task, an order, a customer.
 - Edit opens the form dialog (form.md), filled with the record.
 - Delete, and anything else that cannot be undone, asks in a confirmation dialog first, with the action named in full ("Delete task") and one sentence saying what will happen. After a delete the user lands on the list and a toast says what happened.
 
+## Detail with tabs
+
+Use when a record has several groups that do not fit one screen (overview, items, history). Under the header row, `UrlTabs` (`components/shared`, shadcn `Tabs`) in the pill style: a grey strip (`muted`) with the selected tab a white block (`background`). The first tab holds the facts; each other tab holds one group, with the content of detail.md's rules. The selected tab is in the URL (`?tab=history`, like rows per page); a missing or unknown value shows the first tab. Hover and press on a tab follow foundations.md. Do not use tabs for two small groups: stack them under `<Heading variant="small">` instead. Demo: `resources/js/components/style/detail-tabs-demo.tsx`.
+
 ## Phone
 
-The header row wraps: title and badges first, then the actions. Facts stay label above value.
+The header row wraps: title and badges first, then the actions. Facts stay label above value. The tab strip scrolls sideways inside its own row.
 
 ## States
 

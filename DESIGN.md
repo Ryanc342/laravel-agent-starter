@@ -27,6 +27,17 @@ The template serves two kinds of screen: internal systems that people use every 
 | A list of records (orders, products, customers, tasks), with its column menus for sort, filter and search | docs/design/patterns/list.md |
 | One record's own page | docs/design/patterns/detail.md |
 | Creating or editing something | docs/design/patterns/form.md |
+| Searching more than one kind of record, and the results page | docs/design/patterns/search-results.md |
+| A long task in steps | docs/design/patterns/wizard.md |
+| A record someone approves or rejects, with its history | docs/design/patterns/approval.md |
+| Many records one after another, the list beside the selected one | docs/design/patterns/list-detail.md |
+| One record with several tabs | docs/design/patterns/detail.md (Detail with tabs) |
+| Ticking many rows and acting on them | docs/design/patterns/bulk-actions.md |
+| Moving records in or out as a CSV file | docs/design/patterns/import-export.md |
+| Something to print or save as a PDF (invoice, receipt) | docs/design/patterns/print.md |
+| Numbers over time, charts and a date range | docs/design/patterns/report.md |
+| Records by date, in a month | docs/design/patterns/calendar.md |
+| Records in status columns | docs/design/patterns/kanban.md |
 | An empty list, a region that failed or is loading (drawn inside the table or box, centred) | docs/design/patterns/states.md |
 | The page after login | docs/design/patterns/dashboard.md |
 | Account or app settings | docs/design/patterns/settings.md |
@@ -54,7 +65,7 @@ Don't:
 
 - Gradients, glows, blurred orbs or decorative backgrounds.
 - A card inside a card, or page sections styled as floating cards.
-- A row of identical stat cards with big numbers as the page opener, unless the plan asks for it on a dashboard.
+- A row of identical stat cards with big numbers as the page opener, unless the plan asks for it on a dashboard or the page is a report (patterns/report.md).
 - Marketing-size headlines (only the home and pricing pages may have them), all-caps or letter-spaced labels, or a second accent colour.
 - Secondary labels and descriptions the layout already makes clear: a description line under any title (page, section, card or dialog), help text under every field, a sentence that explains what a feature does, a warning box above a button that already asks for confirmation.
 - Error text under a field, a status word that starts with a lowercase letter, a card or a grey background on a feed row.

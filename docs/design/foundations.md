@@ -14,7 +14,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 | Brand | `primary`, `primary-foreground` | the main action of a screen, links, the selected item, the unread dot |
 | Lines and focus | `border`, `input`, `input-focus`, `ring` | dividers and boxes; input borders; the dark grey border of a field you click into; the keyboard focus ring of buttons, toggles and badges |
 | Status | `destructive`, `success`, `warning`, each with its `-foreground` | a status and nothing else: an error or a delete, something done or paid, something that needs attention |
-| Charts | `chart-1` to `chart-5` | chart series |
+| Charts | `chart-1` to `chart-5` | chart series: one series is `chart-1`; several take `chart-1` to `chart-5` in that order and show a legend; never a status colour (patterns/report.md) |
 
 - One primary colour, blue, for the one main action of a screen. No other accent colour.
 - Everything that carries the brand (focus ring, selected sidebar item, links, `chart-1`) follows `--primary` in app.css, so a project rebrands by changing `--primary` (light and dark) and the logo. The focus ring is the keyboard ring of buttons, toggles and badges; a form field has no ring (see Inputs in components.md).

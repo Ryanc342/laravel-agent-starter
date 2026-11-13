@@ -27,11 +27,15 @@ A thin `Separator`, edge to edge, divides the groups: sort, the column's filter,
 | --- | --- |
 | Text (a title) | Sort ascending, sort descending, and a search box inside that column, in a row with the same left padding as the other rows |
 | Fixed options (a status) | Sort, and a tick list where several options can be ticked: one row per option (its checkbox in the icon slot, the whole row clickable), after the rows "Select all" and "Unselect all" |
-| Date or amount | Sort, and a from-to range (native date or number inputs; both ends included): "From" and "To" are one row each, the label on the left of its input |
+| Date or amount | Sort, and a from-to range (a `DatePicker` for a date, a number input for an amount; both ends included): "From" and "To" are one row each, the label on the left of its input |
 
 - A header that can be clicked always shows a faint grey up-down arrow next to its name (`text-muted-foreground`), so the user sees it is clickable before the mouse arrives; a header that cannot be clicked shows nothing. A sorted column replaces the arrow with an up or down arrow in `text-primary`; a filtered column adds a `text-primary` funnel.
 - Sort, filters and search live only in the URL (`?sort=due_on&direction=desc&status[]=open&due_from=2026-11-01&search=x`), like rows per page. Changing any of them goes back to page 1 and keeps `per_page`; leaving the list and coming back shows the default order. A value that is not allowed is ignored, as an unknown `per_page` is.
 - The allowed columns, directions and ranges are decided by the list's FormRequest. The tick list's options arrive from the backend as `{ value, label }` pairs (the same enum method that builds a form's Select).
+
+## More on a list
+
+Ticking rows and acting on many at once is bulk-actions.md; moving a whole list in or out as a file is import-export.md.
 
 ## Phone
 

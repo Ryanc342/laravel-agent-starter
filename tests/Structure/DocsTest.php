@@ -85,3 +85,22 @@ test('every rule in docs/golden-principles.md carries its two tags, and business
 
     expect($problems)->toBe([]);
 });
+
+test('every pattern file in docs/design/patterns is in the DESIGN.md index and names its sample or demo', function () use ($root) {
+    $index = file_get_contents("{$root}/DESIGN.md");
+    $problems = [];
+
+    foreach (glob("{$root}/docs/design/patterns/*.md") ?: [] as $file) {
+        $name = basename($file);
+
+        if (! str_contains($index, "docs/design/patterns/{$name}")) {
+            $problems[] = "{$name}: not in the DESIGN.md index";
+        }
+
+        if (preg_match('/^## (Sample and demo|Sample|Demo)$/m', file_get_contents($file)) !== 1) {
+            $problems[] = "{$name}: no Sample or Demo section";
+        }
+    }
+
+    expect($problems)->toBe([]);
+});

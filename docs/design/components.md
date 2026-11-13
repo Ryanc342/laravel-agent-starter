@@ -28,7 +28,11 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | Where the user is, and the way back | `Breadcrumbs`, set with `Page.layout` |
 | The main pages of the app | the sidebar (`mainNavItems` in `app-sidebar.tsx`) |
 | The sections of settings | the settings layout's nav |
-| Views of one page | `Tabs` (not installed yet; add it when the first page needs it) |
+| Views of one page | `UrlTabs` (`components/shared`, shadcn `Tabs` in the pill style: a grey strip, the selected tab a white block; the selected tab is in the URL; on a phone the strip scrolls sideways; patterns/detail.md) |
+| Search in the top bar and its results | `SearchBox` and `SearchResults` (`components/shared`; patterns/search-results.md) |
+| The steps of a long task | `WizardLayout` (`components/shared`; patterns/wizard.md) |
+| Who did what and when | `Timeline` (`components/shared`; patterns/approval.md) |
+| A list with the selected record's detail beside it | `ListDetailLayout` (`components/shared`; patterns/list-detail.md) |
 
 ## Showing data
 
@@ -39,6 +43,11 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | Sort, filter and search of a column | `ColumnMenu` (`components/shared`): the header button and the `Popover` it opens, one column of equal rows with thin lines between the groups (sort, column search, tick list with Select all and Unselect all, from-to range, Clear), with its indicators: a faint grey up-down arrow at rest on every header that can be clicked, the blue up or down arrow when sorted and the blue funnel when filtered. On a phone `SortFilterSheet` (`components/shared`) holds the same choices in a `Sheet` |
 | The facts of one record | a `dl`: `dt` in `text-muted-foreground`, `dd` the value |
 | A status | `Badge`: `secondary` a neutral state (open, draft), `success` done or paid, `warning` needs attention, `destructive` failed, overdue or an error. The text is the label the backend sends, and it starts with a capital letter ("Open", "Done") |
+| Many records ticked in a list | `BulkActionBar` and `useRowSelection` (`components/shared`): a bar floating at the bottom of the page (patterns/bulk-actions.md) |
+| The range of a report | `ReportRange` (`components/shared`): presets 7 days, 30 days, 90 days and Custom (patterns/report.md) |
+| Numbers over time or across categories | the chart block (`components/ui/chart.tsx`, recharts): `chart-1` for one series, `chart-1` to `chart-5` in order with a legend for several (patterns/report.md) |
+| Records on their dates, by month | `MonthCalendar` (`components/shared`; patterns/calendar.md) |
+| Records in status columns that cards move between | `KanbanBoard` (`components/shared`; patterns/kanban.md) |
 | A user | `Avatar` |
 | Repeated items, a dialog, a framed tool | `Card` (never a card inside a card). Its title has no description under it |
 
@@ -53,6 +62,7 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | A one-time code | `InputOTP` |
 | A list of options | `Select` |
 | Yes or no | `Checkbox` |
+| A date | `DatePicker` (`components/shared`): a button that opens a `Popover` with a month `Calendar`; reads and writes `YYYY-MM-DD`; never `type="date"` |
 | Two to seven modes | `ToggleGroup` |
 | A search box above a list | `Input` with an `sr-only` label; the list searches after a short pause in typing, or at Enter |
 
