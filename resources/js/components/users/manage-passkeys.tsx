@@ -32,11 +32,7 @@ export default function ManagePasskeys(props: Props) {
 
     return (
         <div className="space-y-6">
-            <Heading
-                variant="small"
-                title="Passkeys"
-                description="Sign in with your fingerprint, face or device, without a password"
-            />
+            <Heading variant="small" title="Passkeys" />
 
             {passkeys.length > 0 ? (
                 <div className="overflow-hidden rounded-lg border border-border">

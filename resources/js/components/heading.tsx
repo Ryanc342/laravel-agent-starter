@@ -1,10 +1,8 @@
 export default function Heading({
     title,
-    description,
     variant = 'default',
 }: {
     title: string;
-    description?: string;
     variant?: 'default' | 'small';
 }) {
     return (
@@ -18,9 +16,6 @@ export default function Heading({
             >
                 {title}
             </h2>
-            {description && (
-                <p className="text-sm text-muted-foreground">{description}</p>
-            )}
         </header>
     );
 }

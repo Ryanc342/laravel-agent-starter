@@ -19,13 +19,14 @@ const variants = [
     'link',
 ] as const;
 
+// A status starts with a capital letter, as the backend sends it.
 const badges = [
-    'default',
-    'secondary',
-    'outline',
-    'success',
-    'warning',
-    'destructive',
+    { variant: 'default', label: 'Default' },
+    { variant: 'secondary', label: 'Open' },
+    { variant: 'outline', label: 'Outline' },
+    { variant: 'success', label: 'Done' },
+    { variant: 'warning', label: 'Due soon' },
+    { variant: 'destructive', label: 'Overdue' },
 ] as const;
 
 /** Button, Badge, Spinner, Tooltip and toasts: what the user presses and what tells them. */
@@ -79,9 +80,9 @@ export default function UiActionsDemo() {
             </Specimen>
 
             <Specimen label="Badge: a status, in the words the backend sends">
-                {badges.map((variant) => (
+                {badges.map(({ variant, label }) => (
                     <Badge key={variant} variant={variant}>
-                        {variant}
+                        {label}
                     </Badge>
                 ))}
             </Specimen>

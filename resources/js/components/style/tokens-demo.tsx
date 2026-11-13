@@ -107,10 +107,7 @@ export default function TokensDemo() {
                 <p className="text-sm text-muted-foreground">
                     Type: one family, four sizes
                 </p>
-                <Heading
-                    title="Page title: Heading, the largest text"
-                    description="Heading's description is secondary text."
-                />
+                <Heading title="Page title: Heading, the largest text" />
                 <Heading variant="small" title="Section title: Heading small" />
                 <p className="text-sm">Body: text-sm</p>
                 <p className="text-sm text-muted-foreground">

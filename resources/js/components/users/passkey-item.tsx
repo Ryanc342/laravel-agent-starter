@@ -62,7 +62,7 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                     </Button>
                 }
                 title="Remove passkey"
-                description={`Are you sure you want to remove the "${passkey.name}" passkey? You will no longer be able to use it to sign in.`}
+                description={`“${passkey.name}” will be removed and can no longer be used to sign in.`}
             >
                 <ResponsiveDialogFooter>
                     <Button

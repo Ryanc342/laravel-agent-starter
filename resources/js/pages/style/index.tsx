@@ -132,10 +132,7 @@ export default function Style() {
             <div className="mx-auto flex max-w-5xl flex-col gap-12 p-4 md:p-6">
                 <header className="flex flex-col gap-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
-                        <Heading
-                            title="Style overview"
-                            description="The design's tokens, components and pattern demos, with example data. This page exists only in the local environment."
-                        />
+                        <Heading title="Style overview" />
                         <AppearanceToggleTab />
                     </div>
 
@@ -155,76 +152,44 @@ export default function Style() {
                     </nav>
                 </header>
 
-                <StyleSection
-                    id="tokens"
-                    title="Tokens"
-                    description="Colour, radius and type (docs/design/foundations.md)."
-                >
+                <StyleSection id="tokens" title="Tokens">
                     <TokensDemo />
                 </StyleSection>
 
-                <StyleSection
-                    id="ui"
-                    title="UI components"
-                    description="components/ui, with their variants and states (docs/design/components.md)."
-                >
+                <StyleSection id="ui" title="UI components">
                     <UiActionsDemo />
                     <UiFieldsDemo />
                     <UiSurfacesDemo />
                 </StyleSection>
 
-                <StyleSection
-                    id="shared"
-                    title="Shared blocks"
-                    description="components/shared: what every screen is built from."
-                >
+                <StyleSection id="shared" title="Shared blocks">
                     <SharedDemo tasks={tasks} pagination={pagination} />
                 </StyleSection>
 
-                <StyleSection
-                    id="list"
-                    title="List"
-                    description="docs/design/patterns/list.md"
-                >
+                <StyleSection id="list" title="List">
                     <DemoFrame>
                         <ListDemo tasks={tasks} pagination={pagination} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection
-                    id="detail"
-                    title="Detail"
-                    description="docs/design/patterns/detail.md"
-                >
+                <StyleSection id="detail" title="Detail">
                     <DemoFrame>
                         <DetailDemo task={tasks[0]} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection
-                    id="form"
-                    title="Form"
-                    description="docs/design/patterns/form.md"
-                >
+                <StyleSection id="form" title="Form">
                     <FormDemo
                         task={tasks[1]}
                         requiredMessage="The title field is required."
                     />
                 </StyleSection>
 
-                <StyleSection
-                    id="states"
-                    title="States"
-                    description="docs/design/patterns/states.md"
-                >
+                <StyleSection id="states" title="States">
                     <StatesDemo subject="tasks" />
                 </StyleSection>
 
-                <StyleSection
-                    id="dashboard"
-                    title="Dashboard"
-                    description="docs/design/patterns/dashboard.md"
-                >
+                <StyleSection id="dashboard" title="Dashboard">
                     <DemoFrame>
                         <DashboardDemo
                             notifications={notifications}
@@ -233,11 +198,7 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection
-                    id="settings"
-                    title="Settings"
-                    description="docs/design/patterns/settings.md"
-                >
+                <StyleSection id="settings" title="Settings">
                     <DemoFrame flush>
                         <SettingsDemo
                             name="Test User"
@@ -246,21 +207,13 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection
-                    id="feed"
-                    title="Feed"
-                    description="docs/design/patterns/feed.md"
-                >
+                <StyleSection id="feed" title="Feed">
                     <DemoFrame>
                         <FeedDemo notifications={notifications} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection
-                    id="auth"
-                    title="Login and register"
-                    description="docs/design/patterns/auth.md"
-                >
+                <StyleSection id="auth" title="Login and register">
                     <DemoFrame>
                         <AuthDemo
                             title="Log in to your account"
@@ -285,11 +238,7 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection
-                    id="error-page"
-                    title="Error pages"
-                    description="docs/design/patterns/error-page.md"
-                >
+                <StyleSection id="error-page" title="Error pages">
                     <ErrorPageDemo
                         examples={[
                             { status: 403, signedIn: true },

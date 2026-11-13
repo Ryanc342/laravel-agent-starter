@@ -6,17 +6,15 @@ import { cn } from '@/lib/utils';
 export default function StyleSection({
     id,
     title,
-    description,
     children,
 }: {
     id: string;
     title: string;
-    description?: string;
     children: ReactNode;
 }) {
     return (
         <section id={id} className="grid scroll-mt-6 gap-6">
-            <Heading variant="small" title={title} description={description} />
+            <Heading variant="small" title={title} />
             {children}
         </section>
     );

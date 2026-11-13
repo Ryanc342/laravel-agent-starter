@@ -2,13 +2,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { Specimen } from '@/components/style/style-section';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Collapsible,
     CollapsibleContent,
@@ -30,7 +24,6 @@ import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
     SheetContent,
-    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -76,9 +69,6 @@ export default function UiSurfacesDemo() {
                 <Card className="w-full max-w-sm">
                     <CardHeader>
                         <CardTitle>Card title</CardTitle>
-                        <CardDescription>
-                            One line about the card.
-                        </CardDescription>
                     </CardHeader>
                     <CardContent className="text-sm">
                         The card's content.
@@ -123,12 +113,9 @@ export default function UiSurfacesDemo() {
                     <SheetTrigger asChild>
                         <Button variant="outline">Sheet</Button>
                     </SheetTrigger>
-                    <SheetContent>
+                    <SheetContent aria-describedby={undefined}>
                         <SheetHeader>
                             <SheetTitle>Side panel</SheetTitle>
-                            <SheetDescription>
-                                Extra detail beside the page.
-                            </SheetDescription>
                         </SheetHeader>
                     </SheetContent>
                 </Sheet>

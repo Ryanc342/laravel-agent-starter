@@ -42,7 +42,7 @@ export default function TwoFactorSetupModal({
             return {
                 title: 'Two-factor authentication enabled',
                 description:
-                    'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
+                    'Scan the QR code or enter the setup key in your authenticator app.',
                 buttonText: 'Close',
             };
         }
@@ -50,7 +50,7 @@ export default function TwoFactorSetupModal({
         if (showVerificationStep) {
             return {
                 title: 'Verify authentication code',
-                description: `Enter the ${OTP_MAX_LENGTH}-digit code from your authenticator app`,
+                description: `Enter the ${OTP_MAX_LENGTH}-digit code from your authenticator app.`,
                 buttonText: 'Continue',
             };
         }
@@ -58,7 +58,7 @@ export default function TwoFactorSetupModal({
         return {
             title: 'Enable two-factor authentication',
             description:
-                'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
+                'Scan the QR code or enter the setup key in your authenticator app.',
             buttonText: 'Continue',
         };
     }, [twoFactorEnabled, showVerificationStep]);

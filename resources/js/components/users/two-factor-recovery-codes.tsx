@@ -3,13 +3,7 @@ import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ErrorState from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
@@ -63,10 +57,6 @@ export default function TwoFactorRecoveryCodes({
                     <LockKeyhole className="size-4" aria-hidden="true" />
                     2FA recovery codes
                 </CardTitle>
-                <CardDescription>
-                    Recovery codes let you regain access if you lose your 2FA
-                    device. Store them in a secure password manager.
-                </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
