@@ -1,5 +1,6 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
+import TaskExportController from '@/actions/App/Http/Controllers/TaskExportController';
 import Heading from '@/components/heading';
 import type { Choice } from '@/components/shared/column-menu';
 import Pagination from '@/components/shared/pagination';
@@ -8,6 +9,7 @@ import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import TaskTable from '@/components/tasks/task-table';
 import { Button } from '@/components/ui/button';
 import { useRowSelection } from '@/hooks/use-row-selection';
+import { queryString } from '@/lib/list-query';
 import { index } from '@/routes/tasks';
 import type { ResourceCollection } from '@/types/resource';
 import type { Task } from '@/types/task';
@@ -59,6 +61,15 @@ export default function Tasks({
                                 )}
                             </Form>
                         )}
+
+                        <Button variant="outline" asChild>
+                            {/* A plain link: the file is downloaded, and it is the list as it is shown now. */}
+                            <a
+                                href={`${TaskExportController.url()}${queryString(url)}`}
+                            >
+                                Export
+                            </a>
+                        </Button>
 
                         <TaskFormDialog trigger={<Button>Add task</Button>} />
                     </div>

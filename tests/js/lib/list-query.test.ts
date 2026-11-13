@@ -3,6 +3,7 @@ import {
     bulkPayload,
     listParam,
     listParams,
+    queryString,
     withListParams,
 } from '@/lib/list-query';
 
@@ -99,4 +100,11 @@ test('all results of an unfiltered list send only `all`', () => {
             filters,
         ),
     ).toEqual({ all: true });
+});
+
+test('the query string of an address is carried as it is, or is empty', () => {
+    expect(queryString('/tasks?search=milk&status[]=open&page=2')).toBe(
+        '?search=milk&status[]=open&page=2',
+    );
+    expect(queryString('/tasks')).toBe('');
 });

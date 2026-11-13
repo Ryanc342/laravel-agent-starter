@@ -5,6 +5,7 @@ use App\Http\Controllers\BulkTaskDeletionController;
 use App\Http\Controllers\OverdueTaskCompletionController;
 use App\Http\Controllers\TaskCompletionController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskExportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -14,6 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Fixed paths must be registered before the {task} wildcard routes.
     Route::post('tasks/overdue/completion', [OverdueTaskCompletionController::class, 'store'])->name('tasks.overdue-completion.store');
 
+    Route::get('tasks/export', TaskExportController::class)->name('tasks.export');
     Route::post('tasks/bulk/completion', [BulkTaskCompletionController::class, 'store'])->name('tasks.bulk-completion.store');
     Route::delete('tasks/bulk', [BulkTaskDeletionController::class, 'destroy'])->name('tasks.bulk-deletion.destroy');
 

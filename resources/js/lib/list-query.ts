@@ -93,3 +93,12 @@ export function bulkPayload(
 
     return payload;
 }
+
+/**
+ * The query string of an address ("?search=milk&status[]=open"), or '' when it
+ * has none: what an export link carries so the file is the list as the user
+ * sees it.
+ */
+export function queryString(url: string): string {
+    return new URL(url, 'http://localhost').search;
+}
