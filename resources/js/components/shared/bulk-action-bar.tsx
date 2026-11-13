@@ -6,6 +6,8 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 /**
  * The bar that floats at the bottom of a list once rows are ticked, visible
@@ -13,13 +15,17 @@ import {
  * the caller's buttons (the main one `default`, the others `outline`). When a
  * whole page is ticked and more results exist, the caller passes `total` and
  * `onSelectAllResults` and the bar offers "Select all N results"; once every
- * result is selected it says "All N selected". Nothing shows with no rows ticked.
+ * result is selected it says "All N selected". On a phone the cards have no
+ * header checkbox, so the caller also passes `onSelectPage` (while the page is
+ * not fully ticked) and the bar offers "Select this page" first. Nothing shows
+ * with no rows ticked.
  * Place it last on the page: it leaves room under itself so it never hides the end.
  */
 export default function BulkActionBar({
     count,
     allResults = false,
     total,
+    onSelectPage,
     onSelectAllResults,
     onClear,
     children,
@@ -27,10 +33,16 @@ export default function BulkActionBar({
     count: number;
     allResults?: boolean;
     total?: number;
+    onSelectPage?: () => void;
     onSelectAllResults?: () => void;
     onClear: () => void;
     children: ReactNode;
 }) {
+    const isMobile = useIsMobile();
+    const offersPage = isMobile && !allResults && onSelectPage !== undefined;
+    const offersAll =
+        !allResults && onSelectAllResults !== undefined && total !== undefined;
+
     if (count === 0) {
         return null;
     }
@@ -44,24 +56,40 @@ export default function BulkActionBar({
                     role="region"
                     aria-label="Bulk actions"
                     data-slot="bulk-action-bar"
-                    className="pointer-events-auto flex w-full max-w-full items-center gap-2 rounded-lg border bg-popover px-3 py-2 text-popover-foreground shadow-md sm:w-auto sm:flex-wrap sm:gap-3 sm:px-4"
+                    className="pointer-events-auto flex w-full max-w-full flex-wrap items-center gap-2 rounded-lg border bg-popover px-3 py-2 text-popover-foreground shadow-md sm:w-auto sm:gap-3 sm:px-4"
                 >
-                    <span className="text-sm font-medium whitespace-nowrap tabular-nums">
-                        {allResults && total !== undefined
-                            ? `All ${total} selected`
-                            : `${count} selected`}
-                    </span>
-                    {!allResults &&
-                    onSelectAllResults &&
-                    total !== undefined ? (
-                        <Button
-                            variant="link"
-                            size="inline"
-                            onClick={onSelectAllResults}
-                        >
-                            Select all {total} results
-                        </Button>
-                    ) : null}
+                    {/* With a link, or the longer "All N selected", the count and the link take the first line on a phone and the buttons the second. */}
+                    <div
+                        className={cn(
+                            'flex items-center gap-3',
+                            (offersPage || offersAll || allResults) &&
+                                'w-full sm:w-auto',
+                        )}
+                    >
+                        <span className="text-sm font-medium whitespace-nowrap tabular-nums">
+                            {allResults && total !== undefined
+                                ? `All ${total} selected`
+                                : `${count} selected`}
+                        </span>
+                        {offersPage ? (
+                            <Button
+                                variant="link"
+                                size="inline"
+                                onClick={onSelectPage}
+                            >
+                                Select this page
+                            </Button>
+                        ) : null}
+                        {offersAll ? (
+                            <Button
+                                variant="link"
+                                size="inline"
+                                onClick={onSelectAllResults}
+                            >
+                                Select all {total} results
+                            </Button>
+                        ) : null}
+                    </div>
                     <div className="flex flex-1 items-center gap-2 sm:flex-none">
                         {children}
                     </div>

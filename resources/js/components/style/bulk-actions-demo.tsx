@@ -75,6 +75,11 @@ export default function BulkActionsDemo({
                 count={count}
                 allResults={selection.allResults}
                 total={total}
+                onSelectPage={
+                    selection.pageState !== 'all' && !selection.allResults
+                        ? selection.selectPage
+                        : undefined
+                }
                 onSelectAllResults={
                     selection.pageState === 'all' &&
                     total > tasks.length &&

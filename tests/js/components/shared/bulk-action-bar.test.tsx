@@ -1,8 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { expect, test, vi } from 'vite-plus/test';
+import { beforeEach, expect, test, vi } from 'vite-plus/test';
 import BulkActionBar from '@/components/shared/bulk-action-bar';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
+
+beforeEach(() => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+});
 
 function bar(props: Partial<React.ComponentProps<typeof BulkActionBar>> = {}) {
     const onClear = vi.fn();
@@ -84,4 +91,31 @@ test('once every result is selected it says so and stops offering the choice', (
 
     expect(screen.getByRole('region').textContent).toContain('All 83 selected');
     expect(screen.queryByRole('button', { name: /Select all/ })).toBeNull();
+});
+
+test('on a phone, where cards have no header checkbox, the bar offers "Select this page"', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    const onSelectPage = vi.fn();
+    bar({ count: 1, onSelectPage });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Select this page' }));
+
+    expect(onSelectPage).toHaveBeenCalledTimes(1);
+});
+
+test('on a computer the header checkbox selects the page, so the bar does not offer it', () => {
+    bar({ count: 1, onSelectPage: vi.fn() });
+
+    expect(
+        screen.queryByRole('button', { name: 'Select this page' }),
+    ).toBeNull();
+});
+
+test('it does not offer "Select this page" without the caller\'s choice, or once all results are selected', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    bar({ count: 1 });
+
+    expect(
+        screen.queryByRole('button', { name: 'Select this page' }),
+    ).toBeNull();
 });

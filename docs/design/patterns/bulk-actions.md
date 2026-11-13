@@ -18,7 +18,7 @@ Use when the user does the same thing to many records of a list (complete, delet
 
 ## Phone
 
-The bar spans the width of the screen above the bottom edge; its buttons keep short labels and never wrap onto a second line. Cards have no header checkbox, so as soon as one card is ticked the bar offers "Select this page", and after that "Select all 83 results", as a computer does.
+The bar spans the width of the screen above the bottom edge; its buttons keep short labels and never wrap onto a second line. Cards have no header checkbox, so as soon as one card is ticked the bar offers "Select this page", and after that "Select all 83 results", as a computer does. While one of those links (or "All 83 selected") shows, the count and the link take the first line of the bar and the buttons and ✕ the second.
 
 ## Sample and demo
 

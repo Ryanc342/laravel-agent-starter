@@ -69,3 +69,14 @@ test('clear unticks everything, also "all results"', () => {
     expect(result.current.count).toBe(0);
     expect(result.current.allResults).toBe(false);
 });
+
+test('selecting the page ticks every row of it and keeps the rows ticked, without "all results"', () => {
+    const { result } = selection([1, 2, 3]);
+
+    act(() => result.current.toggle(2));
+    act(() => result.current.selectPage());
+
+    expect(result.current.ids).toEqual([1, 2, 3]);
+    expect(result.current.pageState).toBe('all');
+    expect(result.current.allResults).toBe(false);
+});

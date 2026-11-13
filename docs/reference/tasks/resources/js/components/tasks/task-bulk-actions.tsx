@@ -61,6 +61,11 @@ export default function TaskBulkActions({
                 count={count}
                 allResults={selection.allResults}
                 total={total}
+                onSelectPage={
+                    selection.pageState !== 'all' && !selection.allResults
+                        ? selection.selectPage
+                        : undefined
+                }
                 onSelectAllResults={
                     canSelectAll ? selection.selectAllResults : undefined
                 }

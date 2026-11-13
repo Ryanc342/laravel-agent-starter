@@ -48,6 +48,8 @@ export function useRowSelection<Id extends string | number>(
             ),
         /** The header checkbox: ticks every row of this page, or unticks them. */
         togglePage: () => update(pageState === 'all' ? [] : [...pageIds]),
+        /** Ticks every row of this page; a phone has no header checkbox for it. */
+        selectPage: () => update([...pageIds]),
         selectAllResults: () => update([...pageIds], true),
         clear: () => update([]),
     };
