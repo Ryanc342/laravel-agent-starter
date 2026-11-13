@@ -64,7 +64,7 @@ Do:
 Don't:
 
 - Gradients, glows, blurred orbs or decorative backgrounds.
-- A bordered box directly inside another bordered box, or page sections styled as floating cards. A hand-drawn `rounded-lg border` counts like `Card`: a mock top bar in a demo is a full-width strip with a line under it, not a box.
+- A bordered box directly inside another bordered box, or page sections styled as floating cards. A hand-drawn `rounded-lg border` counts like `Card`: a mock top bar in a demo is a full-width strip with a line under it, not a box. The repeated items of a list or board stay allowed (a kanban card in its column, a card of a list on a phone), and so does a demo's own frame on `/style`.
 - A row of identical stat cards with big numbers as the page opener, unless the plan asks for it on a dashboard or the page is a report (patterns/report.md).
 - Marketing-size headlines (only the home and pricing pages may have them), all-caps or letter-spaced labels, or a second accent colour.
 - Secondary labels and descriptions the layout already makes clear: a description line under any title (page, section, card or dialog), help text under every field, a sentence that explains what a feature does, a warning box above a button that already asks for confirmation.

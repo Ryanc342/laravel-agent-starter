@@ -119,3 +119,13 @@ test('it does not offer "Select this page" without the caller\'s choice, or once
         screen.queryByRole('button', { name: 'Select this page' }),
     ).toBeNull();
 });
+
+test('once all results are selected the bar stops offering "Select this page", also on a phone', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    bar({ count: 20, total: 83, allResults: true, onSelectPage: vi.fn() });
+
+    expect(screen.getByRole('region').textContent).toContain('All 83 selected');
+    expect(
+        screen.queryByRole('button', { name: 'Select this page' }),
+    ).toBeNull();
+});
