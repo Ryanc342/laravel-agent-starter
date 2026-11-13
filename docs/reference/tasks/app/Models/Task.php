@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TaskSort;
 use App\Enums\TaskStatus;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -134,6 +135,77 @@ class Task extends Model
             ->orderByRaw('case when due_on is null then 1 else 0 end')
             ->orderBy('due_on')
             ->latest('id');
+    }
+
+    /**
+     * Tasks whose title contains the text. No text means no filter. A % or _ in the text is plain text.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function matching(Builder $query, ?string $search): void
+    {
+        if ($search === null || $search === '') {
+            return;
+        }
+
+        $query->where('title', 'like', '%'.addcslashes($search, '\\%_').'%');
+    }
+
+    /**
+     * Tasks in any of the statuses. No statuses means no filter.
+     *
+     * @param  Builder<self>  $query
+     * @param  list<TaskStatus>  $statuses
+     */
+    #[Scope]
+    protected function withStatuses(Builder $query, array $statuses): void
+    {
+        if ($statuses === []) {
+            return;
+        }
+
+        $query->whereIn('status', array_map(fn (TaskStatus $status): string => $status->value, $statuses));
+    }
+
+    /**
+     * Tasks due from the first day to the last day, both days included (Y-m-d). A missing end is open.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function dueBetween(Builder $query, ?string $from, ?string $to): void
+    {
+        if ($from !== null) {
+            $query->whereDate('due_on', '>=', $from);
+        }
+
+        if ($to !== null) {
+            $query->whereDate('due_on', '<=', $to);
+        }
+    }
+
+    /**
+     * The order the user asked for; tasks without a due date come last either way, and equal rows
+     * show the newest first. No sort asked means listOrder().
+     *
+     * @param  Builder<self>  $query
+     * @param  'asc'|'desc'  $direction
+     */
+    #[Scope]
+    protected function sortedBy(Builder $query, ?TaskSort $sort, string $direction): void
+    {
+        if ($sort === null) {
+            $query->listOrder();
+
+            return;
+        }
+
+        if ($sort === TaskSort::DueOn) {
+            $query->orderByRaw('case when due_on is null then 1 else 0 end');
+        }
+
+        $query->orderBy($sort->value, $direction)->latest('id');
     }
 
     /**

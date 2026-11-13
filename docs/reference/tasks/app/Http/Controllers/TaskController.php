@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Tasks\CreateTask;
 use App\Actions\Tasks\DeleteTask;
 use App\Actions\Tasks\UpdateTask;
+use App\Enums\TaskStatus;
 use App\Http\Requests\Tasks\IndexTaskRequest;
 use App\Http\Requests\Tasks\StoreTaskRequest;
 use App\Http\Requests\Tasks\UpdateTaskRequest;
@@ -19,7 +20,8 @@ use Inertia\Response;
 class TaskController extends Controller
 {
     /**
-     * Show the user's tasks, with the rows per page the user picked (20 by default).
+     * Show the user's tasks, with the search, sort, filters and rows per page the user picked
+     * in the URL (20 rows by default).
      */
     public function index(IndexTaskRequest $request): Response
     {
@@ -29,12 +31,16 @@ class TaskController extends Controller
 
         $tasks = Task::query()
             ->ownedBy($user)
-            ->listOrder()
+            ->matching($request->search())
+            ->withStatuses($request->statuses())
+            ->dueBetween($request->dueFrom(), $request->dueTo())
+            ->sortedBy($request->sort(), $request->direction())
             ->paginate($request->perPage())
             ->withQueryString();
 
         return Inertia::render('tasks/index', [
             'tasks' => TaskResource::collection($tasks)->response($request)->getData(true),
+            'statusOptions' => TaskStatus::options(),
             'can' => [
                 'complete_overdue' => $user->can('completeOverdue', Task::class) && Task::hasOverdueFor($user),
             ],

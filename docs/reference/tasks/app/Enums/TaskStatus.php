@@ -19,6 +19,19 @@ enum TaskStatus: string
     }
 
     /**
+     * Every status as a value and label pair: the options of the list's status filter.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public static function options(): array
+    {
+        return array_map(
+            fn (self $status): array => ['value' => $status->value, 'label' => $status->label()],
+            self::cases(),
+        );
+    }
+
+    /**
      * Whether a task in this status still needs work.
      * The only place that decides which statuses are open.
      */
