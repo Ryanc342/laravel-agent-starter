@@ -94,5 +94,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 
 - 2026-11-14: Approval of the protected files, by the user's "开始" (start) on this plan, whose Decision Log line above and milestones list them. Files changed: DESIGN.md; docs/design/foundations.md, docs/design/components.md, docs/design/patterns/list.md, docs/design/patterns/print.md; the seven new docs/design/patterns/landing.md, pricing.md, product.md, customer-area.md, checkout.md, help.md and contact.md; docs/golden-principles.md (one new `ui` rule); docs/reference/tasks/resources/views/tasks/pdf.blade.php and docs/reference/tasks/tests/Feature/Tasks/TaskPrintTest.php (two new tests, no assertion changed); phpunit.xml (`memory_limit` 256M). Not on that list and for the user to look at in the morning: ARCHITECTURE.md (one sentence on the layouts, named by milestone M9) and README.md / README.zh-CN.md / CHANGELOG.md (not protected).
 
+- 2026-11-14: The seven new pattern files, named in full, are covered by the user's "开始" (start) on this plan, which lists them in the Decision Log line "Protected files this plan changes" and in milestone M1: docs/design/patterns/landing.md, docs/design/patterns/pricing.md, docs/design/patterns/product.md, docs/design/patterns/customer-area.md, docs/design/patterns/checkout.md, docs/design/patterns/help.md, docs/design/patterns/contact.md. Later edits to them (demo paths, the plan price size in docs/design/patterns/pricing.md) stay inside that approval.
+
 ## Outcomes & Retrospective
 Not started.
