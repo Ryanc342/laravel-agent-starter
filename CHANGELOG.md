@@ -35,6 +35,7 @@ Frontend design, batch 1: a clean and bright look, a design spec in four layers,
 - A notification is marked as read by clicking its row (the per-row "Mark as read" buttons are gone; "Mark all as read" stays), and marking one or all as read leaves the user on the page they were on instead of going to the notifications page. `FeedRow` takes `onClick` instead of `action`.
 - Hover is a neutral grey instead of light blue (`accent`, `sidebar-accent`), and every clickable element has a press state one step darker: five `-pressed` tokens in `resources/css/app.css` (`primary`, `secondary`, `destructive`, `accent`, `sidebar-accent`), an `active:` style on every `Button` variant, menu and select items, toggles, the sidebar, notification rows, quick links and links. A selected toggle and the sidebar's current page use the press colour so they differ from hover.
 - A column header that can be clicked always shows a faint grey up-down arrow; sorted turns it into a blue up or down arrow, filtered adds the blue funnel.
+- The column menu is one column of equal rows, like a dropdown menu: the same height, left edge and 16px icon slot for every choice, grey on hover, darker on press, thin lines between the groups (sort, the column's filter, Clear). "Select all" and "Unselect all" are rows of their own, a tick row is clickable all over, the search box and the From and To inputs sit in rows with the same left padding, and the sort row in use shows the selected colour. The phone "Sort & filter" sheet shows the same rows and lines.
 
 ## [1.1.0] - 2026-11-10
 
