@@ -17,7 +17,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { GripVertical, MoveRight } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import EmptyState from '@/components/shared/empty-state';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -187,6 +187,8 @@ export default function KanbanBoard<Card extends KanbanCard>({
     onMove,
 }: Props<Card>) {
     const [dragging, setDragging] = useState<Card | null>(null);
+    // A stable id, so the server and the browser name the drag instructions alike.
+    const dndId = useId();
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
         useSensor(KeyboardSensor, {
@@ -219,6 +221,7 @@ export default function KanbanBoard<Card extends KanbanCard>({
 
     return (
         <DndContext
+            id={dndId}
             sensors={sensors}
             collisionDetection={closestCorners}
             onDragStart={start}

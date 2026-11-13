@@ -45,6 +45,16 @@ test('it floats at the bottom of the page above the content', () => {
     expect(screen.getByRole('region').className).toContain('shadow-md');
 });
 
+test('it leaves room under itself, so it never hides the end of the page', () => {
+    bar();
+
+    const room =
+        screen.getByRole('region').parentElement!.previousElementSibling;
+
+    expect(room?.getAttribute('aria-hidden')).toBe('true');
+    expect(room?.className).toContain('h-20');
+});
+
 test('the close button clears the selection', () => {
     const onClear = bar();
 

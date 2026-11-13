@@ -4,7 +4,6 @@ namespace App\Actions\Tasks;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Imports the rows of a checked file: it calls CreateTask for each one, so the
@@ -22,12 +21,6 @@ final class ImportTasks
      */
     public function handle(User $user, array $rows): int
     {
-        if ($rows === []) {
-            throw ValidationException::withMessages([
-                'file' => __('The file has no tasks.'),
-            ]);
-        }
-
         return DB::transaction(function () use ($user, $rows): int {
             foreach ($rows as $row) {
                 $this->createTask->handle($user, $row);

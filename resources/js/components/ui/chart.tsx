@@ -121,12 +121,18 @@ function ChartLegendContent({
     return null
   }
 
+  // Recharts sorts the payload; the legend follows the series order of the config.
+  const order = Object.keys(config)
+  const rank = (item: (typeof payload)[number]) =>
+    order.indexOf(String(item.dataKey ?? item.value))
+  const items = [...payload].sort((a, b) => rank(a) - rank(b))
+
   return (
     <div
       data-slot="chart-legend"
       className={cn("flex flex-wrap items-center justify-center gap-4 pt-3 text-xs", className)}
     >
-      {payload.map((item) => {
+      {items.map((item) => {
         const key = String(item.dataKey ?? item.value)
 
         return (

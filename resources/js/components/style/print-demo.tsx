@@ -21,6 +21,8 @@ export type ExampleInvoice = {
         description: string;
         quantity: number;
         unit: number;
+        /** The line total in cents, from the backend. */
+        total: number;
     }[];
     /** All in cents, from the backend. */
     subtotal: number;
@@ -88,7 +90,7 @@ export default function PrintDemo({ invoice }: { invoice: ExampleInvoice }) {
                                     {formatMoney(line.unit)}
                                 </TableCell>
                                 <TableCell className="text-right tabular-nums">
-                                    {formatMoney(line.quantity * line.unit)}
+                                    {formatMoney(line.total)}
                                 </TableCell>
                             </TableRow>
                         ))}

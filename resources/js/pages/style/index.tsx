@@ -4,7 +4,9 @@ import Heading from '@/components/heading';
 import type { Choice } from '@/components/shared/column-menu';
 import type { SearchGroup } from '@/components/shared/search-results';
 import type { TimelineEvent } from '@/components/shared/timeline';
-import ApprovalDemo from '@/components/style/approval-demo';
+import ApprovalDemo, {
+    type ApprovalState,
+} from '@/components/style/approval-demo';
 import AuthDemo from '@/components/style/auth-demo';
 import BulkActionsDemo from '@/components/style/bulk-actions-demo';
 import CalendarDemo from '@/components/style/calendar-demo';
@@ -189,6 +191,44 @@ const wizardSteps = [
     },
 ];
 
+// Stands in for the server's answer to a step (a FormRequest on a real page).
+const answerWizardStep = (
+    fields: { id: string; label: string }[],
+    values: Record<string, string>,
+) =>
+    Object.fromEntries(
+        fields
+            .filter((field) => !values[field.id]?.trim())
+            .map((field) => [field.id, `Enter ${field.label.toLowerCase()}.`]),
+    );
+
+// Stands in for what the backend sends with each state of the request: the
+// label, the badge and the `can.*` flags.
+const approvalStates: Record<
+    'pending' | 'approved' | 'rejected',
+    ApprovalState
+> = {
+    pending: {
+        label: 'Pending',
+        variant: 'warning',
+        can: { approve: true, reject: true },
+    },
+    approved: {
+        label: 'Approved',
+        variant: 'success',
+        can: { approve: false, reject: false },
+    },
+    rejected: {
+        label: 'Rejected',
+        variant: 'destructive',
+        can: { approve: false, reject: false },
+    },
+};
+
+// Stands in for the FormRequest that checks the reason.
+const answerRejection = (reason: string) =>
+    reason.trim() ? null : 'Enter a reason.';
+
 const approvalEvents: TimelineEvent[] = [
     {
         id: 1,
@@ -269,8 +309,15 @@ const invoice: ExampleInvoice = {
             description: 'Spare parts, box of 20',
             quantity: 3,
             unit: 15000,
+            total: 45000,
         },
-        { id: 2, description: 'Delivery', quantity: 1, unit: 4500 },
+        {
+            id: 2,
+            description: 'Delivery',
+            quantity: 1,
+            unit: 4500,
+            total: 4500,
+        },
     ],
     subtotal: 49500,
     tax: 2970,
@@ -436,6 +483,7 @@ export default function Style() {
                             title="Set up team"
                             steps={wizardSteps}
                             submitLabel="Create team"
+                            answer={answerWizardStep}
                         />
                     </DemoFrame>
                 </StyleSection>
@@ -449,6 +497,8 @@ export default function Style() {
                                 { label: 'Requested by', value: 'Mei Ling' },
                             ]}
                             events={approvalEvents}
+                            states={approvalStates}
+                            answer={answerRejection}
                         />
                     </DemoFrame>
                 </StyleSection>

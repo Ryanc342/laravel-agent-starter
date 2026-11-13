@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, test, vi } from 'vite-plus/test';
 import ReportChart, { seriesColor } from '@/components/shared/report-chart';
 import ReportRange from '@/components/shared/report-range';
+import { ChartContainer, ChartLegendContent } from '@/components/ui/chart';
 
 const state = vi.hoisted(() => ({ url: '/reports', get: vi.fn() }));
 
@@ -155,4 +156,28 @@ test('more than five series is refused: there are only five chart colours', () =
         ),
     ).toThrow('at most five series');
     quiet.mockRestore();
+});
+
+test('the legend lists the series in the order of the config, not the order Recharts gives', () => {
+    render(
+        <ChartContainer
+            config={{
+                open: { label: 'Open', color: 'var(--chart-1)' },
+                done: { label: 'Done', color: 'var(--chart-2)' },
+                overdue: { label: 'Overdue', color: 'var(--chart-3)' },
+            }}
+        >
+            <ChartLegendContent
+                payload={[
+                    { dataKey: 'done', value: 'done' },
+                    { dataKey: 'open', value: 'open' },
+                    { dataKey: 'overdue', value: 'overdue' },
+                ]}
+            />
+        </ChartContainer>,
+    );
+
+    expect(
+        document.querySelector('[data-slot="chart-legend"]')?.textContent,
+    ).toBe('OpenDoneOverdue');
 });

@@ -39,12 +39,6 @@ test('the open-task limit of CreateTask counts, so an import cannot get around i
     expect(Task::query()->ownedBy($user)->count())->toBe(CreateTask::MAX_OPEN_TASKS - 2);
 });
 
-test('with no rows it refuses', function () {
-    $user = User::factory()->create();
-
-    expect(fn () => app(ImportTasks::class)->handle($user, []))->toThrow(ValidationException::class);
-});
-
 test('every row is imported or none is', function () {
     $user = User::factory()->create();
 

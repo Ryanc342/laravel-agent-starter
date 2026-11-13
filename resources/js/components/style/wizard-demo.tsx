@@ -10,37 +10,39 @@ type Step = { name: string; fields: { id: string; label: string }[] };
 
 /**
  * A multi-step wizard on its own page: the steps listed on the left (one line
- * on a phone), the current step's fields, Back and Next. "Next" checks the
- * fields of this step: here by the demo, in a real page by the server. Nothing
- * is saved until the last step.
+ * on a phone), the current step's fields, Back and Next. "Next" sends the
+ * fields of this step to `answer`, which returns an error message per field id
+ * (a real page gets them from the server's FormRequest; here the page's
+ * example data stands in for it). Nothing is saved until the last step.
  */
 export default function WizardDemo({
     title,
     steps,
     submitLabel,
+    answer,
 }: {
     title: string;
     steps: Step[];
     submitLabel: string;
+    answer: (
+        fields: Step['fields'],
+        values: Record<string, string>,
+    ) => Record<string, string>;
 }) {
     const [current, setCurrent] = useState(0);
     const [values, setValues] = useState<Record<string, string>>({});
-    const [invalid, setInvalid] = useState<string[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const step = steps[current];
     const last = current === steps.length - 1;
 
     const next = () => {
-        const missing = step.fields.filter(
-            (field) => !values[field.id]?.trim(),
-        );
+        const found = answer(step.fields, values);
 
-        setInvalid(missing.map((field) => field.id));
+        setErrors(found);
 
-        if (missing.length > 0) {
-            missing.forEach((field) =>
-                toast.error(`Enter ${field.label.toLowerCase()}.`, {
-                    id: `wizard-${field.id}`,
-                }),
+        if (Object.keys(found).length > 0) {
+            Object.entries(found).forEach(([id, message]) =>
+                toast.error(message, { id: `wizard-${id}` }),
             );
 
             return;
@@ -72,7 +74,7 @@ export default function WizardDemo({
                             <Button
                                 variant="outline"
                                 onClick={() => {
-                                    setInvalid([]);
+                                    setErrors({});
                                     setCurrent(current - 1);
                                 }}
                             >
@@ -87,11 +89,7 @@ export default function WizardDemo({
                         key={field.id}
                         label={field.label}
                         htmlFor={`wizard-${field.id}`}
-                        error={
-                            invalid.includes(field.id)
-                                ? `Enter ${field.label.toLowerCase()}.`
-                                : undefined
-                        }
+                        error={errors[field.id]}
                     >
                         <Input
                             id={`wizard-${field.id}`}

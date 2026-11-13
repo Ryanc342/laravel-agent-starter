@@ -21,7 +21,7 @@ Use for something the user prints or saves as a PDF: an invoice, a receipt, a ta
 ## Rules
 
 - Totals, tax and every figure come from the backend; the sheet and the PDF both show the same values and neither calculates.
-- A record the user may not view is a 404, for the print page and the PDF alike.
+- A record the user may not view is a 403 (the Policy decides), for the print page and the PDF alike.
 
 ## Phone
 

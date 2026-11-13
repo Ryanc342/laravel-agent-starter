@@ -18,7 +18,7 @@ Use when the user does the same thing to many records of a list (complete, delet
 
 ## Phone
 
-The bar spans the width of the screen above the bottom edge; its buttons show icons and short labels and never wrap onto a second line.
+The bar spans the width of the screen above the bottom edge; its buttons keep short labels and never wrap onto a second line.
 
 ## Sample and demo
 

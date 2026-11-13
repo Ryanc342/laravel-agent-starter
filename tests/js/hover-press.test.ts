@@ -47,7 +47,7 @@ test('a Badge used as a link has a press state in every variant', () => {
     expect(entries.length).toBe(6);
 
     for (const entry of entries) {
-        expect(entry).toContain('[a&]:active:');
+        expect(entry).toMatch(/\[a&\]:active:bg-[a-z]+-pressed/);
     }
 });
 

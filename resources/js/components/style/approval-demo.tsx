@@ -16,36 +16,48 @@ import { Input } from '@/components/ui/input';
  * A record someone approves or rejects: Approve and Reject to the right of the
  * title with the other actions, the facts, and the history as a timeline.
  * Reject asks for a reason in a dialog. After a decision the buttons go and the
- * status changes (in a real page the backend sends both).
+ * status changes. React decides nothing: the label, the badge variant and the
+ * `can.*` flags come in with each state (`states`), and the reason is checked
+ * by `answer`; on a real page the backend sends the new state and the
+ * FormRequest's error, and here the page's example data stands in for it.
  */
+export type ApprovalState = {
+    label: string;
+    variant: 'success' | 'destructive' | 'warning';
+    can: { approve: boolean; reject: boolean };
+};
+
 export default function ApprovalDemo({
     title,
     facts,
     events,
+    states,
+    answer,
 }: {
     title: string;
     facts: { label: string; value: string }[];
     events: TimelineEvent[];
+    states: Record<'pending' | 'approved' | 'rejected', ApprovalState>;
+    answer: (reason: string) => string | null;
 }) {
     const [history, setHistory] = useState(events);
-    const [status, setStatus] = useState<'Pending' | 'Approved' | 'Rejected'>(
-        'Pending',
-    );
+    const [state, setState] = useState<keyof typeof states>('pending');
+    const view = states[state];
     const [reason, setReason] = useState('');
     const [open, setOpen] = useState(false);
-    const [empty, setEmpty] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const decide = (
-        decision: 'Approved' | 'Rejected',
+        decision: 'approved' | 'rejected',
         note: string | null = null,
     ) => {
-        setStatus(decision);
+        setState(decision);
         setHistory([
             ...history,
             {
                 id: history.length + 1,
                 actor: 'You',
-                action: decision.toLowerCase(),
+                action: states[decision].label.toLowerCase(),
                 when: 'just now',
                 note,
             },
@@ -53,17 +65,19 @@ export default function ApprovalDemo({
     };
 
     const reject = () => {
-        if (!reason.trim()) {
-            setEmpty(true);
-            toast.error('Enter a reason.', { id: 'approval-reason' });
+        const message = answer(reason);
+
+        setError(message);
+
+        if (message) {
+            toast.error(message, { id: 'approval-reason' });
 
             return;
         }
 
-        decide('Rejected', reason);
+        decide('rejected', reason);
         setOpen(false);
         setReason('');
-        setEmpty(false);
     };
 
     return (
@@ -71,33 +85,21 @@ export default function ApprovalDemo({
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex min-w-0 flex-wrap items-start gap-2">
                     <Heading title={title} />
-                    <Badge
-                        variant={
-                            status === 'Approved'
-                                ? 'success'
-                                : status === 'Rejected'
-                                  ? 'destructive'
-                                  : 'warning'
-                        }
-                        className="mt-1"
-                    >
-                        {status}
+                    <Badge variant={view.variant} className="mt-1">
+                        {view.label}
                     </Badge>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {status === 'Pending' && (
-                        <>
-                            <Button onClick={() => decide('Approved')}>
-                                Approve
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => setOpen(true)}
-                            >
-                                Reject
-                            </Button>
-                        </>
+                    {view.can.approve && (
+                        <Button onClick={() => decide('approved')}>
+                            Approve
+                        </Button>
+                    )}
+                    {view.can.reject && (
+                        <Button variant="outline" onClick={() => setOpen(true)}>
+                            Reject
+                        </Button>
                     )}
                     <Button variant="outline">Edit request</Button>
                 </div>
@@ -126,7 +128,7 @@ export default function ApprovalDemo({
                     <FormField
                         label="Reason"
                         htmlFor="approval-reason"
-                        error={empty ? 'Enter a reason.' : undefined}
+                        error={error ?? undefined}
                     >
                         <Input
                             id="approval-reason"
