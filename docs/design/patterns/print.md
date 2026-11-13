@@ -15,7 +15,8 @@ Use for something the user prints or saves as a PDF: an invoice, a receipt, a ta
 ## PDF
 
 - "Download PDF" is a backend route that returns `application/pdf`, made by `spatie/laravel-pdf` with the DOMPDF driver (`LARAVEL_PDF_DRIVER=dompdf` in `.env`). DOMPDF reads CSS 2.1 only: no flexbox and no grid, so the PDF's Blade view is laid out with tables and keeps the same order and facts as the on-screen sheet.
-- DOMPDF's built-in fonts (DejaVu Sans) have no Chinese characters: a PDF that must show Chinese text needs a CJK font installed for DOMPDF (`laravel-pdf.dompdf.font_dir`, a project decision), or another driver such as Browsershot. The starter does not ship a CJK font.
+- DOMPDF's built-in fonts (DejaVu Sans) have no Chinese characters, so the starter ships Noto Sans SC Regular and Bold (OFL, `resources/fonts/`, with `OFL.txt`) and the PDF view loads them with `@font-face` for all its text. `config/laravel-pdf.php` sets DOMPDF's `chroot`, `font_dir` and `font_cache` (`storage/fonts`). The full fonts are about 10.6 MB each; DOMPDF subsets them into the PDF, so a PDF stays small (about 10 KB for one Chinese title).
+- A server that makes PDFs needs a PHP `memory_limit` of at least 256M: one render with the full fonts peaks at 120 to 130 MB, and PHP's default of 128M runs out. `phpunit.xml` sets it for the tests; the README's deployment notes say it for production.
 - The file name says what it is ("task-42.pdf", "invoice-2026-0012.pdf").
 
 ## Rules

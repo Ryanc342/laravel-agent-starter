@@ -43,6 +43,13 @@ The template serves two kinds of screen: internal systems that people use every 
 | Account or app settings | docs/design/patterns/settings.md |
 | A stream of messages (notifications, activity) | docs/design/patterns/feed.md |
 | Login, register and the other sign-in pages | docs/design/patterns/auth.md |
+| The home page, or any page that introduces the product (hero, features, one call to action) | docs/design/patterns/landing.md |
+| Plans and prices side by side | docs/design/patterns/pricing.md |
+| One product or service of the business | docs/design/patterns/product.md |
+| The pages a signed-in customer opens for their own orders and details | docs/design/patterns/customer-area.md |
+| Turning a cart into an order | docs/design/patterns/checkout.md |
+| Answers to the questions customers ask most | docs/design/patterns/help.md |
+| A visitor writes to the business | docs/design/patterns/contact.md |
 | No permission, page not found, server error | docs/design/patterns/error-page.md |
 | See everything in the running app | the style overview page at `/style` (development only). It has no backend: what a backend would answer (a status, a validation result, an import's errors) comes with the page's example data through props |
 

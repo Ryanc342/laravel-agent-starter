@@ -33,6 +33,8 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | The steps of a long task | `WizardLayout` (`components/shared`; patterns/wizard.md) |
 | Who did what and when | `Timeline` (`components/shared`; patterns/approval.md) |
 | A list with the selected record's detail beside it | `ListDetailLayout` (`components/shared`; patterns/list-detail.md) |
+| The links and buttons at the top of a public page | `PublicHeader` (`components/shared`; the public layout): logo, page links, "Log in" and "Get started" (or "Dashboard" when signed in); on a phone the links and buttons are in a `Sheet` opened by a menu button |
+| The pages of a customer's account | `AccountNav` (`components/shared`; patterns/customer-area.md): one row of links, the current page in the selected colour, scrolling sideways inside its strip on a phone |
 
 ## Showing data
 
@@ -49,12 +51,19 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | Records on their dates, by month | `MonthCalendar` (`components/shared`; patterns/calendar.md) |
 | Records in status columns that cards move between | `KanbanBoard` (`components/shared`; patterns/kanban.md) |
 | A user | `Avatar` |
+| The opening of a landing page | `Hero` (`components/shared`; patterns/landing.md): the heading in the display size, one sentence, two buttons |
+| What a product offers | `FeatureGrid` (`components/shared`; patterns/landing.md): icon, title and one line per feature, no card around a feature |
+| Plans side by side | `PricingPlans` (`components/shared`; patterns/pricing.md): the billing `ToggleGroup` (in the URL) and one card per plan, the recommended one with a primary border and a "Recommended" `Badge` |
+| Questions and answers | `FaqList` (`components/shared`; patterns/help.md): a search box, topics, and one bordered box of `Collapsible` rows per topic |
+| The items of a cart | `LineItems` (`components/shared`; patterns/checkout.md): name, unit price, quantity `Input` (named `items[0][quantity]`) and line total |
+| The totals of an order | `OrderSummary` (`components/shared`; patterns/checkout.md): subtotal, tax and total as a `dl` |
 | Repeated items, a dialog, a framed tool | `Card` (never a card inside a card). Its title has no description under it |
 
 ## Inputs
 
 | Need | Use |
 | --- | --- |
+| A contact form | `ContactForm` (`components/shared`; patterns/contact.md): name, email, subject and message as `FormField` rows |
 | One field in a form | `FormField` (`components/shared`): label on the left of the input on desktop, above it on a phone. An error gives the input a red border and shows no text under it; the message is a toast, and screen readers still get it |
 | How a field looks when focused or wrong | `Input`, the `Select` trigger, `Checkbox` and the `InputOTP` slot have no glow and no ring. Clicked into, the border turns the dark grey `input-focus`; with an error the border is `destructive`, and it stays red, still with no glow, when clicked into. Buttons, toggles and badges keep the blue keyboard ring, which shows only with the Tab key |
 | Text | `Input`: 40px high; `size="sm"` (32px) only for a box inside a menu row |
@@ -62,6 +71,7 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | A one-time code | `InputOTP` |
 | A list of options | `Select` |
 | Yes or no | `Checkbox` |
+| Several lines of text | `Textarea` (`components/ui`): the look of `Input`, three lines high, taller as the user writes |
 | A date | `DatePicker` (`components/shared`): a button that opens a `Popover` with a month `Calendar`; reads and writes `YYYY-MM-DD`; never `type="date"` |
 | Two to seven modes | `ToggleGroup` |
 | A search box above a list | `Input` with an `sr-only` label; the list searches after a short pause in typing, or at Enter |
@@ -93,6 +103,7 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | The page title, or a section title | `Heading` (`variant="small"` for a section). No description under it |
 | A signed-in page | `AppLayout` |
 | A sign-in page | `AuthLayout` |
+| A public page (home, pricing, product, help, contact) and a customer's account pages | `PublicLayout` (`layouts/public-layout.tsx`): the top bar (`PublicHeader`), the page at a readable width, and a footer with one row of links and the copyright line. No shadow on the bar; no sidebar |
 | A settings page | `SettingsLayout` |
 
 ## Not used
