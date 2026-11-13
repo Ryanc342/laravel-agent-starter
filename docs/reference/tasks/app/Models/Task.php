@@ -132,9 +132,20 @@ class Task extends Model
         $placeholders = implode(', ', array_fill(0, count($openValues), '?'));
 
         $query->orderByRaw("case when status in ({$placeholders}) then 0 else 1 end", $openValues)
-            ->orderByRaw('case when due_on is null then 1 else 0 end')
+            ->undatedLast()
             ->orderBy('due_on')
             ->latest('id');
+    }
+
+    /**
+     * Tasks without a due date come after the ones that have one. Every order that looks at the due date uses this.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function undatedLast(Builder $query): void
+    {
+        $query->orderByRaw('case when due_on is null then 1 else 0 end');
     }
 
     /**
@@ -202,7 +213,7 @@ class Task extends Model
         }
 
         if ($sort === TaskSort::DueOn) {
-            $query->orderByRaw('case when due_on is null then 1 else 0 end');
+            $query->undatedLast();
         }
 
         $query->orderBy($sort->value, $direction)->latest('id');

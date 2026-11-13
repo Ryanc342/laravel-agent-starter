@@ -1,11 +1,10 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import type { Choice } from '@/components/shared/column-menu';
 import ListToolbar from '@/components/shared/list-toolbar';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import type { TableColumn } from '@/components/shared/responsive-table';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/format';
-import { hasListParams } from '@/lib/list-query';
 import { show } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
@@ -72,18 +71,14 @@ function taskColumns(statusOptions: Choice[]): TableColumn<Task>[] {
 export default function TaskTable({
     tasks,
     statusOptions,
+    narrowed,
 }: {
     tasks: Task[];
     statusOptions: Choice[];
+    /** From the backend: the search or a filter really narrows the list. */
+    narrowed: boolean;
 }) {
-    const { url } = usePage();
     const columns = taskColumns(statusOptions);
-    const narrowed = hasListParams(url, [
-        'search',
-        'status',
-        'due_from',
-        'due_to',
-    ]);
 
     return (
         <div className="flex flex-col gap-4">

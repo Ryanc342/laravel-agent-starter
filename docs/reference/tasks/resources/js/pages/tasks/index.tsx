@@ -13,12 +13,18 @@ import type { Task } from '@/types/task';
 type TasksPageProps = {
     tasks: ResourceCollection<Task>;
     statusOptions: Choice[];
+    narrowed: boolean;
     can: {
         complete_overdue: boolean;
     };
 };
 
-export default function Tasks({ tasks, statusOptions, can }: TasksPageProps) {
+export default function Tasks({
+    tasks,
+    statusOptions,
+    narrowed,
+    can,
+}: TasksPageProps) {
     return (
         <>
             <Head title="Tasks" />
@@ -49,7 +55,11 @@ export default function Tasks({ tasks, statusOptions, can }: TasksPageProps) {
                     </div>
                 </div>
 
-                <TaskTable tasks={tasks.data} statusOptions={statusOptions} />
+                <TaskTable
+                    tasks={tasks.data}
+                    statusOptions={statusOptions}
+                    narrowed={narrowed}
+                />
                 <Pagination collection={tasks} />
             </div>
         </>

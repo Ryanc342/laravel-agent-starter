@@ -257,3 +257,17 @@ test('Clear keeps the sort of another column', () => {
     expect(address.searchParams.get('direction')).toBe('asc');
     expect(address.searchParams.has('status[]')).toBe(false);
 });
+
+test('a blank search or a status the menu does not offer does not light the funnel', () => {
+    state.url = '/tasks?search=%20%20&status[]=bogus';
+    const { container } = render(
+        <>
+            {title()}
+            {status()}
+        </>,
+    );
+
+    expect(
+        container.querySelectorAll('[data-slot="filter-indicator"]'),
+    ).toHaveLength(0);
+});

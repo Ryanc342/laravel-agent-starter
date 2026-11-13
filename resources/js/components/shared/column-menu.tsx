@@ -60,10 +60,22 @@ export function clearedChanges(
     return changes;
 }
 
+/**
+ * Whether this column's own controls show a choice: text in its search box, a
+ * ticked option the tick list offers, an end of its range. The funnel mirrors
+ * what the menu displays; what the backend applies is its own decision.
+ */
 function isFiltered(menu: ColumnMenuConfig, url: string): boolean {
     return (
-        Boolean(menu.search && listParam(url, menu.search.param)) ||
-        Boolean(menu.options && listParams(url, menu.options.param).length) ||
+        Boolean(
+            menu.search && listParam(url, menu.search.param).trim() !== '',
+        ) ||
+        Boolean(
+            menu.options &&
+            listParams(url, menu.options.param).some((value) =>
+                menu.options!.choices.some((choice) => choice.value === value),
+            ),
+        ) ||
         Boolean(
             menu.range &&
             (listParam(url, menu.range.fromParam) ||

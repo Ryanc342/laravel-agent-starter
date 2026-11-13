@@ -80,7 +80,7 @@ final class IndexTaskRequest extends FormRequest
         foreach ($values as $value) {
             $status = is_string($value) ? TaskStatus::tryFrom($value) : null;
 
-            if ($status !== null && ! in_array($status, $statuses, true)) {
+            if ($status !== null) {
                 $statuses[] = $status;
             }
         }
@@ -102,6 +102,17 @@ final class IndexTaskRequest extends FormRequest
     public function dueTo(): ?string
     {
         return $this->day('due_to');
+    }
+
+    /**
+     * Whether the search or any filter actually narrows the list: the values that were ignored do not count.
+     */
+    public function isNarrowed(): bool
+    {
+        return $this->search() !== null
+            || $this->statuses() !== []
+            || $this->dueFrom() !== null
+            || $this->dueTo() !== null;
     }
 
     private function day(string $key): ?string

@@ -240,3 +240,22 @@ test('the page sends the status options as value and label pairs', function () {
             ['value' => 'done', 'label' => TaskStatus::Done->label()],
         ]));
 });
+
+dataset('narrowing and ignored list values', [
+    'nothing asked' => [[], false],
+    'only a sort and rows per page' => [['sort' => 'title', 'per_page' => 10], false],
+    'a search' => [['search' => 'apple'], true],
+    'a blank search is ignored' => [['search' => '   '], false],
+    'a status' => [['status' => ['done']], true],
+    'an unknown status is ignored' => [['status' => ['archived']], false],
+    'a due date' => [['due_from' => '2026-11-01'], true],
+    'a date that is not a date is ignored' => [['due_to' => '2026-13-45'], false],
+]);
+
+test('the page says whether the search or a filter narrows the list, ignored values not counting', function (array $query, bool $narrowed) {
+    [$user] = taskListCase();
+
+    $this->actingAs($user)
+        ->get(route('tasks.index', $query))
+        ->assertInertia(fn (Assert $page) => $page->where('narrowed', $narrowed));
+})->with('narrowing and ignored list values');

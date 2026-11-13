@@ -41,6 +41,7 @@ class TaskController extends Controller
         return Inertia::render('tasks/index', [
             'tasks' => TaskResource::collection($tasks)->response($request)->getData(true),
             'statusOptions' => TaskStatus::options(),
+            'narrowed' => $request->isNarrowed(),
             'can' => [
                 'complete_overdue' => $user->can('completeOverdue', Task::class) && Task::hasOverdueFor($user),
             ],

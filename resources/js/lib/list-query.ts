@@ -55,10 +55,3 @@ function listKeys(address: URL, key: string): string[] {
         own.test(name),
     );
 }
-
-/** Whether the address holds any value for these parameters, such as a search or a filter. */
-export function hasListParams(url: string, keys: string[]): boolean {
-    return keys.some(
-        (key) => listParam(url, key) !== '' || listParams(url, key).length > 0,
-    );
-}
