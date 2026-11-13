@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils"
 const inputVariants = cva(
   [
     "border-input file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex w-full min-w-0 rounded-md border bg-transparent px-3.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-8 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+    "focus-visible:border-input-focus",
+    "aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive",
   ],
   {
     variants: {

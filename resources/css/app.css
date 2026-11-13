@@ -54,6 +54,7 @@
 
     --color-border: var(--border);
     --color-input: var(--input);
+    --color-input-focus: var(--input-focus);
     --color-ring: var(--ring);
 
     --color-chart-1: var(--chart-1);
@@ -111,6 +112,7 @@
     --warning-foreground: var(--foreground);
     --border: oklch(0.925 0.006 265);
     --input: oklch(0.9 0.008 265);
+    --input-focus: oklch(0.5 0.025 265);
     --ring: var(--primary);
     --chart-1: var(--primary);
     --chart-2: oklch(0.6 0.118 184.704);
@@ -156,6 +158,7 @@
     --warning-foreground: oklch(0.145 0 0);
     --border: oklch(0.3 0.012 265);
     --input: oklch(0.33 0.014 265);
+    --input-focus: oklch(0.72 0.02 265);
     --ring: var(--primary);
     --chart-1: var(--primary);
     --chart-2: oklch(0.696 0.17 162.48);
