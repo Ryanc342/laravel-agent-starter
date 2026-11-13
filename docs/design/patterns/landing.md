@@ -23,4 +23,4 @@ One column. The hero's buttons stack at full width; the feature grid is one colu
 
 ## Sample and demo
 
-Copy `resources/js/pages/welcome/index.tsx`. Demo: `LandingDemo`, shown on the style overview page.
+Copy `resources/js/pages/welcome/index.tsx` and `resources/js/layouts/public-layout.tsx`. Demo: `resources/js/components/style/landing-demo.tsx`, shown on the style overview page.

@@ -22,4 +22,4 @@ The sections stack, the picture block under its text. The key facts keep label a
 
 ## Sample and demo
 
-Demo: `ProductDemo`, shown on the style overview page.
+Demo: `resources/js/components/style/product-demo.tsx`, shown on the style overview page.

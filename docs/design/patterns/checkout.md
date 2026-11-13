@@ -27,4 +27,4 @@ The step list is one line ("Step 2 of 3 · Details"); each line item becomes a s
 
 ## Sample and demo
 
-Demo: `CheckoutDemo`, shown on the style overview page.
+Demo: `resources/js/components/style/checkout-demo.tsx`, shown on the style overview page. A failed step fires the event Inertia fires, so the real toasts and the focus on `items[0][quantity]` show.

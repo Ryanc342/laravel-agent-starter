@@ -10,25 +10,49 @@ import ApprovalDemo, {
 import AuthDemo from '@/components/style/auth-demo';
 import BulkActionsDemo from '@/components/style/bulk-actions-demo';
 import CalendarDemo from '@/components/style/calendar-demo';
+import CheckoutDemo from '@/components/style/checkout-demo';
+import ContactDemo from '@/components/style/contact-demo';
+import CustomerAreaDemo from '@/components/style/customer-area-demo';
+import {
+    answerCheckout,
+    answerContact,
+    checkout,
+    contact,
+    customerArea,
+    help,
+    landing,
+    priceCart,
+    pricing,
+    product,
+    publicLinks,
+    publicLinksZh,
+} from '@/components/style/customer-examples';
 import DashboardDemo from '@/components/style/dashboard-demo';
 import DetailDemo from '@/components/style/detail-demo';
 import DetailTabsDemo from '@/components/style/detail-tabs-demo';
 import ErrorPageDemo from '@/components/style/error-page-demo';
 import FeedDemo from '@/components/style/feed-demo';
 import FormDemo from '@/components/style/form-demo';
+import HelpDemo from '@/components/style/help-demo';
 import ImportExportDemo from '@/components/style/import-export-demo';
+import LandingDemo from '@/components/style/landing-demo';
 import KanbanDemo, { type ExampleCard } from '@/components/style/kanban-demo';
 import ListDemo from '@/components/style/list-demo';
 import ListDetailDemo, {
     type ExampleTicket,
 } from '@/components/style/list-detail-demo';
+import PricingDemo from '@/components/style/pricing-demo';
 import PrintDemo, { type ExampleInvoice } from '@/components/style/print-demo';
+import ProductDemo from '@/components/style/product-demo';
 import ReportDemo from '@/components/style/report-demo';
 import SearchDemo from '@/components/style/search-demo';
 import SettingsDemo from '@/components/style/settings-demo';
 import SharedDemo from '@/components/style/shared-demo';
 import StatesDemo from '@/components/style/states-demo';
-import StyleSection, { DemoFrame } from '@/components/style/style-section';
+import StyleSection, {
+    DemoFrame,
+    Variant,
+} from '@/components/style/style-section';
 import TokensDemo from '@/components/style/tokens-demo';
 import WizardDemo from '@/components/style/wizard-demo';
 import type {
@@ -397,6 +421,13 @@ const menu = [
     ['settings', 'Settings'],
     ['feed', 'Feed'],
     ['auth', 'Login and register'],
+    ['landing', 'Home / landing'],
+    ['pricing', 'Pricing'],
+    ['product', 'Product page'],
+    ['customer-area', 'Customer area'],
+    ['checkout', 'Checkout'],
+    ['help', 'Help / FAQ'],
+    ['contact', 'Contact form'],
     ['error-page', 'Error pages'],
 ];
 
@@ -638,6 +669,99 @@ export default function Style() {
                             footerLink="Sign up"
                         />
                     </DemoFrame>
+                </StyleSection>
+
+                <StyleSection id="landing" title="Home / landing">
+                    <Variant label="English">
+                        <LandingDemo links={publicLinks} {...landing.en} />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <LandingDemo links={publicLinksZh} {...landing.zh} />
+                    </Variant>
+                </StyleSection>
+
+                <StyleSection id="pricing" title="Pricing">
+                    <Variant label="English">
+                        <PricingDemo links={publicLinks} {...pricing.en} />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <PricingDemo links={publicLinksZh} {...pricing.zh} />
+                    </Variant>
+                </StyleSection>
+
+                <StyleSection id="product" title="Product page">
+                    <Variant label="English">
+                        <ProductDemo links={publicLinks} {...product.en} />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <ProductDemo links={publicLinksZh} {...product.zh} />
+                    </Variant>
+                </StyleSection>
+
+                <StyleSection id="customer-area" title="Customer area">
+                    <Variant label="English">
+                        <CustomerAreaDemo
+                            links={publicLinks}
+                            {...customerArea.en}
+                        />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <CustomerAreaDemo
+                            links={publicLinksZh}
+                            {...customerArea.zh}
+                        />
+                    </Variant>
+                </StyleSection>
+
+                <StyleSection id="checkout" title="Checkout">
+                    <Variant label="English">
+                        <CheckoutDemo
+                            links={publicLinks}
+                            {...checkout.en}
+                            price={(items) =>
+                                priceCart(items, checkout.en.labels)
+                            }
+                            answer={answerCheckout}
+                        />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <CheckoutDemo
+                            links={publicLinksZh}
+                            {...checkout.zh}
+                            price={(items) =>
+                                priceCart(items, checkout.zh.labels)
+                            }
+                            answer={(step, values, items) =>
+                                answerCheckout(step, values, items, true)
+                            }
+                        />
+                    </Variant>
+                </StyleSection>
+
+                <StyleSection id="help" title="Help / FAQ">
+                    <Variant label="English">
+                        <HelpDemo links={publicLinks} {...help.en} />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <HelpDemo links={publicLinksZh} {...help.zh} />
+                    </Variant>
+                </StyleSection>
+
+                <StyleSection id="contact" title="Contact form">
+                    <Variant label="English">
+                        <ContactDemo
+                            links={publicLinks}
+                            {...contact.en}
+                            answer={answerContact}
+                        />
+                    </Variant>
+                    <Variant label="Chinese">
+                        <ContactDemo
+                            links={publicLinksZh}
+                            {...contact.zh}
+                            answer={(values) => answerContact(values, true)}
+                        />
+                    </Variant>
                 </StyleSection>
 
                 <StyleSection id="error-page" title="Error pages">

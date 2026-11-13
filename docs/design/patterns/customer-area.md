@@ -24,4 +24,4 @@ Use for the pages a signed-in customer opens to see their own orders and details
 
 ## Sample and demo
 
-Demo: `CustomerAreaDemo`, shown on the style overview page.
+Demo: `resources/js/components/style/customer-area-demo.tsx`, shown on the style overview page.

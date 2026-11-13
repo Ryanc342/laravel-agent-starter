@@ -20,4 +20,4 @@ The same column, the labels above the inputs, the button at full width.
 
 ## Sample and demo
 
-Demo: `ContactDemo`, shown on the style overview page. It takes its validation answer from its example data, as the other demos do.
+Demo: `resources/js/components/style/contact-demo.tsx`, shown on the style overview page. It takes its validation answer from its example data, as the other demos do.

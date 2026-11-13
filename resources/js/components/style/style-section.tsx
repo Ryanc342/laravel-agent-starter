@@ -58,3 +58,19 @@ export function DemoFrame({
         </div>
     );
 }
+
+/** One example of a demo, with a line saying which: the same demo again in Chinese. */
+export function Variant({
+    label,
+    children,
+}: {
+    label: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className="grid gap-3">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            {children}
+        </div>
+    );
+}

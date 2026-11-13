@@ -22,4 +22,4 @@ The same single column; the search box is full width.
 
 ## Sample and demo
 
-Demo: `HelpDemo`, shown on the style overview page.
+Demo: `resources/js/components/style/help-demo.tsx`, shown on the style overview page.

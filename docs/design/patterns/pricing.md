@@ -22,4 +22,4 @@ The cards stack, the recommended plan first. The toggle stays at the top.
 
 ## Sample and demo
 
-Demo: `PricingDemo`, shown on the style overview page.
+Demo: `resources/js/components/style/pricing-demo.tsx`, shown on the style overview page.

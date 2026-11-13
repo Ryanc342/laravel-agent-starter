@@ -37,7 +37,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - [x] M3 Home page: `/` rebuilt with the public layout as decisions 3 and 10. + Pest (signed out sees Log in and Get started, signed in sees Dashboard) and Vitest; the existing tests unchanged.
 - [x] M4 Shared blocks in `components/shared`, each with Vitest: hero, feature grid, pricing plans with the billing toggle (URL), FAQ list with its search, account navigation, line items, order summary, contact form, `formatMoney`.
 - [x] M5 Validation toasts for array names: decision 14.
-- [ ] M6 /style demos for the seven patterns (decisions 3 to 9), fed through props from `pages/style/index.tsx`, with example data in English and one Chinese example per demo where text length matters (Q29).
+- [x] M6 /style demos for the seven patterns (decisions 3 to 9), fed through props from `pages/style/index.tsx`, with example data in English and one Chinese example per demo where text length matters (Q29).
 - [ ] M7 Chinese PDF font: decision 16. + Pest: the PDF of a task titled 寄发票给供应商 embeds the Noto Sans SC subset; the PDF looked at as an image shows the characters; record the file sizes and the PDF's size; `composer check:reference` passes with the new memory limit.
 - [ ] M8 Kanban announcements: decision 17.
 - [ ] M9 Docs: README.md and README.zh-CN.md (the patterns, the PDF memory note), ARCHITECTURE.md (the public layout), the CHANGELOG (the unreleased 1.2.0 entry, a batch 3 list), `docs/QUALITY.md`; remove the closed rows from `docs/exec-plans/tech-debt.md`.
@@ -59,6 +59,7 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: M3 done: `/` rebuilt (hero, six features, a closing line) with `PublicLayout` via `app.tsx`; the page keeps `welcome/index` and `home`. 2 Vitest files failed before the code; the 2 new Pest tests (HomeTest) passed at once because the route already behaved that way, they lock it in. Scope: HomeTest, DashboardTest, ExampleTest, SharedDataTest, AppearanceTest, hero, welcome and public-layout Vitest. `composer check:milestone -- <those paths>` passed. Browser look is part of M10.
 - 2026-11-14: M4 done: `Textarea`, `PricingPlans`, `FaqList`, `AccountNav`, `LineItems`, `OrderSummary`, `ContactForm` and `formatMoney(minor, currency?)`; `Hero` and `FeatureGrid` came in M3, `PublicHeader` in M2. 5 new Vitest files and 1 new format test failed before the code. Scope: all of tests/js and tests/Structure. `composer check:milestone -- tests/js tests/Structure` passed (53 files, 301 tests).
 - 2026-11-14: M5 done: `use-validation-error-toasts.ts` looks for `items[0][quantity]` as well as `items.0.quantity` (any depth). 2 of 4 new Vitest tests failed before the code. Scope: tests/js/hooks/use-validation-error-toasts.test.tsx; `composer check:milestone -- tests/js/hooks/use-validation-error-toasts.test.tsx` passed (16 tests).
+- 2026-11-14: M6 done: seven demos (`landing`, `pricing`, `product`, `customer-area`, `checkout`, `help`, `contact`) in `components/style/`, `PublicFrame`, `Variant`, example data and stand-in answers in `customer-examples.ts`, 7 new sections on `/style` each in English and Chinese. 14 Vitest tests in `customer-demos.test.tsx` written with the demos (they passed on the first full run except one mock fix). Scope: tests/js, tests/Structure, tests/Feature/StyleTest.php; `composer check:milestone -- tests/Structure tests/js tests/Feature/StyleTest.php` passed. The pattern files now name their demo by path. Browser look: M10.
 
 ## Surprises & Discoveries
 - The home page is `Route::inertia('/', 'welcome/index')->name('home')`; DashboardTest asserts the component `welcome/index`, and several tests use `route('home')`.
@@ -76,6 +77,8 @@ Working overnight (the user is asleep): when something is unclear, take the most
 - 2026-11-14: `Hero` and `FeatureGrid` are built in M3, not M4, because the home page needs them; M4 builds the rest of its list.
 - 2026-11-14: `ContactForm` is the fields and the button only and sits inside the page's own Inertia `<Form>`, which gives `errors` and `processing`; the /style demo wraps it in a plain `<form>`. `LineItems` takes errors keyed the way Laravel sends them (`items.0.quantity`) and names its inputs `items[0][quantity]`.
 - 2026-11-14: `FormField` still renders the error as `sr-only` text for screen readers; the tests of the new blocks check that, not that the text is absent.
+- 2026-11-14: A demo's failed step or send fires the document event `inertia:error` (the one Inertia fires), so the Toaster's real `useValidationErrorToasts` shows the toasts and focuses the first field, including `items[0][quantity]`; no demo-only focus code.
+- 2026-11-14: The demos' example data and stand-in server answers (cart totals with 6% tax, errors keyed `items.0.quantity`) live in `components/style/customer-examples.ts` so `pages/style/index.tsx` does not grow by 300 more lines; the page still passes them to the demos through props.
 
 ## Outcomes & Retrospective
 Not started.
