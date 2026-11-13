@@ -43,6 +43,9 @@ export function useUrlParam(param: string, delay = 400) {
     };
 
     return {
+        value,
+        /** Set the value and ask for the list at once (a picked date). */
+        commit,
         inputProps: {
             value,
             onChange: (event: ChangeEvent<HTMLInputElement>) => {

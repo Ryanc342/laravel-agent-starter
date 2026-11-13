@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
 import ColumnMenu, { ColumnMenuContent } from '@/components/shared/column-menu';
+import { toDateValue } from '@/lib/date-value';
 
 const state = vi.hoisted(() => ({ url: '/tasks', get: vi.fn() }));
 
@@ -275,22 +276,50 @@ test('Select all ticks every option and Unselect all ticks none', () => {
     expect(visited().searchParams.get('per_page')).toBe('20');
 });
 
-test('a range asks for from and to, and the ends are sent as typed', () => {
+// Opens the picker behind a label and picks the 15th of the month it shows
+// (the picker opens on the month of its value, or this month when it is empty).
+function pickThe15th(label: string) {
+    fireEvent.click(screen.getByLabelText(label));
+    fireEvent.click(within(screen.getByRole('grid')).getByText('15'));
+}
+
+test('a range asks for from and to, and the ends are picked as YYYY-MM-DD', () => {
+    const month = toDateValue(new Date()).slice(0, 7);
     const { rerender } = render(due());
     open('Due date');
 
-    fireEvent.change(screen.getByLabelText('From'), {
-        target: { value: '2026-11-01' },
-    });
-    expect(visited().searchParams.get('due_from')).toBe('2026-11-01');
+    pickThe15th('From');
+    expect(visited().searchParams.get('due_from')).toBe(`${month}-15`);
 
-    state.url = '/tasks?due_from=2026-11-01';
+    state.url = `/tasks?due_from=${month}-15`;
     rerender(due());
-    fireEvent.change(screen.getByLabelText('To'), {
-        target: { value: '2026-11-30' },
-    });
-    expect(visited().searchParams.get('due_from')).toBe('2026-11-01');
-    expect(visited().searchParams.get('due_to')).toBe('2026-11-30');
+    pickThe15th('To');
+    expect(visited().searchParams.get('due_from')).toBe(`${month}-15`);
+    expect(visited().searchParams.get('due_to')).toBe(`${month}-15`);
+});
+
+test('a picked date can be cleared from the picker', () => {
+    state.url = '/tasks?due_from=2026-11-04';
+    render(due());
+    open('Due date');
+
+    fireEvent.click(screen.getByLabelText('From'));
+    const pickers = document.querySelectorAll('[data-slot="popover-content"]');
+
+    fireEvent.click(
+        within(pickers[pickers.length - 1] as HTMLElement).getByRole('button', {
+            name: 'Clear',
+        }),
+    );
+
+    expect(visited().searchParams.has('due_from')).toBe(false);
+});
+
+test('no native date input is left in the range', () => {
+    render(due());
+    open('Due date');
+
+    expect(menu().querySelector('input[type="date"]')).toBeNull();
 });
 
 test("Clear removes this column's sort and filters and nothing else", () => {
@@ -460,7 +489,9 @@ test('the range ends are one row each, the label before the input', () => {
         const input = screen.getByLabelText(label);
         const row = input.closest('[data-slot="column-menu-row"]')!;
 
-        expect(row.querySelectorAll('input')).toHaveLength(1);
+        expect(
+            row.querySelectorAll('input, [data-slot="date-picker"]'),
+        ).toHaveLength(1);
         expect(
             before(row.querySelector(`label[for="${input.id}"]`)!, input),
         ).toBe(true);

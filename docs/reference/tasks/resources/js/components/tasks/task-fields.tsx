@@ -1,3 +1,4 @@
+import DatePicker from '@/components/shared/date-picker';
 import FormField from '@/components/shared/form-field';
 import { Input } from '@/components/ui/input';
 import type { Task } from '@/types/task';
@@ -35,10 +36,9 @@ export default function TaskFields({ task, errors }: TaskFieldsProps) {
                 htmlFor={`${idPrefix}-due-on`}
                 error={errors.due_on}
             >
-                <Input
+                <DatePicker
                     id={`${idPrefix}-due-on`}
                     name="due_on"
-                    type="date"
                     defaultValue={task?.due_on ?? ''}
                 />
             </FormField>

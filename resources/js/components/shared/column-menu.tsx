@@ -11,6 +11,7 @@ import { Fragment, useId, type ComponentProps, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import DatePicker from '@/components/shared/date-picker';
 import UrlSearchInput from '@/components/shared/url-search-input';
 import { Label } from '@/components/ui/label';
 import {
@@ -165,14 +166,27 @@ function RangeEnd({
 }) {
     const id = useId();
     // A picked date asks at once; a typed amount waits for a pause.
-    const { inputProps } = useUrlParam(param, type === 'date' ? 0 : 400);
+    const { value, commit, inputProps } = useUrlParam(
+        param,
+        type === 'date' ? 0 : 400,
+    );
 
     return (
         <InputRow>
             <Label htmlFor={id} className="w-10 shrink-0 font-normal">
                 {label}
             </Label>
-            <Input id={id} type={type} size="sm" {...inputProps} />
+            {type === 'date' ? (
+                <DatePicker
+                    id={id}
+                    size="sm"
+                    value={value}
+                    onChange={commit}
+                    className="min-w-0 flex-1"
+                />
+            ) : (
+                <Input id={id} type="number" size="sm" {...inputProps} />
+            )}
         </InputRow>
     );
 }

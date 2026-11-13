@@ -1,3 +1,4 @@
+import DatePicker from '@/components/shared/date-picker';
 import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
@@ -33,9 +34,8 @@ function DemoForm({
                     <Input id="form-demo-title" defaultValue={task?.title} />
                 </FormField>
                 <FormField label="Due date" htmlFor="form-demo-due">
-                    <Input
+                    <DatePicker
                         id="form-demo-due"
-                        type="date"
                         defaultValue={task?.due_on ?? ''}
                     />
                 </FormField>
