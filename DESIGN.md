@@ -13,6 +13,7 @@ The template serves two kinds of screen: internal systems that people use every 
 - Flat: borders separate things; only what floats over the page (dropdown, popover, dialog, sheet) has a shadow.
 - Small corners, one font family, a light grey sidebar.
 - Motion is subtle and quick, and stops when the user asks for reduced motion.
+- Everything the user can click shows the pointing-hand cursor; a disabled control keeps the arrow.
 - Copy is short and direct.
 - The appearance follows the system by default; light and dark both work from the same tokens.
 
@@ -23,10 +24,10 @@ The template serves two kinds of screen: internal systems that people use every 
 | Any page | this file |
 | Colour, type, language, space, shape, motion, copy, messages | docs/design/foundations.md |
 | Choosing a component or a variant | docs/design/components.md |
-| A list of records (orders, products, customers, tasks) | docs/design/patterns/list.md |
+| A list of records (orders, products, customers, tasks), with its column menus for sort, filter and search | docs/design/patterns/list.md |
 | One record's own page | docs/design/patterns/detail.md |
 | Creating or editing something | docs/design/patterns/form.md |
-| An empty list, a region that failed or is loading | docs/design/patterns/states.md |
+| An empty list, a region that failed or is loading (drawn inside the table or box, centred) | docs/design/patterns/states.md |
 | The page after login | docs/design/patterns/dashboard.md |
 | Account or app settings | docs/design/patterns/settings.md |
 | A stream of messages (notifications, activity) | docs/design/patterns/feed.md |

@@ -16,6 +16,8 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | A button that is sending | the same `Button`, `disabled`, with a `Spinner` |
 | Previous and next in a list, and how many rows a page shows (10, 20, 50 or 100) | `Pagination` (`components/shared`) |
 
+Every enabled clickable element (button, link, tab, menu item, checkbox, clickable row) shows the pointing-hand cursor; a disabled one keeps the normal arrow. The cursor comes from `resources/css/app.css`, never from a `className`.
+
 ## Navigation
 
 | Need | Use |
@@ -30,8 +32,9 @@ Read when choosing a component or a variant. It says which one to use for what; 
 
 | Need | Use |
 | --- | --- |
-| A list of records | `ResponsiveTable` (`components/shared`): a `Table` on desktop, one card per row on a phone. With no records it still shows its header row (on a phone its box) with the empty line inside |
+| A list of records | `ResponsiveTable` (`components/shared`): a `Table` on desktop, one card per row on a phone. With no records, or when it failed to load, it still shows its header row (on a phone its box) with the centred state inside |
 | A stream of messages | `FeedList` and `FeedRow` (`components/shared`), as `NotificationRow` uses them (patterns/feed.md): one bordered box, rows separated by lines |
+| Sort, filter and search of a column | `ColumnMenu` (`components/shared`): the header button and the `Popover` it opens (sort, column search, tick list with Select all and Unselect all, from-to range, Clear), with the arrow and funnel indicators. On a phone `SortFilterSheet` (`components/shared`) holds the same choices in a `Sheet` |
 | The facts of one record | a `dl`: `dt` in `text-muted-foreground`, `dd` the value |
 | A status | `Badge`: `secondary` a neutral state (open, draft), `success` done or paid, `warning` needs attention, `destructive` failed, overdue or an error. The text is the label the backend sends, and it starts with a capital letter ("Open", "Done") |
 | A user | `Avatar` |
@@ -48,7 +51,7 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | A list of options | `Select` |
 | Yes or no | `Checkbox` |
 | Two to seven modes | `ToggleGroup` |
-| A search box beside its button | `Input` with an `sr-only` label |
+| A search box above a list | `Input` with an `sr-only` label; the list searches after a short pause in typing, or at Enter |
 
 ## Layers
 
@@ -66,8 +69,8 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | Need | Use |
 | --- | --- |
 | The result of an action, a network error, a field error | a toast at the top centre, one per message (foundations.md, Messages) |
-| A list or region with nothing in it | `EmptyState` (`components/shared`) |
-| A region that could not load | `ErrorState` (`components/shared`) |
+| A list or region with nothing in it | `EmptyState` (`components/shared`): centred icon and line |
+| A region that could not load | `ErrorState` (`components/shared`): centred, red icon and line |
 | A region that is loading | `LoadingState` (`components/shared`), made of `Skeleton` |
 
 ## Layout
