@@ -103,3 +103,15 @@ test('on a phone the columns scroll sideways inside the board and are narrower t
     expect(open.parentElement?.className).toContain('overflow-x-auto');
     expect(open.className).toContain('w-[80%]');
 });
+
+test('a screen reader is told how to drag a card with the keyboard, in words, not ids', () => {
+    board();
+
+    const handle = screen.getByRole('button', { name: 'Drag Send quote' });
+    const instructions = document.getElementById(
+        handle.getAttribute('aria-describedby') ?? '',
+    );
+
+    expect(instructions?.textContent).toContain('press Space');
+    expect(instructions?.textContent).not.toContain('Draggable item');
+});

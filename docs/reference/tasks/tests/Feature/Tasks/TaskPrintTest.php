@@ -82,3 +82,26 @@ test('the PDF view escapes the title', function () {
 
     Pdf::assertRespondedWithPdf(fn (PdfBuilder $pdf): bool => $pdf->contains('&lt;script&gt;') && ! $pdf->contains('<script>'));
 });
+
+test('a title in Chinese is drawn with Noto Sans SC: its subset is embedded and the PDF stays small', function () {
+    config(['laravel-pdf.driver' => 'dompdf']);
+    $task = Task::factory()->create(['title' => '寄发票给供应商']);
+
+    $response = $this->actingAs($task->user)->get(route('tasks.pdf', $task));
+
+    $response->assertOk();
+    // Compared as booleans, so a failure does not print the binary PDF.
+    expect(str_contains($response->getContent(), 'NotoSansSC'))->toBeTrue()
+        ->and(strlen($response->getContent()))->toBeLessThan(500_000);
+});
+
+test('a bold title and a regular fact line both come from the Noto Sans SC files, so the whole sheet is in one family', function () {
+    config(['laravel-pdf.driver' => 'dompdf']);
+    $task = Task::factory()->create(['title' => '寄发票给供应商', 'due_on' => '2026-11-10']);
+
+    $content = $this->actingAs($task->user)->get(route('tasks.pdf', $task))->getContent();
+
+    preg_match_all('/NotoSansSC-(Regular|Bold)/', $content, $found);
+
+    expect(array_values(array_unique($found[1])))->toEqualCanonicalizing(['Regular', 'Bold']);
+});

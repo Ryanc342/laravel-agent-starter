@@ -13,7 +13,7 @@ Models                            app/Models/                   scopes and facts
 Enums                             app/Enums/                    fixed values and facts about them
 ```
 
-A layer may use the layers below it, never the ones above it. Side folders:
+A layer may use the layers below it, never the ones above it. Inside React, a page sits in a layout: `AppLayout` (the sidebar) for signed-in work screens, `AuthLayout` for the sign-in pages, and `PublicLayout` (`resources/js/layouts/public-layout.tsx`) for the home page and every page a visitor or a customer sees: a top bar (`PublicHeader`, with the links of the pages that exist, "Log in" and "Get started", or "Dashboard" when signed in), the page, and a footer. A layout reads only the shared props (`auth`, `name`); it decides nothing about the business. Side folders:
 
 - `app/Integrations/`: the only entry for external services (payment, SMS, maps). Only Actions call it.
 - `app/Support/`: small helpers any layer may use (money with `Brick\Math\BigDecimal`, dates, reading and writing a CSV file).

@@ -10,8 +10,10 @@
         <meta charset="utf-8">
         <title>{{ $task['title'] }}</title>
         <style>
+            @font-face { font-family: "Noto Sans SC"; font-weight: normal; src: url("{{ resource_path('fonts/NotoSansSC-Regular.ttf') }}") format("truetype"); }
+            @font-face { font-family: "Noto Sans SC"; font-weight: bold; src: url("{{ resource_path('fonts/NotoSansSC-Bold.ttf') }}") format("truetype"); }
             @page { margin: 15mm; }
-            body { font-family: "DejaVu Sans", sans-serif; font-size: 12px; color: #1f2430; }
+            body { font-family: "Noto Sans SC", "DejaVu Sans", sans-serif; font-size: 12px; color: #1f2430; }
             h1 { font-size: 20px; font-weight: bold; margin: 0 0 12px 0; }
             table { width: 100%; border-collapse: collapse; }
             th, td { text-align: left; vertical-align: top; padding: 10px 0; border-top: 1px solid #dcdfe6; }

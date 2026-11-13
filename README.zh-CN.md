@@ -91,7 +91,7 @@ export DB_PASSWORD='your-password'
 | [AGENTS.md](AGENTS.md) | AI 每次开始工作的入口；`CLAUDE.md` 指向同一文件 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 分层、业务规则归属和对应检查 |
 | [DESIGN.md](DESIGN.md) | 界面风格，以及按任务查看哪份设计文件的索引 |
-| [docs/design/](docs/design/) | 设计基础、组件选择和十九种页面模式（列表、详情、表单、空 / 错误 / 加载状态、仪表盘、设置、消息流、登录注册、错误页，以及批量操作、导入导出、打印、搜索结果、向导、审批、列表加详情、报表、日历、看板）；开发时打开 `/style` 查看全部演示 |
+| [docs/design/](docs/design/) | 设计基础、组件选择和二十六种页面模式（列表、详情、表单、空 / 错误 / 加载状态、仪表盘、设置、消息流、登录注册、错误页、批量操作、导入导出、打印、搜索结果、向导、审批、列表加详情、报表、日历、看板，以及面向客户的页面：首页 / 落地页、价格、产品、客户中心、结账、帮助 / 常见问题和联系表单）；开发时打开 `/style` 查看全部演示 |
 | [docs/workflow.md](docs/workflow.md) | 提问、计划、实现、验证和审查流程 |
 | [docs/PLANS.md](docs/PLANS.md) | 执行计划格式 |
 | [docs/golden-principles.md](docs/golden-principles.md) | 十项原则及其检查方式 |
@@ -100,6 +100,10 @@ export DB_PASSWORD='your-password'
 | [CHANGELOG.md](CHANGELOG.md) | 版本记录 |
 
 修改规则或工具需要用户批准，之后还需运行 `composer check:reference`。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
+
+## 部署
+
+需要生成 PDF 的服务器，PHP 的 `memory_limit` 至少要 256M。PDF 视图用 Noto Sans SC（`resources/fonts/`，每个字重约 10.6 MB，SIL 开源字体许可）绘制所有文字，所以中文能正常打印；DOMPDF 要读完整字体才能裁出 PDF 用到的字，一次渲染的峰值约 120 到 130 MB，超过 PHP 默认的 128M。`phpunit.xml` 已为测试设为 256M。DOMPDF 把字体文件和字体度量放在 `storage/fonts`，该目录必须可写。
 
 ## 来源与许可
 

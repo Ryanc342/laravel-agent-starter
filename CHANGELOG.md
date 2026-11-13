@@ -59,6 +59,26 @@ Removed
 
 - `components/ui/alert.tsx` and `components/ui/placeholder-pattern.tsx` (unused).
 
+### Batch 3 (still part of 1.2.0)
+
+Added
+
+- Seven customer-page patterns in `docs/design/patterns/`, each with a spec and a demo on `/style` in English and in Chinese: home / landing, pricing, product or service, customer self-service area, order / checkout, help / FAQ and contact form. `DESIGN.md` and principle 10 list them (one new `ui` rule: no invented reviews, customer logos, user numbers or stock photos).
+- The public layout (`layouts/public-layout.tsx`, `PublicHeader`, `PublicFooter`): a top bar with the logo, the links of the pages that exist, "Log in" and "Get started" (or "Dashboard" when signed in) and, on a phone, a menu `Sheet`; a footer with one row of links and the copyright line. The home page `/` is rebuilt on it with `Hero` and `FeatureGrid` (the component `welcome/index` and the route `home` are unchanged).
+- Shared blocks in `components/shared`: `Hero`, `FeatureGrid`, `PricingPlans` (the monthly / yearly choice lives in the URL), `FaqList` (search, topics, collapsible rows), `AccountNav`, `LineItems`, `OrderSummary` and `ContactForm`; `components/ui/textarea.tsx`.
+- The display size: the tokens `--text-display` and `--text-display-lg` in `resources/css/app.css`, used only by the home hero and the pricing page.
+- Noto Sans SC Regular and Bold (static TrueType cut from the official variable font, SIL OFL, `resources/fonts/`) and `config/laravel-pdf.php` (`chroot`, `font_dir`, `font_cache` in `storage/fonts`): the task PDF now prints Chinese. A server that makes PDFs needs a PHP `memory_limit` of at least 256M (`phpunit.xml` sets it; the README says so).
+- `kanbanAnnouncements` and `kanbanInstructions` in `lib/kanban.ts`: a screen reader hears the card's title and the column's status while dragging with the keyboard.
+
+Changed
+
+- `formatMoney(minor, currency?)` takes an optional currency code and reads the minor unit from it. A list's amount range is typed in major units and converted by the backend (`patterns/list.md`).
+- `useValidationErrorToasts` finds an input named `items[0][quantity]` for the error key `items.0.quantity`, at any depth.
+
+Removed
+
+- The old styled home page (raw colours and sizes) and all five rows of `docs/exec-plans/tech-debt.md`.
+
 ## [1.1.0] - 2026-11-10
 
 Public Composer package release; the older 2.x entries below describe the template's history before its public 1.0 release.

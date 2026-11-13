@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
     dropTarget,
+    kanbanAnnouncements,
+    kanbanInstructions,
     type KanbanCard,
     type KanbanColumn,
     type KanbanMove,
@@ -224,6 +226,10 @@ export default function KanbanBoard<Card extends KanbanCard>({
             id={dndId}
             sensors={sensors}
             collisionDetection={closestCorners}
+            accessibility={{
+                announcements: kanbanAnnouncements(columns),
+                screenReaderInstructions: { draggable: kanbanInstructions },
+            }}
             onDragStart={start}
             onDragEnd={end}
             onDragCancel={() => setDragging(null)}
