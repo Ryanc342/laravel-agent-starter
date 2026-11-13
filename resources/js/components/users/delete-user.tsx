@@ -1,5 +1,4 @@
 import { Form } from '@inertiajs/react';
-import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
 import PasswordInput from '@/components/password-input';
@@ -12,8 +11,6 @@ import ResponsiveDialog, {
 import { Button } from '@/components/ui/button';
 
 export default function DeleteUser() {
-    const passwordInput = useRef<HTMLInputElement>(null);
-
     return (
         <div className="space-y-6">
             <Heading variant="small" title="Delete account" />
@@ -42,7 +39,6 @@ export default function DeleteUser() {
                         options={{
                             preserveScroll: true,
                         }}
-                        onError={() => passwordInput.current?.focus()}
                         resetOnSuccess
                         className="flex min-h-0 flex-1 flex-col gap-6"
                     >
@@ -58,7 +54,6 @@ export default function DeleteUser() {
                                         <PasswordInput
                                             id="password"
                                             name="password"
-                                            ref={passwordInput}
                                             placeholder="Password"
                                             autoComplete="current-password"
                                         />

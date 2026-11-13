@@ -1,5 +1,4 @@
 import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
 import FormField from '@/components/shared/form-field';
@@ -18,9 +17,6 @@ type Props = {
     ManageTwoFactorProps;
 
 export default function Security(props: Props) {
-    const passwordInput = useRef<HTMLInputElement>(null);
-    const currentPasswordInput = useRef<HTMLInputElement>(null);
-
     return (
         <>
             <Head title="Security settings" />
@@ -41,15 +37,6 @@ export default function Security(props: Props) {
                         'current_password',
                     ]}
                     resetOnSuccess
-                    onError={(errors) => {
-                        if (errors.password) {
-                            passwordInput.current?.focus();
-                        }
-
-                        if (errors.current_password) {
-                            currentPasswordInput.current?.focus();
-                        }
-                    }}
                     className="space-y-6"
                 >
                     {({ errors, processing }) => (
@@ -61,7 +48,6 @@ export default function Security(props: Props) {
                             >
                                 <PasswordInput
                                     id="current_password"
-                                    ref={currentPasswordInput}
                                     name="current_password"
                                     autoComplete="current-password"
                                     placeholder="Current password"
@@ -72,7 +58,6 @@ export default function Security(props: Props) {
                                 passwordRules={props.passwordRules}
                                 errors={errors}
                                 label="New password"
-                                passwordRef={passwordInput}
                             />
 
                             <div className="flex items-center gap-4">

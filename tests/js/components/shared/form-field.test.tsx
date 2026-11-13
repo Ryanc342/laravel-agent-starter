@@ -1,12 +1,20 @@
-import { render, screen } from '@testing-library/react';
-import { afterEach, expect, test, vi } from 'vite-plus/test';
+import { render, screen, waitFor } from '@testing-library/react';
+import { toast } from 'sonner';
+import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
 import FormField from '@/components/shared/form-field';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
+vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
+
+beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+});
 
 afterEach(() => {
     vi.mocked(useIsMobile).mockReset();
+    vi.mocked(toast.error).mockClear();
 });
 
 function field(props: Partial<Parameters<typeof FormField>[0]> = {}) {
@@ -64,17 +72,21 @@ test('a hidden label is still there for screen readers and the field takes the f
     expect(layoutOf(input)).toBe('stacked');
 });
 
-test('the error shows under the input, in the same column', () => {
+test('an error is a toast and a red border, with no visible text under the input', async () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
 
     render(field({ error: 'Enter a title.' }));
     const input = screen.getByLabelText('Title');
     const error = screen.getByText('Enter a title.');
 
-    expect(input.parentElement?.contains(error)).toBe(true);
-    expect(
-        input.compareDocumentPosition(error) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith('Enter a title.', {
+            id: 'field-error-title',
+        }),
+    );
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(error.className).toContain('sr-only');
+    expect(document.activeElement).toBe(input);
 });
 
 test('no error, no error text', () => {

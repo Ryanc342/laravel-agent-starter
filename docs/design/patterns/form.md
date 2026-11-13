@@ -22,7 +22,7 @@ Use for creating or editing something.
 
 ## Rules
 
-- Use Inertia's `<Form>` with Wayfinder routes, and turn errors into toasts with the shared form-errors hook (docs/rules/frontend.md). Validation lives in the FormRequest; React adds only HTML attributes.
+- Use Inertia's `<Form>` with Wayfinder routes, and let `FormField` turn errors into toasts (its `useFieldError` hook, docs/rules/frontend.md). Validation lives in the FormRequest; React adds only HTML attributes.
 - One `…-form-dialog.tsx` component is both the create and the edit dialog: it owns `open` and closes it in the form's `onSuccess`. One `…-fields.tsx` component holds the fields it shows.
 - Choices: `Select` for a list, `Checkbox` for yes or no, `ToggleGroup` for two to seven modes.
 

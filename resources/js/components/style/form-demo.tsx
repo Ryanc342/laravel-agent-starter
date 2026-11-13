@@ -30,11 +30,7 @@ function DemoForm({
                     htmlFor="form-demo-title"
                     error={error}
                 >
-                    <Input
-                        id="form-demo-title"
-                        defaultValue={task?.title}
-                        aria-invalid={error !== undefined}
-                    />
+                    <Input id="form-demo-title" defaultValue={task?.title} />
                 </FormField>
                 <FormField label="Due date" htmlFor="form-demo-due">
                     <Input

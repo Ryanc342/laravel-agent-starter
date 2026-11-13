@@ -2,10 +2,10 @@ import type { UrlMethodPair } from '@inertiajs/core';
 import { router } from '@inertiajs/react';
 import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { KeyRound } from 'lucide-react';
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import { useErrorsToast } from '@/hooks/use-errors-toast';
 import { dashboard } from '@/routes';
 
 type Props = {
@@ -36,6 +36,8 @@ export default function PasskeyVerify({
         },
     });
 
+    useErrorsToast(error ? [error] : undefined, 'passkey-verify-error');
+
     if (!isSupported) {
         return null;
     }
@@ -55,9 +57,6 @@ export default function PasskeyVerify({
                         ? (loadingLabel ?? 'Authenticating...')
                         : (label ?? 'Sign in with a passkey')}
                 </Button>
-                {error && (
-                    <InputError message={error} className="text-center" />
-                )}
             </div>
 
             <div className="relative my-6">

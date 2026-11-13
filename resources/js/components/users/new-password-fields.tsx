@@ -1,4 +1,3 @@
-import type { Ref } from 'react';
 import PasswordInput from '@/components/password-input';
 import FormField from '@/components/shared/form-field';
 
@@ -14,14 +13,12 @@ export default function NewPasswordFields({
     label = 'Password',
     autoFocus = false,
     stacked = false,
-    passwordRef,
 }: {
     passwordRules: string;
     errors: { password?: string; password_confirmation?: string };
     label?: string;
     autoFocus?: boolean;
     stacked?: boolean;
-    passwordRef?: Ref<HTMLInputElement>;
 }) {
     return (
         <>
@@ -33,7 +30,6 @@ export default function NewPasswordFields({
             >
                 <PasswordInput
                     id="password"
-                    ref={passwordRef}
                     name="password"
                     required
                     autoFocus={autoFocus}

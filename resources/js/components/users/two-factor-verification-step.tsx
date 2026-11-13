@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import InputError from '@/components/input-error';
+import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
@@ -44,18 +44,21 @@ export default function TwoFactorVerificationStep({
                         ref={pinInputContainerRef}
                         className="relative w-full space-y-3"
                     >
-                        <div className="flex w-full flex-col items-center space-y-3 py-2">
-                            <TwoFactorCodeInput
-                                id="otp"
-                                onChange={setCode}
-                                disabled={processing}
-                            />
-                            <InputError
-                                message={
-                                    errors?.confirmTwoFactorAuthentication?.code
-                                }
-                            />
-                        </div>
+                        <FormField
+                            label="Authentication code"
+                            htmlFor="otp"
+                            hideLabel
+                            className="py-2"
+                            error={errors?.confirmTwoFactorAuthentication?.code}
+                        >
+                            <div className="flex w-full items-center justify-center">
+                                <TwoFactorCodeInput
+                                    id="otp"
+                                    onChange={setCode}
+                                    disabled={processing}
+                                />
+                            </div>
+                        </FormField>
 
                         <div className="flex w-full space-x-5">
                             <Button

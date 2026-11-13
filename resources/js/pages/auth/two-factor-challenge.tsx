@@ -1,6 +1,5 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import InputError from '@/components/input-error';
 import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,16 +74,21 @@ export default function TwoFactorChallenge() {
                                     />
                                 </FormField>
                             ) : (
-                                <div className="flex flex-col items-center justify-center space-y-3 text-center">
+                                <FormField
+                                    label="Authentication code"
+                                    htmlFor="code"
+                                    hideLabel
+                                    error={errors.code}
+                                >
                                     <div className="flex w-full items-center justify-center">
                                         <TwoFactorCodeInput
+                                            id="code"
                                             value={code}
                                             onChange={setCode}
                                             disabled={processing}
                                         />
                                     </div>
-                                    <InputError message={errors.code} />
-                                </div>
+                                </FormField>
                             )}
 
                             <Button

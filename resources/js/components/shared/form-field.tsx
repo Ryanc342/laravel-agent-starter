@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
+import { useFieldError } from '@/hooks/use-field-error';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +22,9 @@ type Props = {
 
 /**
  * One field of a form: the label on the left of the input on desktop and above
- * it on a phone, the error under the input.
+ * it on a phone. An error is not shown under the input: it is a toast, the
+ * input gets a red border and the first field with an error is focused
+ * (`useFieldError`). Screen readers still get the message.
  */
 export default function FormField({
     label,
@@ -34,6 +37,9 @@ export default function FormField({
     children,
 }: Props) {
     const isMobile = useIsMobile();
+
+    useFieldError(error, htmlFor);
+
     const row = !stacked && !hideLabel && !isMobile && !labelAction;
 
     const labelElement = (
@@ -63,7 +69,7 @@ export default function FormField({
             )}
             <div className={cn('grid gap-2', row && 'col-span-2')}>
                 {children}
-                <InputError message={error} />
+                <InputError message={error} className="sr-only" />
             </div>
         </div>
     );

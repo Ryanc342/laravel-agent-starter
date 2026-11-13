@@ -27,7 +27,7 @@ export default function SharedDemo({
 }) {
     return (
         <div className="grid gap-8">
-            <Specimen label="FormField: the label on the left on desktop and above on a phone, the error under the input">
+            <Specimen label="FormField: the label on the left on desktop and above on a phone; a field with an error has a red border and its message is a toast (open the dialog under Form)">
                 <div className="grid w-full max-w-xl gap-6">
                     <FormField label="Title" htmlFor="style-field-title">
                         <Input
@@ -35,11 +35,7 @@ export default function SharedDemo({
                             defaultValue="Write the report"
                         />
                     </FormField>
-                    <FormField
-                        label="Due date"
-                        htmlFor="style-field-due"
-                        error="Enter a date that exists."
-                    >
+                    <FormField label="Due date" htmlFor="style-field-due">
                         <Input
                             id="style-field-due"
                             defaultValue="31/02/2026"
