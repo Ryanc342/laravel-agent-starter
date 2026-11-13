@@ -15,6 +15,69 @@ final class TaskCsv
     /** The column names of the first line. The file format is a contract, so they are not translated. */
     public const array HEADERS = ['Title', 'Status', 'Due date'];
 
+    /** The columns the import reads. Other columns (the export's Status) are ignored. */
+    public const array IMPORT_HEADERS = ['Title', 'Due date'];
+
+    /**
+     * Writes the import template to the response body: the byte order mark and the column names, ready to fill in.
+     */
+    public static function outputTemplate(): void
+    {
+        $stream = self::open();
+
+        fwrite($stream, "\xEF\xBB\xBF");
+        fputcsv($stream, self::IMPORT_HEADERS, escape: '');
+        fclose($stream);
+    }
+
+    /**
+     * Reads an uploaded file: whether it is UTF-8, its column names (lower case, trimmed) and its lines
+     * below the first, keyed by the spreadsheet's row number (the first line is row 1) so an error can
+     * say "Row 3". Blank lines are skipped but still counted. A missing or blank value is null.
+     *
+     * @return array{utf8: bool, columns: list<string>, rows: array<int, array{title: string|null, due_on: string|null}>}
+     */
+    public static function read(string $path): array
+    {
+        $content = (string) file_get_contents($path);
+        $utf8 = mb_check_encoding($content, 'UTF-8');
+        $content = str_starts_with($content, "\xEF\xBB\xBF") ? substr($content, 3) : $content;
+
+        $stream = fopen('php://memory', 'r+');
+
+        if ($stream === false) {
+            throw new RuntimeException('The file could not be read.');
+        }
+
+        fwrite($stream, $content);
+        rewind($stream);
+
+        $header = fgetcsv($stream, escape: '');
+        $columns = $header === false ? [] : array_map(fn (?string $name): string => mb_strtolower(trim((string) $name)), $header);
+        $title = array_search('title', $columns, true);
+        $due = array_search('due date', $columns, true);
+
+        $rows = [];
+        $number = 1;
+
+        while (($record = fgetcsv($stream, escape: '')) !== false) {
+            $number++;
+
+            if (trim(implode('', array_map(strval(...), $record))) === '') {
+                continue;
+            }
+
+            $rows[$number] = [
+                'title' => $title === false ? null : self::value($record[$title] ?? null),
+                'due_on' => $due === false ? null : self::value($record[$due] ?? null),
+            ];
+        }
+
+        fclose($stream);
+
+        return ['utf8' => $utf8, 'columns' => $columns, 'rows' => $rows];
+    }
+
     /**
      * Writes the file to the response body, line by line, so a long list never sits in memory.
      *
@@ -22,11 +85,7 @@ final class TaskCsv
      */
     public static function output(iterable $tasks): void
     {
-        $stream = fopen('php://output', 'w');
-
-        if ($stream === false) {
-            throw new RuntimeException('The response body could not be opened.');
-        }
+        $stream = self::open();
 
         self::write($tasks, $stream);
         fclose($stream);
@@ -50,6 +109,27 @@ final class TaskCsv
                 $task->due_on?->toDateString() ?? '',
             ], escape: '');
         }
+    }
+
+    /**
+     * @return resource
+     */
+    private static function open()
+    {
+        $stream = fopen('php://output', 'w');
+
+        if ($stream === false) {
+            throw new RuntimeException('The response body could not be opened.');
+        }
+
+        return $stream;
+    }
+
+    private static function value(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 
     /**

@@ -6,6 +6,7 @@ import type { Choice } from '@/components/shared/column-menu';
 import Pagination from '@/components/shared/pagination';
 import TaskBulkActions from '@/components/tasks/task-bulk-actions';
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
+import TaskImportDialog from '@/components/tasks/task-import-dialog';
 import TaskTable from '@/components/tasks/task-table';
 import { Button } from '@/components/ui/button';
 import { useRowSelection } from '@/hooks/use-row-selection';
@@ -61,6 +62,10 @@ export default function Tasks({
                                 )}
                             </Form>
                         )}
+
+                        <TaskImportDialog
+                            trigger={<Button variant="outline">Import</Button>}
+                        />
 
                         <Button variant="outline" asChild>
                             {/* A plain link: the file is downloaded, and it is the list as it is shown now. */}

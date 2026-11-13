@@ -25,6 +25,11 @@ class TaskPolicy
         return true;
     }
 
+    public function import(User $user): bool
+    {
+        return true;
+    }
+
     public function completeMany(User $user): bool
     {
         return true;

@@ -185,3 +185,41 @@ test('a value that is not a message is never given to the toast', () => {
 
     expect(toast.error).not.toHaveBeenCalled();
 });
+
+test('the errors of an import are each one toast: the rows, then the line for the rest', () => {
+    form();
+
+    fail({
+        'rows.2.due_on': 'Row 2: Due date is not a date.',
+        'rows.3.title': 'Row 3: Title is required.',
+        'rows.4.due_on': 'Row 4: Due date is not a date.',
+        'rows.5.due_on': 'Row 5: Due date is not a date.',
+        'rows.6.due_on': 'Row 6: Due date is not a date.',
+        more_errors: 'And 2 more errors.',
+    });
+
+    expect(toast.error).toHaveBeenCalledTimes(6);
+    expect(toast.error).toHaveBeenCalledWith('Row 3: Title is required.', {
+        id: 'field-error-rows.3.title',
+    });
+    expect(toast.error).toHaveBeenLastCalledWith('And 2 more errors.', {
+        id: 'field-error-more_errors',
+    });
+});
+
+test('a file error focuses the file field of the open dialog', async () => {
+    render(
+        <>
+            <Listener />
+            <div role="dialog">
+                <input type="file" name="file" aria-label="CSV file" />
+            </div>
+        </>,
+    );
+
+    fail({ file: 'The file must be a CSV file.' });
+
+    await waitFor(() =>
+        expect(document.activeElement).toBe(screen.getByLabelText('CSV file')),
+    );
+});

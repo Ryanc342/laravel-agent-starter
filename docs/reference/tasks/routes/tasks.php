@@ -6,6 +6,8 @@ use App\Http\Controllers\OverdueTaskCompletionController;
 use App\Http\Controllers\TaskCompletionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskExportController;
+use App\Http\Controllers\TaskImportController;
+use App\Http\Controllers\TaskImportTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -16,6 +18,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('tasks/overdue/completion', [OverdueTaskCompletionController::class, 'store'])->name('tasks.overdue-completion.store');
 
     Route::get('tasks/export', TaskExportController::class)->name('tasks.export');
+    Route::get('tasks/import/template', TaskImportTemplateController::class)->name('tasks.import.template');
+    Route::post('tasks/import', [TaskImportController::class, 'store'])->name('tasks.import.store');
     Route::post('tasks/bulk/completion', [BulkTaskCompletionController::class, 'store'])->name('tasks.bulk-completion.store');
     Route::delete('tasks/bulk', [BulkTaskDeletionController::class, 'destroy'])->name('tasks.bulk-deletion.destroy');
 
