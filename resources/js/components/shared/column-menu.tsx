@@ -3,6 +3,7 @@ import { useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import UrlSearchInput from '@/components/shared/url-search-input';
 import { Label } from '@/components/ui/label';
 import {
     Popover,
@@ -65,6 +66,18 @@ export function clearedChanges(
  * ticked option the tick list offers, an end of its range. The funnel mirrors
  * what the menu displays; what the backend applies is its own decision.
  */
+/** Whether the list is sorted by this column, and which way. */
+function sortState(
+    menu: ColumnMenuConfig,
+    url: string,
+): { sorted: boolean; direction: 'asc' | 'desc' } {
+    return {
+        sorted:
+            Boolean(menu.sortKey) && listParam(url, 'sort') === menu.sortKey,
+        direction: listParam(url, 'direction') === 'desc' ? 'desc' : 'asc',
+    };
+}
+
 function isFiltered(menu: ColumnMenuConfig, url: string): boolean {
     return (
         Boolean(
@@ -84,26 +97,6 @@ function isFiltered(menu: ColumnMenuConfig, url: string): boolean {
     );
 }
 
-function TextSearch({ header, param }: { header: string; param: string }) {
-    const { value, onType, commit } = useUrlParam(param);
-
-    return (
-        <Input
-            type="search"
-            aria-label={`Search ${header}`}
-            placeholder={`Search ${header.toLowerCase()}`}
-            value={value}
-            onChange={(event) => onType(event.target.value)}
-            onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    commit();
-                }
-            }}
-        />
-    );
-}
-
 function RangeEnd({
     label,
     param,
@@ -114,27 +107,13 @@ function RangeEnd({
     type: 'date' | 'number';
 }) {
     const id = useId();
-    const { value, onType, commit } = useUrlParam(param);
+    // A picked date asks at once; a typed amount waits for a pause.
+    const { inputProps } = useUrlParam(param, type === 'date' ? 0 : 400);
 
     return (
         <div className="grid gap-1.5">
             <Label htmlFor={id}>{label}</Label>
-            <Input
-                id={id}
-                type={type}
-                value={value}
-                onChange={(event) =>
-                    type === 'date'
-                        ? commit(event.target.value)
-                        : onType(event.target.value)
-                }
-                onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                        commit();
-                    }
-                }}
-            />
+            <Input id={id} type={type} {...inputProps} />
         </div>
     );
 }
@@ -207,8 +186,7 @@ export function ColumnMenuContent({
     clearable?: boolean;
 }) {
     const { url, change } = useListQuery();
-    const sorted = menu.sortKey && listParam(url, 'sort') === menu.sortKey;
-    const direction = listParam(url, 'direction');
+    const { sorted, direction } = sortState(menu, url);
 
     return (
         <div className="grid gap-4">
@@ -220,7 +198,7 @@ export function ColumnMenuContent({
                             type="button"
                             variant="ghost"
                             className="justify-start"
-                            aria-pressed={Boolean(sorted) && direction === way}
+                            aria-pressed={sorted && direction === way}
                             onClick={() =>
                                 change({ sort: menu.sortKey!, direction: way })
                             }
@@ -234,7 +212,11 @@ export function ColumnMenuContent({
                 </div>
             )}
             {menu.search && (
-                <TextSearch header={header} param={menu.search.param} />
+                <UrlSearchInput
+                    param={menu.search.param}
+                    aria-label={`Search ${header}`}
+                    placeholder={`Search ${header.toLowerCase()}`}
+                />
             )}
             {menu.options && (
                 <TickList
@@ -282,8 +264,7 @@ export default function ColumnMenu({
     menu: ColumnMenuConfig;
 }) {
     const { url } = useListQuery();
-    const sorted = menu.sortKey && listParam(url, 'sort') === menu.sortKey;
-    const direction = listParam(url, 'direction') === 'desc' ? 'desc' : 'asc';
+    const { sorted, direction } = sortState(menu, url);
     const filtered = isFiltered(menu, url);
 
     return (

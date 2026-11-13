@@ -1,12 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+    type ChangeEvent,
+    type KeyboardEvent,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 import { useListQuery } from '@/hooks/use-list-query';
 import { listParam } from '@/lib/list-query';
 
 /**
  * A text box tied to one URL parameter (the search, a range end). Typing
- * updates the box at once and asks for the list after a short pause; `commit`
- * asks at once (Enter, a picked date). When the address changes some other way
- * (Clear), the box follows it.
+ * updates the box at once and asks for the list after a short pause (`delay`;
+ * with 0, as for a picked date, at once); Enter asks at once. When the address
+ * changes some other way (Clear), the box follows it. `inputProps` go straight
+ * onto an `Input`.
  */
 export function useUrlParam(param: string, delay = 400) {
     const { url, change } = useListQuery();
@@ -30,16 +37,33 @@ export function useUrlParam(param: string, delay = 400) {
         change({ [param]: next });
     };
 
+    const commit = (next: string) => {
+        setValue(next);
+        send(next);
+    };
+
     return {
-        value,
-        onType: (next: string) => {
-            setValue(next);
-            clearTimeout(timer.current);
-            timer.current = setTimeout(() => send(next), delay);
-        },
-        commit: (next: string = value) => {
-            setValue(next);
-            send(next);
+        inputProps: {
+            value,
+            onChange: (event: ChangeEvent<HTMLInputElement>) => {
+                const next = event.target.value;
+
+                if (delay === 0) {
+                    commit(next);
+
+                    return;
+                }
+
+                setValue(next);
+                clearTimeout(timer.current);
+                timer.current = setTimeout(() => send(next), delay);
+            },
+            onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    commit(value);
+                }
+            },
         },
     };
 }

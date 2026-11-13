@@ -3,12 +3,30 @@ import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
 import ListToolbar from '@/components/shared/list-toolbar';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const state = vi.hoisted(() => ({ url: '/tasks', get: vi.fn() }));
-
-vi.mock('@inertiajs/react', () => ({
-    router: { get: state.get },
-    usePage: () => ({ url: state.url }),
+const state = vi.hoisted(() => ({
+    url: '/tasks',
+    get: vi.fn(),
+    listeners: new Set<() => void>(),
 }));
+
+// Like Inertia's page context: a component that reads the page re-renders when the address changes.
+vi.mock('@inertiajs/react', async () => {
+    const { useSyncExternalStore } = await import('react');
+
+    return {
+        router: { get: state.get },
+        usePage: () => ({
+            url: useSyncExternalStore(
+                (listener) => {
+                    state.listeners.add(listener);
+
+                    return () => state.listeners.delete(listener);
+                },
+                () => state.url,
+            ),
+        }),
+    };
+});
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
 
 const columns = [
@@ -90,12 +108,12 @@ test('the search box shows what the address already searches for', () => {
 
 test('the search box follows the address when something else clears it', () => {
     state.url = '/tasks?search=quote';
-    const { rerender } = render(
-        <ListToolbar columns={columns} searchLabel="Search tasks" />,
-    );
+    render(<ListToolbar columns={columns} searchLabel="Search tasks" />);
 
-    state.url = '/tasks';
-    rerender(<ListToolbar columns={columns} searchLabel="Search tasks" />);
+    act(() => {
+        state.url = '/tasks';
+        state.listeners.forEach((listener) => listener());
+    });
 
     expect(
         (
