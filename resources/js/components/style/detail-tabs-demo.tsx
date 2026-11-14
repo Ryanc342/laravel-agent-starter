@@ -5,6 +5,7 @@ import UrlTabs from '@/components/shared/url-tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
+import { t } from '@/lib/i18n';
 
 type Item = { id: number; description: string; quantity: number; unit: number };
 
@@ -36,7 +37,7 @@ export default function DetailTabsDemo({
                     </Badge>
                 </div>
                 <Actions>
-                    <Button variant="outline">Edit order</Button>
+                    <Button variant="outline">{t('Edit order')}</Button>
                 </Actions>
             </div>
 
@@ -53,7 +54,7 @@ export default function DetailTabsDemo({
                                         className="grid gap-1"
                                     >
                                         <dt className="text-muted-foreground">
-                                            {fact.label}
+                                            {t(fact.label)}
                                         </dt>
                                         <dd>{fact.value}</dd>
                                     </div>

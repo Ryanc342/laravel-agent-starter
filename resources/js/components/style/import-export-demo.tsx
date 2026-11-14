@@ -10,6 +10,7 @@ import ResponsiveDialog, {
 } from '@/components/shared/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { t } from '@/lib/i18n';
 
 /**
  * Moving a list in and out as a CSV file. Export is a plain download of the
@@ -32,13 +33,15 @@ export default function ImportExportDemo({
     return (
         <div className="grid gap-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-                <Heading title="Tasks" />
+                <Heading title={t('Tasks')} />
                 <Actions data-testid="list-actions">
                     <ResponsiveDialog
                         open={open}
                         onOpenChange={setOpen}
-                        trigger={<Button variant="outline">Import</Button>}
-                        title="Import tasks"
+                        trigger={
+                            <Button variant="outline">{t('Import')}</Button>
+                        }
+                        title={t('Import tasks')}
                     >
                         <form
                             noValidate
@@ -54,7 +57,7 @@ export default function ImportExportDemo({
                         >
                             <ResponsiveDialogBody>
                                 <FormField
-                                    label="CSV file"
+                                    label={t('CSV file')}
                                     htmlFor="import-demo-file"
                                 >
                                     <Input
@@ -74,16 +77,16 @@ export default function ImportExportDemo({
                                         )
                                     }
                                 >
-                                    Download template
+                                    {t('Download template')}
                                 </Button>
                             </ResponsiveDialogBody>
                             <ResponsiveDialogFooter>
                                 <ResponsiveDialogClose asChild>
                                     <Button type="button" variant="outline">
-                                        Cancel
+                                        {t('Cancel')}
                                     </Button>
                                 </ResponsiveDialogClose>
-                                <Button type="submit">Import</Button>
+                                <Button type="submit">{t('Import')}</Button>
                             </ResponsiveDialogFooter>
                         </form>
                     </ResponsiveDialog>
@@ -95,9 +98,9 @@ export default function ImportExportDemo({
                             )
                         }
                     >
-                        Export
+                        {t('Export')}
                     </Button>
-                    <Button>Add task</Button>
+                    <Button>{t('Add task')}</Button>
                 </Actions>
             </div>
         </div>

@@ -13,21 +13,23 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useRowSelection } from '@/hooks/use-row-selection';
 import { formatDate } from '@/lib/format';
+import { t, tChoice } from '@/lib/i18n';
 
 const columns: TableColumn<ExampleTask>[] = [
     {
-        header: 'Title',
+        header: t('Title'),
         className: 'max-w-80 truncate font-medium',
         cell: (task) => task.title,
     },
     {
-        header: 'Status',
+        header: t('Status'),
         hideLabelOnCard: true,
         cell: (task) => <Badge variant="secondary">{task.status}</Badge>,
     },
     {
-        header: 'Due date',
-        cell: (task) => (task.due_on ? formatDate(task.due_on) : 'No due date'),
+        header: t('Due date'),
+        cell: (task) =>
+            task.due_on ? formatDate(task.due_on) : t('No due date'),
     },
 ];
 
@@ -52,16 +54,15 @@ export default function BulkActionsDemo({
     );
     const [confirming, setConfirming] = useState(false);
     const count = selection.allResults ? total : selection.count;
-    const noun = count === 1 ? 'task' : 'tasks';
 
     return (
         <div className="grid gap-4">
-            <Heading title="Tasks" />
+            <Heading title={t('Tasks')} />
             <ResponsiveTable
                 columns={columns}
                 rows={tasks}
                 getRowKey={(task) => task.id}
-                emptyMessage="You have no tasks yet."
+                emptyMessage={t('You have no tasks yet.')}
                 selection={{
                     pageState: selection.pageState,
                     onTogglePage: selection.togglePage,
@@ -90,33 +91,49 @@ export default function BulkActionsDemo({
             >
                 <Button
                     onClick={() => {
-                        toast.success(`${count} ${noun} completed.`);
+                        toast.success(
+                            tChoice(
+                                ':count task completed.|:count tasks completed.',
+                                count,
+                            ),
+                        );
                         selection.clear();
                     }}
                 >
-                    Complete
+                    {t('Complete')}
                 </Button>
                 <Button variant="outline" onClick={() => setConfirming(true)}>
-                    Delete
+                    {t('Delete')}
                 </Button>
             </BulkActionBar>
 
             <ConfirmDialog
                 open={confirming}
                 onOpenChange={setConfirming}
-                title={`Delete ${count} ${noun}?`}
-                consequence="They will be deleted. This cannot be undone."
+                title={tChoice(
+                    'Delete :count task?|Delete :count tasks?',
+                    count,
+                )}
+                consequence={t('They will be deleted. This cannot be undone.')}
             >
                 <ConfirmDialogActions>
                     <Button
                         variant="destructive"
                         onClick={() => {
-                            toast.success(`${count} ${noun} deleted.`);
+                            toast.success(
+                                tChoice(
+                                    ':count task deleted.|:count tasks deleted.',
+                                    count,
+                                ),
+                            );
                             setConfirming(false);
                             selection.clear();
                         }}
                     >
-                        Delete {count} {noun}
+                        {tChoice(
+                            'Delete :count task|Delete :count tasks',
+                            count,
+                        )}
                     </Button>
                 </ConfirmDialogActions>
             </ConfirmDialog>

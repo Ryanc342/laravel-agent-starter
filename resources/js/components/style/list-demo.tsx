@@ -9,11 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatMoney } from '@/lib/format';
 import type { ResourceCollection } from '@/types/resource';
+import { t } from '@/lib/i18n';
 
 function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
     return [
         {
-            header: 'Title',
+            header: t('Title'),
             className: 'max-w-80 truncate font-medium',
             menu: { sortKey: 'title', search: { param: 'search' } },
             cell: (task) => (
@@ -26,7 +27,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
             ),
         },
         {
-            header: 'Status',
+            header: t('Status'),
             hideLabelOnCard: true,
             menu: {
                 sortKey: 'status',
@@ -36,13 +37,13 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
                 <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{task.status}</Badge>
                     {task.overdue && (
-                        <Badge variant="destructive">Overdue</Badge>
+                        <Badge variant="destructive">{t('Overdue')}</Badge>
                     )}
                 </div>
             ),
         },
         {
-            header: 'Amount',
+            header: t('Amount'),
             menu: {
                 sortKey: 'amount',
                 range: {
@@ -54,7 +55,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
             cell: (task) => formatMoney(task.amount),
         },
         {
-            header: 'Due date',
+            header: t('Due date'),
             menu: {
                 sortKey: 'due_on',
                 range: {
@@ -64,7 +65,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
                 },
             },
             cell: (task) =>
-                task.due_on ? formatDate(task.due_on) : 'No due date',
+                task.due_on ? formatDate(task.due_on) : t('No due date'),
         },
     ];
 }
@@ -88,17 +89,20 @@ export default function ListDemo({
     return (
         <div className="flex flex-col gap-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
-                <Heading title="Tasks" />
-                <Button>Add task</Button>
+                <Heading title={t('Tasks')} />
+                <Button>{t('Add task')}</Button>
             </div>
 
             <div className="flex flex-col gap-4">
-                <ListToolbar columns={columns} searchLabel="Search tasks" />
+                <ListToolbar
+                    columns={columns}
+                    searchLabel={t('Search tasks')}
+                />
                 <ResponsiveTable
                     columns={columns}
                     rows={tasks}
                     getRowKey={(task) => task.id}
-                    emptyMessage="You have no tasks yet."
+                    emptyMessage={t('You have no tasks yet.')}
                 />
             </div>
             <Pagination collection={pagination} />

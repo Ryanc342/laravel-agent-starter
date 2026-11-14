@@ -8,6 +8,7 @@ import MonthCalendar, {
 } from '@/components/shared/month-calendar';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
+import { t } from '@/lib/i18n';
 
 /**
  * A month of events by date. An event opens in a dialog with its facts; "+N
@@ -43,12 +44,12 @@ export default function CalendarDemo({
                 title={event?.title ?? ''}
             >
                 <dl className="grid gap-1 text-sm">
-                    <dt className="text-muted-foreground">Date</dt>
+                    <dt className="text-muted-foreground">{t('Date')}</dt>
                     <dd>{event ? formatDate(event.date) : ''}</dd>
                 </dl>
                 <ResponsiveDialogFooter>
                     <ResponsiveDialogClose asChild>
-                        <Button variant="outline">Close</Button>
+                        <Button variant="outline">{t('Close')}</Button>
                     </ResponsiveDialogClose>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>
@@ -69,7 +70,7 @@ export default function CalendarDemo({
                 </ul>
                 <ResponsiveDialogFooter>
                     <ResponsiveDialogClose asChild>
-                        <Button variant="outline">Close</Button>
+                        <Button variant="outline">{t('Close')}</Button>
                     </ResponsiveDialogClose>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>

@@ -4,6 +4,7 @@ import Heading from '@/components/heading';
 import KanbanBoard from '@/components/shared/kanban-board';
 import { Button } from '@/components/ui/button';
 import type { KanbanColumn, KanbanMove } from '@/lib/kanban';
+import { t } from '@/lib/i18n';
 
 export type ExampleCard = { id: string; title: string; owner: string };
 
@@ -46,8 +47,8 @@ export default function KanbanDemo({
     return (
         <div className="grid gap-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-                <Heading title="Orders" />
-                <Button>Add order</Button>
+                <Heading title={t('Orders')} />
+                <Button>{t('Add order')}</Button>
             </div>
             <KanbanBoard
                 columns={columns}

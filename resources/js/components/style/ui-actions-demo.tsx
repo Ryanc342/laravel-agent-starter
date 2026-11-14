@@ -9,6 +9,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { t } from '@/lib/i18n';
 
 const variants = [
     'default',
@@ -33,7 +34,11 @@ const badges = [
 export default function UiActionsDemo() {
     return (
         <div className="grid gap-8">
-            <Specimen label="Button variants: one default per area, outline for the rest">
+            <Specimen
+                label={t(
+                    'Button variants: one default per area, outline for the rest',
+                )}
+            >
                 {variants.map((variant) => (
                     <Button key={variant} variant={variant}>
                         {variant}
@@ -41,45 +46,53 @@ export default function UiActionsDemo() {
                 ))}
             </Specimen>
 
-            <Specimen label="Button sizes">
-                <Button size="sm">Small</Button>
-                <Button>Default</Button>
-                <Button size="lg">Large</Button>
+            <Specimen label={t('Button sizes')}>
+                <Button size="sm">{t('Small')}</Button>
+                <Button>{t('Default')}</Button>
+                <Button size="lg">{t('Large')}</Button>
                 <span className="text-sm text-muted-foreground">
-                    or in a sentence:{' '}
+                    {t('or in a sentence:')}{' '}
                     <Button variant="link" size="inline">
-                        inline
+                        {t('inline')}
                     </Button>
                 </span>
             </Specimen>
 
-            <Specimen label="Button states: disabled, and sending (disabled with a Spinner)">
-                <Button disabled>Disabled</Button>
+            <Specimen
+                label={t(
+                    'Button states: disabled, and sending (disabled with a Spinner)',
+                )}
+            >
+                <Button disabled>{t('Disabled')}</Button>
                 <Button disabled>
                     <Spinner />
-                    Saving
+                    {t('Saving')}
                 </Button>
                 <Button variant="outline" disabled>
-                    Disabled
+                    {t('Disabled')}
                 </Button>
             </Specimen>
 
-            <Specimen label="Icon button: always a Tooltip and an aria-label">
+            <Specimen
+                label={t('Icon button: always a Tooltip and an aria-label')}
+            >
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="Notifications"
+                            aria-label={t('Notifications')}
                         >
                             <Bell />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Notifications</TooltipContent>
+                    <TooltipContent>{t('Notifications')}</TooltipContent>
                 </Tooltip>
             </Specimen>
 
-            <Specimen label="Badge: a status, in the words the backend sends">
+            <Specimen
+                label={t('Badge: a status, in the words the backend sends')}
+            >
                 {badges.map(({ variant, label }) => (
                     <Badge key={variant} variant={variant}>
                         {label}
@@ -87,12 +100,14 @@ export default function UiActionsDemo() {
                 ))}
             </Specimen>
 
-            <Specimen label="Toasts: the result of an action and a network error">
+            <Specimen
+                label={t('Toasts: the result of an action and a network error')}
+            >
                 <Button
                     variant="outline"
                     onClick={() => toast.success('Task created.')}
                 >
-                    Success toast
+                    {t('Success toast')}
                 </Button>
                 <Button
                     variant="outline"
@@ -102,7 +117,7 @@ export default function UiActionsDemo() {
                         )
                     }
                 >
-                    Error toast
+                    {t('Error toast')}
                 </Button>
             </Specimen>
         </div>

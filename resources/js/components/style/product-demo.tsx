@@ -8,6 +8,7 @@ import PublicFrame from '@/components/style/public-frame';
 import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 /**
  * A product or service page (docs/design/patterns/product.md): the title and
@@ -60,7 +61,7 @@ export default function ProductDemo({
                         </div>
                         <div
                             role="img"
-                            aria-label="Picture"
+                            aria-label={t('Picture')}
                             className="aspect-video rounded-lg bg-muted"
                         />
                     </section>

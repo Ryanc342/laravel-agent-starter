@@ -37,60 +37,81 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { t } from '@/lib/i18n';
 
 /** What holds or reveals content: Table, Card, Avatar, Skeleton, Separator, and the layers (Popover, DropdownMenu, Sheet, Collapsible). */
+/** Example data: what a user typed, shown as it is. */
+const example = {
+    task: 'Write the report',
+    due: '17 Nov 2026',
+    next: 'Book the venue',
+    initials: 'TU',
+};
+
 export default function UiSurfacesDemo() {
     return (
         <div className="grid gap-8">
-            <Specimen label="Table: horizontal row lines only (a list of records uses ResponsiveTable)">
+            <Specimen
+                label={t(
+                    'Table: horizontal row lines only (a list of records uses ResponsiveTable)',
+                )}
+            >
                 <div className="w-full rounded-lg border">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Title</TableHead>
-                                <TableHead>Due date</TableHead>
+                                <TableHead>{t('Title')}</TableHead>
+                                <TableHead>{t('Due date')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow>
-                                <TableCell>Write the report</TableCell>
-                                <TableCell>17 Nov 2026</TableCell>
+                                <TableCell>{example.task}</TableCell>
+                                <TableCell>{example.due}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell>Book the venue</TableCell>
-                                <TableCell>No due date</TableCell>
+                                <TableCell>{example.next}</TableCell>
+                                <TableCell>{t('No due date')}</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
                 </div>
             </Specimen>
 
-            <Specimen label="Card: repeated items or a framed tool, never a card inside a card">
+            <Specimen
+                label={t(
+                    'Card: repeated items or a framed tool, never a card inside a card',
+                )}
+            >
                 <Card className="w-full max-w-sm">
                     <CardHeader>
-                        <CardTitle>Card title</CardTitle>
+                        <CardTitle>{t('Card title')}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm">
-                        The card's content.
+                        {t("The card's content.")}
                     </CardContent>
                 </Card>
             </Specimen>
 
-            <Specimen label="Avatar, Skeleton and Separator">
+            <Specimen label={t('Avatar, Skeleton and Separator')}>
                 <Avatar>
-                    <AvatarFallback>TU</AvatarFallback>
+                    <AvatarFallback>{example.initials}</AvatarFallback>
                 </Avatar>
                 <Skeleton className="h-5 w-40" />
                 <Separator className="w-24" />
             </Specimen>
 
-            <Specimen label="Popover, DropdownMenu, Sheet and Collapsible: each opens from a button">
+            <Specimen
+                label={t(
+                    'Popover, DropdownMenu, Sheet and Collapsible: each opens from a button',
+                )}
+            >
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="outline">Popover</Button>
+                        <Button variant="outline">{t('Popover')}</Button>
                     </PopoverTrigger>
                     <PopoverContent className="text-sm">
-                        A small card that opens from a button.
+                        {t('A small card that opens from a button.')}
                     </PopoverContent>
                 </Popover>
 
@@ -98,34 +119,34 @@ export default function UiSurfacesDemo() {
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline">
                             <MoreHorizontal />
-                            Menu
+                            {t('Menu')}
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem>{t('Edit')}</DropdownMenuItem>
+                        <DropdownMenuItem>{t('Duplicate')}</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                        <DropdownMenuItem>{t('Delete')}</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
                 <Sheet>
                     <SheetTrigger asChild>
-                        <Button variant="outline">Sheet</Button>
+                        <Button variant="outline">{t('Sheet')}</Button>
                     </SheetTrigger>
                     <SheetContent aria-describedby={undefined}>
                         <SheetHeader>
-                            <SheetTitle>Side panel</SheetTitle>
+                            <SheetTitle>{t('Side panel')}</SheetTitle>
                         </SheetHeader>
                     </SheetContent>
                 </Sheet>
 
                 <Collapsible className="grid gap-2">
                     <CollapsibleTrigger asChild>
-                        <Button variant="outline">Collapsible</Button>
+                        <Button variant="outline">{t('Collapsible')}</Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="text-sm text-muted-foreground">
-                        Details the user opens on demand.
+                        {t('Details the user opens on demand.')}
                     </CollapsibleContent>
                 </Collapsible>
             </Specimen>

@@ -5,6 +5,7 @@ import FormField from '@/components/shared/form-field';
 import WizardLayout from '@/components/shared/wizard-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { t } from '@/lib/i18n';
 
 type Step = { name: string; fields: { id: string; label: string }[] };
 
@@ -75,7 +76,7 @@ export default function WizardDemo({
                                     setCurrent(current - 1);
                                 }}
                             >
-                                Back
+                                {t('Back')}
                             </Button>
                         )}
                         <Button onClick={next}>
@@ -87,7 +88,7 @@ export default function WizardDemo({
                 {step.fields.map((field) => (
                     <FormField
                         key={field.id}
-                        label={field.label}
+                        label={t(field.label)}
                         htmlFor={`wizard-${field.id}`}
                         error={errors[field.id]}
                     >

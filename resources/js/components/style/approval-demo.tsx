@@ -12,6 +12,7 @@ import Timeline, { type TimelineEvent } from '@/components/shared/timeline';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { t } from '@/lib/i18n';
 
 /**
  * A record someone approves or rejects: the actions at the right end of the
@@ -92,15 +93,15 @@ export default function ApprovalDemo({
                 </div>
 
                 <Actions data-testid="record-actions">
-                    <Button variant="outline">Edit request</Button>
+                    <Button variant="outline">{t('Edit request')}</Button>
                     {view.can.reject && (
                         <Button variant="outline" onClick={() => setOpen(true)}>
-                            Reject
+                            {t('Reject')}
                         </Button>
                     )}
                     {view.can.approve && (
                         <Button onClick={() => decide('approved')}>
-                            Approve
+                            {t('Approve')}
                         </Button>
                     )}
                 </Actions>
@@ -116,18 +117,18 @@ export default function ApprovalDemo({
             </dl>
 
             <div className="grid gap-3">
-                <Heading variant="small" title="History" />
+                <Heading variant="small" title={t('History')} />
                 <Timeline events={history} />
             </div>
 
             <ResponsiveDialog
                 open={open}
                 onOpenChange={setOpen}
-                title="Reject request"
+                title={t('Reject request')}
             >
                 <ResponsiveDialogBody>
                     <FormField
-                        label="Reason"
+                        label={t('Reason')}
                         htmlFor="approval-reason"
                         error={error ?? undefined}
                     >
@@ -141,11 +142,11 @@ export default function ApprovalDemo({
                 <ResponsiveDialogFooter>
                     <ResponsiveDialogClose asChild>
                         <Button type="button" variant="outline">
-                            Cancel
+                            {t('Cancel')}
                         </Button>
                     </ResponsiveDialogClose>
                     <Button variant="destructive" onClick={reject}>
-                        Reject request
+                        {t('Reject request')}
                     </Button>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>

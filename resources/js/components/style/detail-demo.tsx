@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
+import { t } from '@/lib/i18n';
 
 /** One record's page: the breadcrumb that ends at the list, its name, status and actions, then its facts. */
 export default function DetailDemo({ task }: { task: ExampleTask }) {
@@ -18,7 +19,9 @@ export default function DetailDemo({ task }: { task: ExampleTask }) {
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
-                        <BreadcrumbLink href="#list">Tasks</BreadcrumbLink>
+                        <BreadcrumbLink href="#list">
+                            {t('Tasks')}
+                        </BreadcrumbLink>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -31,21 +34,23 @@ export default function DetailDemo({ task }: { task: ExampleTask }) {
                     </Badge>
                     {task.overdue && (
                         <Badge variant="destructive" className="mt-1">
-                            Overdue
+                            {t('Overdue')}
                         </Badge>
                     )}
                 </div>
 
                 <Actions data-testid="record-actions">
-                    <Button variant="outline">Edit task</Button>
-                    <Button variant="outline">Delete task</Button>
-                    <Button>Complete task</Button>
+                    <Button variant="outline">{t('Edit task')}</Button>
+                    <Button variant="outline">{t('Delete task')}</Button>
+                    <Button>{t('Complete task')}</Button>
                 </Actions>
             </div>
 
             <dl className="grid max-w-xl gap-1 text-sm">
-                <dt className="text-muted-foreground">Due date</dt>
-                <dd>{task.due_on ? formatDate(task.due_on) : 'No due date'}</dd>
+                <dt className="text-muted-foreground">{t('Due date')}</dt>
+                <dd>
+                    {task.due_on ? formatDate(task.due_on) : t('No due date')}
+                </dd>
             </dl>
         </div>
     );

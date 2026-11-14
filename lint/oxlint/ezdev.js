@@ -240,26 +240,24 @@ const READABLE_PROPS = new Set([
     'aria-label',
     'label',
     'alt',
+    'consequence',
+    'instruction',
+    'submitLabel',
+    'footer',
+    'footerLink',
+    'emptyMessage',
+    'searchLabel',
+    'backLabel',
+    'ariaLabel',
+    'more',
+    'message',
 ]);
 
 const hasLetters = (text) => /\p{L}/u.test(text);
 
-/**
- * The /style page is a development tool and stays English: its own section
- * titles, specimen labels and the example data its demos receive. The
- * components it shows are translated.
- */
-const isStylePage = (file) =>
-    file.startsWith('resources/js/components/style/') ||
-    file.startsWith('resources/js/pages/style/');
-
 const noUntranslatedText = rule(
     'Text a user reads goes through t()',
-    (context, file) => {
-        if (isStylePage(file)) {
-            return {};
-        }
-
+    (context) => {
         const message = (what) =>
             `${what} is written straight into JSX. Write it in English through t('...') (or tChoice) from @/lib/i18n and add its Chinese to lang/zh_CN.json. See docs/rules/translations.md.`;
 

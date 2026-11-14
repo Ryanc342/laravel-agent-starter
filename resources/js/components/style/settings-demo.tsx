@@ -4,6 +4,7 @@ import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SettingsLayout from '@/layouts/settings/layout';
+import { t } from '@/lib/i18n';
 
 /**
  * A settings page: the settings layout (the real one, with its nav) around a
@@ -19,18 +20,18 @@ export default function SettingsDemo({
     return (
         <SettingsLayout>
             <div className="space-y-6">
-                <Heading variant="small" title="Profile" />
+                <Heading variant="small" title={t('Profile')} />
 
                 <form
                     noValidate
                     onSubmit={(event) => event.preventDefault()}
                     className="space-y-6"
                 >
-                    <FormField label="Name" htmlFor="settings-demo-name">
+                    <FormField label={t('Name')} htmlFor="settings-demo-name">
                         <Input id="settings-demo-name" defaultValue={name} />
                     </FormField>
                     <FormField
-                        label="Email address"
+                        label={t('Email address')}
                         htmlFor="settings-demo-email"
                     >
                         <Input
@@ -40,7 +41,7 @@ export default function SettingsDemo({
                         />
                     </FormField>
                     <Actions>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">{t('Save')}</Button>
                     </Actions>
                 </form>
             </div>

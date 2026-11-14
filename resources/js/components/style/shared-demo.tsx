@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDate } from '@/lib/format';
 import type { ResourceCollection } from '@/types/resource';
+import { t } from '@/lib/i18n';
 
 /**
  * The blocks in components/shared. EmptyState, ErrorState and LoadingState are
@@ -26,15 +27,19 @@ export default function SharedDemo({
 }) {
     return (
         <div className="grid gap-8">
-            <Specimen label="FormField: the label on the left on desktop and above on a phone; a field with an error has a red border and its message is a toast (open the dialog under Form)">
+            <Specimen
+                label={t(
+                    'FormField: the label on the left on desktop and above on a phone; a field with an error has a red border and its message is a toast (open the dialog under Form)',
+                )}
+            >
                 <div className="grid w-full max-w-xl gap-6">
-                    <FormField label="Title" htmlFor="style-field-title">
+                    <FormField label={t('Title')} htmlFor="style-field-title">
                         <Input
                             id="style-field-title"
                             defaultValue="Write the report"
                         />
                     </FormField>
-                    <FormField label="Due date" htmlFor="style-field-due">
+                    <FormField label={t('Due date')} htmlFor="style-field-due">
                         <Input
                             id="style-field-due"
                             defaultValue="31/02/2026"
@@ -44,97 +49,113 @@ export default function SharedDemo({
                 </div>
             </Specimen>
 
-            <Specimen label="FormField in a narrow column (the label moves above the input) and with a hidden label (a search box)">
+            <Specimen
+                label={t(
+                    'FormField in a narrow column (the label moves above the input) and with a hidden label (a search box)',
+                )}
+            >
                 <div className="grid w-full max-w-sm gap-6">
                     <FormField
-                        label="Email address"
+                        label={t('Email address')}
                         htmlFor="style-field-email"
                     >
                         <Input
                             id="style-field-email"
-                            placeholder="email@example.com"
+                            placeholder={t('email@example.com')}
                         />
                     </FormField>
                     <FormField
-                        label="Search tasks"
+                        label={t('Search tasks')}
                         htmlFor="style-field-search"
                         hideLabel
                     >
                         <Input
                             id="style-field-search"
-                            placeholder="Search tasks"
+                            placeholder={t('Search tasks')}
                         />
                     </FormField>
                 </div>
             </Specimen>
 
-            <Specimen label="ConfirmDialog (a ResponsiveDialog): a centred dialog on desktop, a sheet from the bottom on a phone (open it, then narrow the window)">
+            <Specimen
+                label={t(
+                    'ConfirmDialog (a ResponsiveDialog): a centred dialog on desktop, a sheet from the bottom on a phone (open it, then narrow the window)',
+                )}
+            >
                 <ConfirmDialog
-                    trigger={<Button variant="outline">Delete task</Button>}
-                    title="Delete this task?"
-                    consequence="“Write the report” will be deleted. This cannot be undone."
+                    trigger={
+                        <Button variant="outline">{t('Delete task')}</Button>
+                    }
+                    title={t('Delete this task?')}
+                    consequence={t(
+                        '“Write the report” will be deleted. This cannot be undone.',
+                    )}
                 >
                     <ConfirmDialogActions>
-                        <Button variant="destructive">Delete task</Button>
+                        <Button variant="destructive">
+                            {t('Delete task')}
+                        </Button>
                     </ConfirmDialogActions>
                 </ConfirmDialog>
             </Specimen>
 
             <div className="grid gap-3">
                 <p className="text-sm text-muted-foreground">
-                    ResponsiveTable: a table on desktop, one card per row on a
-                    phone
+                    {t(
+                        'ResponsiveTable: a table on desktop, one card per row on a phone',
+                    )}
                 </p>
                 <ResponsiveTable
                     columns={[
-                        { header: 'Title', cell: (task) => task.title },
+                        { header: t('Title'), cell: (task) => task.title },
                         {
-                            header: 'Status',
+                            header: t('Status'),
                             hideLabelOnCard: true,
                             cell: (task) => (
                                 <Badge variant="secondary">{task.status}</Badge>
                             ),
                         },
                         {
-                            header: 'Due date',
+                            header: t('Due date'),
                             cell: (task) =>
                                 task.due_on
                                     ? formatDate(task.due_on)
-                                    : 'No due date',
+                                    : t('No due date'),
                         },
                     ]}
                     rows={tasks.slice(0, 2)}
                     getRowKey={(task) => task.id}
-                    emptyMessage="You have no tasks yet."
+                    emptyMessage={t('You have no tasks yet.')}
                 />
             </div>
 
             <div className="grid gap-3">
                 <p className="text-sm text-muted-foreground">
-                    ResponsiveTable with no records: the header row stays
+                    {t('ResponsiveTable with no records: the header row stays')}
                 </p>
                 <ResponsiveTable
                     columns={[
-                        { header: 'Title', cell: (task) => task.title },
-                        { header: 'Status', cell: (task) => task.status },
+                        { header: t('Title'), cell: (task) => task.title },
+                        { header: t('Status'), cell: (task) => task.status },
                         {
-                            header: 'Due date',
+                            header: t('Due date'),
                             cell: (task) =>
                                 task.due_on
                                     ? formatDate(task.due_on)
-                                    : 'No due date',
+                                    : t('No due date'),
                         },
                     ]}
                     rows={tasks.slice(0, 0)}
                     getRowKey={(task) => task.id}
-                    emptyMessage="You have no tasks yet."
+                    emptyMessage={t('You have no tasks yet.')}
                 />
             </div>
 
             <div className="grid gap-3">
                 <p className="text-sm text-muted-foreground">
-                    Pagination: the page links when the list has more than one
-                    page, and the rows per page (10, 20, 50, 100) next to them
+                    {t(
+                        'Pagination: the page links when the list has more than one page, and the rows per page (10, 20, 50, 100) next to them',
+                    )}
                 </p>
                 <Pagination collection={pagination} />
             </div>

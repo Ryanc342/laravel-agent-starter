@@ -11,6 +11,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { formatDate, formatMoney } from '@/lib/format';
+import { t } from '@/lib/i18n';
 
 export type ExampleInvoice = {
     number: string;
@@ -45,14 +46,16 @@ export default function PrintDemo({ invoice }: { invoice: ExampleInvoice }) {
         <div className="grid gap-6">
             <Actions data-testid="print-bar" className="print:hidden">
                 <Button variant="outline" onClick={inform}>
-                    Download PDF
+                    {t('Download PDF')}
                 </Button>
-                <Button onClick={inform}>Print</Button>
+                <Button onClick={inform}>{t('Print')}</Button>
             </Actions>
 
             <div className="grid max-w-3xl gap-6 rounded-lg border p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading title={`Invoice ${invoice.number}`} />
+                    <Heading
+                        title={t('Invoice :number', { number: invoice.number })}
+                    />
                     <p className="text-sm text-muted-foreground">
                         {formatDate(invoice.date)}
                     </p>
@@ -60,11 +63,11 @@ export default function PrintDemo({ invoice }: { invoice: ExampleInvoice }) {
 
                 <dl className="grid gap-4 text-sm sm:grid-cols-2">
                     <div className="grid gap-1">
-                        <dt className="text-muted-foreground">From</dt>
+                        <dt className="text-muted-foreground">{t('From')}</dt>
                         <dd>{invoice.seller}</dd>
                     </div>
                     <div className="grid gap-1">
-                        <dt className="text-muted-foreground">To</dt>
+                        <dt className="text-muted-foreground">{t('To')}</dt>
                         <dd>{invoice.buyer}</dd>
                     </div>
                 </dl>
@@ -72,10 +75,16 @@ export default function PrintDemo({ invoice }: { invoice: ExampleInvoice }) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Description</TableHead>
-                            <TableHead className="text-right">Qty</TableHead>
-                            <TableHead className="text-right">Price</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
+                            <TableHead>{t('Description')}</TableHead>
+                            <TableHead className="text-right">
+                                {t('Qty')}
+                            </TableHead>
+                            <TableHead className="text-right">
+                                {t('Price')}
+                            </TableHead>
+                            <TableHead className="text-right">
+                                {t('Total')}
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

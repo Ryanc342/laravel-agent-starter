@@ -5,6 +5,7 @@ import QuickLinks from '@/components/shared/quick-links';
 import type { ExampleNotification } from '@/components/style/types';
 import { Button } from '@/components/ui/button';
 import type { NavItem } from '@/types';
+import { t } from '@/lib/i18n';
 
 /** The page after login: the newest notifications beside the quick links. */
 export default function DashboardDemo({
@@ -16,12 +17,15 @@ export default function DashboardDemo({
 }) {
     return (
         <div className="flex flex-col gap-8">
-            <Heading title="Dashboard" />
+            <Heading title={t('Dashboard')} />
 
             <div className="grid gap-8 md:grid-cols-3">
                 <section className="grid content-start gap-4 md:col-span-2">
-                    <Heading variant="small" title="Latest notifications" />
-                    <FeedList emptyMessage="You have no notifications.">
+                    <Heading
+                        variant="small"
+                        title={t('Latest notifications')}
+                    />
+                    <FeedList emptyMessage={t('You have no notifications.')}>
                         {notifications.map((notification) => (
                             <FeedRow
                                 key={notification.id}
@@ -32,12 +36,12 @@ export default function DashboardDemo({
                         ))}
                     </FeedList>
                     <Button variant="outline" className="justify-self-start">
-                        View all notifications
+                        {t('View all notifications')}
                     </Button>
                 </section>
 
                 <section className="grid content-start gap-4">
-                    <Heading variant="small" title="Quick links" />
+                    <Heading variant="small" title={t('Quick links')} />
                     <QuickLinks links={links} />
                 </section>
             </div>

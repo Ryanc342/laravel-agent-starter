@@ -4,12 +4,13 @@ import ResponsiveTable from '@/components/shared/responsive-table';
 import type { TableColumn } from '@/components/shared/responsive-table';
 import { Button } from '@/components/ui/button';
 import type { ReactNode } from 'react';
+import { t } from '@/lib/i18n';
 
 type Row = { id: number; title: string; status: string };
 
 const columns: TableColumn<Row>[] = [
-    { header: 'Title', cell: (row) => row.title },
-    { header: 'Status', cell: (row) => row.status },
+    { header: t('Title'), cell: (row) => row.title },
+    { header: t('Status'), cell: (row) => row.status },
 ];
 
 function Region({
@@ -49,12 +50,14 @@ function TableState({
             columns={columns}
             rows={[]}
             getRowKey={(row) => row.id}
-            emptyMessage={`You have no ${subject} yet.`}
+            emptyMessage={t('You have no :subject yet.', { subject })}
             loading={loading}
             error={
                 failed
                     ? {
-                          message: `Could not load your ${subject}.`,
+                          message: t('Could not load your :subject.', {
+                              subject,
+                          }),
                           onRetry: () => undefined,
                       }
                     : undefined
@@ -71,19 +74,19 @@ function TableState({
 export default function StatesDemo({ subject }: { subject: string }) {
     return (
         <div className="grid gap-6 md:grid-cols-2">
-            <Region title="Empty, in a table" framed={false}>
+            <Region title={t('Empty, in a table')} framed={false}>
                 <TableState subject={subject} />
             </Region>
-            <Region title="Loading, in a table" framed={false}>
+            <Region title={t('Loading, in a table')} framed={false}>
                 <TableState subject={subject} loading />
             </Region>
-            <Region title="Failed to load, in a table" framed={false}>
+            <Region title={t('Failed to load, in a table')} framed={false}>
                 <TableState subject={subject} failed />
             </Region>
-            <Region title="Empty, with the create button">
+            <Region title={t('Empty, with the create button')}>
                 <EmptyState
-                    message={`You have no ${subject} yet.`}
-                    action={<Button>Add task</Button>}
+                    message={t('You have no :subject yet.', { subject })}
+                    action={<Button>{t('Add task')}</Button>}
                 />
             </Region>
         </div>

@@ -5,6 +5,7 @@ import ListDetailLayout, {
 } from '@/components/shared/list-detail-layout';
 import { Badge } from '@/components/ui/badge';
 import { listParam } from '@/lib/list-query';
+import { t } from '@/lib/i18n';
 
 export type ExampleTicket = {
     id: number;
@@ -36,14 +37,14 @@ export default function ListDetailDemo({
 
     return (
         <div className="grid gap-6">
-            <Heading title="Tickets" />
+            <Heading title={t('Tickets')} />
             <ListDetailLayout
                 selected={chosen !== undefined}
                 backHref={backHref}
-                backLabel="Tickets"
+                backLabel={t('Tickets')}
                 list={
                     <nav
-                        aria-label="Tickets"
+                        aria-label={t('Tickets')}
                         className="grid overflow-hidden rounded-lg border"
                     >
                         {tickets.map((ticket) => (
@@ -77,7 +78,7 @@ export default function ListDetailDemo({
                         </div>
                         <dl className="grid gap-1 text-sm">
                             <dt className="text-muted-foreground">
-                                Requested by
+                                {t('Requested by')}
                             </dt>
                             <dd>{shown.requester}</dd>
                         </dl>
