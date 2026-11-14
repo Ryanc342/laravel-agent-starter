@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useListQuery } from '@/hooks/use-list-query';
 import { toDateValue } from '@/lib/date-value';
 import { formatDate } from '@/lib/format';
+import { t } from '@/lib/i18n';
 import { listParam } from '@/lib/list-query';
 import {
     monthGrid,
@@ -88,15 +89,19 @@ export default function MonthCalendar({
         <div className="flex flex-wrap items-center justify-between gap-2">
             <Heading title={monthTitle(month, locale)} />
             <div className="flex items-center gap-2">
-                {nav('Previous month', shiftMonth(month, -1), <ChevronLeft />)}
-                {nav('Next month', shiftMonth(month, 1), <ChevronRight />)}
+                {nav(
+                    t('Previous month'),
+                    shiftMonth(month, -1),
+                    <ChevronLeft />,
+                )}
+                {nav(t('Next month'), shiftMonth(month, 1), <ChevronRight />)}
                 <Button
                     variant="outline"
                     onClick={() =>
                         change({ month: monthValue(parseMonth(today)) })
                     }
                 >
-                    Today
+                    {t('Today')}
                 </Button>
             </div>
         </div>
@@ -112,7 +117,7 @@ export default function MonthCalendar({
                 {header}
                 {days.length === 0 ? (
                     <div className="rounded-lg border px-4 py-8">
-                        <EmptyState message="Nothing this month." />
+                        <EmptyState message={t('Nothing this month.')} />
                     </div>
                 ) : (
                     days.map((date) => (
@@ -197,8 +202,11 @@ export default function MonthCalendar({
                                             onClick={() => onMore(day.date)}
                                             className="rounded-md px-2 py-1 text-left text-xs text-muted-foreground transition-colors hover:bg-accent active:bg-accent-pressed"
                                         >
-                                            +{dayEvents.length - visibleEvents}{' '}
-                                            more
+                                            {t('+:count more', {
+                                                count:
+                                                    dayEvents.length -
+                                                    visibleEvents,
+                                            })}
                                         </button>
                                     ) : null}
                                 </div>

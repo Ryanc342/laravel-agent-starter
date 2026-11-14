@@ -13,8 +13,10 @@ Applies to every sentence a user reads in `app/**`, `resources/**`, `routes/**` 
 
 - React: `t('Save changes')`, `t('Delete :name', { name })`, `tChoice('{1} :count task|[2,*] :count tasks', n)`. Labels, buttons, headings, states, `aria-label`s, `title`, `placeholder`, `alt` and toasts written in React all go through `t()`; the oxlint rule fails on text written straight into JSX.
 - PHP: `__('Task created.')`, `trans_choice(...)`: toasts, validation messages, notifications, mails and the PDF's labels.
+- Module-level data (a nav list, a breadcrumb in `Page.layout`) never calls `t()` at import time, because the language is not set yet: mark each sentence with `msg('Dashboard')` (a no-op marker from `@/lib/i18n`) and call `t(item.title)` where it is shown.
+- A stored notification builds its data with `$this->sentence('Welcome to :app.', ['app' => ...])` (`InAppNotification`): the English sentence and its values are stored and translated when read.
 - Use `:name` placeholders, never string concatenation, so Chinese can reorder the words.
-- A key used in the code but missing from `lang/zh_CN`, or an entry nothing uses, fails `tests/Structure/TranslationsTest.php`.
+- A sentence passed to `t()`, `tChoice()`, `msg()`, `__()`, `trans()`, `trans_choice()`, `@lang` or `sentence()` that is missing from `lang/zh_CN.json`, a JSON entry nothing uses, a Chinese sentence whose `:placeholders` differ from its key, and a key of `lang/en/{validation,auth,passwords,pagination}.php` missing from `lang/zh_CN/` all fail `tests/Structure/TranslationsTest.php`. Laravel's and Fortify's own mail and message sentences count as used.
 
 ## Never translate user content
 

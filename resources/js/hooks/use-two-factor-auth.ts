@@ -2,6 +2,7 @@ import { useHttp } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
 import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
 import type { TwoFactorSecretKey, TwoFactorSetupData } from '@/types/auth';
+import { t } from '@/lib/i18n';
 
 export type UseTwoFactorAuthReturn = {
     qrCodeSvg: string | null;
@@ -51,7 +52,7 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
 
             setQrCodeSvg(svg);
         } catch {
-            setErrors((prev) => [...prev, 'Failed to fetch QR code']);
+            setErrors((prev) => [...prev, t('Failed to fetch QR code')]);
             setQrCodeSvg(null);
         }
     }, [submit]);
@@ -64,7 +65,7 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
 
             setManualSetupKey(key);
         } catch {
-            setErrors((prev) => [...prev, 'Failed to fetch a setup key']);
+            setErrors((prev) => [...prev, t('Failed to fetch a setup key')]);
             setManualSetupKey(null);
         }
     }, [submit]);
@@ -75,7 +76,7 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
             const codes = (await submit(recoveryCodes())) as string[];
             setRecoveryCodesList(codes);
         } catch {
-            setErrors((prev) => [...prev, 'Failed to fetch recovery codes']);
+            setErrors((prev) => [...prev, t('Failed to fetch recovery codes')]);
             setRecoveryCodesList([]);
         }
     }, [submit]);

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
+import { msg, t } from '@/lib/i18n';
 
 export default function VerifyEmail({
     verificationLinkSent,
@@ -13,12 +14,13 @@ export default function VerifyEmail({
 }) {
     return (
         <>
-            <Head title="Email verification" />
+            <Head title={t('Email verification')} />
 
             {verificationLinkSent && (
                 <div className="mb-4 text-center text-sm font-medium text-success">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
+                    {t(
+                        'A new verification link has been sent to the email address you provided during registration.',
+                    )}
                 </div>
             )}
 
@@ -31,14 +33,14 @@ export default function VerifyEmail({
                             disabled={processing}
                         >
                             {processing && <Spinner />}
-                            Resend verification email
+                            {t('Resend verification email')}
                         </Button>
 
                         <TextLink
                             href={logout()}
                             className="mx-auto block text-sm"
                         >
-                            Log out
+                            {t('Log out')}
                         </TextLink>
                     </>
                 )}
@@ -48,5 +50,5 @@ export default function VerifyEmail({
 }
 
 VerifyEmail.layout = {
-    title: 'Email verification',
+    title: msg('Email verification'),
 };

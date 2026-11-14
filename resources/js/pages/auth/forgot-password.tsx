@@ -7,11 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
+import { msg, t } from '@/lib/i18n';
 
 export default function ForgotPassword({ status }: { status?: string }) {
+    // The link stays a link inside the sentence: split it at its placeholder.
+    const returnSentence = t('Or, return to :link', {
+        link: '\u0001',
+    }).split('\u0001');
+
     return (
         <>
-            <Head title="Forgot password" />
+            <Head title={t('Forgot password')} />
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-success">
@@ -24,7 +30,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {({ processing, errors }) => (
                         <>
                             <FormField
-                                label="Email address"
+                                label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
                                 stacked
@@ -35,7 +41,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     name="email"
                                     autoComplete="off"
                                     autoFocus
-                                    placeholder="email@example.com"
+                                    placeholder={t('email@example.com')}
                                 />
                             </FormField>
 
@@ -46,7 +52,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     data-test="email-password-reset-link-button"
                                 >
                                     {processing && <Spinner />}
-                                    Email password reset link
+                                    {t('Email password reset link')}
                                 </Button>
                             </div>
                         </>
@@ -54,8 +60,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </Form>
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                    <span>{returnSentence[0].trimEnd()}</span>
+                    <TextLink href={login()}>{t('log in')}</TextLink>
+                    {returnSentence[1]?.trim() && (
+                        <span>{returnSentence[1].trim()}</span>
+                    )}
                 </div>
             </div>
         </>
@@ -63,5 +72,5 @@ export default function ForgotPassword({ status }: { status?: string }) {
 }
 
 ForgotPassword.layout = {
-    title: 'Forgot password',
+    title: msg('Forgot password'),
 };

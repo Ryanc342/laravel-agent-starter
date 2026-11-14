@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { msg, t } from '@/lib/i18n';
 
 type ContactValues = Partial<
     Record<'name' | 'email' | 'subject' | 'message', string>
@@ -17,17 +18,17 @@ type ContactValues = Partial<
  * back what was typed.
  */
 const defaultLabels = {
-    name: 'Name',
-    email: 'Email',
-    subject: 'Subject',
-    message: 'Message',
+    name: msg('Name'),
+    email: msg('Email'),
+    subject: msg('Subject'),
+    message: msg('Message'),
 };
 
 export default function ContactForm({
     errors = {},
     processing = false,
     defaultValues = {},
-    submitLabel = 'Send message',
+    submitLabel = msg('Send message'),
     labels = defaultLabels,
 }: {
     errors?: Record<string, string>;
@@ -39,7 +40,7 @@ export default function ContactForm({
     return (
         <div className="grid gap-6">
             <FormField
-                label={labels.name}
+                label={t(labels.name)}
                 htmlFor="contact-name"
                 error={errors.name}
             >
@@ -51,7 +52,7 @@ export default function ContactForm({
                 />
             </FormField>
             <FormField
-                label={labels.email}
+                label={t(labels.email)}
                 htmlFor="contact-email"
                 error={errors.email}
             >
@@ -64,7 +65,7 @@ export default function ContactForm({
                 />
             </FormField>
             <FormField
-                label={labels.subject}
+                label={t(labels.subject)}
                 htmlFor="contact-subject"
                 error={errors.subject}
             >
@@ -75,7 +76,7 @@ export default function ContactForm({
                 />
             </FormField>
             <FormField
-                label={labels.message}
+                label={t(labels.message)}
                 htmlFor="contact-message"
                 error={errors.message}
             >
@@ -88,7 +89,7 @@ export default function ContactForm({
             <div>
                 <Button type="submit" disabled={processing}>
                     {processing && <Spinner />}
-                    {submitLabel}
+                    {t(submitLabel)}
                 </Button>
             </div>
         </div>

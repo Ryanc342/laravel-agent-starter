@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import { useId, useState, type FormEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { t } from '@/lib/i18n';
 
 /**
  * The search box of the top bar. Enter opens the results page (`action`) with
@@ -35,7 +36,7 @@ export default function SearchBox({
             className="relative w-full max-w-sm"
         >
             <Label htmlFor={id} className="sr-only">
-                Search
+                {t('Search')}
             </Label>
             <Search
                 aria-hidden="true"
@@ -46,7 +47,7 @@ export default function SearchBox({
                 type="search"
                 value={text}
                 onChange={(event) => setText(event.target.value)}
-                placeholder="Search"
+                placeholder={t('Search')}
                 className="pl-9"
             />
         </form>

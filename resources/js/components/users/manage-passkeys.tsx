@@ -6,6 +6,7 @@ import PasskeyItem from '@/components/users/passkey-item';
 import PasskeyRegistration from '@/components/users/passkey-register';
 import type { Passkey } from '@/types/auth';
 import type { ResourceCollection } from '@/types/resource';
+import { t } from '@/lib/i18n';
 
 export type Props = {
     canManagePasskeys?: boolean;
@@ -32,7 +33,7 @@ export default function ManagePasskeys(props: Props) {
 
     return (
         <div className="space-y-6">
-            <Heading variant="small" title="Passkeys" />
+            <Heading variant="small" title={t('Passkeys')} />
 
             {passkeys.length > 0 ? (
                 <div className="overflow-hidden rounded-lg border border-border">
@@ -45,7 +46,7 @@ export default function ManagePasskeys(props: Props) {
                     ))}
                 </div>
             ) : (
-                <EmptyState message="You have no passkeys yet." />
+                <EmptyState message={t('You have no passkeys yet.')} />
             )}
 
             <PasskeyRegistration onSuccess={handleRegisterSuccess} />

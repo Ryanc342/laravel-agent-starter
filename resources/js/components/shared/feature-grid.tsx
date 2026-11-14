@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import Heading from '@/components/heading';
+import { t } from '@/lib/i18n';
 
 export type Feature = {
     icon: LucideIcon;
@@ -18,9 +19,9 @@ export default function FeatureGrid({ features }: { features: Feature[] }) {
             {features.map((feature) => (
                 <li key={feature.title} className="grid content-start gap-2">
                     <feature.icon className="size-6 text-primary" />
-                    <Heading variant="small" title={feature.title} />
+                    <Heading variant="small" title={t(feature.title)} />
                     <p className="text-sm text-muted-foreground">
-                        {feature.description}
+                        {t(feature.description)}
                     </p>
                 </li>
             ))}

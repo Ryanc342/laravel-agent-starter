@@ -1,5 +1,6 @@
 import PasswordInput from '@/components/password-input';
 import FormField from '@/components/shared/form-field';
+import { t } from '@/lib/i18n';
 
 /**
  * A new password and its confirmation, as the register, reset-password and
@@ -10,7 +11,7 @@ import FormField from '@/components/shared/form-field';
 export default function NewPasswordFields({
     passwordRules,
     errors,
-    label = 'Password',
+    label = t('Password'),
     autoFocus = false,
     stacked = false,
 }: {
@@ -40,7 +41,7 @@ export default function NewPasswordFields({
             </FormField>
 
             <FormField
-                label="Confirm password"
+                label={t('Confirm password')}
                 htmlFor="password_confirmation"
                 error={errors.password_confirmation}
                 stacked={stacked}
@@ -50,7 +51,7 @@ export default function NewPasswordFields({
                     name="password_confirmation"
                     required
                     autoComplete="new-password"
-                    placeholder="Confirm password"
+                    placeholder={t('Confirm password')}
                     passwordrules={passwordRules}
                 />
             </FormField>

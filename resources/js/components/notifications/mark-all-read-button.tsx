@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import AllNotificationsReadController from '@/actions/App/Http/Controllers/AllNotificationsReadController';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 
 /**
  * "Mark all as read", for the notifications page and the bell's card. Shown
@@ -26,7 +27,7 @@ export default function MarkAllReadButton({
                     size={size}
                     disabled={processing}
                 >
-                    Mark all as read
+                    {t('Mark all as read')}
                 </Button>
             )}
         </Form>

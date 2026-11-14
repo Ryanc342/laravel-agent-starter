@@ -1,24 +1,25 @@
 import { Link, router } from '@inertiajs/react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
+import { msg, t } from '@/lib/i18n';
 import { dashboard, login } from '@/routes';
 
 const messages = {
     403: {
-        heading: 'No permission',
-        line: "You don't have access to this page.",
+        heading: msg('No permission'),
+        line: msg("You don't have access to this page."),
     },
     404: {
-        heading: 'Page not found',
-        line: "This page doesn't exist or has moved.",
+        heading: msg('Page not found'),
+        line: msg("This page doesn't exist or has moved."),
     },
     500: {
-        heading: 'Something went wrong',
-        line: "It's on our side. Try again in a moment.",
+        heading: msg('Something went wrong'),
+        line: msg("It's on our side. Try again in a moment."),
     },
     503: {
-        heading: 'Back soon',
-        line: "We're updating the system. Try again in a few minutes.",
+        heading: msg('Back soon'),
+        line: msg("We're updating the system. Try again in a few minutes."),
     },
 } as const;
 
@@ -44,16 +45,18 @@ export default function ErrorContent({
         <div className="flex flex-col items-center gap-6 text-center">
             <div className="grid gap-2">
                 <p className="text-sm text-muted-foreground">{status}</p>
-                <Heading title={heading} />
-                <p className="text-sm text-muted-foreground">{line}</p>
+                <Heading title={t(heading)} />
+                <p className="text-sm text-muted-foreground">{t(line)}</p>
             </div>
 
             {retry ? (
-                <Button onClick={() => router.reload()}>Try again</Button>
+                <Button onClick={() => router.reload()}>
+                    {t('Try again')}
+                </Button>
             ) : (
                 <Button asChild>
                     <Link href={signedIn ? dashboard() : login()}>
-                        {signedIn ? 'Go to dashboard' : 'Log in'}
+                        {signedIn ? t('Go to dashboard') : t('Log in')}
                     </Link>
                 </Button>
             )}

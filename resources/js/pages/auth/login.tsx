@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { msg, t } from '@/lib/i18n';
 
 type Props = {
     status?: string;
@@ -20,7 +21,7 @@ type Props = {
 export default function Login({ status, canResetPassword }: Props) {
     return (
         <>
-            <Head title="Log in" />
+            <Head title={t('Log in')} />
 
             <PasskeyVerify />
 
@@ -33,7 +34,7 @@ export default function Login({ status, canResetPassword }: Props) {
                     <>
                         <div className="grid gap-6">
                             <FormField
-                                label="Email address"
+                                label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
                                 stacked
@@ -46,12 +47,12 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder={t('email@example.com')}
                                 />
                             </FormField>
 
                             <FormField
-                                label="Password"
+                                label={t('Password')}
                                 htmlFor="password"
                                 error={errors.password}
                                 stacked
@@ -62,7 +63,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                             className="text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot your password?
+                                            {t('Forgot your password?')}
                                         </TextLink>
                                     )
                                 }
@@ -73,7 +74,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder={t('Password')}
                                 />
                             </FormField>
 
@@ -83,7 +84,9 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">
+                                    {t('Remember me')}
+                                </Label>
                             </div>
 
                             <Button
@@ -94,14 +97,14 @@ export default function Login({ status, canResetPassword }: Props) {
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                {t('Log in')}
                             </Button>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
+                            {t("Don't have an account?")}{' '}
                             <TextLink href={register()} tabIndex={5}>
-                                Sign up
+                                {t('Sign up')}
                             </TextLink>
                         </div>
                     </>
@@ -118,5 +121,5 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Log in to your account',
+    title: msg('Log in to your account'),
 };

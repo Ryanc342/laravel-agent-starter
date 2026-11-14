@@ -9,20 +9,21 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
+import { msg, t } from '@/lib/i18n';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: msg('Profile'),
         href: edit(),
         icon: null,
     },
     {
-        title: 'Security',
+        title: msg('Security'),
         href: editSecurity(),
         icon: null,
     },
     {
-        title: 'Appearance',
+        title: msg('Appearance'),
         href: editAppearance(),
         icon: null,
     },
@@ -33,11 +34,14 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="flex flex-col gap-8 p-4 md:p-6">
-            <Heading title="Settings" />
+            <Heading title={t('Settings')} />
 
             <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col gap-1" aria-label="Settings">
+                    <nav
+                        className="flex flex-col gap-1"
+                        aria-label={t('Settings')}
+                    >
                         {sidebarNavItems.map((item, index) => (
                             <Button
                                 key={`${toUrl(item.href)}-${index}`}
@@ -54,7 +58,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {item.title}
+                                    {t(item.title)}
                                 </Link>
                             </Button>
                         ))}

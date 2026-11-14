@@ -10,6 +10,7 @@ import ResponsiveDialog, {
 import TaskFields from '@/components/tasks/task-fields';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { t } from '@/lib/i18n';
 import type { Task } from '@/types/task';
 
 type TaskFormDialogProps = {
@@ -32,7 +33,7 @@ export default function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
             open={open}
             onOpenChange={setOpen}
             trigger={trigger}
-            title={task ? 'Edit task' : 'Add task'}
+            title={task ? t('Edit task') : t('Add task')}
         >
             <Form
                 {...(task
@@ -51,12 +52,12 @@ export default function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
                         <ResponsiveDialogFooter>
                             <ResponsiveDialogClose asChild>
                                 <Button type="button" variant="outline">
-                                    Cancel
+                                    {t('Cancel')}
                                 </Button>
                             </ResponsiveDialogClose>
                             <Button type="submit" disabled={processing}>
                                 {processing && <Spinner />}
-                                {task ? 'Save changes' : 'Add task'}
+                                {task ? t('Save changes') : t('Add task')}
                             </Button>
                         </ResponsiveDialogFooter>
                     </>

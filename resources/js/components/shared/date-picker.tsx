@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/popover';
 import { parseDateValue, toDateValue } from '@/lib/date-value';
 import { formatDate } from '@/lib/format';
+import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -41,7 +42,7 @@ export default function DatePicker({
     defaultValue = '',
     onChange,
     size = 'default',
-    placeholder = 'Pick a date',
+    placeholder = t('Pick a date'),
     disabled,
     className,
 }: Props) {
@@ -95,7 +96,7 @@ export default function DatePicker({
                             className="w-full"
                             onClick={() => change('')}
                         >
-                            Clear
+                            {t('Clear')}
                         </Button>
                     </div>
                 ) : null}

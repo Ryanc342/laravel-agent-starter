@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import LocaleLayout from '@/layouts/locale-layout';
 import PublicLayout from '@/layouts/public-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
@@ -14,16 +15,16 @@ void createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name.startsWith('welcome/'):
-                return PublicLayout;
+                return [LocaleLayout, PublicLayout];
             case name.startsWith('errors/'):
             case name.startsWith('style/'):
-                return null;
+                return LocaleLayout;
             case name.startsWith('auth/'):
-                return AuthLayout;
+                return [LocaleLayout, AuthLayout];
             case name.startsWith('settings/'):
-                return [AppLayout, SettingsLayout];
+                return [LocaleLayout, AppLayout, SettingsLayout];
             default:
-                return AppLayout;
+                return [LocaleLayout, AppLayout];
         }
     },
     strictMode: true,

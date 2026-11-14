@@ -15,6 +15,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { t } from '@/lib/i18n';
 
 export type TableColumn<Row> = {
     header: string;
@@ -143,7 +144,9 @@ export default function ResponsiveTable<Row>({
                         {selection && (
                             <TableHead className="w-10">
                                 <Checkbox
-                                    aria-label="Select all rows on this page"
+                                    aria-label={t(
+                                        'Select all rows on this page',
+                                    )}
                                     checked={
                                         selection.pageState === 'all'
                                             ? true

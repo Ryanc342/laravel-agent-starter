@@ -22,6 +22,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useListQuery } from '@/hooks/use-list-query';
 import { useUrlParam } from '@/hooks/use-url-param';
+import { t } from '@/lib/i18n';
 import { listParam, listParams, type ParamChange } from '@/lib/list-query';
 import { cn } from '@/lib/utils';
 
@@ -207,11 +208,11 @@ function TickList({ param, choices }: { param: string; choices: Choice[] }) {
                     }
                 >
                     <ListChecks />
-                    Select all
+                    {t('Select all')}
                 </MenuRow>
                 <MenuRow onClick={() => change({ [param]: [] })}>
                     <ListX />
-                    Unselect all
+                    {t('Unselect all')}
                 </MenuRow>
             </div>
             <MenuLine />
@@ -262,6 +263,7 @@ export function ColumnMenuContent({
 }) {
     const { url, change } = useListQuery();
     const { sorted, direction } = sortState(menu, url);
+    const name = t(header);
     const groups: ReactNode[] = [];
 
     if (menu.sortKey) {
@@ -277,7 +279,9 @@ export function ColumnMenuContent({
                         }
                     >
                         {way === 'asc' ? <ArrowUp /> : <ArrowDown />}
-                        {way === 'asc' ? 'Sort ascending' : 'Sort descending'}
+                        {way === 'asc'
+                            ? t('Sort ascending')
+                            : t('Sort descending')}
                     </MenuRow>
                 ))}
             </div>,
@@ -291,8 +295,10 @@ export function ColumnMenuContent({
                     <InputRow>
                         <UrlSearchInput
                             param={menu.search.param}
-                            aria-label={`Search ${header}`}
-                            placeholder={`Search ${header.toLowerCase()}`}
+                            aria-label={t('Search :header', { header: name })}
+                            placeholder={t('Search :header', {
+                                header: name.toLowerCase(),
+                            })}
                             size="sm"
                         />
                     </InputRow>
@@ -306,12 +312,12 @@ export function ColumnMenuContent({
                 {menu.range && (
                     <>
                         <RangeEnd
-                            label="From"
+                            label={t('From')}
                             param={menu.range.fromParam}
                             type={menu.range.type}
                         />
                         <RangeEnd
-                            label="To"
+                            label={t('To')}
                             param={menu.range.toParam}
                             type={menu.range.type}
                         />
@@ -328,7 +334,7 @@ export function ColumnMenuContent({
                 onClick={() => change(clearedChanges(menu, url))}
             >
                 <X />
-                Clear
+                {t('Clear')}
             </MenuRow>,
         );
     }
@@ -371,7 +377,7 @@ export default function ColumnMenu({
                     size="sm"
                     className="-ml-3 font-medium"
                 >
-                    {header}
+                    {t(header)}
                     {!sorted && (
                         <ArrowUpDown
                             data-slot="sortable-indicator"
@@ -402,11 +408,14 @@ export default function ColumnMenu({
                     )}
                     {sorted && (
                         <span className="sr-only">
-                            , sorted{' '}
-                            {direction === 'asc' ? 'ascending' : 'descending'}
+                            {direction === 'asc'
+                                ? t(', sorted ascending')
+                                : t(', sorted descending')}
                         </span>
                     )}
-                    {filtered && <span className="sr-only">, filtered</span>}
+                    {filtered && (
+                        <span className="sr-only">{t(', filtered')}</span>
+                    )}
                 </Button>
             </PopoverTrigger>
             <PopoverContent align="start" className="p-1">

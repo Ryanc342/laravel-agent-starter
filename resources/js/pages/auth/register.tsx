@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import NewPasswordFields from '@/components/users/new-password-fields';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
+import { msg, t } from '@/lib/i18n';
 
 type Props = {
     passwordRules: string;
@@ -15,7 +16,7 @@ type Props = {
 export default function Register({ passwordRules }: Props) {
     return (
         <>
-            <Head title="Register" />
+            <Head title={t('Register')} />
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -26,7 +27,7 @@ export default function Register({ passwordRules }: Props) {
                     <>
                         <div className="grid gap-6">
                             <FormField
-                                label="Name"
+                                label={t('Name')}
                                 htmlFor="name"
                                 error={errors.name}
                                 stacked
@@ -38,12 +39,12 @@ export default function Register({ passwordRules }: Props) {
                                     autoFocus
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder={t('Full name')}
                                 />
                             </FormField>
 
                             <FormField
-                                label="Email address"
+                                label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
                                 stacked
@@ -54,7 +55,7 @@ export default function Register({ passwordRules }: Props) {
                                     required
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder={t('email@example.com')}
                                 />
                             </FormField>
 
@@ -70,13 +71,13 @@ export default function Register({ passwordRules }: Props) {
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                {t('Create account')}
                             </Button>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()}>Log in</TextLink>
+                            {t('Already have an account?')}{' '}
+                            <TextLink href={login()}>{t('Log in')}</TextLink>
                         </div>
                     </>
                 )}
@@ -86,5 +87,5 @@ export default function Register({ passwordRules }: Props) {
 }
 
 Register.layout = {
-    title: 'Create an account',
+    title: msg('Create an account'),
 };

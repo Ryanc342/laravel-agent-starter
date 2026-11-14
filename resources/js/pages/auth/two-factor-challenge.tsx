@@ -1,36 +1,35 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
 import { store } from '@/routes/two-factor/login';
+import { msg, t } from '@/lib/i18n';
 
 export default function TwoFactorChallenge() {
     const [showRecoveryInput, setShowRecoveryInput] = useState<boolean>(false);
     const [code, setCode] = useState<string>('');
 
-    const authConfigContent = useMemo<{
-        title: string;
-        toggleText: string;
-    }>(() => {
-        if (showRecoveryInput) {
-            return {
-                title: 'Recovery code',
-                toggleText: 'login using an authentication code',
-            };
-        }
-
-        return {
-            title: 'Authentication code',
-            toggleText: 'login using a recovery code',
-        };
-    }, [showRecoveryInput]);
+    const authConfigContent = showRecoveryInput
+        ? {
+              title: msg('Recovery code'),
+              toggleText: t('login using an authentication code'),
+          }
+        : {
+              title: msg('Authentication code'),
+              toggleText: t('login using a recovery code'),
+          };
 
     setLayoutProps({
         title: authConfigContent.title,
     });
+
+    // The toggle button stays a button inside the sentence: split it at its placeholder.
+    const toggleSentence = t('or you can :action', {
+        action: '\u0001',
+    }).split('\u0001');
 
     const toggleRecoveryMode = (clearErrors: () => void): void => {
         setShowRecoveryInput(!showRecoveryInput);
@@ -40,7 +39,7 @@ export default function TwoFactorChallenge() {
 
     return (
         <>
-            <Head title="Two-factor authentication" />
+            <Head title={t('Two-factor authentication')} />
 
             <div className="space-y-6">
                 <Form
@@ -53,7 +52,7 @@ export default function TwoFactorChallenge() {
                         <>
                             {showRecoveryInput ? (
                                 <FormField
-                                    label="Recovery code"
+                                    label={t('Recovery code')}
                                     htmlFor="recovery_code"
                                     hideLabel
                                     error={errors.recovery_code}
@@ -62,14 +61,14 @@ export default function TwoFactorChallenge() {
                                         id="recovery_code"
                                         name="recovery_code"
                                         type="text"
-                                        placeholder="Enter recovery code"
+                                        placeholder={t('Enter recovery code')}
                                         autoFocus={showRecoveryInput}
                                         required
                                     />
                                 </FormField>
                             ) : (
                                 <FormField
-                                    label="Authentication code"
+                                    label={t('Authentication code')}
                                     htmlFor="code"
                                     hideLabel
                                     error={errors.code}
@@ -91,11 +90,11 @@ export default function TwoFactorChallenge() {
                                 disabled={processing}
                             >
                                 {processing && <Spinner />}
-                                Continue
+                                {t('Continue')}
                             </Button>
 
                             <div className="text-center text-sm text-muted-foreground">
-                                <span>or you can </span>
+                                <span>{toggleSentence[0]}</span>
                                 <Button
                                     type="button"
                                     variant="link"
@@ -106,6 +105,9 @@ export default function TwoFactorChallenge() {
                                 >
                                     {authConfigContent.toggleText}
                                 </Button>
+                                {toggleSentence[1] && (
+                                    <span>{toggleSentence[1]}</span>
+                                )}
                             </div>
                         </>
                     )}

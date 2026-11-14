@@ -10,6 +10,7 @@ import ResponsiveDialog, {
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import type { useRowSelection } from '@/hooks/use-row-selection';
+import { t, tChoice } from '@/lib/i18n';
 import { bulkPayload } from '@/lib/list-query';
 
 /** The list's own search and filters, which "all results" carries to the backend. */
@@ -81,27 +82,30 @@ export default function TaskBulkActions({
                         )
                     }
                 >
-                    Complete
+                    {t('Complete')}
                 </Button>
                 <Button
                     variant="outline"
                     disabled={processing}
                     onClick={() => setConfirming(true)}
                 >
-                    Delete
+                    {t('Delete')}
                 </Button>
             </BulkActionBar>
 
             <ResponsiveDialog
                 open={confirming}
                 onOpenChange={setConfirming}
-                title={`Delete ${count} ${count === 1 ? 'task' : 'tasks'}?`}
-                description="They will be deleted. This cannot be undone."
+                title={tChoice(
+                    'Delete :count task?|Delete :count tasks?',
+                    count,
+                )}
+                description={t('They will be deleted. This cannot be undone.')}
             >
                 <ResponsiveDialogFooter>
                     <ResponsiveDialogClose asChild>
                         <Button type="button" variant="outline">
-                            Cancel
+                            {t('Cancel')}
                         </Button>
                     </ResponsiveDialogClose>
                     <Button
@@ -115,7 +119,10 @@ export default function TaskBulkActions({
                         }
                     >
                         {processing && <Spinner />}
-                        Delete {count} {count === 1 ? 'task' : 'tasks'}
+                        {tChoice(
+                            'Delete :count task|Delete :count tasks',
+                            count,
+                        )}
                     </Button>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>

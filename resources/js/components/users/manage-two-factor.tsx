@@ -7,6 +7,7 @@ import TwoFactorSetupModal from '@/components/users/two-factor-setup-modal';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { disable, enable } from '@/routes/two-factor';
+import { t } from '@/lib/i18n';
 
 export type Props = {
     canManageTwoFactor?: boolean;
@@ -46,7 +47,7 @@ export default function ManageTwoFactor(props: Props) {
 
     return (
         <div className="space-y-6">
-            <Heading variant="small" title="Two-factor authentication" />
+            <Heading variant="small" title={t('Two-factor authentication')} />
             {twoFactorEnabled ? (
                 <div className="flex flex-col items-start justify-start space-y-4">
                     <div className="relative inline">
@@ -57,7 +58,7 @@ export default function ManageTwoFactor(props: Props) {
                                     type="submit"
                                     disabled={processing}
                                 >
-                                    Disable 2FA
+                                    {t('Disable 2FA')}
                                 </Button>
                             )}
                         </Form>
@@ -75,7 +76,7 @@ export default function ManageTwoFactor(props: Props) {
                         {hasSetupData ? (
                             <Button onClick={() => setShowSetupModal(true)}>
                                 <ShieldCheck />
-                                Continue setup
+                                {t('Continue setup')}
                             </Button>
                         ) : (
                             <Form
@@ -84,7 +85,7 @@ export default function ManageTwoFactor(props: Props) {
                             >
                                 {({ processing }) => (
                                     <Button type="submit" disabled={processing}>
-                                        Enable 2FA
+                                        {t('Enable 2FA')}
                                     </Button>
                                 )}
                             </Form>

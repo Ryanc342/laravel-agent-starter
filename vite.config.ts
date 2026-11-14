@@ -58,6 +58,7 @@ export default defineConfig({
         rules: {
             'ezdev/no-direct-backend-calls': 'error',
             'ezdev/component-boundaries': 'error',
+            'ezdev/no-untranslated-text': 'error',
             'import/no-cycle': 'error',
             // Only no-cycle is wanted from the import plugin; these two are
             // its rules that oxlint turns on by default.

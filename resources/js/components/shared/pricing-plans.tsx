@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useListQuery } from '@/hooks/use-list-query';
 import { formatMoney } from '@/lib/format';
+import { msg, t } from '@/lib/i18n';
 import { listParam } from '@/lib/list-query';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
@@ -25,12 +26,12 @@ export type Plan = {
 };
 
 const defaultLabels = {
-    billing: 'Billing period',
-    monthly: 'Monthly',
-    yearly: 'Yearly',
-    recommended: 'Recommended',
-    perMonth: '/ month',
-    perYear: '/ year',
+    billing: msg('Billing period'),
+    monthly: msg('Monthly'),
+    yearly: msg('Yearly'),
+    recommended: msg('Recommended'),
+    perMonth: msg('/ month'),
+    perYear: msg('/ year'),
 };
 
 /**
@@ -64,14 +65,14 @@ export default function PricingPlans({
                         change({ billing: value === 'yearly' ? value : null });
                     }
                 }}
-                aria-label={labels.billing}
+                aria-label={t(labels.billing)}
                 className="w-fit"
             >
                 <ToggleGroupItem value="monthly">
-                    {labels.monthly}
+                    {t(labels.monthly)}
                 </ToggleGroupItem>
                 <ToggleGroupItem value="yearly">
-                    {labels.yearly}
+                    {t(labels.yearly)}
                 </ToggleGroupItem>
             </ToggleGroup>
 
@@ -90,7 +91,7 @@ export default function PricingPlans({
                             <Heading variant="small" title={plan.name} />
                             {plan.recommended && (
                                 <Badge variant="secondary">
-                                    {labels.recommended}
+                                    {t(labels.recommended)}
                                 </Badge>
                             )}
                         </div>
@@ -103,8 +104,8 @@ export default function PricingPlans({
                             </span>
                             <span className="text-sm text-muted-foreground">
                                 {billing === 'yearly'
-                                    ? labels.perYear
-                                    : labels.perMonth}
+                                    ? t(labels.perYear)
+                                    : t(labels.perMonth)}
                             </span>
                         </p>
                         <ul className="grid gap-2 text-sm">

@@ -10,6 +10,7 @@ import NewPasswordFields from '@/components/users/new-password-fields';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { edit } from '@/routes/security';
+import { msg, t } from '@/lib/i18n';
 
 type Props = {
     passwordRules: string;
@@ -19,12 +20,12 @@ type Props = {
 export default function Security(props: Props) {
     return (
         <>
-            <Head title="Security settings" />
+            <Head title={t('Security settings')} />
 
-            <h1 className="sr-only">Security settings</h1>
+            <h1 className="sr-only">{t('Security settings')}</h1>
 
             <div className="space-y-6">
-                <Heading variant="small" title="Update password" />
+                <Heading variant="small" title={t('Update password')} />
 
                 <Form
                     {...SecurityController.update.form()}
@@ -42,7 +43,7 @@ export default function Security(props: Props) {
                     {({ errors, processing }) => (
                         <>
                             <FormField
-                                label="Current password"
+                                label={t('Current password')}
                                 htmlFor="current_password"
                                 error={errors.current_password}
                             >
@@ -50,14 +51,14 @@ export default function Security(props: Props) {
                                     id="current_password"
                                     name="current_password"
                                     autoComplete="current-password"
-                                    placeholder="Current password"
+                                    placeholder={t('Current password')}
                                 />
                             </FormField>
 
                             <NewPasswordFields
                                 passwordRules={props.passwordRules}
                                 errors={errors}
-                                label="New password"
+                                label={t('New password')}
                             />
 
                             <div className="flex items-center justify-end gap-4">
@@ -65,7 +66,7 @@ export default function Security(props: Props) {
                                     disabled={processing}
                                     data-test="update-password-button"
                                 >
-                                    Save
+                                    {t('Save')}
                                 </Button>
                             </div>
                         </>
@@ -90,7 +91,7 @@ export default function Security(props: Props) {
 Security.layout = {
     breadcrumbs: [
         {
-            title: 'Security settings',
+            title: msg('Security settings'),
             href: edit(),
         },
     ],

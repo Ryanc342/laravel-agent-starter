@@ -5,6 +5,7 @@ import FeedList from '@/components/shared/feed-list';
 import { Button } from '@/components/ui/button';
 import { useLatestNotifications } from '@/hooks/use-latest-notifications';
 import { index } from '@/routes/notifications';
+import { t } from '@/lib/i18n';
 
 /**
  * The dashboard's block of the five newest notifications. Like the bell, it
@@ -20,12 +21,12 @@ export default function LatestNotifications() {
     return (
         <div className="grid gap-4">
             <FeedList
-                emptyMessage="You have no notifications."
+                emptyMessage={t('You have no notifications.')}
                 loading={latest === undefined && !failed}
                 error={
                     failed
                         ? {
-                              message: 'Could not load your notifications.',
+                              message: t('Could not load your notifications.'),
                               onRetry: load,
                           }
                         : undefined
@@ -44,7 +45,7 @@ export default function LatestNotifications() {
                     className="justify-self-start"
                     asChild
                 >
-                    <Link href={index()}>View all notifications</Link>
+                    <Link href={index()}>{t('View all notifications')}</Link>
                 </Button>
             )}
         </div>

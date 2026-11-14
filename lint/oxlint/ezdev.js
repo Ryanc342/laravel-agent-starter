@@ -231,10 +231,96 @@ const componentBoundaries = rule(
     },
 );
 
+/**
+ * The props whose value a user reads or hears.
+ */
+const READABLE_PROPS = new Set([
+    'title',
+    'placeholder',
+    'aria-label',
+    'label',
+    'alt',
+]);
+
+const hasLetters = (text) => /\p{L}/u.test(text);
+
+/**
+ * The /style page is a development tool and stays English: its own section
+ * titles, specimen labels and the example data its demos receive. The
+ * components it shows are translated.
+ */
+const isStylePage = (file) =>
+    file.startsWith('resources/js/components/style/') ||
+    file.startsWith('resources/js/pages/style/');
+
+const noUntranslatedText = rule(
+    'Text a user reads goes through t()',
+    (context, file) => {
+        if (isStylePage(file)) {
+            return {};
+        }
+
+        const message = (what) =>
+            `${what} is written straight into JSX. Write it in English through t('...') (or tChoice) from @/lib/i18n and add its Chinese to lang/zh_CN.json. See docs/rules/translations.md.`;
+
+        return {
+            JSXText(node) {
+                if (hasLetters(node.value)) {
+                    context.report({
+                        node,
+                        message: message(
+                            `The text "${node.value.trim().slice(0, 40)}"`,
+                        ),
+                    });
+                }
+            },
+            JSXAttribute(node) {
+                const name = node.name?.name;
+
+                if (typeof name !== 'string' || !READABLE_PROPS.has(name)) {
+                    return;
+                }
+
+                const value = node.value;
+                const literal =
+                    value?.type === 'Literal'
+                        ? value
+                        : value?.type === 'JSXExpressionContainer'
+                          ? unwrap(value.expression)
+                          : null;
+
+                if (
+                    literal?.type === 'Literal' &&
+                    typeof literal.value === 'string' &&
+                    hasLetters(literal.value)
+                ) {
+                    context.report({
+                        node,
+                        message: message(
+                            `The ${name} "${literal.value.slice(0, 40)}"`,
+                        ),
+                    });
+                }
+
+                if (
+                    literal?.type === 'TemplateLiteral' &&
+                    literal.quasis.some((quasi) => hasLetters(quasi.value.raw))
+                ) {
+                    context.report({
+                        node,
+                        message: message(`The ${name} text`),
+                    });
+                }
+            },
+        };
+    },
+);
+
 export default {
     meta: { name: 'ezdev' },
     rules: {
         'no-direct-backend-calls': noDirectBackendCalls,
         'component-boundaries': componentBoundaries,
+        'no-untranslated-text': noUntranslatedText,
     },
 };

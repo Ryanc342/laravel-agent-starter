@@ -1,6 +1,7 @@
 import DatePicker from '@/components/shared/date-picker';
 import FormField from '@/components/shared/form-field';
 import { Input } from '@/components/ui/input';
+import { t } from '@/lib/i18n';
 import type { Task } from '@/types/task';
 
 type TaskFieldsProps = {
@@ -18,7 +19,7 @@ export default function TaskFields({ task, errors }: TaskFieldsProps) {
     return (
         <>
             <FormField
-                label="Title"
+                label={t('Title')}
                 htmlFor={`${idPrefix}-title`}
                 error={errors.title}
             >
@@ -32,7 +33,7 @@ export default function TaskFields({ task, errors }: TaskFieldsProps) {
             </FormField>
 
             <FormField
-                label="Due date"
+                label={t('Due date')}
                 htmlFor={`${idPrefix}-due-on`}
                 error={errors.due_on}
             >

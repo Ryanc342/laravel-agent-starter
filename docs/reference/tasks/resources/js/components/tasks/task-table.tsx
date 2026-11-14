@@ -8,6 +8,7 @@ import type {
 } from '@/components/shared/responsive-table';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/format';
+import { t } from '@/lib/i18n';
 import { show } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
@@ -19,7 +20,7 @@ import type { Task } from '@/types/task';
 function taskColumns(statusOptions: Choice[]): TableColumn<Task>[] {
     return [
         {
-            header: 'Title',
+            header: t('Title'),
             className: 'max-w-80 truncate font-medium',
             menu: { sortKey: 'title', search: { param: 'search' } },
             cell: (task) => (
@@ -32,7 +33,7 @@ function taskColumns(statusOptions: Choice[]): TableColumn<Task>[] {
             ),
         },
         {
-            header: 'Status',
+            header: t('Status'),
             hideLabelOnCard: true,
             menu: {
                 sortKey: 'status',
@@ -42,13 +43,13 @@ function taskColumns(statusOptions: Choice[]): TableColumn<Task>[] {
                 <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{task.status_label}</Badge>
                     {task.is_overdue && (
-                        <Badge variant="destructive">Overdue</Badge>
+                        <Badge variant="destructive">{t('Overdue')}</Badge>
                     )}
                 </div>
             ),
         },
         {
-            header: 'Due date',
+            header: t('Due date'),
             menu: {
                 sortKey: 'due_on',
                 range: {
@@ -58,7 +59,7 @@ function taskColumns(statusOptions: Choice[]): TableColumn<Task>[] {
                 },
             },
             cell: (task) =>
-                task.due_on ? formatDate(task.due_on) : 'No due date',
+                task.due_on ? formatDate(task.due_on) : t('No due date'),
         },
     ];
 }
@@ -88,7 +89,7 @@ export default function TaskTable({
 
     return (
         <div className="flex flex-col gap-4">
-            <ListToolbar columns={columns} searchLabel="Search tasks" />
+            <ListToolbar columns={columns} searchLabel={t('Search tasks')} />
             <ResponsiveTable
                 columns={columns}
                 rows={tasks}
@@ -96,8 +97,8 @@ export default function TaskTable({
                 selection={selection}
                 emptyMessage={
                     narrowed
-                        ? 'No tasks match your search or filters.'
-                        : 'You have no tasks yet.'
+                        ? t('No tasks match your search or filters.')
+                        : t('You have no tasks yet.')
                 }
             />
         </div>

@@ -8,6 +8,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 export default function PasswordInput({
     className,
@@ -17,7 +18,7 @@ export default function PasswordInput({
     ref?: Ref<HTMLInputElement>;
 }) {
     const [showPassword, setShowPassword] = useState(false);
-    const label = showPassword ? 'Hide password' : 'Show password';
+    const label = showPassword ? t('Hide password') : t('Show password');
 
     return (
         <div className="relative">

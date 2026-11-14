@@ -10,6 +10,7 @@ import TaskImportDialog from '@/components/tasks/task-import-dialog';
 import TaskTable from '@/components/tasks/task-table';
 import { Button } from '@/components/ui/button';
 import { useRowSelection } from '@/hooks/use-row-selection';
+import { msg, t } from '@/lib/i18n';
 import { queryString } from '@/lib/list-query';
 import { index } from '@/routes/tasks';
 import type { ResourceCollection } from '@/types/resource';
@@ -39,11 +40,11 @@ export default function Tasks({
 
     return (
         <>
-            <Head title="Tasks" />
+            <Head title={t('Tasks')} />
 
             <div className="flex flex-col gap-8 p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading title="Tasks" />
+                    <Heading title={t('Tasks')} />
 
                     <div className="ml-auto flex flex-wrap justify-end gap-2">
                         {can.complete_overdue && (
@@ -57,14 +58,16 @@ export default function Tasks({
                                         variant="outline"
                                         disabled={processing}
                                     >
-                                        Complete overdue tasks
+                                        {t('Complete overdue tasks')}
                                     </Button>
                                 )}
                             </Form>
                         )}
 
                         <TaskImportDialog
-                            trigger={<Button variant="outline">Import</Button>}
+                            trigger={
+                                <Button variant="outline">{t('Import')}</Button>
+                            }
                         />
 
                         <Button variant="outline" asChild>
@@ -72,11 +75,13 @@ export default function Tasks({
                             <a
                                 href={`${TaskExportController.url()}${queryString(url)}`}
                             >
-                                Export
+                                {t('Export')}
                             </a>
                         </Button>
 
-                        <TaskFormDialog trigger={<Button>Add task</Button>} />
+                        <TaskFormDialog
+                            trigger={<Button>{t('Add task')}</Button>}
+                        />
                     </div>
                 </div>
 
@@ -89,7 +94,8 @@ export default function Tasks({
                         onTogglePage: selection.togglePage,
                         isSelected: (task) => selection.isSelected(task.id),
                         onToggle: (task) => selection.toggle(task.id),
-                        rowLabel: (task) => `Select ${task.title}`,
+                        rowLabel: (task) =>
+                            t('Select :title', { title: task.title }),
                     }}
                 />
                 <Pagination collection={tasks} />
@@ -106,7 +112,7 @@ export default function Tasks({
 Tasks.layout = {
     breadcrumbs: [
         {
-            title: 'Tasks',
+            title: msg('Tasks'),
             href: index(),
         },
     ],

@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
 
@@ -15,7 +16,7 @@ export default function AccountNav({ items }: { items: NavItem[] }) {
 
     return (
         <nav
-            aria-label="Account"
+            aria-label={t('Account')}
             className="-mx-4 flex gap-1 overflow-x-auto border-b px-4 pb-3 md:mx-0 md:px-0"
         >
             {items.map((item) => {
@@ -31,7 +32,7 @@ export default function AccountNav({ items }: { items: NavItem[] }) {
                             current && 'bg-accent-pressed',
                         )}
                     >
-                        {item.title}
+                        {t(item.title)}
                     </Link>
                 );
             })}

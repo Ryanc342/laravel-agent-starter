@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
+import { msg, t } from '@/lib/i18n';
 
 type PageProps = {
     auth: Auth;
@@ -29,12 +30,12 @@ export default function Profile({
 
     return (
         <>
-            <Head title="Profile settings" />
+            <Head title={t('Profile settings')} />
 
-            <h1 className="sr-only">Profile settings</h1>
+            <h1 className="sr-only">{t('Profile settings')}</h1>
 
             <div className="space-y-6">
-                <Heading variant="small" title="Profile" />
+                <Heading variant="small" title={t('Profile')} />
 
                 <Form
                     {...ProfileController.update.form()}
@@ -46,7 +47,7 @@ export default function Profile({
                     {({ processing, errors }) => (
                         <>
                             <FormField
-                                label="Name"
+                                label={t('Name')}
                                 htmlFor="name"
                                 error={errors.name}
                             >
@@ -56,12 +57,12 @@ export default function Profile({
                                     name="name"
                                     required
                                     autoComplete="name"
-                                    placeholder="Full name"
+                                    placeholder={t('Full name')}
                                 />
                             </FormField>
 
                             <FormField
-                                label="Email address"
+                                label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
                             >
@@ -72,24 +73,26 @@ export default function Profile({
                                     name="email"
                                     required
                                     autoComplete="username"
-                                    placeholder="Email address"
+                                    placeholder={t('Email address')}
                                 />
                             </FormField>
 
                             {emailNeedsVerification && (
                                 <div>
                                     <p className="-mt-4 text-sm text-muted-foreground">
-                                        Your email address is unverified.{' '}
+                                        {t('Your email address is unverified.')}{' '}
                                         <TextLink href={send()} as="button">
-                                            Click here to re-send the
-                                            verification email.
+                                            {t(
+                                                'Click here to re-send the verification email.',
+                                            )}
                                         </TextLink>
                                     </p>
 
                                     {verificationLinkSent && (
                                         <div className="mt-2 text-sm font-medium text-success">
-                                            A new verification link has been
-                                            sent to your email address.
+                                            {t(
+                                                'A new verification link has been sent to your email address.',
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -100,7 +103,7 @@ export default function Profile({
                                     disabled={processing}
                                     data-test="update-profile-button"
                                 >
-                                    Save
+                                    {t('Save')}
                                 </Button>
                             </div>
                         </>
@@ -116,7 +119,7 @@ export default function Profile({
 Profile.layout = {
     breadcrumbs: [
         {
-            title: 'Profile settings',
+            title: msg('Profile settings'),
             href: edit(),
         },
     ],

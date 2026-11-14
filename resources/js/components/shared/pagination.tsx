@@ -7,6 +7,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { t } from '@/lib/i18n';
 import { withPerPage } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
 import type { ResourceCollection } from '@/types/resource';
@@ -39,7 +40,7 @@ export default function Pagination({
 
     return (
         <nav
-            aria-label="Pagination"
+            aria-label={t('Pagination')}
             className={cn(
                 'flex flex-wrap items-center gap-4',
                 hasPages ? 'justify-between' : 'justify-end',
@@ -47,7 +48,10 @@ export default function Pagination({
         >
             {hasPages && (
                 <span className="text-sm text-muted-foreground">
-                    Page {meta.current_page} of {meta.last_page}
+                    {t('Page :current of :last', {
+                        current: meta.current_page,
+                        last: meta.last_page,
+                    })}
                 </span>
             )}
 
@@ -58,7 +62,7 @@ export default function Pagination({
                             className="text-sm text-muted-foreground"
                             aria-hidden="true"
                         >
-                            Rows per page
+                            {t('Rows per page')}
                         </span>
                         <Select
                             value={String(meta.per_page)}
@@ -73,7 +77,7 @@ export default function Pagination({
                             <SelectTrigger
                                 size="sm"
                                 className="w-20"
-                                aria-label="Rows per page"
+                                aria-label={t('Rows per page')}
                             >
                                 <SelectValue />
                             </SelectTrigger>
@@ -96,23 +100,23 @@ export default function Pagination({
                         {links.prev ? (
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={links.prev} preserveScroll>
-                                    Previous
+                                    {t('Previous')}
                                 </Link>
                             </Button>
                         ) : (
                             <Button variant="outline" size="sm" disabled>
-                                Previous
+                                {t('Previous')}
                             </Button>
                         )}
                         {links.next ? (
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={links.next} preserveScroll>
-                                    Next
+                                    {t('Next')}
                                 </Link>
                             </Button>
                         ) : (
                             <Button variant="outline" size="sm" disabled>
-                                Next
+                                {t('Next')}
                             </Button>
                         )}
                     </div>

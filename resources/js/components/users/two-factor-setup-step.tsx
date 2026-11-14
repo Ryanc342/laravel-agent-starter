@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
+import { t } from '@/lib/i18n';
 
 /**
  * The first step of the setup dialog: the QR code and the setup key to copy.
@@ -36,7 +37,11 @@ export default function TwoFactorSetupStep({
     return (
         <>
             {errors?.length ? (
-                <ErrorState message="Could not load the setup code. Close this window and try again." />
+                <ErrorState
+                    message={t(
+                        'Could not load the setup code. Close this window and try again.',
+                    )}
+                />
             ) : (
                 <>
                     <div className="mx-auto flex max-w-md overflow-hidden">
@@ -61,7 +66,9 @@ export default function TwoFactorSetupStep({
                         <Button onClick={onNextStep}>{buttonText}</Button>
                     </div>
 
-                    <LabeledDivider>or, enter the code manually</LabeledDivider>
+                    <LabeledDivider>
+                        {t('or, enter the code manually')}
+                    </LabeledDivider>
 
                     <div className="flex w-full items-center gap-2">
                         {!manualSetupKey ? (
@@ -70,7 +77,7 @@ export default function TwoFactorSetupStep({
                             <>
                                 <Input
                                     readOnly
-                                    aria-label="Setup key"
+                                    aria-label={t('Setup key')}
                                     value={manualSetupKey}
                                 />
                                 <Tooltip>
@@ -79,14 +86,14 @@ export default function TwoFactorSetupStep({
                                             type="button"
                                             variant="outline"
                                             size="icon"
-                                            aria-label="Copy setup key"
+                                            aria-label={t('Copy setup key')}
                                             onClick={() => copy(manualSetupKey)}
                                         >
                                             <IconComponent />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        Copy setup key
+                                        {t('Copy setup key')}
                                     </TooltipContent>
                                 </Tooltip>
                             </>

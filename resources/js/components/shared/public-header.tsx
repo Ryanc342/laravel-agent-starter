@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import LanguageSwitch from '@/components/shared/language-switch';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -15,17 +16,18 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { msg, t } from '@/lib/i18n';
 import { dashboard, home, login, register } from '@/routes';
 import type { NavItem } from '@/types';
 
 export type PublicLink = Pick<NavItem, 'title' | 'href'>;
 
 const defaultLabels = {
-    login: 'Log in',
-    getStarted: 'Get started',
-    dashboard: 'Dashboard',
-    openMenu: 'Open menu',
-    menu: 'Menu',
+    login: msg('Log in'),
+    getStarted: msg('Get started'),
+    dashboard: msg('Dashboard'),
+    openMenu: msg('Open menu'),
+    menu: msg('Menu'),
 };
 
 export type PublicHeaderLabels = typeof defaultLabels;
@@ -52,15 +54,15 @@ export default function PublicHeader({
 
     const buttons = signedIn ? (
         <Button asChild>
-            <Link href={dashboard()}>{labels.dashboard}</Link>
+            <Link href={dashboard()}>{t(labels.dashboard)}</Link>
         </Button>
     ) : (
         <>
             <Button asChild variant={isMobile ? 'outline' : 'ghost'}>
-                <Link href={login()}>{labels.login}</Link>
+                <Link href={login()}>{t(labels.login)}</Link>
             </Button>
             <Button asChild>
-                <Link href={register()}>{labels.getStarted}</Link>
+                <Link href={register()}>{t(labels.getStarted)}</Link>
             </Button>
         </>
     );
@@ -77,50 +79,58 @@ export default function PublicHeader({
                 </Link>
 
                 {isMobile ? (
-                    <Sheet>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <SheetTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="ml-auto shrink-0"
-                                        aria-label={labels.openMenu}
-                                    >
-                                        <Menu />
-                                    </Button>
-                                </SheetTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>{labels.openMenu}</TooltipContent>
-                        </Tooltip>
-                        <SheetContent side="right" className="gap-6 p-4">
-                            <SheetHeader className="p-0">
-                                <SheetTitle>{labels.menu}</SheetTitle>
-                            </SheetHeader>
-                            {links.length > 0 && (
-                                <nav aria-label="Pages" className="grid gap-1">
-                                    {links.map((link) => (
+                    <>
+                        <LanguageSwitch className="ml-auto" />
+                        <Sheet>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <SheetTrigger asChild>
                                         <Button
-                                            key={link.title}
-                                            asChild
                                             variant="ghost"
-                                            className="justify-start px-3"
+                                            size="icon"
+                                            className="shrink-0"
+                                            aria-label={t(labels.openMenu)}
                                         >
-                                            <Link href={link.href}>
-                                                {link.title}
-                                            </Link>
+                                            <Menu />
                                         </Button>
-                                    ))}
-                                </nav>
-                            )}
-                            <div className="grid gap-2">{buttons}</div>
-                        </SheetContent>
-                    </Sheet>
+                                    </SheetTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {t(labels.openMenu)}
+                                </TooltipContent>
+                            </Tooltip>
+                            <SheetContent side="right" className="gap-6 p-4">
+                                <SheetHeader className="p-0">
+                                    <SheetTitle>{t(labels.menu)}</SheetTitle>
+                                </SheetHeader>
+                                {links.length > 0 && (
+                                    <nav
+                                        aria-label={t('Pages')}
+                                        className="grid gap-1"
+                                    >
+                                        {links.map((link) => (
+                                            <Button
+                                                key={link.title}
+                                                asChild
+                                                variant="ghost"
+                                                className="justify-start px-3"
+                                            >
+                                                <Link href={link.href}>
+                                                    {t(link.title)}
+                                                </Link>
+                                            </Button>
+                                        ))}
+                                    </nav>
+                                )}
+                                <div className="grid gap-2">{buttons}</div>
+                            </SheetContent>
+                        </Sheet>
+                    </>
                 ) : (
                     <>
                         {links.length > 0 && (
                             <nav
-                                aria-label="Pages"
+                                aria-label={t('Pages')}
                                 className="flex items-center gap-1"
                             >
                                 {links.map((link) => (
@@ -130,13 +140,14 @@ export default function PublicHeader({
                                         variant="ghost"
                                     >
                                         <Link href={link.href}>
-                                            {link.title}
+                                            {t(link.title)}
                                         </Link>
                                     </Button>
                                 ))}
                             </nav>
                         )}
                         <div className="ml-auto flex items-center gap-2">
+                            <LanguageSwitch />
                             {buttons}
                         </div>
                     </>

@@ -28,6 +28,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { t } from '@/lib/i18n';
 import {
     dropTarget,
     kanbanAnnouncements,
@@ -82,7 +83,7 @@ function CardShell<Card extends KanbanCard>({
         >
             <button
                 type="button"
-                aria-label={`Drag ${card.title}`}
+                aria-label={t('Drag :title', { title: card.title })}
                 className="mt-0.5 shrink-0 touch-none rounded-md text-muted-foreground transition-colors hover:bg-accent active:bg-accent-pressed"
                 {...attributes}
                 {...listeners}
@@ -98,13 +99,13 @@ function CardShell<Card extends KanbanCard>({
                         variant="ghost"
                         size="icon"
                         className="size-8 shrink-0"
-                        aria-label={`Move ${card.title} to`}
+                        aria-label={t('Move :title to', { title: card.title })}
                     >
                         <MoveRight />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Move to</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('Move to')}</DropdownMenuLabel>
                     {others.map((other) => (
                         <DropdownMenuItem
                             key={other.id}
@@ -155,7 +156,7 @@ function Column<Card extends KanbanCard>({
                 >
                     {column.cards.length === 0 ? (
                         <li className="py-4">
-                            <EmptyState message="No cards." />
+                            <EmptyState message={t('No cards.')} />
                         </li>
                     ) : (
                         column.cards.map((card) => (
@@ -228,7 +229,7 @@ export default function KanbanBoard<Card extends KanbanCard>({
             collisionDetection={closestCorners}
             accessibility={{
                 announcements: kanbanAnnouncements(columns),
-                screenReaderInstructions: { draggable: kanbanInstructions },
+                screenReaderInstructions: { draggable: t(kanbanInstructions) },
             }}
             onDragStart={start}
             onDragEnd={end}

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
+import { t } from '@/lib/i18n';
 
 export function Breadcrumbs({
     breadcrumbs,
@@ -41,12 +42,12 @@ export function Breadcrumbs({
                                     >
                                         {isCurrent ? (
                                             <BreadcrumbPage className="block truncate">
-                                                {item.title}
+                                                {t(item.title)}
                                             </BreadcrumbPage>
                                         ) : (
                                             <BreadcrumbLink asChild>
                                                 <Link href={item.href}>
-                                                    {item.title}
+                                                    {t(item.title)}
                                                 </Link>
                                             </BreadcrumbLink>
                                         )}

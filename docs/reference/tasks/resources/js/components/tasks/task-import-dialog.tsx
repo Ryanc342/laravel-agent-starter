@@ -12,6 +12,7 @@ import ResponsiveDialog, {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { t } from '@/lib/i18n';
 
 /**
  * Import tasks from a CSV file: upload, and the backend checks every row. If
@@ -27,7 +28,7 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
             open={open}
             onOpenChange={setOpen}
             trigger={trigger}
-            title="Import tasks"
+            title={t('Import tasks')}
         >
             <Form
                 {...TaskImportController.store.form()}
@@ -39,7 +40,7 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
                     <>
                         <ResponsiveDialogBody>
                             <FormField
-                                label="CSV file"
+                                label={t('CSV file')}
                                 htmlFor="task-import-file"
                                 error={errors.file}
                             >
@@ -58,7 +59,7 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
                                 asChild
                             >
                                 <a href={TaskImportTemplateController.url()}>
-                                    Download template
+                                    {t('Download template')}
                                 </a>
                             </Button>
                         </ResponsiveDialogBody>
@@ -66,12 +67,12 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
                         <ResponsiveDialogFooter>
                             <ResponsiveDialogClose asChild>
                                 <Button type="button" variant="outline">
-                                    Cancel
+                                    {t('Cancel')}
                                 </Button>
                             </ResponsiveDialogClose>
                             <Button type="submit" disabled={processing}>
                                 {processing && <Spinner />}
-                                Import
+                                {t('Import')}
                             </Button>
                         </ResponsiveDialogFooter>
                     </>

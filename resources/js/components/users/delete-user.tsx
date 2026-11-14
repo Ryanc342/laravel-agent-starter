@@ -9,22 +9,25 @@ import ResponsiveDialog, {
     ResponsiveDialogFooter,
 } from '@/components/shared/responsive-dialog';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 
 export default function DeleteUser() {
     return (
         <div className="space-y-6">
-            <Heading variant="small" title="Delete account" />
+            <Heading variant="small" title={t('Delete account')} />
             <ResponsiveDialog
                 trigger={
                     <Button
                         variant="destructive"
                         data-test="delete-user-button"
                     >
-                        Delete account
+                        {t('Delete account')}
                     </Button>
                 }
-                title="Are you sure you want to delete your account?"
-                description="Enter your password to permanently delete your account and all of its data."
+                title={t('Are you sure you want to delete your account?')}
+                description={t(
+                    'Enter your password to permanently delete your account and all of its data.',
+                )}
             >
                 <Form
                     {...ProfileController.destroy.form()}
@@ -38,7 +41,7 @@ export default function DeleteUser() {
                         <>
                             <ResponsiveDialogBody>
                                 <FormField
-                                    label="Password"
+                                    label={t('Password')}
                                     htmlFor="password"
                                     hideLabel
                                     error={errors.password}
@@ -46,7 +49,7 @@ export default function DeleteUser() {
                                     <PasswordInput
                                         id="password"
                                         name="password"
-                                        placeholder="Password"
+                                        placeholder={t('Password')}
                                         autoComplete="current-password"
                                     />
                                 </FormField>
@@ -58,7 +61,7 @@ export default function DeleteUser() {
                                         variant="outline"
                                         onClick={() => resetAndClearErrors()}
                                     >
-                                        Cancel
+                                        {t('Cancel')}
                                     </Button>
                                 </ResponsiveDialogClose>
                                 <Button
@@ -70,7 +73,7 @@ export default function DeleteUser() {
                                         type="submit"
                                         data-test="confirm-delete-user-button"
                                     >
-                                        Delete account
+                                        {t('Delete account')}
                                     </button>
                                 </Button>
                             </ResponsiveDialogFooter>

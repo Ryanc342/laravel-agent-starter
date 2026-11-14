@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/sidebar';
 import { toUrl } from '@/lib/utils';
 import type { NavItem } from '@/types';
+import { t } from '@/lib/i18n';
 
 export function NavFooter({
     items,
@@ -37,7 +38,7 @@ export function NavFooter({
                                     {item.icon && (
                                         <item.icon className="h-5 w-5" />
                                     )}
-                                    <span>{item.title}</span>
+                                    <span>{t(item.title)}</span>
                                 </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

@@ -8,6 +8,7 @@ import ResponsiveDialog, {
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { t } from '@/lib/i18n';
 import { print as printTask } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
@@ -22,24 +23,31 @@ export default function TaskActions({ task }: { task: Task }) {
             {task.can.update && (
                 <TaskFormDialog
                     task={task}
-                    trigger={<Button variant="outline">Edit task</Button>}
+                    trigger={
+                        <Button variant="outline">{t('Edit task')}</Button>
+                    }
                 />
             )}
             <Button variant="outline" asChild>
-                <Link href={printTask(task.id)}>Print</Link>
+                <Link href={printTask(task.id)}>{t('Print')}</Link>
             </Button>
             {task.can.delete && (
                 <ResponsiveDialog
-                    trigger={<Button variant="outline">Delete task</Button>}
-                    title="Delete this task?"
-                    description={`“${task.title}” will be deleted. This cannot be undone.`}
+                    trigger={
+                        <Button variant="outline">{t('Delete task')}</Button>
+                    }
+                    title={t('Delete this task?')}
+                    description={t(
+                        '“:title” will be deleted. This cannot be undone.',
+                        { title: task.title },
+                    )}
                 >
                     <Form {...TaskController.destroy.form(task.id)}>
                         {({ processing }) => (
                             <ResponsiveDialogFooter>
                                 <ResponsiveDialogClose asChild>
                                     <Button type="button" variant="outline">
-                                        Cancel
+                                        {t('Cancel')}
                                     </Button>
                                 </ResponsiveDialogClose>
                                 <Button
@@ -48,7 +56,7 @@ export default function TaskActions({ task }: { task: Task }) {
                                     disabled={processing}
                                 >
                                     {processing && <Spinner />}
-                                    Delete task
+                                    {t('Delete task')}
                                 </Button>
                             </ResponsiveDialogFooter>
                         )}
@@ -62,7 +70,7 @@ export default function TaskActions({ task }: { task: Task }) {
                 >
                     {({ processing }) => (
                         <Button type="submit" disabled={processing}>
-                            Complete task
+                            {t('Complete task')}
                         </Button>
                     )}
                 </Form>

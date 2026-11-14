@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import NewPasswordFields from '@/components/users/new-password-fields';
 import { update } from '@/routes/password';
+import { msg, t } from '@/lib/i18n';
 
 type Props = {
     token: string;
@@ -15,7 +16,7 @@ type Props = {
 export default function ResetPassword({ token, email, passwordRules }: Props) {
     return (
         <>
-            <Head title="Reset password" />
+            <Head title={t('Reset password')} />
 
             <Form
                 {...update.form()}
@@ -25,7 +26,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                 {({ processing, errors }) => (
                     <div className="grid gap-6">
                         <FormField
-                            label="Email"
+                            label={t('Email')}
                             htmlFor="email"
                             error={errors.email}
                             stacked
@@ -54,7 +55,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             data-test="reset-password-button"
                         >
                             {processing && <Spinner />}
-                            Reset password
+                            {t('Reset password')}
                         </Button>
                     </div>
                 )}
@@ -64,5 +65,5 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 }
 
 ResetPassword.layout = {
-    title: 'Reset password',
+    title: msg('Reset password'),
 };

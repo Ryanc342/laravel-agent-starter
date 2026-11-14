@@ -1,8 +1,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import * as React from "react"
 import { DayPicker } from "react-day-picker"
+import { zhCN } from "react-day-picker/locale"
 
 import { buttonVariants } from "@/components/ui/button"
+import { currentLanguage } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 /**
@@ -19,6 +21,8 @@ function Calendar({
   return (
     <DayPicker
       data-slot="calendar"
+      // Month and day names, and the screen-reader labels, in the page's language.
+      locale={currentLanguage() === "zh_CN" ? zhCN : undefined}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{

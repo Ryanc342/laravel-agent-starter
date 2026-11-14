@@ -7,6 +7,7 @@ import ResponsiveDialog, {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Passkey } from '@/types/auth';
+import { t } from '@/lib/i18n';
 
 type Props = {
     passkey: Passkey;
@@ -37,13 +38,15 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                         )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        Added {passkey.created_at_diff}
+                        {t('Added :time', { time: passkey.created_at_diff })}
                         {passkey.last_used_at_diff && (
                             <>
                                 <span className="mx-1 text-muted-foreground/50">
                                     /
                                 </span>
-                                Last used {passkey.last_used_at_diff}
+                                {t('Last used :time', {
+                                    time: passkey.last_used_at_diff,
+                                })}
                             </>
                         )}
                     </p>
@@ -58,22 +61,25 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                         className="text-destructive hover:bg-destructive/10 hover:text-destructive active:bg-destructive/20"
                     >
                         <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Remove</span>
+                        <span className="sr-only">{t('Remove')}</span>
                     </Button>
                 }
-                title="Remove passkey"
-                description={`“${passkey.name}” will be removed and can no longer be used to sign in.`}
+                title={t('Remove passkey')}
+                description={t(
+                    '“:name” will be removed and can no longer be used to sign in.',
+                    { name: passkey.name },
+                )}
             >
                 <ResponsiveDialogFooter>
                     <ResponsiveDialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
+                        <Button variant="outline">{t('Cancel')}</Button>
                     </ResponsiveDialogClose>
                     <Button
                         variant="destructive"
                         onClick={handleDelete}
                         disabled={isDeleting}
                     >
-                        {isDeleting ? 'Removing...' : 'Remove passkey'}
+                        {isDeleting ? t('Removing...') : t('Remove passkey')}
                     </Button>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useLatestNotifications } from '@/hooks/use-latest-notifications';
 import { index } from '@/routes/notifications';
+import { t } from '@/lib/i18n';
 
 /**
  * The bell in the top bar. The unread count comes with every page
@@ -57,8 +58,10 @@ export default function NotificationMenu() {
                             className="relative"
                             aria-label={
                                 unread > 0
-                                    ? `Notifications, ${unread} unread`
-                                    : 'Notifications'
+                                    ? t('Notifications, :count unread', {
+                                          count: unread,
+                                      })
+                                    : t('Notifications')
                             }
                         >
                             <Bell />
@@ -70,12 +73,14 @@ export default function NotificationMenu() {
                         </Button>
                     </PopoverTrigger>
                 </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
+                <TooltipContent>{t('Notifications')}</TooltipContent>
             </Tooltip>
 
             <PopoverContent align="end" className="w-80 p-0">
                 <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
-                    <h2 className="text-sm font-medium">Notifications</h2>
+                    <h2 className="text-sm font-medium">
+                        {t('Notifications')}
+                    </h2>
                     {notificationSummary.can.mark_all_read && (
                         <MarkAllReadButton size="sm" onSuccess={loadLatest} />
                     )}
@@ -84,7 +89,7 @@ export default function NotificationMenu() {
                 {failed ? (
                     <div className="px-4 py-6">
                         <ErrorState
-                            message="Could not load your notifications."
+                            message={t('Could not load your notifications.')}
                             onRetry={loadLatest}
                         />
                     </div>
@@ -94,7 +99,7 @@ export default function NotificationMenu() {
                     </div>
                 ) : latest.length === 0 ? (
                     <div className="px-4 py-6">
-                        <EmptyState message="You have no notifications." />
+                        <EmptyState message={t('You have no notifications.')} />
                     </div>
                 ) : (
                     <ul className="max-h-96 divide-y overflow-y-auto">
@@ -117,7 +122,7 @@ export default function NotificationMenu() {
                         asChild
                     >
                         <Link href={index()} onClick={() => setOpen(false)}>
-                            View all
+                            {t('View all')}
                         </Link>
                     </Button>
                 </div>

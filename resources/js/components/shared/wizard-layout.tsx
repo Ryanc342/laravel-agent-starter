@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 /**
@@ -26,10 +27,17 @@ export default function WizardLayout({
         <div className="grid gap-6 md:grid-cols-[14rem_1fr] md:gap-10">
             {isMobile ? (
                 <p className="text-sm font-medium">
-                    Step {current + 1} of {steps.length} · {steps[current]}
+                    {t('Step :current of :total · :step', {
+                        current: current + 1,
+                        total: steps.length,
+                        step: t(steps[current]),
+                    })}
                 </p>
             ) : (
-                <ol className="grid content-start gap-1" aria-label="Steps">
+                <ol
+                    className="grid content-start gap-1"
+                    aria-label={t('Steps')}
+                >
                     {steps.map((step, index) => (
                         <li
                             key={step}
@@ -46,14 +54,14 @@ export default function WizardLayout({
                             <span className="flex size-5 shrink-0 items-center justify-center text-xs tabular-nums">
                                 {index < current ? (
                                     <Check
-                                        aria-label="Done"
+                                        aria-label={t('Done')}
                                         className="size-4 text-primary"
                                     />
                                 ) : (
                                     index + 1
                                 )}
                             </span>
-                            <span className="min-w-0 truncate">{step}</span>
+                            <span className="min-w-0 truncate">{t(step)}</span>
                         </li>
                     ))}
                 </ol>

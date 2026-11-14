@@ -1,9 +1,11 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { msg, t } from '@/lib/i18n';
 
-export const NETWORK_ERROR_MESSAGE =
-    'Cannot reach the server. Check your connection and try again.';
+export const NETWORK_ERROR_MESSAGE = msg(
+    'Cannot reach the server. Check your connection and try again.',
+);
 
 /**
  * Tells the user when a request could not reach the server (offline, server
@@ -13,7 +15,7 @@ export const NETWORK_ERROR_MESSAGE =
 export function useNetworkErrorToast(): void {
     useEffect(() => {
         return router.on('networkError', () => {
-            toast.error(NETWORK_ERROR_MESSAGE, { id: 'network-error' });
+            toast.error(t(NETWORK_ERROR_MESSAGE), { id: 'network-error' });
         });
     }, []);
 }

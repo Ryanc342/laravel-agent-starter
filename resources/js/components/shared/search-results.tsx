@@ -3,6 +3,7 @@ import EmptyState from '@/components/shared/empty-state';
 import Heading from '@/components/heading';
 import TextLink from '@/components/text-link';
 import { Badge } from '@/components/ui/badge';
+import { t } from '@/lib/i18n';
 
 export type SearchResult = {
     id: string | number;
@@ -66,7 +67,7 @@ export default function SearchResults({
     if (shown.length === 0) {
         return (
             <div className="rounded-lg border px-4 py-8">
-                <EmptyState message={`No results for "${query}"`} />
+                <EmptyState message={t('No results for ":query"', { query })} />
             </div>
         );
     }
@@ -77,7 +78,10 @@ export default function SearchResults({
                 <section key={group.type} className="grid gap-2">
                     <Heading
                         variant="small"
-                        title={`${group.label} (${group.count})`}
+                        title={t(':label (:count)', {
+                            label: t(group.label),
+                            count: group.count,
+                        })}
                     />
                     <ul className="divide-y rounded-lg border">
                         {group.results.map((result) => (
@@ -107,7 +111,7 @@ export default function SearchResults({
                             href={group.viewAllHref}
                             className="w-fit text-sm"
                         >
-                            View all {group.count}
+                            {t('View all :count', { count: group.count })}
                         </TextLink>
                     ) : null}
                 </section>

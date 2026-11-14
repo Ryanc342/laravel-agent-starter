@@ -7,6 +7,7 @@ import Pagination from '@/components/shared/pagination';
 import { index } from '@/routes/notifications';
 import type { AppNotification } from '@/types/notification';
 import type { ResourceCollection } from '@/types/resource';
+import { msg, t } from '@/lib/i18n';
 
 type NotificationsPageProps = {
     notifications: ResourceCollection<AppNotification>;
@@ -19,11 +20,11 @@ export default function Notifications({
 
     return (
         <>
-            <Head title="Notifications" />
+            <Head title={t('Notifications')} />
 
             <div className="flex flex-col gap-8 p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading title="Notifications" />
+                    <Heading title={t('Notifications')} />
 
                     {notificationSummary?.can.mark_all_read && (
                         <div className="ml-auto">
@@ -32,7 +33,7 @@ export default function Notifications({
                     )}
                 </div>
 
-                <FeedList emptyMessage="You have no notifications.">
+                <FeedList emptyMessage={t('You have no notifications.')}>
                     {notifications.data.map((notification) => (
                         <NotificationRow
                             key={notification.id}
@@ -49,7 +50,7 @@ export default function Notifications({
 Notifications.layout = {
     breadcrumbs: [
         {
-            title: 'Notifications',
+            title: msg('Notifications'),
             href: index(),
         },
     ],

@@ -15,15 +15,16 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
+import { msg } from '@/lib/i18n';
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
+        title: msg('Repository'),
         href: 'https://github.com/laravel/react-starter-kit',
         icon: FolderGit2,
     },
     {
-        title: 'Documentation',
+        title: msg('Documentation'),
         href: 'https://laravel.com/docs/starter-kits#react',
         icon: BookOpen,
     },
@@ -31,7 +32,7 @@ const footerNavItems: NavItem[] = [
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: msg('Dashboard'),
         href: dashboard(),
         icon: LayoutGrid,
     },

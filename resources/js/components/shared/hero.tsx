@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 import type { NavItem } from '@/types';
 
 type HeroButton = { label: string; href: NavItem['href'] };
@@ -22,15 +23,15 @@ export default function Hero({
 }) {
     return (
         <section className="grid max-w-3xl gap-6 py-8 md:py-16">
-            <h1 className="text-display md:text-display-lg">{title}</h1>
-            <p className="text-base text-muted-foreground">{summary}</p>
+            <h1 className="text-display md:text-display-lg">{t(title)}</h1>
+            <p className="text-base text-muted-foreground">{t(summary)}</p>
             <div className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg">
-                    <Link href={primary.href}>{primary.label}</Link>
+                    <Link href={primary.href}>{t(primary.label)}</Link>
                 </Button>
                 {secondary && (
                     <Button asChild size="lg" variant="outline">
-                        <Link href={secondary.href}>{secondary.label}</Link>
+                        <Link href={secondary.href}>{t(secondary.label)}</Link>
                     </Button>
                 )}
             </div>

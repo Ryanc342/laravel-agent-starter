@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { confirm } from '@/routes/two-factor';
+import { t } from '@/lib/i18n';
 
 /**
  * The second step of the setup dialog: confirm the code from the authenticator app.
@@ -45,7 +46,7 @@ export default function TwoFactorVerificationStep({
                         className="relative w-full space-y-3"
                     >
                         <FormField
-                            label="Authentication code"
+                            label={t('Authentication code')}
                             htmlFor="otp"
                             hideLabel
                             className="py-2"
@@ -67,7 +68,7 @@ export default function TwoFactorVerificationStep({
                                 onClick={onBack}
                                 disabled={processing}
                             >
-                                Back
+                                {t('Back')}
                             </Button>
                             <Button
                                 type="submit"
@@ -75,7 +76,7 @@ export default function TwoFactorVerificationStep({
                                     processing || code.length < OTP_MAX_LENGTH
                                 }
                             >
-                                Confirm
+                                {t('Confirm')}
                             </Button>
                         </div>
                     </div>

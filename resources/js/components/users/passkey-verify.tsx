@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
 import { dashboard } from '@/routes';
+import { t } from '@/lib/i18n';
 
 type Props = {
     routes?: {
@@ -54,13 +55,13 @@ export default function PasskeyVerify({
                 >
                     {isLoading ? <Spinner /> : <KeyRound className="h-4 w-4" />}
                     {isLoading
-                        ? (loadingLabel ?? 'Authenticating...')
-                        : (label ?? 'Sign in with a passkey')}
+                        ? (loadingLabel ?? t('Authenticating...'))
+                        : (label ?? t('Sign in with a passkey'))}
                 </Button>
             </div>
 
             <LabeledDivider className="my-6">
-                {separator ?? 'Or continue with email'}
+                {separator ?? t('Or continue with email')}
             </LabeledDivider>
         </>
     );

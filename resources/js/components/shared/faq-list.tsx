@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { t } from '@/lib/i18n';
 
 export type FaqItem = { id: string; question: string; answer: string };
 export type FaqTopic = { id: string; title: string; items: FaqItem[] };
@@ -22,8 +23,8 @@ export type FaqTopic = { id: string; title: string; items: FaqItem[] };
  */
 export default function FaqList({
     topics,
-    searchLabel = 'Search help',
-    emptyMessage = 'No questions match your search.',
+    searchLabel = t('Search help'),
+    emptyMessage = t('No questions match your search.'),
 }: {
     topics: FaqTopic[];
     searchLabel?: string;
@@ -35,12 +36,19 @@ export default function FaqList({
     const shown = topics
         .map((topic) => ({
             ...topic,
-            items: topic.items.filter(
-                (item) =>
-                    !needle ||
-                    item.question.toLowerCase().includes(needle) ||
-                    item.answer.toLowerCase().includes(needle),
-            ),
+            title: t(topic.title),
+            items: topic.items
+                .map((item) => ({
+                    ...item,
+                    question: t(item.question),
+                    answer: t(item.answer),
+                }))
+                .filter(
+                    (item) =>
+                        !needle ||
+                        item.question.toLowerCase().includes(needle) ||
+                        item.answer.toLowerCase().includes(needle),
+                ),
         }))
         .filter((topic) => topic.items.length > 0);
 

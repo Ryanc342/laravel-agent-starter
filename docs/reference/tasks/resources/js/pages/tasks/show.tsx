@@ -3,6 +3,7 @@ import Heading from '@/components/heading';
 import TaskActions from '@/components/tasks/task-actions';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/format';
+import { msg, t } from '@/lib/i18n';
 import { index } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
@@ -24,7 +25,7 @@ export default function ShowTask({ task }: ShowTaskProps) {
                         </Badge>
                         {task.is_overdue && (
                             <Badge variant="destructive" className="mt-1">
-                                Overdue
+                                {t('Overdue')}
                             </Badge>
                         )}
                     </div>
@@ -33,9 +34,11 @@ export default function ShowTask({ task }: ShowTaskProps) {
                 </div>
 
                 <dl className="grid max-w-xl gap-1 text-sm">
-                    <dt className="text-muted-foreground">Due date</dt>
+                    <dt className="text-muted-foreground">{t('Due date')}</dt>
                     <dd>
-                        {task.due_on ? formatDate(task.due_on) : 'No due date'}
+                        {task.due_on
+                            ? formatDate(task.due_on)
+                            : t('No due date')}
                     </dd>
                 </dl>
             </div>
@@ -46,5 +49,5 @@ export default function ShowTask({ task }: ShowTaskProps) {
 // The breadcrumb ends at the list and is the way back, so the page needs no
 // separate "back" button. The task's name shows once, as the heading.
 ShowTask.layout = {
-    breadcrumbs: [{ title: 'Tasks', href: index() }],
+    breadcrumbs: [{ title: msg('Tasks'), href: index() }],
 };

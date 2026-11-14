@@ -14,6 +14,7 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { useListQuery } from '@/hooks/use-list-query';
+import { t } from '@/lib/i18n';
 import type { ParamChange } from '@/lib/list-query';
 
 /**
@@ -52,7 +53,7 @@ export default function SortFilterSheet({
             <SheetTrigger asChild>
                 <Button type="button" variant="outline">
                     <ListFilter />
-                    Sort & filter
+                    {t('Sort & filter')}
                 </Button>
             </SheetTrigger>
             <SheetContent
@@ -60,7 +61,7 @@ export default function SortFilterSheet({
                 className="max-h-[85dvh] overflow-y-auto"
             >
                 <SheetHeader>
-                    <SheetTitle>Sort & filter</SheetTitle>
+                    <SheetTitle>{t('Sort & filter')}</SheetTitle>
                 </SheetHeader>
                 <div className="grid gap-6 px-6">
                     {withMenu.map((column) => (
@@ -84,7 +85,7 @@ export default function SortFilterSheet({
                 </div>
                 <SheetFooter>
                     <Button type="button" variant="outline" onClick={clearAll}>
-                        Clear
+                        {t('Clear')}
                     </Button>
                 </SheetFooter>
             </SheetContent>

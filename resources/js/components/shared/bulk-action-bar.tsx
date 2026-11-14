@@ -7,6 +7,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 /**
@@ -54,7 +55,7 @@ export default function BulkActionBar({
             <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
                 <div
                     role="region"
-                    aria-label="Bulk actions"
+                    aria-label={t('Bulk actions')}
                     data-slot="bulk-action-bar"
                     className="pointer-events-auto flex w-full max-w-full flex-wrap items-center gap-2 rounded-lg border bg-popover px-3 py-2 text-popover-foreground shadow-md sm:w-auto sm:gap-3 sm:px-4"
                 >
@@ -68,8 +69,8 @@ export default function BulkActionBar({
                     >
                         <span className="text-sm font-medium whitespace-nowrap tabular-nums">
                             {allResults && total !== undefined
-                                ? `All ${total} selected`
-                                : `${count} selected`}
+                                ? t('All :total selected', { total })
+                                : t(':count selected', { count })}
                         </span>
                         {offersPage ? (
                             <Button
@@ -77,7 +78,7 @@ export default function BulkActionBar({
                                 size="inline"
                                 onClick={onSelectPage}
                             >
-                                Select this page
+                                {t('Select this page')}
                             </Button>
                         ) : null}
                         {offersAll ? (
@@ -86,7 +87,7 @@ export default function BulkActionBar({
                                 size="inline"
                                 onClick={onSelectAllResults}
                             >
-                                Select all {total} results
+                                {t('Select all :total results', { total })}
                             </Button>
                         ) : null}
                     </div>
@@ -98,13 +99,13 @@ export default function BulkActionBar({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                aria-label="Clear selection"
+                                aria-label={t('Clear selection')}
                                 onClick={onClear}
                             >
                                 <X />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Clear selection</TooltipContent>
+                        <TooltipContent>{t('Clear selection')}</TooltipContent>
                     </Tooltip>
                 </div>
             </div>

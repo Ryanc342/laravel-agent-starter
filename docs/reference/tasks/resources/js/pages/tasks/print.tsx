@@ -4,6 +4,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
+import { msg, t } from '@/lib/i18n';
 import { index } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
@@ -21,10 +22,10 @@ export default function PrintTask({ task }: { task: Task }) {
                 <div className="flex flex-wrap justify-end gap-2 print:hidden">
                     <Button variant="outline" asChild>
                         <a href={TaskPdfController.url(task.id)}>
-                            Download PDF
+                            {t('Download PDF')}
                         </a>
                     </Button>
-                    <Button onClick={() => window.print()}>Print</Button>
+                    <Button onClick={() => window.print()}>{t('Print')}</Button>
                 </div>
 
                 <div className="flex max-w-3xl flex-col gap-6 rounded-lg border p-6 print:max-w-none print:rounded-none print:border-0 print:p-0">
@@ -35,17 +36,19 @@ export default function PrintTask({ task }: { task: Task }) {
                         </Badge>
                         {task.is_overdue && (
                             <Badge variant="destructive" className="mt-1">
-                                Overdue
+                                {t('Overdue')}
                             </Badge>
                         )}
                     </div>
 
                     <dl className="grid gap-1 text-sm">
-                        <dt className="text-muted-foreground">Due date</dt>
+                        <dt className="text-muted-foreground">
+                            {t('Due date')}
+                        </dt>
                         <dd>
                             {task.due_on
                                 ? formatDate(task.due_on)
-                                : 'No due date'}
+                                : t('No due date')}
                         </dd>
                     </dl>
                 </div>
@@ -56,5 +59,5 @@ export default function PrintTask({ task }: { task: Task }) {
 
 // The breadcrumb ends at the list, the way back, as on the task page.
 PrintTask.layout = {
-    breadcrumbs: [{ title: 'Tasks', href: index() }],
+    breadcrumbs: [{ title: msg('Tasks'), href: index() }],
 };

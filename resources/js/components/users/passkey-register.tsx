@@ -4,6 +4,7 @@ import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
+import { t } from '@/lib/i18n';
 
 type Props = {
     onSuccess: () => void;
@@ -38,7 +39,7 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
     if (!isSupported) {
         return (
             <div className="text-sm text-muted-foreground">
-                Passkeys are not supported in this browser.
+                {t('Passkeys are not supported in this browser.')}
             </div>
         );
     }
@@ -46,7 +47,7 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
     if (!showForm) {
         return (
             <Button variant="outline" onClick={() => setShowForm(true)}>
-                Add passkey
+                {t('Add passkey')}
             </Button>
         );
     }
@@ -57,7 +58,7 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
             className="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
         >
             <FormField
-                label="Passkey name"
+                label={t('Passkey name')}
                 htmlFor="passkey-name"
                 error={error ?? undefined}
             >
@@ -66,20 +67,20 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g., MacBook Pro, iPhone"
+                    placeholder={t('e.g., MacBook Pro, iPhone')}
                     autoFocus
                 />
                 <p className="text-xs text-muted-foreground">
-                    A name helps you identify this passkey later.
+                    {t('A name helps you identify this passkey later.')}
                 </p>
             </FormField>
 
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={handleCancel}>
-                    Cancel
+                    {t('Cancel')}
                 </Button>
                 <Button type="submit" disabled={isLoading || !name.trim()}>
-                    {isLoading ? 'Registering...' : 'Register passkey'}
+                    {isLoading ? t('Registering...') : t('Register passkey')}
                 </Button>
             </div>
         </form>

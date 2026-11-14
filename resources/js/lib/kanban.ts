@@ -1,3 +1,5 @@
+import { msg, t } from '@/lib/i18n';
+
 export type KanbanCard = { id: string; title: string };
 export type KanbanColumn<Card extends KanbanCard = KanbanCard> = {
     id: string;
@@ -78,7 +80,7 @@ export function kanbanAnnouncements<Card extends KanbanCard>(
     columns: KanbanColumn<Card>[],
 ) {
     const titleOf = (id: string | number) =>
-        place(columns, String(id))?.card?.title ?? 'The card';
+        place(columns, String(id))?.card?.title ?? t('The card');
 
     const where = (id: string | number) => {
         const found = place(columns, String(id));
@@ -88,9 +90,13 @@ export function kanbanAnnouncements<Card extends KanbanCard>(
         }
 
         return found.card
-            ? `${found.column.label}, position ${found.index + 1} of ${found.column.cards.length}`
+            ? t(':column, position :position of :total', {
+                  column: found.column.label,
+                  position: found.index + 1,
+                  total: found.column.cards.length,
+              })
             : found.column.cards.length === 0
-              ? `${found.column.label}, which is empty`
+              ? t(':column, which is empty', { column: found.column.label })
               : found.column.label;
     };
 
@@ -99,27 +105,50 @@ export function kanbanAnnouncements<Card extends KanbanCard>(
             const found = place(columns, String(active.id));
 
             return found?.card
-                ? `Picked up ${found.card.title} from ${found.column.label}, position ${found.index + 1} of ${found.column.cards.length}.`
-                : 'Picked up a card.';
+                ? t(
+                      'Picked up :title from :column, position :position of :total.',
+                      {
+                          title: found.card.title,
+                          column: found.column.label,
+                          position: found.index + 1,
+                          total: found.column.cards.length,
+                      },
+                  )
+                : t('Picked up a card.');
         },
         onDragOver: ({ active, over }: DraggedOver) =>
             over
-                ? `${titleOf(active.id)} is over ${where(over.id)}.`
-                : `${titleOf(active.id)} is not over a column.`,
+                ? t(':title is over :place.', {
+                      title: titleOf(active.id),
+                      place: where(over.id) ?? '',
+                  })
+                : t(':title is not over a column.', {
+                      title: titleOf(active.id),
+                  }),
         onDragEnd: ({ active, over }: DraggedOver) =>
             over
-                ? `Dropped ${titleOf(active.id)} in ${where(over.id)}.`
-                : `${titleOf(active.id)} was dropped outside the columns and did not move.`,
+                ? t('Dropped :title in :place.', {
+                      title: titleOf(active.id),
+                      place: where(over.id) ?? '',
+                  })
+                : t(
+                      ':title was dropped outside the columns and did not move.',
+                      { title: titleOf(active.id) },
+                  ),
         onDragCancel: ({ active }: Dragged) => {
             const found = place(columns, String(active.id));
 
             return found?.card
-                ? `Move cancelled. ${found.card.title} is still in ${found.column.label}.`
-                : 'Move cancelled.';
+                ? t('Move cancelled. :title is still in :column.', {
+                      title: found.card.title,
+                      column: found.column.label,
+                  })
+                : t('Move cancelled.');
         },
     };
 }
 
 /** Read to a screen reader when focus is on a card's drag handle. */
-export const kanbanInstructions =
-    'To pick up a card, press Space. Use the arrow keys to move it to another place or column, press Space again to drop it, or press Escape to cancel.';
+export const kanbanInstructions = msg(
+    'To pick up a card, press Space. Use the arrow keys to move it to another place or column, press Space again to drop it, or press Escape to cancel.',
+);
