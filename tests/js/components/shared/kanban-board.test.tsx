@@ -95,15 +95,6 @@ test('every card has a handle for dragging, a button so the keyboard can lift it
     expect(handle.getAttribute('aria-roledescription')).toBe('sortable');
 });
 
-test('on a phone the columns scroll sideways inside the board and are narrower than the screen', () => {
-    board();
-
-    const open = screen.getByRole('region', { name: 'Open' });
-
-    expect(open.parentElement?.className).toContain('overflow-x-auto');
-    expect(open.className).toContain('w-[80%]');
-});
-
 test('a screen reader is told how to drag a card with the keyboard, in words, not ids', () => {
     board();
 

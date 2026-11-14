@@ -7,7 +7,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { t } from '@/lib/i18n';
 
 export default function PasswordInput({
@@ -24,7 +23,8 @@ export default function PasswordInput({
         <div className="relative">
             <Input
                 type={showPassword ? 'text' : 'password'}
-                className={cn('pr-10', className)}
+                size="end-icon"
+                className={className}
                 ref={ref}
                 {...props}
             />
@@ -33,7 +33,7 @@ export default function PasswordInput({
                     <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none active:text-primary-pressed"
+                        className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none active:text-primary-pressed"
                         aria-label={label}
                         tabIndex={-1}
                     >

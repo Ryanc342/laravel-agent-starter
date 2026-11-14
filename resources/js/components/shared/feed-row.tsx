@@ -55,7 +55,7 @@ export default function FeedRow({
                     onClick={onClick}
                     disabled={disabled}
                     className={cn(
-                        'flex w-full items-start gap-3 text-left transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset enabled:hover:bg-accent enabled:active:bg-accent-pressed',
+                        'flex w-full items-start gap-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset enabled:hover:bg-accent enabled:active:bg-accent-pressed',
                         padding,
                     )}
                 >

@@ -226,7 +226,7 @@ function TickList({ param, choices }: { param: string; choices: Choice[] }) {
                     >
                         <Checkbox
                             id={`${id}-${choice.value}`}
-                            className="size-4"
+                            size="sm"
                             checked={ticked.includes(choice.value)}
                             onCheckedChange={(checked) =>
                                 change({

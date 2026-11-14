@@ -6,13 +6,18 @@ import { cn } from "@/lib/utils"
 
 function Checkbox({
   className,
+  size = "default",
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root> & {
+  size?: "default" | "sm"
+}) {
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
+      data-size={size}
       className={cn(
-        "peer group/checkbox border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground data-[state=indeterminate]:border-primary hover:bg-accent active:bg-accent-pressed data-[state=checked]:hover:bg-primary/90 data-[state=indeterminate]:hover:bg-primary/90 data-[state=checked]:active:bg-primary-pressed data-[state=indeterminate]:active:bg-primary-pressed focus-visible:border-input-focus aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive size-5 shrink-0 rounded-[4px] border transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "peer group/checkbox border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground data-[state=indeterminate]:border-primary hover:bg-accent active:bg-accent-pressed data-[state=checked]:hover:bg-primary/90 data-[state=indeterminate]:hover:bg-primary/90 data-[state=checked]:active:bg-primary-pressed data-[state=indeterminate]:active:bg-primary-pressed focus-visible:border-input-focus aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive shrink-0 rounded-[4px] border transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        size === "sm" ? "size-4" : "size-5",
         className
       )}
       {...props}

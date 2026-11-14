@@ -66,7 +66,10 @@ export default function NotificationMenu() {
                         >
                             <Bell />
                             {unread > 0 && (
-                                <Badge className="pointer-events-none absolute -top-1 -right-1 h-4 min-w-4 px-1 leading-none">
+                                <Badge
+                                    size="count"
+                                    className="pointer-events-none absolute -top-1 -right-1"
+                                >
                                     {unread > 9 ? '9+' : unread}
                                 </Badge>
                             )}

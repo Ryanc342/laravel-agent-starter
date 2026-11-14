@@ -49,7 +49,7 @@ export default function SearchBox({
                 value={text}
                 onChange={(event) => setText(event.target.value)}
                 placeholder={t('Search')}
-                className="pl-9"
+                size="start-icon"
             />
         </form>
     );

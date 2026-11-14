@@ -113,7 +113,7 @@ export default function PublicHeader({
                                                 key={link.title}
                                                 asChild
                                                 variant="ghost"
-                                                className="justify-start px-3"
+                                                className="justify-start"
                                             >
                                                 <Link href={link.href}>
                                                     {t(link.title)}

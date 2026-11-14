@@ -28,7 +28,7 @@ export default function WizardLayout({
     const isMobile = useIsMobile();
 
     return (
-        <div className="grid gap-6 md:grid-cols-[14rem_1fr] md:gap-10">
+        <div className="grid gap-6 md:grid-cols-4 md:gap-10">
             {isMobile ? (
                 <p className="text-sm font-medium">
                     {t('Step :current of :total · :step', {
@@ -70,7 +70,7 @@ export default function WizardLayout({
                     ))}
                 </ol>
             )}
-            <div className="grid min-w-0 content-start gap-6">
+            <div className="grid min-w-0 content-start gap-6 md:col-span-3">
                 {instruction && (
                     <p className="text-sm text-muted-foreground">
                         {t(instruction)}

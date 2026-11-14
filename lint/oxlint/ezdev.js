@@ -316,11 +316,339 @@ const noUntranslatedText = rule(
     },
 );
 
+/**
+ * The UI rules a machine can see in the code (docs/golden-principles.md,
+ * principle 10). They read the class names written in React: the `className`
+ * attributes and the arguments of cn(), clsx(), cva() and twMerge().
+ */
+const CLASS_HELPERS = new Set(['cn', 'clsx', 'cva', 'twMerge', 'classNames']);
+
+const SKIPPED_KEYS = new Set(['parent', 'loc', 'range', 'start', 'end']);
+
+/**
+ * Every string written inside an expression: literals, template parts and
+ * object keys of conditions such as `cond && 'a b'` or `cn('a', { b: x })`.
+ */
+function stringsIn(node, found = []) {
+    if (!node || typeof node !== 'object') {
+        return found;
+    }
+
+    if (Array.isArray(node)) {
+        node.forEach((child) => stringsIn(child, found));
+
+        return found;
+    }
+
+    if (node.type === 'Literal' && typeof node.value === 'string') {
+        found.push({ node, text: node.value });
+
+        return found;
+    }
+
+    if (node.type === 'TemplateElement') {
+        found.push({ node, text: node.value.raw });
+
+        return found;
+    }
+
+    for (const [key, child] of Object.entries(node)) {
+        if (!SKIPPED_KEYS.has(key) && child && typeof child === 'object') {
+            stringsIn(child, found);
+        }
+    }
+
+    return found;
+}
+
+/**
+ * One class token split into its variants and its utility:
+ * "md:dark:bg-blue-500" gives variants ["md", "dark"], utility "bg-blue-500".
+ * Colons inside brackets ("data-[state=open]:x") do not split.
+ */
+function parseClass(token) {
+    const variants = [];
+    let depth = 0;
+    let start = 0;
+
+    for (let index = 0; index < token.length; index += 1) {
+        const char = token[index];
+
+        if (char === '[') {
+            depth += 1;
+        } else if (char === ']') {
+            depth -= 1;
+        } else if (char === ':' && depth === 0) {
+            variants.push(token.slice(start, index));
+            start = index + 1;
+        }
+    }
+
+    return { variants, utility: token.slice(start).replace(/^[!-]+/, '') };
+}
+
+/**
+ * Calls `check({ variants, utility }, node)` for every class token written in
+ * this file, once per string.
+ */
+function classRule(description, check) {
+    return rule(description, (context, file) => {
+        const seen = new WeakSet();
+
+        const visit = (expression, attribute) => {
+            for (const { node, text } of stringsIn(expression)) {
+                if (seen.has(node)) {
+                    continue;
+                }
+
+                seen.add(node);
+
+                for (const token of text.split(/\s+/).filter(Boolean)) {
+                    check(
+                        parseClass(token),
+                        (message) => context.report({ node, message }),
+                        { file, attribute },
+                    );
+                }
+            }
+        };
+
+        return {
+            JSXAttribute(node) {
+                const name = node.name?.name;
+
+                if (
+                    typeof name === 'string' &&
+                    (name === 'className' || name.endsWith('ClassName'))
+                ) {
+                    visit(node.value, name);
+                }
+
+                if (name === 'style') {
+                    visit(node.value, 'style');
+                }
+            },
+            CallExpression(node) {
+                const callee = unwrap(node.callee);
+
+                if (
+                    callee?.type === 'Identifier' &&
+                    CLASS_HELPERS.has(callee.name)
+                ) {
+                    visit(node.arguments, 'call');
+                }
+            },
+        };
+    });
+}
+
+const PALETTE =
+    /^(?:bg|text|border|border-[xytblrse]|ring|ring-offset|fill|stroke|from|via|to|outline|divide|decoration|shadow|accent|caret|placeholder)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?:\/\d+)?$/;
+const RAW_COLOUR = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\(/;
+const COLOUR_UTILITY =
+    /^(?:bg|border|ring|fill|stroke|outline|divide|decoration|shadow|accent|caret|from|via|to)-|^text-(?!(?:xs|sm|base|lg|xl|\dxl|left|right|center|justify|start|end|wrap|nowrap|balance|pretty|ellipsis|clip|display)\b)/;
+
+const noRawStyle = classRule(
+    'Colours and sizes come from the theme tokens',
+    ({ variants, utility }, report, { attribute }) => {
+        if (attribute === 'style') {
+            if (RAW_COLOUR.test(utility)) {
+                report(
+                    'A raw colour in a style. Use a theme token (bg-primary, text-muted-foreground, var(--chart-1)). See docs/design/foundations.md.',
+                );
+            }
+
+            return;
+        }
+
+        if (PALETTE.test(utility) || RAW_COLOUR.test(utility)) {
+            report(
+                `"${utility}" is a raw colour. Use a theme token (bg-primary, text-muted-foreground, text-success). See docs/design/foundations.md.`,
+            );
+        }
+
+        if (utility.startsWith('[') || /-\[/.test(utility)) {
+            report(
+                `"${utility}" is an arbitrary value. Use the theme's scale or a token, or the component's size variant. See docs/design/foundations.md.`,
+            );
+        }
+
+        if (variants.includes('dark') && COLOUR_UTILITY.test(utility)) {
+            report(
+                `"dark:${utility}" overrides a colour for dark mode. The tokens in resources/css/app.css already change with the theme; use the token. See docs/design/foundations.md.`,
+            );
+        }
+    },
+);
+
+const noDisplaySize = classRule(
+    'The display sizes belong to Hero and PricingPlans',
+    ({ utility }, report, { file }) => {
+        if (
+            /^text-display(?:-lg)?$/.test(utility) &&
+            file !== 'resources/js/components/shared/hero.tsx' &&
+            file !== 'resources/js/components/shared/pricing-plans.tsx'
+        ) {
+            report(
+                'The display sizes belong to Hero and PricingPlans (components/shared). Use Hero or PricingPlans, or Heading for a title. See docs/design/foundations.md.',
+            );
+        }
+    },
+);
+
+/**
+ * The components with a `size` variant: a page never sets their height or padding.
+ */
+const SIZED_COMPONENTS = new Set([
+    'Button',
+    'Input',
+    'PasswordInput',
+    'Textarea',
+    'SelectTrigger',
+    'Toggle',
+    'ToggleGroupItem',
+    'Badge',
+    'Checkbox',
+    'InputOTPSlot',
+    'DatePicker',
+]);
+
+const noComponentResize = rule(
+    'A component is resized through its size variant',
+    (context) => ({
+        JSXOpeningElement(node) {
+            const name = node.name?.name;
+
+            if (typeof name !== 'string' || !SIZED_COMPONENTS.has(name)) {
+                return;
+            }
+
+            for (const attribute of node.attributes) {
+                if (attribute.name?.name !== 'className') {
+                    continue;
+                }
+
+                for (const { text } of stringsIn(attribute.value)) {
+                    for (const token of text.split(/\s+/).filter(Boolean)) {
+                        const { variants, utility } = parseClass(token);
+
+                        if (
+                            /^(?:h|p|px|py|pt|pb|pl|pr|size)-/.test(utility) &&
+                            !variants.some(
+                                (variant) =>
+                                    variant.startsWith('[') || variant === '*',
+                            )
+                        ) {
+                            context.report({
+                                node: attribute,
+                                message: `"${token}" resizes ${name}. Use its size variant (size="sm", "lg", "icon") instead of a height or padding class. See docs/design/components.md.`,
+                            });
+                        }
+                    }
+                }
+            }
+        },
+    }),
+);
+
+const iconButtonLabel = rule(
+    'An icon-only Button has an aria-label',
+    (context) => ({
+        JSXOpeningElement(node) {
+            if (node.name?.name !== 'Button') {
+                return;
+            }
+
+            const size = node.attributes.find(
+                (attribute) => attribute.name?.name === 'size',
+            );
+            const value = size?.value;
+
+            if (
+                value?.type !== 'Literal' ||
+                typeof value.value !== 'string' ||
+                !value.value.startsWith('icon')
+            ) {
+                return;
+            }
+
+            const named = node.attributes.some((attribute) =>
+                ['aria-label', 'aria-labelledby'].includes(
+                    attribute.name?.name,
+                ),
+            );
+
+            if (!named) {
+                context.report({
+                    node,
+                    message:
+                        "An icon-only Button needs aria-label={t('...')}, so a screen reader can name it (and a Tooltip for sighted users). See docs/design/components.md.",
+                });
+            }
+        },
+    }),
+);
+
+const formNoValidate = rule('Every form sets noValidate', (context) => ({
+    JSXOpeningElement(node) {
+        if (node.name?.name !== 'Form' && node.name?.name !== 'form') {
+            return;
+        }
+
+        const attribute = node.attributes.find(
+            (item) => item.name?.name === 'noValidate',
+        );
+        const off =
+            attribute?.value?.type === 'JSXExpressionContainer' &&
+            attribute.value.expression?.value === false;
+
+        if (!attribute || off) {
+            context.report({
+                node,
+                message:
+                    "Add noValidate to the form, so the browser never shows its own message in its own language; the server answers in the app's language. Keep `required` on the input. See docs/rules/frontend.md.",
+            });
+        }
+    },
+}));
+
+const noDateInput = rule(
+    'A date field is the shared DatePicker',
+    (context) => ({
+        JSXOpeningElement(node) {
+            if (node.name?.name !== 'input' && node.name?.name !== 'Input') {
+                return;
+            }
+
+            const type = node.attributes.find(
+                (attribute) => attribute.name?.name === 'type',
+            );
+
+            if (
+                type?.value?.type === 'Literal' &&
+                type.value.value === 'date'
+            ) {
+                context.report({
+                    node,
+                    message:
+                        'Use the shared DatePicker (components/shared/date-picker.tsx), which reads and writes YYYY-MM-DD, instead of type="date". See docs/design/patterns/form.md.',
+                });
+            }
+        },
+    }),
+);
+
 export default {
     meta: { name: 'ezdev' },
     rules: {
         'no-direct-backend-calls': noDirectBackendCalls,
         'component-boundaries': componentBoundaries,
         'no-untranslated-text': noUntranslatedText,
+        'no-raw-style': noRawStyle,
+        'no-display-size': noDisplaySize,
+        'no-component-resize': noComponentResize,
+        'icon-button-label': iconButtonLabel,
+        'form-no-validate': formNoValidate,
+        'no-date-input': noDateInput,
     },
 };

@@ -59,6 +59,12 @@ export default defineConfig({
             'ezdev/no-direct-backend-calls': 'error',
             'ezdev/component-boundaries': 'error',
             'ezdev/no-untranslated-text': 'error',
+            'ezdev/no-raw-style': 'error',
+            'ezdev/no-display-size': 'error',
+            'ezdev/no-component-resize': 'error',
+            'ezdev/icon-button-label': 'error',
+            'ezdev/form-no-validate': 'error',
+            'ezdev/no-date-input': 'error',
             'import/no-cycle': 'error',
             // Only no-cycle is wanted from the import plugin; these two are
             // its rules that oxlint turns on by default.

@@ -56,10 +56,7 @@ export default function SortFilterSheet({
                     {t('Sort & filter')}
                 </Button>
             </SheetTrigger>
-            <SheetContent
-                side="bottom"
-                className="max-h-[85dvh] overflow-y-auto"
-            >
+            <SheetContent side="bottom" className="max-h-5/6 overflow-y-auto">
                 <SheetHeader>
                     <SheetTitle>{t('Sort & filter')}</SheetTitle>
                 </SheetHeader>

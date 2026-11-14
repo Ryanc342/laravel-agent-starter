@@ -14,6 +14,9 @@ const inputVariants = cva(
       size: {
         default: "h-10",
         sm: "h-8",
+        // Room for an icon inside the box: a button at its end (a password), a magnifier at its start (a search box).
+        "end-icon": "h-10 pr-10",
+        "start-icon": "h-10 pl-9",
       },
     },
     defaultVariants: {

@@ -97,8 +97,8 @@ function CardShell<Card extends KanbanCard>({
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="ghost"
-                        size="icon"
-                        className="size-8 shrink-0"
+                        size="icon-sm"
+                        className="shrink-0"
                         aria-label={t('Move :title to', { title: card.title })}
                     >
                         <MoveRight />
@@ -140,7 +140,7 @@ function Column<Card extends KanbanCard>({
     return (
         <section
             aria-label={column.label}
-            className="grid w-[80%] shrink-0 content-start gap-3 rounded-lg border bg-muted p-3 md:w-auto md:shrink"
+            className="grid w-4/5 shrink-0 content-start gap-3 rounded-lg border bg-muted p-3 md:w-auto md:shrink"
         >
             <Heading
                 variant="small"
