@@ -19,6 +19,18 @@ test('a Chinese browser gets Chinese on its first visit', function (string $head
         ->assertInertia(fn (Assert $page) => $page->where('locale', 'zh_CN'));
 })->with(['zh', 'zh-CN,zh;q=0.9', 'zh-TW,zh;q=0.9,en;q=0.8']);
 
+test('the browser\'s first choice decides, by q value and then by order', function (string $header, string $expected) {
+    $this->withHeader('Accept-Language', $header)
+        ->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page->where('locale', $expected));
+})->with([
+    'english listed first' => ['en-US,zh;q=0.5', 'en'],
+    'chinese first' => ['zh-TW,en;q=0.5', 'zh_CN'],
+    'q reorders the written order' => ['en;q=0.4,zh-HK;q=0.9', 'zh_CN'],
+    'a wildcard is skipped' => ['*,zh;q=0.5', 'zh_CN'],
+    'a language that only starts with zh' => ['zha', 'en'],
+]);
+
 test('another language falls back to English', function () {
     $this->withHeader('Accept-Language', 'fr-FR,fr;q=0.9')
         ->get(route('home'))

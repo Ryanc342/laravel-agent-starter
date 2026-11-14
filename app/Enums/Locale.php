@@ -42,7 +42,9 @@ enum Locale: string
     {
         foreach ($languages as $language) {
             if ($language !== '*') {
-                return str_starts_with(strtolower($language), 'zh') ? self::ZhCn : self::En;
+                $tag = strtolower($language);
+
+                return $tag === 'zh' || str_starts_with($tag, 'zh_') ? self::ZhCn : self::En;
             }
         }
 

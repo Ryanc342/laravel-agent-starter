@@ -10,6 +10,7 @@ test('a browser whose first choice is any Chinese gets zh_CN, anything else Engl
     'plain zh' => [['zh'], Locale::ZhCn],
     'english first' => [['en_US', 'en', 'zh'], Locale::En],
     'another language' => [['fr_FR', 'fr'], Locale::En],
+    'a language that only starts with zh' => [['zha'], Locale::En],
     'a wildcard is skipped' => [['*', 'zh'], Locale::ZhCn],
     'only a wildcard' => [['*'], Locale::En],
     'nothing asked for' => [[], Locale::En],
