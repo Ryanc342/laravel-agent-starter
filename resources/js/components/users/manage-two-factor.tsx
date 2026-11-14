@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import TwoFactorRecoveryCodes from '@/components/users/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/users/two-factor-setup-modal';
+import Actions from '@/components/shared/actions';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { disable, enable } from '@/routes/two-factor';
@@ -49,8 +50,8 @@ export default function ManageTwoFactor(props: Props) {
         <div className="space-y-6">
             <Heading variant="small" title={t('Two-factor authentication')} />
             {twoFactorEnabled ? (
-                <div className="flex flex-col items-start justify-start space-y-4">
-                    <div className="relative inline">
+                <div className="space-y-4">
+                    <Actions>
                         <Form {...disable.form()}>
                             {({ processing }) => (
                                 <Button
@@ -62,7 +63,7 @@ export default function ManageTwoFactor(props: Props) {
                                 </Button>
                             )}
                         </Form>
-                    </div>
+                    </Actions>
 
                     <TwoFactorRecoveryCodes
                         recoveryCodesList={recoveryCodesList}
@@ -71,27 +72,25 @@ export default function ManageTwoFactor(props: Props) {
                     />
                 </div>
             ) : (
-                <div className="flex flex-col items-start justify-start space-y-4">
-                    <div>
-                        {hasSetupData ? (
-                            <Button onClick={() => setShowSetupModal(true)}>
-                                <ShieldCheck />
-                                {t('Continue setup')}
-                            </Button>
-                        ) : (
-                            <Form
-                                {...enable.form()}
-                                onSuccess={() => setShowSetupModal(true)}
-                            >
-                                {({ processing }) => (
-                                    <Button type="submit" disabled={processing}>
-                                        {t('Enable 2FA')}
-                                    </Button>
-                                )}
-                            </Form>
-                        )}
-                    </div>
-                </div>
+                <Actions>
+                    {hasSetupData ? (
+                        <Button onClick={() => setShowSetupModal(true)}>
+                            <ShieldCheck />
+                            {t('Continue setup')}
+                        </Button>
+                    ) : (
+                        <Form
+                            {...enable.form()}
+                            onSuccess={() => setShowSetupModal(true)}
+                        >
+                            {({ processing }) => (
+                                <Button type="submit" disabled={processing}>
+                                    {t('Enable 2FA')}
+                                </Button>
+                            )}
+                        </Form>
+                    )}
+                </Actions>
             )}
 
             <TwoFactorSetupModal

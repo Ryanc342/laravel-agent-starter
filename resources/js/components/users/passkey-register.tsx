@@ -1,6 +1,7 @@
 import { usePasskeyRegister } from '@laravel/passkeys/react';
 import { useState } from 'react';
 import FormField from '@/components/shared/form-field';
+import Actions from '@/components/shared/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
@@ -46,9 +47,11 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
 
     if (!showForm) {
         return (
-            <Button variant="outline" onClick={() => setShowForm(true)}>
-                {t('Add passkey')}
-            </Button>
+            <Actions>
+                <Button variant="outline" onClick={() => setShowForm(true)}>
+                    {t('Add passkey')}
+                </Button>
+            </Actions>
         );
     }
 
@@ -75,14 +78,14 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
                 </p>
             </FormField>
 
-            <div className="flex justify-end gap-2">
+            <Actions>
                 <Button type="button" variant="ghost" onClick={handleCancel}>
                     {t('Cancel')}
                 </Button>
                 <Button type="submit" disabled={isLoading || !name.trim()}>
                     {isLoading ? t('Registering...') : t('Register passkey')}
                 </Button>
-            </div>
+            </Actions>
         </form>
     );
 }

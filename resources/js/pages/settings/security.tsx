@@ -8,6 +8,7 @@ import ManageTwoFactor from '@/components/users/manage-two-factor';
 import type { Props as ManageTwoFactorProps } from '@/components/users/manage-two-factor';
 import NewPasswordFields from '@/components/users/new-password-fields';
 import PasswordInput from '@/components/password-input';
+import Actions from '@/components/shared/actions';
 import { Button } from '@/components/ui/button';
 import { edit } from '@/routes/security';
 import { msg, t } from '@/lib/i18n';
@@ -61,14 +62,14 @@ export default function Security(props: Props) {
                                 label={t('New password')}
                             />
 
-                            <div className="flex items-center justify-end gap-4">
+                            <Actions>
                                 <Button
                                     disabled={processing}
                                     data-test="update-password-button"
                                 >
                                     {t('Save')}
                                 </Button>
-                            </div>
+                            </Actions>
                         </>
                     )}
                 </Form>

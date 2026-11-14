@@ -33,7 +33,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                 label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
-                                stacked
                             >
                                 <Input
                                     id="email"

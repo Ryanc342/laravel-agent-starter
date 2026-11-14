@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Actions from '@/components/shared/actions';
 import ErrorState from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +66,7 @@ export default function TwoFactorRecoveryCodes({
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="flex flex-col items-end gap-3 select-none sm:flex-row sm:items-center sm:justify-end">
+                <Actions className="select-none">
                     {canRegenerateCodes && (
                         <Form
                             {...regenerateRecoveryCodes.form()}
@@ -87,7 +88,6 @@ export default function TwoFactorRecoveryCodes({
 
                     <Button
                         onClick={toggleCodesVisibility}
-                        className="w-fit"
                         aria-expanded={codesAreVisible}
                         aria-controls="recovery-codes-section"
                     >
@@ -99,7 +99,7 @@ export default function TwoFactorRecoveryCodes({
                             ? t('Hide recovery codes')
                             : t('View recovery codes')}
                     </Button>
-                </div>
+                </Actions>
                 <div
                     id="recovery-codes-section"
                     className={`relative overflow-hidden transition-all duration-150 ${codesAreVisible ? 'h-auto opacity-100' : 'h-0 opacity-0'}`}

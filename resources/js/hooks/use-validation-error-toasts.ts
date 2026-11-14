@@ -1,6 +1,10 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { tChoice } from '@/lib/i18n';
+
+/** How many error toasts one burst shows before "And N more errors". */
+const SHOWN_ERRORS = 5;
 
 /**
  * The field errors of a failed submit as `name => message`. Errors that sit in
@@ -68,7 +72,8 @@ function focusField(field: HTMLElement): void {
 }
 
 /**
- * A failed submit: each field error is one toast, and the first field with an
+ * A failed submit: each field error is one toast, at most five and then one
+ * "And N more errors", and the first field with an
  * error is scrolled into view and focused. Inertia fires `error` for every
  * failed visit, so the same error after a second submit is announced again.
  * The red border is `FormField`'s. Registered once, by the Toaster.
@@ -79,8 +84,18 @@ export function useValidationErrorToasts(): void {
             const errors = fieldErrors((event as CustomEvent).detail?.errors);
             const names = Object.keys(errors);
 
-            for (const name of names) {
+            for (const name of names.slice(0, SHOWN_ERRORS)) {
                 toast.error(errors[name], { id: `field-error-${name}` });
+            }
+
+            if (names.length > SHOWN_ERRORS) {
+                toast.error(
+                    tChoice(
+                        'And :count more error.|And :count more errors.',
+                        names.length - SHOWN_ERRORS,
+                    ),
+                    { id: 'field-error-more' },
+                );
             }
 
             // After the render that shows the errors (a dialog may be opening).

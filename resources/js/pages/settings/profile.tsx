@@ -4,6 +4,7 @@ import DeleteUser from '@/components/users/delete-user';
 import Heading from '@/components/heading';
 import FormField from '@/components/shared/form-field';
 import TextLink from '@/components/text-link';
+import Actions from '@/components/shared/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { edit } from '@/routes/profile';
@@ -98,14 +99,14 @@ export default function Profile({
                                 </div>
                             )}
 
-                            <div className="flex items-center justify-end gap-4">
+                            <Actions>
                                 <Button
                                     disabled={processing}
                                     data-test="update-profile-button"
                                 >
                                     {t('Save')}
                                 </Button>
-                            </div>
+                            </Actions>
                         </>
                     )}
                 </Form>

@@ -59,8 +59,16 @@ function plan(name: string): HTMLElement {
     return screen.getByRole('heading', { name }).closest('[data-slot="card"]')!;
 }
 
+test('the page title is the level-one heading', () => {
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
+
+    expect(
+        screen.getByRole('heading', { level: 1, name: 'Plans and prices' }),
+    ).toBeTruthy();
+});
+
 test('with no billing in the URL the monthly prices show, with their period', () => {
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(
         within(plan('Team')).getByText(shown(`RM${nbsp}49.00`)),
@@ -75,7 +83,7 @@ test('with no billing in the URL the monthly prices show, with their period', ()
 
 test('billing=yearly in the URL shows the yearly prices', () => {
     state.url = '/pricing?billing=yearly';
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(
         within(plan('Team')).getByText(shown(`RM${nbsp}490.00`)),
@@ -90,13 +98,13 @@ test('billing=yearly in the URL shows the yearly prices', () => {
 
 test('an unknown billing value counts as monthly', () => {
     state.url = '/pricing?billing=weekly';
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(within(plan('Team')).getByText('/ month')).toBeTruthy();
 });
 
 test('choosing Yearly puts it in the URL, and choosing Monthly takes it out again', async () => {
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
     fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
 
     await waitFor(() => expect(state.get).toHaveBeenCalledTimes(1));
@@ -104,7 +112,9 @@ test('choosing Yearly puts it in the URL, and choosing Monthly takes it out agai
 
     state.url = '/pricing?billing=yearly';
     state.get.mockReset();
-    const { unmount } = render(<PricingPlans plans={plans} />);
+    const { unmount } = render(
+        <PricingPlans title="Plans and prices" plans={plans} />,
+    );
     fireEvent.click(screen.getAllByRole('radio', { name: 'Monthly' })[1]);
     unmount();
 
@@ -113,7 +123,7 @@ test('choosing Yearly puts it in the URL, and choosing Monthly takes it out agai
 });
 
 test('only the recommended plan has the primary border, the badge and the main button', () => {
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(plan('Team').className).toContain('border-primary');
     expect(within(plan('Team')).getByText('Recommended')).toBeTruthy();
@@ -123,7 +133,7 @@ test('only the recommended plan has the primary border, the badge and the main b
 });
 
 test('each plan lists its features and has one button to its own address', () => {
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(within(plan('Team')).getAllByRole('listitem')).toHaveLength(3);
     expect(within(plan('Starter')).getAllByRole('listitem')).toHaveLength(2);
@@ -134,7 +144,7 @@ test('each plan lists its features and has one button to its own address', () =>
 });
 
 test('the price is in the display size', () => {
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(
         within(plan('Team')).getByText(shown(`RM${nbsp}49.00`)).className,
@@ -142,7 +152,7 @@ test('the price is in the display size', () => {
 });
 
 test('the recommended badge is a neutral badge: the one blue thing next to the plan is its button', () => {
-    render(<PricingPlans plans={plans} />);
+    render(<PricingPlans title="Plans and prices" plans={plans} />);
 
     expect(screen.getByText('Recommended').className).toContain('bg-secondary');
     expect(screen.getByText('Recommended').className).not.toContain(

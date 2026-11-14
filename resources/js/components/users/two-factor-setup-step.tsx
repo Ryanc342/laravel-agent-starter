@@ -1,4 +1,5 @@
 import { Check, Copy } from 'lucide-react';
+import Actions from '@/components/shared/actions';
 import ErrorState from '@/components/shared/error-state';
 import LabeledDivider from '@/components/shared/labeled-divider';
 import { Button } from '@/components/ui/button';
@@ -62,9 +63,9 @@ export default function TwoFactorSetupStep({
                         </div>
                     </div>
 
-                    <div className="flex w-full flex-col-reverse gap-2 max-md:*:w-full sm:flex-row sm:justify-end">
+                    <Actions>
                         <Button onClick={onNextStep}>{buttonText}</Button>
-                    </div>
+                    </Actions>
 
                     <LabeledDivider>
                         {t('or, enter the code manually')}

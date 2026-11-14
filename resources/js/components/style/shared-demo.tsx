@@ -1,9 +1,8 @@
 import FormField from '@/components/shared/form-field';
 import Pagination from '@/components/shared/pagination';
-import ResponsiveDialog, {
-    ResponsiveDialogClose,
-    ResponsiveDialogFooter,
-} from '@/components/shared/responsive-dialog';
+import ConfirmDialog, {
+    ConfirmDialogActions,
+} from '@/components/shared/confirm-dialog';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import { Specimen } from '@/components/style/style-section';
 import type { ExampleTask } from '@/components/style/types';
@@ -45,12 +44,11 @@ export default function SharedDemo({
                 </div>
             </Specimen>
 
-            <Specimen label="FormField, stacked (a narrow column) and with a hidden label (a search box)">
+            <Specimen label="FormField in a narrow column (the label moves above the input) and with a hidden label (a search box)">
                 <div className="grid w-full max-w-sm gap-6">
                     <FormField
                         label="Email address"
                         htmlFor="style-field-email"
-                        stacked
                     >
                         <Input
                             id="style-field-email"
@@ -70,19 +68,16 @@ export default function SharedDemo({
                 </div>
             </Specimen>
 
-            <Specimen label="ResponsiveDialog: a centred dialog on desktop, a sheet from the bottom on a phone (open it, then narrow the window)">
-                <ResponsiveDialog
+            <Specimen label="ConfirmDialog (a ResponsiveDialog): a centred dialog on desktop, a sheet from the bottom on a phone (open it, then narrow the window)">
+                <ConfirmDialog
                     trigger={<Button variant="outline">Delete task</Button>}
                     title="Delete this task?"
-                    description="“Write the report” will be deleted. This cannot be undone."
+                    consequence="“Write the report” will be deleted. This cannot be undone."
                 >
-                    <ResponsiveDialogFooter>
-                        <ResponsiveDialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                        </ResponsiveDialogClose>
+                    <ConfirmDialogActions>
                         <Button variant="destructive">Delete task</Button>
-                    </ResponsiveDialogFooter>
-                </ResponsiveDialog>
+                    </ConfirmDialogActions>
+                </ConfirmDialog>
             </Specimen>
 
             <div className="grid gap-3">

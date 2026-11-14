@@ -46,7 +46,6 @@ export default function AuthDemo({
                         key={field.id}
                         label={field.label}
                         htmlFor={`auth-demo-${field.id}`}
-                        stacked
                     >
                         <Input
                             id={`auth-demo-${field.id}`}

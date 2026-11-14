@@ -1,4 +1,5 @@
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import type { ExampleTask } from '@/components/style/types';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -35,14 +36,11 @@ export default function DetailDemo({ task }: { task: ExampleTask }) {
                     )}
                 </div>
 
-                <div
-                    data-testid="record-actions"
-                    className="ml-auto flex flex-wrap justify-end gap-2"
-                >
+                <Actions data-testid="record-actions">
                     <Button variant="outline">Edit task</Button>
                     <Button variant="outline">Delete task</Button>
                     <Button>Complete task</Button>
-                </div>
+                </Actions>
             </div>
 
             <dl className="grid max-w-xl gap-1 text-sm">

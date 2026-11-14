@@ -1,4 +1,5 @@
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import Timeline, { type TimelineEvent } from '@/components/shared/timeline';
 import UrlTabs from '@/components/shared/url-tabs';
 import { Badge } from '@/components/ui/badge';
@@ -34,9 +35,9 @@ export default function DetailTabsDemo({
                         {status}
                     </Badge>
                 </div>
-                <Button variant="outline" className="ml-auto">
-                    Edit order
-                </Button>
+                <Actions>
+                    <Button variant="outline">Edit order</Button>
+                </Actions>
             </div>
 
             <UrlTabs

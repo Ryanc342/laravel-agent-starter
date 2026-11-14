@@ -54,7 +54,7 @@ test('the fields and the buttons show on both', () => {
     }
 });
 
-test('the footer buttons sit at the right end, stacked with the last (main) one on top on a phone', () => {
+test('the footer buttons are in reading order, Back first and the main one last', () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
     render(
         <WizardLayout
@@ -78,8 +78,4 @@ test('the footer buttons sit at the right end, stacked with the last (main) one 
             (button) => button.textContent,
         ),
     ).toEqual(['Back', 'Next']);
-    expect(footer.className).toContain('sm:justify-end');
-    expect(footer.className).toContain('sm:flex-row');
-    expect(footer.className).toContain('flex-col-reverse');
-    expect(footer.className).toContain('max-md:*:w-full');
 });

@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import TaskPdfController from '@/actions/App/Http/Controllers/TaskPdfController';
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
@@ -19,14 +20,14 @@ export default function PrintTask({ task }: { task: Task }) {
             <Head title={task.title} />
 
             <div className="flex flex-col gap-6 p-4 md:p-6">
-                <div className="flex flex-wrap justify-end gap-2 print:hidden">
+                <Actions className="print:hidden">
                     <Button variant="outline" asChild>
                         <a href={TaskPdfController.url(task.id)}>
                             {t('Download PDF')}
                         </a>
                     </Button>
                     <Button onClick={() => window.print()}>{t('Print')}</Button>
-                </div>
+                </Actions>
 
                 <div className="flex max-w-3xl flex-col gap-6 rounded-lg border p-6 print:max-w-none print:rounded-none print:border-0 print:p-0">
                     <div className="flex flex-wrap items-start gap-2">

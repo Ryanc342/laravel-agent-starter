@@ -111,7 +111,7 @@ export default function TwoFactorSetupModal({
             open={isOpen}
             onOpenChange={(open) => !open && handleClose()}
             title={modalConfig.title}
-            description={modalConfig.description}
+            instruction={modalConfig.description}
             icon={<ScanLine className="size-6" />}
             narrow
         >

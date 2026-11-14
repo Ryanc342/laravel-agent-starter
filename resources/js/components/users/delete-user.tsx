@@ -3,11 +3,11 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import Heading from '@/components/heading';
 import PasswordInput from '@/components/password-input';
 import FormField from '@/components/shared/form-field';
-import ResponsiveDialog, {
-    ResponsiveDialogBody,
-    ResponsiveDialogClose,
-    ResponsiveDialogFooter,
-} from '@/components/shared/responsive-dialog';
+import Actions from '@/components/shared/actions';
+import ConfirmDialog, {
+    ConfirmDialogActions,
+} from '@/components/shared/confirm-dialog';
+import { ResponsiveDialogBody } from '@/components/shared/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/i18n';
 
@@ -15,72 +15,68 @@ export default function DeleteUser() {
     return (
         <div className="space-y-6">
             <Heading variant="small" title={t('Delete account')} />
-            <ResponsiveDialog
-                trigger={
-                    <Button
-                        variant="destructive"
-                        data-test="delete-user-button"
-                    >
-                        {t('Delete account')}
-                    </Button>
-                }
-                title={t('Are you sure you want to delete your account?')}
-                description={t(
-                    'Enter your password to permanently delete your account and all of its data.',
-                )}
-            >
-                <Form
-                    {...ProfileController.destroy.form()}
-                    options={{
-                        preserveScroll: true,
-                    }}
-                    resetOnSuccess
-                    className="flex min-h-0 flex-1 flex-col gap-6"
-                >
-                    {({ resetAndClearErrors, processing, errors }) => (
-                        <>
-                            <ResponsiveDialogBody>
-                                <FormField
-                                    label={t('Password')}
-                                    htmlFor="password"
-                                    hideLabel
-                                    error={errors.password}
-                                >
-                                    <PasswordInput
-                                        id="password"
-                                        name="password"
-                                        placeholder={t('Password')}
-                                        autoComplete="current-password"
-                                    />
-                                </FormField>
-                            </ResponsiveDialogBody>
-
-                            <ResponsiveDialogFooter>
-                                <ResponsiveDialogClose asChild>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => resetAndClearErrors()}
-                                    >
-                                        {t('Cancel')}
-                                    </Button>
-                                </ResponsiveDialogClose>
-                                <Button
-                                    variant="destructive"
-                                    disabled={processing}
-                                    asChild
-                                >
-                                    <button
-                                        type="submit"
-                                        data-test="confirm-delete-user-button"
-                                    >
-                                        {t('Delete account')}
-                                    </button>
-                                </Button>
-                            </ResponsiveDialogFooter>
-                        </>
+            <Actions>
+                <ConfirmDialog
+                    trigger={
+                        <Button
+                            variant="destructive"
+                            data-test="delete-user-button"
+                        >
+                            {t('Delete account')}
+                        </Button>
+                    }
+                    title={t('Are you sure you want to delete your account?')}
+                    consequence={t(
+                        'Enter your password to permanently delete your account and all of its data.',
                     )}
-                </Form>
-            </ResponsiveDialog>
+                >
+                    <Form
+                        {...ProfileController.destroy.form()}
+                        options={{
+                            preserveScroll: true,
+                        }}
+                        resetOnSuccess
+                        className="flex min-h-0 flex-1 flex-col gap-6"
+                    >
+                        {({ resetAndClearErrors, processing, errors }) => (
+                            <>
+                                <ResponsiveDialogBody>
+                                    <FormField
+                                        label={t('Password')}
+                                        htmlFor="password"
+                                        hideLabel
+                                        error={errors.password}
+                                    >
+                                        <PasswordInput
+                                            id="password"
+                                            name="password"
+                                            placeholder={t('Password')}
+                                            autoComplete="current-password"
+                                        />
+                                    </FormField>
+                                </ResponsiveDialogBody>
+
+                                <ConfirmDialogActions
+                                    onCancel={() => resetAndClearErrors()}
+                                >
+                                    <Button
+                                        variant="destructive"
+                                        disabled={processing}
+                                        asChild
+                                    >
+                                        <button
+                                            type="submit"
+                                            data-test="confirm-delete-user-button"
+                                        >
+                                            {t('Delete account')}
+                                        </button>
+                                    </Button>
+                                </ConfirmDialogActions>
+                            </>
+                        )}
+                    </Form>
+                </ConfirmDialog>
+            </Actions>
         </div>
     );
 }

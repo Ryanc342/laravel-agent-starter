@@ -19,7 +19,7 @@ function renderDialog() {
             open
             onOpenChange={() => {}}
             title="Add task"
-            description="Tasks you add show up on your list."
+            instruction="Tasks you add show up on your list."
         >
             <ResponsiveDialogBody>
                 <p>The fields</p>
@@ -68,7 +68,7 @@ test('a long form scrolls inside the body while the footer stays in view', () =>
     expect(screen.getByRole('dialog').className).toContain('max-h-');
 });
 
-test('a description describes the dialog for screen readers', () => {
+test('an instruction describes the dialog for screen readers', () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
 
     renderDialog();
@@ -82,7 +82,7 @@ test('a description describes the dialog for screen readers', () => {
     );
 });
 
-test('without a description the dialog is not described by a missing element', () => {
+test('without an instruction the dialog is not described by a missing element', () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
 
     render(
@@ -124,7 +124,7 @@ test('an icon sits above the title and centres the header', () => {
     expect(screen.getByRole('dialog').className).toContain('sm:max-w-md');
 });
 
-test('the buttons sit at the right end, Cancel first and the main one last, stacked with the main one on top on a phone', () => {
+test('the buttons are in reading order, Cancel first and the main one last', () => {
     vi.mocked(useIsMobile).mockReturnValue(true);
 
     render(
@@ -145,11 +145,6 @@ test('the buttons sit at the right end, Cancel first and the main one last, stac
             (button) => button.textContent,
         ),
     ).toEqual(['Cancel', 'Delete task']);
-    expect(footer.className).toContain('sm:justify-end');
-    expect(footer.className).not.toContain('sm:justify-start');
-    expect(footer.className).toContain('sm:flex-row');
-    expect(footer.className).toContain('flex-col-reverse');
-    expect(footer.className).toContain('max-md:*:w-full');
 });
 
 test('the trigger opens the dialog', () => {

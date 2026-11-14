@@ -42,9 +42,12 @@ const defaultLabels = {
  * recommended: a primary border and a badge. The plans stack on a phone.
  */
 export default function PricingPlans({
+    title,
     plans,
     labels = defaultLabels,
 }: {
+    /** The page title, drawn in the display sizes this block owns. */
+    title: string;
     plans: Plan[];
     /** The words on the page, for a project that is not in English. */
     labels?: typeof defaultLabels;
@@ -55,6 +58,7 @@ export default function PricingPlans({
 
     return (
         <div className="grid gap-8">
+            <h1 className="text-display md:text-display-lg">{title}</h1>
             <ToggleGroup
                 type="single"
                 variant="outline"

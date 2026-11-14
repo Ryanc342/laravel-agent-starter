@@ -1,23 +1,27 @@
 import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
+import Actions from '@/components/shared/actions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 /**
  * A multi-step page: the step list on the left and the current step's fields
- * (and the Back / Next buttons, passed as `footer`, Back first and Next last) on the right. The steps
+ * (and the Back / Next buttons, passed as `footer` and drawn as `Actions`, Back first and Next last) on the right. The steps
  * are not links; the user moves with the buttons. On a phone the list is one
  * line at the top ("Step 2 of 3 · Team"). `current` counts from 0.
  */
 export default function WizardLayout({
     steps,
     current,
+    instruction,
     footer,
     children,
 }: {
     steps: string[];
     current: number;
+    /** One sentence saying what to do, for a step the user must take; leave it out otherwise. */
+    instruction?: string;
     footer: ReactNode;
     children: ReactNode;
 }) {
@@ -67,10 +71,13 @@ export default function WizardLayout({
                 </ol>
             )}
             <div className="grid min-w-0 content-start gap-6">
+                {instruction && (
+                    <p className="text-sm text-muted-foreground">
+                        {t(instruction)}
+                    </p>
+                )}
                 {children}
-                <div className="flex flex-col-reverse gap-2 max-md:*:w-full sm:flex-row sm:justify-end">
-                    {footer}
-                </div>
+                <Actions>{footer}</Actions>
             </div>
         </div>
     );

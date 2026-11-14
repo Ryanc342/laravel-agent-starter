@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
@@ -32,10 +33,7 @@ export default function ImportExportDemo({
         <div className="grid gap-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <Heading title="Tasks" />
-                <div
-                    data-testid="list-actions"
-                    className="ml-auto flex flex-wrap justify-end gap-2"
-                >
+                <Actions data-testid="list-actions">
                     <ResponsiveDialog
                         open={open}
                         onOpenChange={setOpen}
@@ -99,7 +97,7 @@ export default function ImportExportDemo({
                         Export
                     </Button>
                     <Button>Add task</Button>
-                </div>
+                </Actions>
             </div>
         </div>
     );

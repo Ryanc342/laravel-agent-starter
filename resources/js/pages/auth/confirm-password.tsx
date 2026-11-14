@@ -33,7 +33,6 @@ export default function ConfirmPassword() {
                             label={t('Password')}
                             htmlFor="password"
                             error={errors.password}
-                            stacked
                         >
                             <PasswordInput
                                 id="password"

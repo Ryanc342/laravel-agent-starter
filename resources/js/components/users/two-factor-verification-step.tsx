@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import Actions from '@/components/shared/actions';
 import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
@@ -61,7 +62,7 @@ export default function TwoFactorVerificationStep({
                             </div>
                         </FormField>
 
-                        <div className="flex w-full flex-col-reverse gap-2 max-md:*:w-full sm:flex-row sm:justify-end">
+                        <Actions>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -78,7 +79,7 @@ export default function TwoFactorVerificationStep({
                             >
                                 {t('Confirm')}
                             </Button>
-                        </div>
+                        </Actions>
                     </div>
                 </>
             )}

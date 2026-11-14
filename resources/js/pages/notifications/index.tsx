@@ -1,5 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import MarkAllReadButton from '@/components/notifications/mark-all-read-button';
 import NotificationRow from '@/components/notifications/notification-row';
 import FeedList from '@/components/shared/feed-list';
@@ -27,9 +28,9 @@ export default function Notifications({
                     <Heading title={t('Notifications')} />
 
                     {notificationSummary?.can.mark_all_read && (
-                        <div className="ml-auto">
+                        <Actions>
                             <MarkAllReadButton />
-                        </div>
+                        </Actions>
                     )}
                 </div>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
@@ -90,10 +91,7 @@ export default function ApprovalDemo({
                     </Badge>
                 </div>
 
-                <div
-                    data-testid="record-actions"
-                    className="ml-auto flex flex-wrap justify-end gap-2"
-                >
+                <Actions data-testid="record-actions">
                     <Button variant="outline">Edit request</Button>
                     {view.can.reject && (
                         <Button variant="outline" onClick={() => setOpen(true)}>
@@ -105,7 +103,7 @@ export default function ApprovalDemo({
                             Approve
                         </Button>
                     )}
-                </div>
+                </Actions>
             </div>
 
             <dl className="grid max-w-xl gap-1 text-sm">

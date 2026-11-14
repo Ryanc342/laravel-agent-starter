@@ -30,7 +30,6 @@ export default function Register({ passwordRules }: Props) {
                                 label={t('Name')}
                                 htmlFor="name"
                                 error={errors.name}
-                                stacked
                             >
                                 <Input
                                     id="name"
@@ -47,7 +46,6 @@ export default function Register({ passwordRules }: Props) {
                                 label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
-                                stacked
                             >
                                 <Input
                                     id="email"
@@ -62,7 +60,6 @@ export default function Register({ passwordRules }: Props) {
                             <NewPasswordFields
                                 passwordRules={passwordRules}
                                 errors={errors}
-                                stacked
                             />
 
                             <Button

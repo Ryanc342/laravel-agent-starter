@@ -4,18 +4,21 @@ import {
     DialogClose,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import Actions from '@/components/shared/actions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 type Props = {
     title: string;
-    /** Only for a step the user must take or an unusual state; leave it out otherwise. */
-    description?: string;
+    /**
+     * One sentence for a step the user must take (the two-factor setup says what
+     * to do); a ConfirmDialog passes its `consequence` here. Leave it out otherwise.
+     */
+    instruction?: string;
     /** An icon above the title; the header is then centred. */
     icon?: ReactNode;
     /** A narrower dialog on desktop, for a short content such as a QR code. */
@@ -30,12 +33,12 @@ type Props = {
 /**
  * Create, edit and confirm in one place: a centred dialog on desktop, a
  * full-width sheet that slides up from the bottom on a phone. Put the fields in
- * ResponsiveDialogBody and the buttons in ResponsiveDialogFooter; a long form
+ * ResponsiveDialogBody and the buttons in ResponsiveDialogFooter (`Actions`); a long form
  * scrolls inside the body while the title and the buttons stay in view.
  */
 export default function ResponsiveDialog({
     title,
-    description,
+    instruction,
     icon,
     narrow = false,
     trigger,
@@ -53,15 +56,15 @@ export default function ResponsiveDialog({
                 className={cn('flex flex-col', narrow && 'sm:max-w-md')}
                 // Radix warns about a missing description; opting out is
                 // explicit, and only when there really is none.
-                {...(description ? {} : { 'aria-describedby': undefined })}
+                {...(instruction ? {} : { 'aria-describedby': undefined })}
             >
                 <DialogHeader
                     className={cn(icon && 'items-center text-center')}
                 >
                     {icon}
                     <DialogTitle>{title}</DialogTitle>
-                    {description && (
-                        <DialogDescription>{description}</DialogDescription>
+                    {instruction && (
+                        <DialogDescription>{instruction}</DialogDescription>
                     )}
                 </DialogHeader>
                 {children}
@@ -87,20 +90,14 @@ export function ResponsiveDialogBody({
 }
 
 /**
- * The buttons at the right end, Cancel first and the main one last. They stay
- * in view; on a phone each takes the full width, stacked with the main one on
- * top.
+ * The buttons, as `Actions`: Cancel first and the main one last. They stay in
+ * view while a long body scrolls.
  */
 export function ResponsiveDialogFooter({
     className,
     ...props
-}: ComponentProps<typeof DialogFooter>) {
-    return (
-        <DialogFooter
-            className={cn('shrink-0 max-md:*:w-full', className)}
-            {...props}
-        />
-    );
+}: ComponentProps<typeof Actions>) {
+    return <Actions className={cn('shrink-0', className)} {...props} />;
 }
 
 /** Wrap the Cancel button: it closes the dialog. */

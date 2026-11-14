@@ -1,10 +1,10 @@
 import { Form, Link } from '@inertiajs/react';
 import TaskCompletionController from '@/actions/App/Http/Controllers/TaskCompletionController';
 import TaskController from '@/actions/App/Http/Controllers/TaskController';
-import ResponsiveDialog, {
-    ResponsiveDialogClose,
-    ResponsiveDialogFooter,
-} from '@/components/shared/responsive-dialog';
+import Actions from '@/components/shared/actions';
+import ConfirmDialog, {
+    ConfirmDialogActions,
+} from '@/components/shared/confirm-dialog';
 import TaskFormDialog from '@/components/tasks/task-form-dialog';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -19,7 +19,7 @@ import type { Task } from '@/types/task';
  */
 export default function TaskActions({ task }: { task: Task }) {
     return (
-        <div className="ml-auto flex flex-wrap justify-end gap-2">
+        <Actions>
             {task.can.update && (
                 <TaskFormDialog
                     task={task}
@@ -32,24 +32,19 @@ export default function TaskActions({ task }: { task: Task }) {
                 <Link href={printTask(task.id)}>{t('Print')}</Link>
             </Button>
             {task.can.delete && (
-                <ResponsiveDialog
+                <ConfirmDialog
                     trigger={
                         <Button variant="outline">{t('Delete task')}</Button>
                     }
                     title={t('Delete this task?')}
-                    description={t(
+                    consequence={t(
                         '“:title” will be deleted. This cannot be undone.',
                         { title: task.title },
                     )}
                 >
                     <Form {...TaskController.destroy.form(task.id)}>
                         {({ processing }) => (
-                            <ResponsiveDialogFooter>
-                                <ResponsiveDialogClose asChild>
-                                    <Button type="button" variant="outline">
-                                        {t('Cancel')}
-                                    </Button>
-                                </ResponsiveDialogClose>
+                            <ConfirmDialogActions>
                                 <Button
                                     type="submit"
                                     variant="destructive"
@@ -58,10 +53,10 @@ export default function TaskActions({ task }: { task: Task }) {
                                     {processing && <Spinner />}
                                     {t('Delete task')}
                                 </Button>
-                            </ResponsiveDialogFooter>
+                            </ConfirmDialogActions>
                         )}
                     </Form>
-                </ResponsiveDialog>
+                </ConfirmDialog>
             )}
             {task.can.complete && (
                 <Form
@@ -75,6 +70,6 @@ export default function TaskActions({ task }: { task: Task }) {
                     )}
                 </Form>
             )}
-        </div>
+        </Actions>
     );
 }

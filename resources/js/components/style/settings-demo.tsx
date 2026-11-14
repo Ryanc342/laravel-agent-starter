@@ -1,4 +1,5 @@
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import FormField from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,9 +38,9 @@ export default function SettingsDemo({
                             defaultValue={email}
                         />
                     </FormField>
-                    <div className="flex justify-end">
+                    <Actions>
                         <Button type="submit">Save</Button>
-                    </div>
+                    </Actions>
                 </form>
             </div>
         </SettingsLayout>

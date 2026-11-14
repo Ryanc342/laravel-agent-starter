@@ -1,4 +1,5 @@
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import FeedList from '@/components/shared/feed-list';
 import FeedRow from '@/components/shared/feed-row';
 import type { ExampleNotification } from '@/components/style/types';
@@ -14,9 +15,9 @@ export default function FeedDemo({
         <div className="flex flex-col gap-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <Heading title="Notifications" />
-                <Button variant="outline" className="ml-auto">
-                    Mark all as read
-                </Button>
+                <Actions>
+                    <Button variant="outline">Mark all as read</Button>
+                </Actions>
             </div>
 
             <FeedList emptyMessage="You have no notifications.">

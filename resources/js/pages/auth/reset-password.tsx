@@ -29,7 +29,6 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             label={t('Email')}
                             htmlFor="email"
                             error={errors.email}
-                            stacked
                         >
                             <Input
                                 id="email"
@@ -45,7 +44,6 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             passwordRules={passwordRules}
                             errors={errors}
                             autoFocus
-                            stacked
                         />
 
                         <Button

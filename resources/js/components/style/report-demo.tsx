@@ -3,6 +3,7 @@ import ReportChart, {
     type ChartSeries,
 } from '@/components/shared/report-chart';
 import ReportRange from '@/components/shared/report-range';
+import StatTiles, { type StatTile } from '@/components/shared/stat-tiles';
 
 type Row = Record<string, string | number>;
 
@@ -19,7 +20,7 @@ export default function ReportDemo({
     teams,
     teamSeries,
 }: {
-    tiles: { label: string; value: string }[];
+    tiles: StatTile[];
     daily: Row[];
     dailySeries: ChartSeries[];
     teams: Row[];
@@ -32,21 +33,7 @@ export default function ReportDemo({
                 <ReportRange />
             </div>
 
-            <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {tiles.map((tile) => (
-                    <div
-                        key={tile.label}
-                        className="grid gap-1 rounded-lg border p-4"
-                    >
-                        <dt className="text-sm text-muted-foreground">
-                            {tile.label}
-                        </dt>
-                        <dd className="text-xl font-semibold tabular-nums">
-                            {tile.value}
-                        </dd>
-                    </div>
-                ))}
-            </dl>
+            <StatTiles tiles={tiles} />
 
             <div className="grid gap-3">
                 <Heading variant="small" title="Tasks done per day" />

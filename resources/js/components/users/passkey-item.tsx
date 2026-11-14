@@ -1,9 +1,8 @@
 import { KeyRound, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import ResponsiveDialog, {
-    ResponsiveDialogClose,
-    ResponsiveDialogFooter,
-} from '@/components/shared/responsive-dialog';
+import ConfirmDialog, {
+    ConfirmDialogActions,
+} from '@/components/shared/confirm-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Passkey } from '@/types/auth';
@@ -53,7 +52,7 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                 </div>
             </div>
 
-            <ResponsiveDialog
+            <ConfirmDialog
                 trigger={
                     <Button
                         variant="ghost"
@@ -65,15 +64,12 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                     </Button>
                 }
                 title={t('Remove passkey')}
-                description={t(
+                consequence={t(
                     '“:name” will be removed and can no longer be used to sign in.',
                     { name: passkey.name },
                 )}
             >
-                <ResponsiveDialogFooter>
-                    <ResponsiveDialogClose asChild>
-                        <Button variant="outline">{t('Cancel')}</Button>
-                    </ResponsiveDialogClose>
+                <ConfirmDialogActions>
                     <Button
                         variant="destructive"
                         onClick={handleDelete}
@@ -81,8 +77,8 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                     >
                         {isDeleting ? t('Removing...') : t('Remove passkey')}
                     </Button>
-                </ResponsiveDialogFooter>
-            </ResponsiveDialog>
+                </ConfirmDialogActions>
+            </ConfirmDialog>
         </div>
     );
 }

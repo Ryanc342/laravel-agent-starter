@@ -37,7 +37,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                 label={t('Email address')}
                                 htmlFor="email"
                                 error={errors.email}
-                                stacked
                             >
                                 <Input
                                     id="email"
@@ -55,7 +54,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                 label={t('Password')}
                                 htmlFor="password"
                                 error={errors.password}
-                                stacked
                                 labelAction={
                                     canResetPassword && (
                                         <TextLink

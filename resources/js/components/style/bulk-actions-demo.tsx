@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import BulkActionBar from '@/components/shared/bulk-action-bar';
-import ResponsiveDialog, {
-    ResponsiveDialogClose,
-    ResponsiveDialogFooter,
-} from '@/components/shared/responsive-dialog';
+import ConfirmDialog, {
+    ConfirmDialogActions,
+} from '@/components/shared/confirm-dialog';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import type { TableColumn } from '@/components/shared/responsive-table';
 import type { ExampleTask } from '@/components/style/types';
@@ -102,18 +101,13 @@ export default function BulkActionsDemo({
                 </Button>
             </BulkActionBar>
 
-            <ResponsiveDialog
+            <ConfirmDialog
                 open={confirming}
                 onOpenChange={setConfirming}
                 title={`Delete ${count} ${noun}?`}
-                description="They will be deleted. This cannot be undone."
+                consequence="They will be deleted. This cannot be undone."
             >
-                <ResponsiveDialogFooter>
-                    <ResponsiveDialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Cancel
-                        </Button>
-                    </ResponsiveDialogClose>
+                <ConfirmDialogActions>
                     <Button
                         variant="destructive"
                         onClick={() => {
@@ -124,8 +118,8 @@ export default function BulkActionsDemo({
                     >
                         Delete {count} {noun}
                     </Button>
-                </ResponsiveDialogFooter>
-            </ResponsiveDialog>
+                </ConfirmDialogActions>
+            </ConfirmDialog>
         </div>
     );
 }

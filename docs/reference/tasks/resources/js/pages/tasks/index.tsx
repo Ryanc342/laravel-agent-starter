@@ -2,6 +2,7 @@ import { Form, Head, usePage } from '@inertiajs/react';
 import OverdueTaskCompletionController from '@/actions/App/Http/Controllers/OverdueTaskCompletionController';
 import TaskExportController from '@/actions/App/Http/Controllers/TaskExportController';
 import Heading from '@/components/heading';
+import Actions from '@/components/shared/actions';
 import type { Choice } from '@/components/shared/column-menu';
 import Pagination from '@/components/shared/pagination';
 import TaskBulkActions from '@/components/tasks/task-bulk-actions';
@@ -46,7 +47,7 @@ export default function Tasks({
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title={t('Tasks')} />
 
-                    <div className="ml-auto flex flex-wrap justify-end gap-2">
+                    <Actions>
                         {can.complete_overdue && (
                             <Form
                                 {...OverdueTaskCompletionController.store.form()}
@@ -82,7 +83,7 @@ export default function Tasks({
                         <TaskFormDialog
                             trigger={<Button>{t('Add task')}</Button>}
                         />
-                    </div>
+                    </Actions>
                 </div>
 
                 <TaskTable

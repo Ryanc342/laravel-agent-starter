@@ -3,10 +3,9 @@ import { useState } from 'react';
 import BulkTaskCompletionController from '@/actions/App/Http/Controllers/BulkTaskCompletionController';
 import BulkTaskDeletionController from '@/actions/App/Http/Controllers/BulkTaskDeletionController';
 import BulkActionBar from '@/components/shared/bulk-action-bar';
-import ResponsiveDialog, {
-    ResponsiveDialogClose,
-    ResponsiveDialogFooter,
-} from '@/components/shared/responsive-dialog';
+import ConfirmDialog, {
+    ConfirmDialogActions,
+} from '@/components/shared/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import type { useRowSelection } from '@/hooks/use-row-selection';
@@ -93,21 +92,16 @@ export default function TaskBulkActions({
                 </Button>
             </BulkActionBar>
 
-            <ResponsiveDialog
+            <ConfirmDialog
                 open={confirming}
                 onOpenChange={setConfirming}
                 title={tChoice(
                     'Delete :count task?|Delete :count tasks?',
                     count,
                 )}
-                description={t('They will be deleted. This cannot be undone.')}
+                consequence={t('They will be deleted. This cannot be undone.')}
             >
-                <ResponsiveDialogFooter>
-                    <ResponsiveDialogClose asChild>
-                        <Button type="button" variant="outline">
-                            {t('Cancel')}
-                        </Button>
-                    </ResponsiveDialogClose>
+                <ConfirmDialogActions>
                     <Button
                         variant="destructive"
                         disabled={processing}
@@ -124,8 +118,8 @@ export default function TaskBulkActions({
                             count,
                         )}
                     </Button>
-                </ResponsiveDialogFooter>
-            </ResponsiveDialog>
+                </ConfirmDialogActions>
+            </ConfirmDialog>
         </>
     );
 }

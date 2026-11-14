@@ -186,7 +186,7 @@ test('a value that is not a message is never given to the toast', () => {
     expect(toast.error).not.toHaveBeenCalled();
 });
 
-test('the errors of an import are each one toast: the rows, then the line for the rest', () => {
+test('five errors are five toasts, with no line for the rest', () => {
     form();
 
     fail({
@@ -195,15 +195,51 @@ test('the errors of an import are each one toast: the rows, then the line for th
         'rows.4.due_on': 'Row 4: Due date is not a date.',
         'rows.5.due_on': 'Row 5: Due date is not a date.',
         'rows.6.due_on': 'Row 6: Due date is not a date.',
-        more_errors: 'And 2 more errors.',
     });
 
-    expect(toast.error).toHaveBeenCalledTimes(6);
+    expect(toast.error).toHaveBeenCalledTimes(5);
     expect(toast.error).toHaveBeenCalledWith('Row 3: Title is required.', {
         id: 'field-error-rows.3.title',
     });
+});
+
+test('a burst of errors shows five toasts and then one "And N more errors"', () => {
+    form();
+
+    fail({
+        'rows.2.due_on': 'Row 2: Due date is not a date.',
+        'rows.3.title': 'Row 3: Title is required.',
+        'rows.4.due_on': 'Row 4: Due date is not a date.',
+        'rows.5.due_on': 'Row 5: Due date is not a date.',
+        'rows.6.due_on': 'Row 6: Due date is not a date.',
+        'rows.7.due_on': 'Row 7: Due date is not a date.',
+        'rows.8.title': 'Row 8: Title is required.',
+    });
+
+    expect(toast.error).toHaveBeenCalledTimes(6);
+    expect(toast.error).not.toHaveBeenCalledWith(
+        'Row 7: Due date is not a date.',
+        expect.anything(),
+    );
     expect(toast.error).toHaveBeenLastCalledWith('And 2 more errors.', {
-        id: 'field-error-more_errors',
+        id: 'field-error-more',
+    });
+});
+
+test('one error over the five reads "And 1 more error."', () => {
+    form();
+
+    fail(
+        Object.fromEntries(
+            [1, 2, 3, 4, 5, 6].map((row) => [
+                `rows.${row}.title`,
+                `Row ${row}`,
+            ]),
+        ),
+    );
+
+    expect(toast.error).toHaveBeenLastCalledWith('And 1 more error.', {
+        id: 'field-error-more',
     });
 });
 
