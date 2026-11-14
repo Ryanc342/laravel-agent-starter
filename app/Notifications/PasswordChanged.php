@@ -12,8 +12,6 @@ class PasswordChanged extends InAppNotification
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            'message' => __('Your password was changed. If this was not you, reset your password now.'),
-        ];
+        return $this->sentence('Your password was changed. If this was not you, reset your password now.');
     }
 }

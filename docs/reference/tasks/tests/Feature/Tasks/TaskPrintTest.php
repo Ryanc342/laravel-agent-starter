@@ -53,6 +53,18 @@ test('the PDF shows the task\'s facts and is a download', function () {
         && $pdf->contains(['Buy milk', 'Open', '10 Nov 2026']));
 });
 
+test('the PDF\'s labels and date are in the reader\'s language', function () {
+    Pdf::fake();
+    $task = Task::factory()->create(['title' => 'Buy milk', 'due_on' => '2026-11-10']);
+
+    $this->actingAs($task->user)
+        ->withUnencryptedCookie('locale', 'zh_CN')
+        ->get(route('tasks.pdf', $task))
+        ->assertOk();
+
+    Pdf::assertRespondedWithPdf(fn (PdfBuilder $pdf): bool => $pdf->contains(['Buy milk', '状态', '进行中', '截止日期', '2026年11月10日']));
+});
+
 test('a task with no due date says so in the PDF', function () {
     Pdf::fake();
     $task = Task::factory()->create(['due_on' => null]);

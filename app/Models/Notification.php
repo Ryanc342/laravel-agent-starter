@@ -56,13 +56,17 @@ class Notification extends DatabaseNotification
     }
 
     /**
-     * The text the notification class stored in data.message (app/Notifications).
+     * The sentence the notification class stored in data.message (app/Notifications),
+     * translated into the reader's language with the values stored beside it. A row
+     * saved before values existed holds a finished sentence, which has no keys to
+     * translate and reads as it was.
      */
     public function message(): string
     {
         $message = $this->data['message'] ?? '';
+        $values = $this->data['values'] ?? [];
 
-        return is_string($message) ? $message : '';
+        return is_string($message) ? __($message, is_array($values) ? $values : []) : '';
     }
 
     /**

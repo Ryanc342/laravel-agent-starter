@@ -12,8 +12,6 @@ class AccountCreated extends InAppNotification
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            'message' => __('Welcome to :app. Your account is ready.', ['app' => config('app.name')]),
-        ];
+        return $this->sentence('Welcome to :app. Your account is ready.', ['app' => config('app.name')]);
     }
 }

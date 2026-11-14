@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard/index')->name('dashboard');
 });
 
+require __DIR__.'/locale.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/notifications.php';
 

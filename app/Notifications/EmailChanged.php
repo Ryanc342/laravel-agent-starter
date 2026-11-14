@@ -14,8 +14,6 @@ class EmailChanged extends InAppNotification
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            'message' => __('Your email address was changed to :email.', ['email' => $this->email]),
-        ];
+        return $this->sentence('Your email address was changed to :email.', ['email' => $this->email]);
     }
 }

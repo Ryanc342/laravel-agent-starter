@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <th>{{ __('Due date') }}</th>
-                <td>{{ $task['due_on'] ? \Illuminate\Support\Carbon::parse($task['due_on'])->format('j M Y') : __('No due date') }}</td>
+                <td>{{ $task['due_on'] ? \Illuminate\Support\Carbon::parse($task['due_on'])->translatedFormat(__('j M Y')) : __('No due date') }}</td>
             </tr>
         </table>
     </body>

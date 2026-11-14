@@ -2,11 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Locale;
 use App\Enums\PerPage;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\UserResource;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
 use Inertia\Inertia;
 use Inertia\Middleware;
 
@@ -45,6 +47,13 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // The language of this request (Locale::resolve) and, for Chinese, the sentences
+            // React translates with t() (lib/i18n.ts). English needs none: a sentence is its own
+            // English text. Sent once per page load and again when the language changes.
+            'locale' => app()->getLocale(),
+            'translations' => Inertia::once(fn (): array => app()->getLocale() === Locale::En->value
+                ? []
+                : Lang::getLoader()->load(app()->getLocale(), '*', '*'))->as('translations-'.app()->getLocale()),
             'auth' => [
                 'user' => $user === null ? null : UserResource::make($user)->resolve($request),
             ],
