@@ -26,7 +26,9 @@ export default function Notifications({
                     <Heading title="Notifications" />
 
                     {notificationSummary?.can.mark_all_read && (
-                        <MarkAllReadButton />
+                        <div className="ml-auto">
+                            <MarkAllReadButton />
+                        </div>
                     )}
                 </div>
 

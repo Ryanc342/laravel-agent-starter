@@ -67,9 +67,6 @@ export default function WizardDemo({
                 current={current}
                 footer={
                     <>
-                        <Button onClick={next}>
-                            {last ? submitLabel : 'Next'}
-                        </Button>
                         {current > 0 && (
                             <Button
                                 variant="outline"
@@ -81,6 +78,9 @@ export default function WizardDemo({
                                 Back
                             </Button>
                         )}
+                        <Button onClick={next}>
+                            {last ? submitLabel : 'Next'}
+                        </Button>
                     </>
                 }
             >

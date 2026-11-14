@@ -49,15 +49,15 @@ export default function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
                         </ResponsiveDialogBody>
 
                         <ResponsiveDialogFooter>
-                            <Button type="submit" disabled={processing}>
-                                {processing && <Spinner />}
-                                {task ? 'Save changes' : 'Add task'}
-                            </Button>
                             <ResponsiveDialogClose asChild>
                                 <Button type="button" variant="outline">
                                     Cancel
                                 </Button>
                             </ResponsiveDialogClose>
+                            <Button type="submit" disabled={processing}>
+                                {processing && <Spinner />}
+                                {task ? 'Save changes' : 'Add task'}
+                            </Button>
                         </ResponsiveDialogFooter>
                     </>
                 )}

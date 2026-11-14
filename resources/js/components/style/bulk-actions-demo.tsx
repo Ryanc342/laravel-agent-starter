@@ -109,6 +109,11 @@ export default function BulkActionsDemo({
                 description="They will be deleted. This cannot be undone."
             >
                 <ResponsiveDialogFooter>
+                    <ResponsiveDialogClose asChild>
+                        <Button type="button" variant="outline">
+                            Cancel
+                        </Button>
+                    </ResponsiveDialogClose>
                     <Button
                         variant="destructive"
                         onClick={() => {
@@ -119,11 +124,6 @@ export default function BulkActionsDemo({
                     >
                         Delete {count} {noun}
                     </Button>
-                    <ResponsiveDialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Cancel
-                        </Button>
-                    </ResponsiveDialogClose>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>
         </div>

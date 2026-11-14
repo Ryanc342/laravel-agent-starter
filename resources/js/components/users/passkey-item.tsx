@@ -65,6 +65,9 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                 description={`“${passkey.name}” will be removed and can no longer be used to sign in.`}
             >
                 <ResponsiveDialogFooter>
+                    <ResponsiveDialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </ResponsiveDialogClose>
                     <Button
                         variant="destructive"
                         onClick={handleDelete}
@@ -72,9 +75,6 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                     >
                         {isDeleting ? 'Removing...' : 'Remove passkey'}
                     </Button>
-                    <ResponsiveDialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </ResponsiveDialogClose>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>
         </div>

@@ -53,3 +53,33 @@ test('the fields and the buttons show on both', () => {
         unmount();
     }
 });
+
+test('the footer buttons sit at the right end, stacked with the last (main) one on top on a phone', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    render(
+        <WizardLayout
+            steps={['Team', 'Members']}
+            current={1}
+            footer={
+                <>
+                    <button>Back</button>
+                    <button>Next</button>
+                </>
+            }
+        >
+            <p>The fields</p>
+        </WizardLayout>,
+    );
+    const footer = screen.getByRole('button', { name: 'Back' })
+        .parentElement as HTMLElement;
+
+    expect(
+        Array.from(footer.querySelectorAll('button')).map(
+            (button) => button.textContent,
+        ),
+    ).toEqual(['Back', 'Next']);
+    expect(footer.className).toContain('sm:justify-end');
+    expect(footer.className).toContain('sm:flex-row');
+    expect(footer.className).toContain('flex-col-reverse');
+    expect(footer.className).toContain('max-md:*:w-full');
+});

@@ -35,10 +35,13 @@ export default function DetailDemo({ task }: { task: ExampleTask }) {
                     )}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    <Button>Complete task</Button>
+                <div
+                    data-testid="record-actions"
+                    className="ml-auto flex flex-wrap justify-end gap-2"
+                >
                     <Button variant="outline">Edit task</Button>
                     <Button variant="outline">Delete task</Button>
+                    <Button>Complete task</Button>
                 </div>
             </div>
 

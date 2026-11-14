@@ -42,12 +42,12 @@ function DemoForm({
             </ResponsiveDialogBody>
 
             <ResponsiveDialogFooter>
-                <Button type="submit">{submitLabel}</Button>
                 <ResponsiveDialogClose asChild>
                     <Button type="button" variant="outline">
                         Cancel
                     </Button>
                 </ResponsiveDialogClose>
+                <Button type="submit">{submitLabel}</Button>
             </ResponsiveDialogFooter>
         </form>
     );

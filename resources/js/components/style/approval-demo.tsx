@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 /**
- * A record someone approves or rejects: Approve and Reject to the right of the
- * title with the other actions, the facts, and the history as a timeline.
+ * A record someone approves or rejects: the actions at the right end of the
+ * header (Reject, then Approve last), the facts, and the history as a timeline.
  * Reject asks for a reason in a dialog. After a decision the buttons go and the
  * status changes. React decides nothing: the label, the badge variant and the
  * `can.*` flags come in with each state (`states`), and the reason is checked
@@ -90,18 +90,21 @@ export default function ApprovalDemo({
                     </Badge>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    {view.can.approve && (
-                        <Button onClick={() => decide('approved')}>
-                            Approve
-                        </Button>
-                    )}
+                <div
+                    data-testid="record-actions"
+                    className="ml-auto flex flex-wrap justify-end gap-2"
+                >
+                    <Button variant="outline">Edit request</Button>
                     {view.can.reject && (
                         <Button variant="outline" onClick={() => setOpen(true)}>
                             Reject
                         </Button>
                     )}
-                    <Button variant="outline">Edit request</Button>
+                    {view.can.approve && (
+                        <Button onClick={() => decide('approved')}>
+                            Approve
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -138,14 +141,14 @@ export default function ApprovalDemo({
                     </FormField>
                 </ResponsiveDialogBody>
                 <ResponsiveDialogFooter>
-                    <Button variant="destructive" onClick={reject}>
-                        Reject request
-                    </Button>
                     <ResponsiveDialogClose asChild>
                         <Button type="button" variant="outline">
                             Cancel
                         </Button>
                     </ResponsiveDialogClose>
+                    <Button variant="destructive" onClick={reject}>
+                        Reject request
+                    </Button>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>
         </div>

@@ -37,7 +37,9 @@ export default function SettingsDemo({
                             defaultValue={email}
                         />
                     </FormField>
-                    <Button type="submit">Save</Button>
+                    <div className="flex justify-end">
+                        <Button type="submit">Save</Button>
+                    </div>
                 </form>
             </div>
         </SettingsLayout>

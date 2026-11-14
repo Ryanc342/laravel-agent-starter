@@ -60,11 +60,10 @@ export default function TwoFactorVerificationStep({
                             </div>
                         </FormField>
 
-                        <div className="flex w-full space-x-5">
+                        <div className="flex w-full flex-col-reverse gap-2 max-md:*:w-full sm:flex-row sm:justify-end">
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="flex-1"
                                 onClick={onBack}
                                 disabled={processing}
                             >
@@ -72,7 +71,6 @@ export default function TwoFactorVerificationStep({
                             </Button>
                             <Button
                                 type="submit"
-                                className="flex-1"
                                 disabled={
                                     processing || code.length < OTP_MAX_LENGTH
                                 }

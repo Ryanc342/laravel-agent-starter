@@ -42,11 +42,14 @@ export default function PrintDemo({ invoice }: { invoice: ExampleInvoice }) {
 
     return (
         <div className="grid gap-6">
-            <div className="flex flex-wrap gap-2 print:hidden">
-                <Button onClick={inform}>Print</Button>
+            <div
+                data-testid="print-bar"
+                className="flex flex-wrap justify-end gap-2 print:hidden"
+            >
                 <Button variant="outline" onClick={inform}>
                     Download PDF
                 </Button>
+                <Button onClick={inform}>Print</Button>
             </div>
 
             <div className="grid max-w-3xl gap-6 rounded-lg border p-4 md:p-6">

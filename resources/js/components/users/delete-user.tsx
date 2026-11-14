@@ -53,6 +53,14 @@ export default function DeleteUser() {
                             </ResponsiveDialogBody>
 
                             <ResponsiveDialogFooter>
+                                <ResponsiveDialogClose asChild>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => resetAndClearErrors()}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </ResponsiveDialogClose>
                                 <Button
                                     variant="destructive"
                                     disabled={processing}
@@ -65,15 +73,6 @@ export default function DeleteUser() {
                                         Delete account
                                     </button>
                                 </Button>
-
-                                <ResponsiveDialogClose asChild>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => resetAndClearErrors()}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </ResponsiveDialogClose>
                             </ResponsiveDialogFooter>
                         </>
                     )}

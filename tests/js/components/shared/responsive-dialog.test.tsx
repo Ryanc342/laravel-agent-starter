@@ -124,16 +124,16 @@ test('an icon sits above the title and centres the header', () => {
     expect(screen.getByRole('dialog').className).toContain('sm:max-w-md');
 });
 
-test('the main button comes first, then Cancel, and each fills the width on a phone', () => {
+test('the buttons sit at the right end, Cancel first and the main one last, stacked with the main one on top on a phone', () => {
     vi.mocked(useIsMobile).mockReturnValue(true);
 
     render(
         <ResponsiveDialog open onOpenChange={() => {}} title="Delete task">
             <ResponsiveDialogFooter>
-                <button type="button">Delete task</button>
                 <ResponsiveDialogClose asChild>
                     <button type="button">Cancel</button>
                 </ResponsiveDialogClose>
+                <button type="button">Delete task</button>
             </ResponsiveDialogFooter>
         </ResponsiveDialog>,
     );
@@ -144,9 +144,12 @@ test('the main button comes first, then Cancel, and each fills the width on a ph
         Array.from(footer.querySelectorAll('button')).map(
             (button) => button.textContent,
         ),
-    ).toEqual(['Delete task', 'Cancel']);
+    ).toEqual(['Cancel', 'Delete task']);
+    expect(footer.className).toContain('sm:justify-end');
+    expect(footer.className).not.toContain('sm:justify-start');
+    expect(footer.className).toContain('sm:flex-row');
+    expect(footer.className).toContain('flex-col-reverse');
     expect(footer.className).toContain('max-md:*:w-full');
-    expect(footer.className).not.toContain('flex-col-reverse');
 });
 
 test('the trigger opens the dialog', () => {

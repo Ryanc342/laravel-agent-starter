@@ -99,6 +99,11 @@ export default function TaskBulkActions({
                 description="They will be deleted. This cannot be undone."
             >
                 <ResponsiveDialogFooter>
+                    <ResponsiveDialogClose asChild>
+                        <Button type="button" variant="outline">
+                            Cancel
+                        </Button>
+                    </ResponsiveDialogClose>
                     <Button
                         variant="destructive"
                         disabled={processing}
@@ -112,11 +117,6 @@ export default function TaskBulkActions({
                         {processing && <Spinner />}
                         Delete {count} {count === 1 ? 'task' : 'tasks'}
                     </Button>
-                    <ResponsiveDialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Cancel
-                        </Button>
-                    </ResponsiveDialogClose>
                 </ResponsiveDialogFooter>
             </ResponsiveDialog>
         </>

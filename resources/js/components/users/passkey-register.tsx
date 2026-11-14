@@ -74,12 +74,12 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
                 </p>
             </FormField>
 
-            <div className="flex gap-2">
-                <Button type="submit" disabled={isLoading || !name.trim()}>
-                    {isLoading ? 'Registering...' : 'Register passkey'}
-                </Button>
+            <div className="flex justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={handleCancel}>
                     Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading || !name.trim()}>
+                    {isLoading ? 'Registering...' : 'Register passkey'}
                 </Button>
             </div>
         </form>

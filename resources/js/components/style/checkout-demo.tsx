@@ -121,9 +121,6 @@ export default function CheckoutDemo({
                     current={current}
                     footer={
                         <>
-                            <Button onClick={next}>
-                                {last ? placeLabel : nextLabel}
-                            </Button>
                             {current > 0 && (
                                 <Button
                                     variant="outline"
@@ -135,6 +132,9 @@ export default function CheckoutDemo({
                                     {backLabel}
                                 </Button>
                             )}
+                            <Button onClick={next}>
+                                {last ? placeLabel : nextLabel}
+                            </Button>
                         </>
                     }
                 >

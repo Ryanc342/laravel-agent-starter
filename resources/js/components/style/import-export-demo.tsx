@@ -32,7 +32,10 @@ export default function ImportExportDemo({
         <div className="grid gap-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <Heading title="Tasks" />
-                <div className="flex flex-wrap gap-2">
+                <div
+                    data-testid="list-actions"
+                    className="ml-auto flex flex-wrap justify-end gap-2"
+                >
                     <ResponsiveDialog
                         open={open}
                         onOpenChange={setOpen}
@@ -76,12 +79,12 @@ export default function ImportExportDemo({
                                 </Button>
                             </ResponsiveDialogBody>
                             <ResponsiveDialogFooter>
-                                <Button type="submit">Import</Button>
                                 <ResponsiveDialogClose asChild>
                                     <Button type="button" variant="outline">
                                         Cancel
                                     </Button>
                                 </ResponsiveDialogClose>
+                                <Button type="submit">Import</Button>
                             </ResponsiveDialogFooter>
                         </form>
                     </ResponsiveDialog>

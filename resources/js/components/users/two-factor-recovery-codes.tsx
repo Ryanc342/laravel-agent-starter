@@ -59,20 +59,7 @@ export default function TwoFactorRecoveryCodes({
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
-                    <Button
-                        onClick={toggleCodesVisibility}
-                        className="w-fit"
-                        aria-expanded={codesAreVisible}
-                        aria-controls="recovery-codes-section"
-                    >
-                        <RecoveryCodeIconComponent
-                            className="size-4"
-                            aria-hidden="true"
-                        />
-                        {codesAreVisible ? 'Hide' : 'View'} recovery codes
-                    </Button>
-
+                <div className="flex flex-col items-end gap-3 select-none sm:flex-row sm:items-center sm:justify-end">
                     {canRegenerateCodes && (
                         <Form
                             {...regenerateRecoveryCodes.form()}
@@ -91,6 +78,19 @@ export default function TwoFactorRecoveryCodes({
                             )}
                         </Form>
                     )}
+
+                    <Button
+                        onClick={toggleCodesVisibility}
+                        className="w-fit"
+                        aria-expanded={codesAreVisible}
+                        aria-controls="recovery-codes-section"
+                    >
+                        <RecoveryCodeIconComponent
+                            className="size-4"
+                            aria-hidden="true"
+                        />
+                        {codesAreVisible ? 'Hide' : 'View'} recovery codes
+                    </Button>
                 </div>
                 <div
                     id="recovery-codes-section"

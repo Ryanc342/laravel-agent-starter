@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * A multi-step page: the step list on the left and the current step's fields
- * (and the Back / Next buttons, passed as `footer`) on the right. The steps
+ * (and the Back / Next buttons, passed as `footer`, Back first and Next last) on the right. The steps
  * are not links; the user moves with the buttons. On a phone the list is one
  * line at the top ("Step 2 of 3 · Team"). `current` counts from 0.
  */
@@ -60,7 +60,9 @@ export default function WizardLayout({
             )}
             <div className="grid min-w-0 content-start gap-6">
                 {children}
-                <div className="flex flex-wrap gap-2">{footer}</div>
+                <div className="flex flex-col-reverse gap-2 max-md:*:w-full sm:flex-row sm:justify-end">
+                    {footer}
+                </div>
             </div>
         </div>
     );

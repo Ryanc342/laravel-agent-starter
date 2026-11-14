@@ -57,10 +57,8 @@ export default function TwoFactorSetupStep({
                         </div>
                     </div>
 
-                    <div className="flex w-full space-x-5">
-                        <Button className="w-full" onClick={onNextStep}>
-                            {buttonText}
-                        </Button>
+                    <div className="flex w-full flex-col-reverse gap-2 max-md:*:w-full sm:flex-row sm:justify-end">
+                        <Button onClick={onNextStep}>{buttonText}</Button>
                     </div>
 
                     <LabeledDivider>or, enter the code manually</LabeledDivider>

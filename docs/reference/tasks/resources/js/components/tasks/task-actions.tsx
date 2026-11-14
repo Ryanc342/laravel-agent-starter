@@ -12,24 +12,13 @@ import { print as printTask } from '@/routes/tasks';
 import type { Task } from '@/types/task';
 
 /**
- * The task page's actions. Every button is shown from task.can.*, which the
- * backend calculates.
+ * The task page's actions, at the right end of the header, the main one
+ * (Complete) last. Every button is shown from task.can.*, which the backend
+ * calculates.
  */
 export default function TaskActions({ task }: { task: Task }) {
     return (
-        <div className="flex flex-wrap gap-2">
-            {task.can.complete && (
-                <Form
-                    {...TaskCompletionController.store.form(task.id)}
-                    options={{ preserveScroll: true }}
-                >
-                    {({ processing }) => (
-                        <Button type="submit" disabled={processing}>
-                            Complete task
-                        </Button>
-                    )}
-                </Form>
-            )}
+        <div className="ml-auto flex flex-wrap justify-end gap-2">
             {task.can.update && (
                 <TaskFormDialog
                     task={task}
@@ -48,6 +37,11 @@ export default function TaskActions({ task }: { task: Task }) {
                     <Form {...TaskController.destroy.form(task.id)}>
                         {({ processing }) => (
                             <ResponsiveDialogFooter>
+                                <ResponsiveDialogClose asChild>
+                                    <Button type="button" variant="outline">
+                                        Cancel
+                                    </Button>
+                                </ResponsiveDialogClose>
                                 <Button
                                     type="submit"
                                     variant="destructive"
@@ -56,15 +50,22 @@ export default function TaskActions({ task }: { task: Task }) {
                                     {processing && <Spinner />}
                                     Delete task
                                 </Button>
-                                <ResponsiveDialogClose asChild>
-                                    <Button type="button" variant="outline">
-                                        Cancel
-                                    </Button>
-                                </ResponsiveDialogClose>
                             </ResponsiveDialogFooter>
                         )}
                     </Form>
                 </ResponsiveDialog>
+            )}
+            {task.can.complete && (
+                <Form
+                    {...TaskCompletionController.store.form(task.id)}
+                    options={{ preserveScroll: true }}
+                >
+                    {({ processing }) => (
+                        <Button type="submit" disabled={processing}>
+                            Complete task
+                        </Button>
+                    )}
+                </Form>
             )}
         </div>
     );

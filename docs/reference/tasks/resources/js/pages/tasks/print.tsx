@@ -18,13 +18,13 @@ export default function PrintTask({ task }: { task: Task }) {
             <Head title={task.title} />
 
             <div className="flex flex-col gap-6 p-4 md:p-6">
-                <div className="flex flex-wrap gap-2 print:hidden">
-                    <Button onClick={() => window.print()}>Print</Button>
+                <div className="flex flex-wrap justify-end gap-2 print:hidden">
                     <Button variant="outline" asChild>
                         <a href={TaskPdfController.url(task.id)}>
                             Download PDF
                         </a>
                     </Button>
+                    <Button onClick={() => window.print()}>Print</Button>
                 </div>
 
                 <div className="flex max-w-3xl flex-col gap-6 rounded-lg border p-6 print:max-w-none print:rounded-none print:border-0 print:p-0">

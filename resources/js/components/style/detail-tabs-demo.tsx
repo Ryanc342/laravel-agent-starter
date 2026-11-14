@@ -34,7 +34,9 @@ export default function DetailTabsDemo({
                         {status}
                     </Badge>
                 </div>
-                <Button variant="outline">Edit order</Button>
+                <Button variant="outline" className="ml-auto">
+                    Edit order
+                </Button>
             </div>
 
             <UrlTabs

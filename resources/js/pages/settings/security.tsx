@@ -60,7 +60,7 @@ export default function Security(props: Props) {
                                 label="New password"
                             />
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-end gap-4">
                                 <Button
                                     disabled={processing}
                                     data-test="update-password-button"

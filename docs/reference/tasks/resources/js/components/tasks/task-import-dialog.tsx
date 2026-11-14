@@ -64,15 +64,15 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
                         </ResponsiveDialogBody>
 
                         <ResponsiveDialogFooter>
-                            <Button type="submit" disabled={processing}>
-                                {processing && <Spinner />}
-                                Import
-                            </Button>
                             <ResponsiveDialogClose asChild>
                                 <Button type="button" variant="outline">
                                     Cancel
                                 </Button>
                             </ResponsiveDialogClose>
+                            <Button type="submit" disabled={processing}>
+                                {processing && <Spinner />}
+                                Import
+                            </Button>
                         </ResponsiveDialogFooter>
                     </>
                 )}

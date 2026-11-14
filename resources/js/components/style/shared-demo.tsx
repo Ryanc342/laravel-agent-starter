@@ -77,10 +77,10 @@ export default function SharedDemo({
                     description="“Write the report” will be deleted. This cannot be undone."
                 >
                     <ResponsiveDialogFooter>
-                        <Button variant="destructive">Delete task</Button>
                         <ResponsiveDialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </ResponsiveDialogClose>
+                        <Button variant="destructive">Delete task</Button>
                     </ResponsiveDialogFooter>
                 </ResponsiveDialog>
             </Specimen>

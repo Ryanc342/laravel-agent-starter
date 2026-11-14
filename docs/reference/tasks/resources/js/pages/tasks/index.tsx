@@ -45,7 +45,7 @@ export default function Tasks({
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading title="Tasks" />
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="ml-auto flex flex-wrap justify-end gap-2">
                         {can.complete_overdue && (
                             <Form
                                 {...OverdueTaskCompletionController.store.form()}

@@ -87,8 +87,9 @@ export function ResponsiveDialogBody({
 }
 
 /**
- * The buttons, main one first and then Cancel. They stay in view; on a phone
- * each takes the full width.
+ * The buttons at the right end, Cancel first and the main one last. They stay
+ * in view; on a phone each takes the full width, stacked with the main one on
+ * top.
  */
 export function ResponsiveDialogFooter({
     className,
@@ -96,10 +97,7 @@ export function ResponsiveDialogFooter({
 }: ComponentProps<typeof DialogFooter>) {
     return (
         <DialogFooter
-            className={cn(
-                'shrink-0 flex-col max-md:*:w-full sm:flex-row sm:justify-start',
-                className,
-            )}
+            className={cn('shrink-0 max-md:*:w-full', className)}
             {...props}
         />
     );
