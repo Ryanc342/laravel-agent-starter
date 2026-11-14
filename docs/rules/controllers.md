@@ -43,14 +43,14 @@ A controller reads input only from a FormRequest: `$request->validated()`, `$req
 
 ```php
 // Query through model scopes, page it, shape through a Resource
-$tasks = Task::query()->ownedBy($request->user())->listOrder()->paginate(20);
+$tasks = Task::query()->ownedBy($request->user())->listOrder()->paginate($request->perPage());
 
 return Inertia::render('tasks/index', [
     'tasks' => TaskResource::collection($tasks)->response($request)->getData(true),
 ]);
 ```
 
-A list page is paginated (`paginate(20)` unless the plan agreed another size, never `take()`). A list that offers a rows-per-page choice (10, 20, 50 or 100; anything else counts as 20) reads `per_page` through the FormRequest for its query string, and the page links keep it (`withQueryString()`). The page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
+A list page is paginated, never with `take()`. Every list page reads `per_page` through the FormRequest for its query string with `ReadsPerPage` (10, 20, 50 or 100; anything else counts as 20), shows the rows-per-page choice, and the page links keep it (`withQueryString()`). The page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
 
 Conditions are written only in model scopes: PHPStan rejects `where…` and `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 

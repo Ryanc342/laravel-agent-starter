@@ -5,7 +5,7 @@ Use for records that move through a few statuses and that people want to see sid
 ## Layout, top to bottom
 
 1. Header row: `<Heading>`; on the right the page's actions (the create button, form.md).
-2. `KanbanBoard` (`components/shared`): the columns side by side, one per status. A column has its status name and a count in a `<Heading variant="small">`, then its cards. A column is a bordered `rounded-lg` box with a `muted` background; a card is a white bordered box (one level only: a card in a column is the allowed repeated item, never a card inside a card).
+2. `KanbanBoard` (`components/shared`): the columns side by side, one per status. A column has its status name and a count in a `<Heading variant="small">`, then its cards. A column is a bordered `rounded-lg` box with a `muted` background; a card is a white bordered box (one level only: a card in a column is a repeated item, never a card inside a card).
 3. A card shows the record's name as a link to its detail page, then one or two facts (the owner's `Avatar`, a due date). Nothing else.
 
 ## Moving a card

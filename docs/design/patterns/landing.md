@@ -13,7 +13,7 @@ Use for the first page a visitor sees (`/`) and any page that introduces the pro
 ## Rules
 
 - The text comes from the project. The starter's own page says what the starter is and nothing more: no testimonials, no customer logos, no numbers about users or uptime, no stock photos (golden-principles.md, principle 10).
-- The display size is for the hero heading and nothing else on this page; every other heading is at most 20px.
+- `Hero` owns the display classes, and its heading is the only display text on this page; every other heading is the page title or smaller.
 - A signed-in visitor sees "Dashboard" in the top bar instead of "Log in" and "Get started", and the hero's main button goes to the dashboard.
 - Copy is short and direct, in sentence case, with no slogan.
 

@@ -120,3 +120,23 @@ test('every file a pattern file names (a sample, a demo) exists: fix the path or
 
     expect($missing)->toBe([]);
 });
+
+test('the design spec names tokens and component sizes, never a pixel value or a Tailwind size class: name the token or the size variant', function () use ($root) {
+    $files = array_merge(
+        ["{$root}/DESIGN.md"],
+        glob("{$root}/docs/design/*.md") ?: [],
+        glob("{$root}/docs/design/patterns/*.md") ?: [],
+    );
+    $value = '/\\b\\d+(?:\\.\\d+)?(?:px|rem|em)\\b|\\b[a-z-]+-\\[[^\\]]+\\]|(?<![\\w-])(?:text-(?:xs|sm|base|lg|xl|\\dxl|display(?:-lg)?)|(?:min-|max-)?(?:h|w|size)-\\d|(?:p|px|py|pt|pb|pl|pr|m|mx|my|gap|space-x|space-y)-\\d)\\b/';
+    $problems = [];
+
+    foreach ($files as $file) {
+        foreach (file($file, FILE_IGNORE_NEW_LINES) ?: [] as $number => $line) {
+            if (preg_match($value, $line, $match) === 1) {
+                $problems[] = basename($file).':'.($number + 1).': '.$match[0];
+            }
+        }
+    }
+
+    expect($problems)->toBe([]);
+});

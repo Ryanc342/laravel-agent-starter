@@ -36,4 +36,4 @@ Tests run in English (no `Accept-Language`, no cookie). A test of Chinese sets t
 
 ## The /style page
 
-`/style` is a development tool and stays English for its own section titles, specimen labels and example data. The components it shows are translated.
+`/style` is translated like every page: its section titles and specimen labels go through `t()` and have their Chinese in `lang/zh_CN.json`, and `ezdev/no-untranslated-text` applies to every file. Example data a demo receives counts as user content and is shown as it is, as for any page.

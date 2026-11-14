@@ -6,7 +6,7 @@ Use for every page a signed-out person sees to get in: login, register, forgot a
 
 1. The auth layout: one centred column on the page background, with the logo above the title. The default logo is Laravel's; a project replaces it.
 2. The title on one line, in page-title size, with no description under it.
-3. The form: every field is a `FormField` with `stacked`, the label above the input because the column is narrow (the one place a label does not sit on the left on desktop); a field with an error has a red border. A link that belongs to one field (login's "Forgot your password?") goes on that field's label row, on the right (`labelAction`), not under the form.
+3. The form: every field is a `FormField`, and the label sits above the input because the column is narrow (`FormField` decides from the width of its form); a field with an error has a red border. A link that belongs to one field (login's "Forgot your password?") goes on that field's label row, on the right (`labelAction`), not under the form.
 4. One main `Button` at the full width of the column, last ("Log in", "Create account"), disabled with a `Spinner` while sending.
 5. Links to other pages under the form as `TextLink` ("Sign up", "Log in").
 

@@ -5,7 +5,7 @@ Use for a page whose job is to show numbers over time or across categories (sale
 ## Layout, top to bottom
 
 1. Header row: `<Heading>`; on the right `ReportRange` (`components/shared`).
-2. A row of number tiles: each a label and one figure in `tabular-nums` inside a bordered box (the one place a row of stat boxes is allowed, because the page asks for it). A tile shows no chart of its own.
+2. A row of number tiles: `StatTiles` (`components/shared`), each tile a label and one figure in `tabular-nums` inside a bordered box. The figures are backend numbers only, with no placeholders, and a tile shows no chart of its own. A report page has `StatTiles`; a dashboard has it when its plan asks for it.
 3. The charts below, one per `<Heading variant="small">`, each in a bordered box, at full width; two small charts may sit side by side on a computer.
 
 ## The range

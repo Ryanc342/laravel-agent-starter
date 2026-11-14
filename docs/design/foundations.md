@@ -1,6 +1,6 @@
 # Foundations
 
-Read when a task needs colour, type, language, space, shape, motion, wording or a message. The values live in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. This file names the tokens and says when to use them. Use the classes (`bg-primary`, `text-muted-foreground`, `rounded-lg`, `gap-4`), never raw colours (`bg-blue-500`, `#hex`), arbitrary sizes (`text-[13px]`, `p-[18px]`) or `dark:` colour overrides.
+Read when a task needs colour, type, language, space, shape, motion, wording or a message. The values live in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. This file names the tokens and says when to use them. Use the classes (`bg-primary`, `text-muted-foreground`, `rounded-lg`), never raw colours (`bg-blue-500`, `#hex`), arbitrary values in square brackets or `dark:` colour overrides. The spec names tokens and component sizes and never a value: a pixel size or a Tailwind size class does not appear in DESIGN.md or docs/design/ (tests/Structure/DocsTest.php), so a value changes in app.css or in a component's `size` variant only.
 
 ## Colour
 
@@ -29,13 +29,13 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 
 | Role | Use |
 | --- | --- |
-| Page title | `<Heading>`: one per page and the largest text in the app (at most 20px) |
+| Page title | `<Heading>`: one per page and the largest text in the app |
 | Section title | `<Heading variant="small">` |
-| Body | `text-sm` |
-| Secondary text | `text-sm text-muted-foreground`; captions `text-xs` |
-| Display | `text-display md:text-display-lg` (36px on a phone, 48px on a computer, semibold): the home hero heading and the pricing page title. A plan's price takes `text-display` alone (36px), so a long price still fits its card. Nowhere else |
+| Body | the text size of `components/ui` and of the sample you copy |
+| Secondary text | the body size in `text-muted-foreground`; a caption is one step smaller |
+| Display | the display tokens `--text-display` and `--text-display-lg` in app.css (semibold; the larger one from the `md` breakpoint up). `Hero` uses them for its heading and `PricingPlans` for its title and its prices (a price takes the smaller one, so a long price still fits its card). Nowhere else |
 
-- Larger headings are allowed only on the home / landing and pricing pages, and only through the display tokens `--text-display` and `--text-display-lg` in `resources/css/app.css` (the classes `text-display` and `text-display-lg`). Every other heading is at most 20px.
+- The display sizes belong to the two blocks that use them, `Hero` and `PricingPlans`. A page cannot pick a heading size: `Heading` has its variants only, and every other heading is smaller than the page title.
 - Numbers that line up in tables or totals use `tabular-nums`. Money, quantities and dates go through `resources/js/lib/format.ts` (`formatMoney`, `formatQuantity`, `formatDate`), never formatted by hand. `formatMoney` takes an amount in minor units (cents) and, when it is not the project's default, a currency code.
 - Sentence case for titles, labels and buttons. No all-caps and no letter-spacing.
 
@@ -45,14 +45,14 @@ The app speaks two languages, English (`en`) and Simplified Chinese (`zh_CN`). A
 
 - Every sentence a user reads is written in English through `t()` (React) or `__()` (PHP) and has its Chinese in the same commit. Copy rules (short, sentence case, a button says what happens) hold in both languages; check a screen in both.
 - Dates, numbers and money go through `lib/format.ts`, which follows the current language; the date picker's month and day names follow it too.
-- Give text room: no width, column or button size fitted to one English label. Text wraps or truncates (`min-w-0`, `truncate`) and never overflows or overlaps. A Chinese label is shorter than an English one and has no spaces, so a layout looks right with either.
+- Give text room: no width, column or button size fitted to one English label. Text wraps or truncates (`truncate`, or a flex child that is allowed to shrink) and never overflows or overlaps. A Chinese label is shorter than an English one and has no spaces, so a layout looks right with either.
 - Names, titles and messages from the user's data arrive in either language: show them as they come.
 
 ## Space and density
 
-- Roomy. Spacing comes from the scale (`gap-1`, `gap-2`, `gap-4`, `gap-6`, `gap-8`). Page padding and section gaps are set in the layouts and the sample page of each pattern, and the height and padding of a control are set in `components/ui`: copy the classes of the sample, and change a control's size only through its `size` variant, never with `h-*` or `p-*`.
+- Roomy. Spacing comes from Tailwind's spacing scale, and the samples show the step each place uses. Page padding and section gaps are set in the layouts and the sample page of each pattern, and the height and padding of a control are set in `components/ui`: copy the classes of the sample, and change a control's size only through its `size` variant, never with `h-*` or `p-*`.
 - Sections of a page are separated by space, not by cards, borders or rules.
-- Desktop and phone are equal. The phone layout applies below the `md` breakpoint, where the sidebar collapses and slides out from a button. Every screen works from a 390px phone up and never scrolls sideways as a page. Each pattern says what changes on a phone: a table becomes cards, a form field's label moves above its input, a dialog slides up as a full-width sheet.
+- Desktop and phone are equal. The phone layout applies below the `md` breakpoint, where the sidebar collapses and slides out from a button. Every screen works from the narrowest phone up and never scrolls sideways as a page. Each pattern says what changes on a phone: a table becomes cards, a form field's label moves above its input when its form is narrow, a dialog slides up as a full-width sheet.
 
 ## Shape and depth
 
@@ -71,7 +71,7 @@ Icons come from `lucide-react`. An icon next to text takes its size from the com
 
 - Short and direct. Titles, labels and buttons are in sentence case.
 - A button says what happens ("Save changes", "Delete task"). An error says how to fix the problem ("Enter a date after today").
-- Explaining text appears only for an unusual state or a step the user must take. No description line under a title (page, section, card or dialog). Two exceptions, one sentence each: a confirmation for something that cannot be undone says what will happen, and a step the user must take says what to do.
+- Explaining text appears only for an unusual state or a step the user must take. No description line under a title (page, section, card or dialog). A sentence under a title has fixed places only: the `consequence` of a `ConfirmDialog` for something that cannot be undone (what will happen) and the `instruction` of a step the user must take (what to do).
 - A status word starts with a capital letter ("Open", "Done").
 
 ## Messages
@@ -87,7 +87,7 @@ Icons come from `lucide-react`. An icon next to text takes its size from the com
 
 No `Alert` on a page.
 
-- Toasts appear at the top centre. Many at once use sonner's default: the newest few show, the rest stack behind and spread out on hover.
+- Toasts appear at the top centre. Any burst of errors, from a form or an import, shows at most five toasts plus one "And N more errors" (`useValidationErrorToasts` does the cutting); the toasts stack in sonner's default way.
 - After a failed submit the page or dialog scrolls smoothly to the first field with an error and puts the cursor in it. When the user asks for reduced motion it jumps there without the animation.
 
 ## Accessibility

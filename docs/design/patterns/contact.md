@@ -5,7 +5,7 @@ Use for a page where a visitor writes to the business.
 ## Layout, top to bottom
 
 1. The public layout (landing.md) and the title (`<Heading>`, "Contact us").
-2. `ContactForm` (`components/shared`): name, email, subject and message as `FormField` rows (the label left of the input on a computer, above it on a phone; the message is a `Textarea`). An error gives the input a red border and shows no text under it.
+2. `ContactForm` (`components/shared`): name, email, subject and message as `FormField` rows (`FormField` puts the label beside or above the input by the width of the form; the message is a `Textarea`). An error gives the input a red border and shows no text under it.
 3. One `default` `Button` last, named for what happens ("Send message"), disabled with a `Spinner` while sending.
 
 ## Rules

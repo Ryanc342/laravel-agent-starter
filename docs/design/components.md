@@ -15,12 +15,11 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | An icon-only action | `Button` `icon` with a `Tooltip` and an `aria-label` |
 | A button that is sending | the same `Button`, `disabled`, with a `Spinner` |
 | Previous and next in a list, and how many rows a page shows (10, 20, 50 or 100) | `Pagination` (`components/shared`) |
+| A row of buttons | `Actions` (`components/shared`), below |
 
-### Where a row of action buttons sits
+### Actions: every row of action buttons
 
-- A row of buttons that act on a page, a form, a dialog or a step sits at the right end of its row: the actions of a page or record header, the buttons at the end of a form, a dialog, a wizard step or a settings form, and a toolbar of actions above content (Print / Download PDF, Import / Export). In a header whose title wraps, the actions stay on the right, on their own line aligned right, never under the title on the left.
-- The main button is the rightmost one: Cancel (or Back) and the other actions first, then the main button. On a phone the buttons of a form, a dialog or a wizard step stay full width and stacked, with the main button on top.
-- These are not action rows and keep their own place: the sign-in pages (one full-width button, patterns/auth.md), the centred empty and error states, the landing hero's buttons (they follow the hero text), and controls that are not actions on the content: pagination, menus, tabs, the public bar, the kanban columns, the month calendar's navigation and the floating bulk action bar.
+Every row of action buttons is the shared block `Actions` (`components/shared`). It sits at the right end of its row with the main button last (Cancel, Back and the other actions first), and when its container is narrow it is full width and stacked with the main button on top. `ResponsiveDialogFooter`, `WizardLayout`'s footer, record headers (title wraps, actions stay on the right), toolbars above content (Print / Download PDF, Import / Export), settings forms and the single section buttons (Security, Delete account) all use it. A component that is not `Actions` places its own buttons: the sign-in pages' one full-width button, centred states, the landing hero, pagination, menus, tabs, the public bar, kanban columns, the month calendar's navigation and the floating bulk action bar.
 
 Every enabled clickable element (button, link, tab, menu item, checkbox, clickable row) shows the pointing-hand cursor; a disabled one keeps the normal arrow. The cursor comes from `resources/css/app.css`, never from a `className`.
 
@@ -36,7 +35,7 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | The sections of settings | the settings layout's nav |
 | Views of one page | `UrlTabs` (`components/shared`, shadcn `Tabs` in the pill style: a grey strip, the selected tab a white block; the selected tab is in the URL; on a phone the strip scrolls sideways; patterns/detail.md) |
 | Search in the top bar and its results | `SearchBox` and `SearchResults` (`components/shared`; patterns/search-results.md) |
-| The steps of a long task | `WizardLayout` (`components/shared`; patterns/wizard.md) |
+| The steps of a long task | `WizardLayout` (`components/shared`; patterns/wizard.md): a step the user must take has an `instruction` |
 | Who did what and when | `Timeline` (`components/shared`; patterns/approval.md) |
 | A list with the selected record's detail beside it | `ListDetailLayout` (`components/shared`; patterns/list-detail.md) |
 | The links and buttons at the top of a public page | `PublicHeader` (`components/shared`; the public layout): logo, page links, "Log in" and "Get started" (or "Dashboard" when signed in); on a phone the links and buttons are in a `Sheet` opened by a menu button |
@@ -57,9 +56,10 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | Records on their dates, by month | `MonthCalendar` (`components/shared`; patterns/calendar.md) |
 | Records in status columns that cards move between | `KanbanBoard` (`components/shared`; patterns/kanban.md) |
 | A user | `Avatar` |
-| The opening of a landing page | `Hero` (`components/shared`; patterns/landing.md): the heading in the display size, one sentence, two buttons |
+| A row of number tiles | `StatTiles` (`components/shared`; patterns/report.md): a label and one figure per tile, backend numbers only, no placeholders; a report page has it, a dashboard has it when its plan asks for it |
+| The opening of a landing page | `Hero` (`components/shared`; patterns/landing.md): the heading in the display size, one sentence, two buttons. It owns the display classes |
 | What a product offers | `FeatureGrid` (`components/shared`; patterns/landing.md): icon, title and one line per feature, no card around a feature |
-| Plans side by side | `PricingPlans` (`components/shared`; patterns/pricing.md): the billing `ToggleGroup` (in the URL) and one card per plan, the recommended one with a primary border and a "Recommended" `Badge` |
+| Plans side by side | `PricingPlans` (`components/shared`; patterns/pricing.md): the billing `ToggleGroup` (in the URL) and one card per plan, the recommended one with a primary border and a "Recommended" `Badge`. It owns the display classes for its title and prices |
 | Questions and answers | `FaqList` (`components/shared`; patterns/help.md): a search box, topics, and one bordered box of `Collapsible` rows per topic |
 | The items of a cart | `LineItems` (`components/shared`; patterns/checkout.md): name, unit price, quantity `Input` (named `items[0][quantity]`) and line total |
 | The totals of an order | `OrderSummary` (`components/shared`; patterns/checkout.md): subtotal, tax and total as a `dl` |
@@ -70,9 +70,9 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | Need | Use |
 | --- | --- |
 | A contact form | `ContactForm` (`components/shared`; patterns/contact.md): name, email, subject and message as `FormField` rows and the send button, inside the page's own form (Inertia's `<Form>`) |
-| One field in a form | `FormField` (`components/shared`): label on the left of the input on desktop, above it on a phone. An error gives the input a red border and shows no text under it; the message is a toast, and screen readers still get it |
+| One field in a form | `FormField` (`components/shared`): it decides from the width of its form (a container query): the label sits to the left of the input when the form is wide, above it when the form is narrow (a phone, the sign-in column, a narrow dialog). An error gives the input a red border and shows no text under it; the message is a toast, and screen readers still get it |
 | How a field looks when focused or wrong | `Input`, the `Select` trigger, `Checkbox` and the `InputOTP` slot have no glow and no ring. Clicked into, the border turns the dark grey `input-focus`; with an error the border is `destructive`, and it stays red, still with no glow, when clicked into. Buttons, toggles and badges keep the blue keyboard ring, which shows only with the Tab key |
-| Text | `Input`: 40px high; `size="sm"` (32px) only for a box inside a menu row |
+| Text | `Input`; `size="sm"` for a box inside a menu row |
 | A password | `PasswordInput` |
 | A one-time code | `InputOTP` |
 | A list of options | `Select` |
@@ -86,7 +86,8 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 
 | Need | Use |
 | --- | --- |
-| Create or edit a record, or confirm something that cannot be undone | `ResponsiveDialog` (`components/shared`): a centred dialog on desktop, a full-width sheet from the bottom on a phone |
+| Create or edit a record that the user opened from a list | `ResponsiveDialog` (`components/shared`): a centred dialog on desktop, a full-width sheet from the bottom on a phone. It has a title and no description; its buttons are `Actions` |
+| Confirm something that cannot be undone | `ConfirmDialog` (`components/shared`): the action named in full, a `consequence` line that says what will happen, and `Actions` |
 | A side panel | `Sheet` |
 | A small card that opens from a button (the notification bell) | `Popover` |
 | A menu of actions | `DropdownMenu` |

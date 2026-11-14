@@ -11,7 +11,7 @@ Use for turning a cart into an order. It is a wizard (wizard.md) on its own page
    - Details: the customer's name, email and address as `FormField`s.
    - Review: what was entered, read only, and the place for the payment provider's own element.
 4. `OrderSummary` (`components/shared`): the subtotal, tax and total as a `dl`, the total in `tabular-nums` and bold. On a computer it sits on the right; on a phone it sits above the buttons.
-5. The buttons last: "Back" (`outline`, hidden on step 1) and "Next" (`default`). The last step's button names the result ("Place order").
+5. The buttons last, as `Actions` (components.md): "Back" (`outline`, hidden on step 1) and "Next" (`default`). The last step's button names the result ("Place order").
 
 ## Rules
 

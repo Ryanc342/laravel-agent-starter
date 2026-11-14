@@ -15,7 +15,7 @@ An event opens in a `ResponsiveDialog` (form.md) with its facts as a `dl` and it
 ## Rules
 
 - The month's events come from the backend, with their dates; React places them and never decides which events belong to a day.
-- Dates are formatted through `lib/format.ts`; the grid is built with `Intl` and `Date`, with no date library.
+- Dates are formatted through `lib/format.ts`. "Today" comes from the backend as a shared prop (the date in the app's timezone), also for the `DatePicker`'s today mark; React never reads the clock. Laying out the month (the grid, the previous and next month) is display and lives only in `lib/month-grid.ts` and `lib/date-value.ts`, with no date library.
 - The weekday names follow the language and the week starts on the day the page passes (Sunday by default). Each event and each "+N more" is a button, so the keyboard works.
 
 ## Phone

@@ -8,7 +8,8 @@ Applies to `resources/js/**`, `resources/css/**`, `DESIGN.md` and `docs/design/*
 
 - Every colour, radius, font and spacing value is defined once, in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. The spec files name tokens and say when to use them; they never repeat a value. To change a value, change it in app.css only.
 - Fonts load through the `fonts` list in vite.config.ts.
-- Use the theme classes (`bg-primary`, `text-muted-foreground`, `text-success`, `rounded-lg`, `gap-4`), never raw colors (`bg-blue-500`, `#hex`), arbitrary sizes (`text-[13px]`) or `dark:` color overrides.
+- Use the theme classes (`bg-primary`, `text-muted-foreground`, `text-success`, `rounded-lg`), never raw colors (`bg-blue-500`, `#hex`), arbitrary values in square brackets or `dark:` color overrides, and resize a component only through its `size` variant. The oxlint rules in principle 10 fail on each of these.
+- The spec files name tokens and component sizes and never a pixel value or a Tailwind size class; tests/Structure/DocsTest.php fails on one.
 
 ## Every page
 

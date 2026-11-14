@@ -5,7 +5,7 @@ Use for a stream of messages the user reads and clears: notifications, activity,
 ## Layout, top to bottom
 
 1. Header row: `<Heading>` on the left; on the right the page's action ("Mark all as read"), shown from a backend flag; it keeps the user on the page too.
-2. The rows, newest first, in one `ul` that is one bordered box (`rounded-lg border`), its rows separated by lines. A row is not a card of its own and has no background colour. Each row has an unread dot on the left, the message (`text-sm`), its time (`text-xs`, `text-muted-foreground`), and nothing else: a row has no button. An unread row has the blue dot and darker text, and the whole row is a button: clicking it marks it as read (and keeps the user on the page). A read row has no dot, quieter text and is not clickable.
+2. The rows, newest first, in one `ul` that is one bordered box (`rounded-lg border`), its rows separated by lines. A row is not a card of its own and has no background colour. Each row has an unread dot on the left, the message, its time (smaller, `text-muted-foreground`), and nothing else: a row has no button. An unread row has the blue dot and darker text, and the whole row is a button: clicking it marks it as read (and keeps the user on the page). A read row has no dot, quieter text and is not clickable.
 3. `Pagination` under the rows, with the rows-per-page choice next to the page links (list.md).
 
 ## Rules

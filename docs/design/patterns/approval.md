@@ -4,14 +4,14 @@ Use for a record that someone must approve or reject (a leave request, an expens
 
 ## Layout, top to bottom
 
-1. Header row, as in detail.md: the record's name as `<Heading>`, its status as a `Badge`, and at the right end of the row the actions, which stay on the right when the title wraps (detail.md). The other actions come first, then Reject (`outline`), and Approve (`default`) is the rightmost. They show only when the backend's `can.*` flags say the user may decide.
+1. Header row, as in detail.md: the record's name as `<Heading>`, its status as a `Badge`, and the actions as `Actions` (components.md), which stay on the right when the title wraps. The other actions come first, then Reject (`outline`), and Approve (`default`) is last. They show only when the backend's `can.*` flags say the user may decide.
 2. The record's facts: a `dl` (detail.md).
 3. The timeline under a `<Heading variant="small">` "History": `Timeline` (`components/shared`), one row per event, newest last, each with who did what and when ("Mei submitted · 12 Nov, 09:30"). A rejection shows its reason under the row.
 
 ## Actions
 
 - Approve acts at once and a toast says what happened.
-- Reject opens a `ResponsiveDialog` titled "Reject request", with one required `Input` for the reason (a `FormField`) and, at the right end, the buttons Cancel and "Reject request" (`destructive`, the rightmost).
+- Reject opens a `ResponsiveDialog` titled "Reject request", with one required `Input` for the reason (a `FormField`) and the `Actions` Cancel and "Reject request" (`destructive`, last).
 - After a decision the buttons disappear and the status `Badge` changes.
 
 ## Phone

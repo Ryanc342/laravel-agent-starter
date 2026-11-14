@@ -4,7 +4,7 @@ Use for something the user prints or saves as a PDF: an invoice, a receipt, a ta
 
 ## Layout, top to bottom
 
-1. A bar above the sheet, its buttons at the right end: "Download PDF" (`outline`), then "Print" (`default`) as the rightmost. The bar is hidden when printing.
+1. A bar above the sheet, its buttons as `Actions` (components.md): "Download PDF" (`outline`), then "Print" (`default`) last. The bar is hidden when printing.
 2. The sheet: white, A4 proportions, the record's name as `<Heading>`, its facts as a `dl`, and its lines as a plain table with horizontal lines. An invoice sheet adds the seller and buyer, the line items, and the totals right-aligned in `tabular-nums`.
 
 ## Printing

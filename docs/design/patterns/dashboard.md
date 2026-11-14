@@ -7,6 +7,7 @@ The page the user lands on after login (`/dashboard`, set by `home` in config/fo
 1. Header row: `<Heading>` "Dashboard".
 2. Blocks, each with a `<Heading variant="small">` and no description. On desktop they sit side by side, the wider one for the feed and the narrower one for the quick links; on a phone they stack in the same order.
     - Latest notifications: the newest rows (feed.md) and a link to the notifications page. They load after the page opens, like the bell's (`LoadingState` while waiting); the same bordered box with an `EmptyState` line inside when there are none.
+    - Number tiles, only when the plan asks for them: `StatTiles` (`components/shared`, report.md), with figures from the backend and no placeholders.
     - Quick links: one row per page the user comes back to, each an icon and the page name as a link. The dashboard itself is not listed, and a project adds its main pages as it grows.
 
 ## Rules
