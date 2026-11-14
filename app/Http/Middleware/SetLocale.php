@@ -22,7 +22,7 @@ class SetLocale
         $locale = Locale::resolve(
             $request->user()?->locale?->value,
             $request->cookie('locale'),
-            $request->header('Accept-Language'),
+            array_values($request->getLanguages()),
         );
 
         app()->setLocale($locale->value);

@@ -8,7 +8,16 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
 vi.mock('@inertiajs/react', () => ({
-    usePage: () => ({ props: { name: 'Acme' } }),
+    usePage: () => ({
+        props: {
+            name: 'Acme',
+            locale: 'en',
+            locales: [
+                { value: 'en', label: 'English', short: 'EN' },
+                { value: 'zh_CN', label: '中文', short: '中文' },
+            ],
+        },
+    }),
     Link: ({ href, children }: { href: unknown; children: ReactNode }) => (
         <a
             href={

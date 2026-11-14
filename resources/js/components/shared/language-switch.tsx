@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { languages, useLanguage } from '@/hooks/use-language';
+import { htmlLang, useLanguage } from '@/hooks/use-language';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
@@ -9,14 +9,14 @@ import { cn } from '@/lib/utils';
  * Appearance setting and the `locale` cookie keeps it.
  */
 export default function LanguageSwitch({ className }: { className?: string }) {
-    const { language, changeLanguage } = useLanguage();
+    const { language, languages, changeLanguage } = useLanguage();
 
     return (
         <nav
             aria-label={t('Language')}
             className={cn('flex items-center gap-1 text-sm', className)}
         >
-            {languages.map(({ value, short, name }, index) => (
+            {languages.map(({ value, short, label }, index) => (
                 <span key={value} className="flex items-center gap-1">
                     {index > 0 && (
                         <span
@@ -29,8 +29,8 @@ export default function LanguageSwitch({ className }: { className?: string }) {
                     <Button
                         variant="ghost"
                         size="sm"
-                        lang={value === 'en' ? 'en' : 'zh-CN'}
-                        aria-label={name}
+                        lang={htmlLang(value)}
+                        aria-label={label}
                         aria-current={language === value ? 'true' : undefined}
                         className={cn(
                             language === value

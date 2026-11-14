@@ -31,7 +31,15 @@ vi.mock('@inertiajs/react', () => ({
     router: { get: vi.fn() },
     usePage: () => ({
         url: '/style',
-        props: { name: 'Acme', auth: { user: null } },
+        props: {
+            name: 'Acme',
+            auth: { user: null },
+            locale: 'en',
+            locales: [
+                { value: 'en', label: 'English', short: 'EN' },
+                { value: 'zh_CN', label: '中文', short: '中文' },
+            ],
+        },
     }),
     Link: ({
         href,

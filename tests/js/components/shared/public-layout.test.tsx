@@ -4,7 +4,15 @@ import { expect, test, vi } from 'vite-plus/test';
 import PublicLayout from '@/layouts/public-layout';
 
 const page = vi.hoisted(() => ({
-    props: { name: 'Acme', auth: { user: null } as { user: unknown } },
+    props: {
+        name: 'Acme',
+        auth: { user: null } as { user: unknown },
+        locale: 'en',
+        locales: [
+            { value: 'en', label: 'English', short: 'EN' },
+            { value: 'zh_CN', label: '中文', short: '中文' },
+        ],
+    },
 }));
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));

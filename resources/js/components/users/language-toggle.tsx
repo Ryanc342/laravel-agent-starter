@@ -1,10 +1,10 @@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { languages, useLanguage, type Language } from '@/hooks/use-language';
+import { htmlLang, useLanguage } from '@/hooks/use-language';
 import { t } from '@/lib/i18n';
 
 /** The language choice on Settings → Appearance: two modes, so a ToggleGroup. */
 export default function LanguageToggle({ className }: { className?: string }) {
-    const { language, changeLanguage } = useLanguage();
+    const { language, languages, changeLanguage } = useLanguage();
 
     return (
         <ToggleGroup
@@ -14,19 +14,19 @@ export default function LanguageToggle({ className }: { className?: string }) {
             // Pressing the language that is on would clear the value; one stays on.
             onValueChange={(value) => {
                 if (value) {
-                    changeLanguage(value as Language);
+                    changeLanguage(value);
                 }
             }}
             className={className}
             aria-label={t('Language')}
         >
-            {languages.map(({ value, name }) => (
+            {languages.map(({ value, label }) => (
                 <ToggleGroupItem
                     key={value}
                     value={value}
-                    lang={value === 'en' ? 'en' : 'zh-CN'}
+                    lang={htmlLang(value)}
                 >
-                    {name}
+                    {label}
                 </ToggleGroupItem>
             ))}
         </ToggleGroup>

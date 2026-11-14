@@ -3,10 +3,19 @@ import { afterEach, expect, test, vi } from 'vite-plus/test';
 import LanguageSwitch from '@/components/shared/language-switch';
 import LanguageToggle from '@/components/users/language-toggle';
 
-const page = vi.hoisted(() => ({ locale: 'en', put: vi.fn() }));
+const page = vi.hoisted(() => ({
+    locale: 'en',
+    put: vi.fn(),
+    locales: [
+        { value: 'en', label: 'English', short: 'EN' },
+        { value: 'zh_CN', label: '中文', short: '中文' },
+    ],
+}));
 
 vi.mock('@inertiajs/react', () => ({
-    usePage: () => ({ props: { locale: page.locale } }),
+    usePage: () => ({
+        props: { locale: page.locale, locales: page.locales },
+    }),
     router: { put: page.put },
 }));
 
