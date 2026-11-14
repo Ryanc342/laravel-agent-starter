@@ -38,6 +38,7 @@ export default function AuthDemo({
             </div>
 
             <form
+                noValidate
                 onSubmit={(event) => event.preventDefault()}
                 className="flex flex-col gap-6"
             >

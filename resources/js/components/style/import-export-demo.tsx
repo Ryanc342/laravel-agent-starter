@@ -41,6 +41,7 @@ export default function ImportExportDemo({
                         title="Import tasks"
                     >
                         <form
+                            noValidate
                             onSubmit={(event) => {
                                 event.preventDefault();
                                 [...rowErrors, more].forEach((message, index) =>

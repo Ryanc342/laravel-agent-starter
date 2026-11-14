@@ -52,7 +52,7 @@ export default function ManageTwoFactor(props: Props) {
             {twoFactorEnabled ? (
                 <div className="space-y-4">
                     <Actions>
-                        <Form {...disable.form()}>
+                        <Form noValidate {...disable.form()}>
                             {({ processing }) => (
                                 <Button
                                     variant="destructive"
@@ -80,6 +80,7 @@ export default function ManageTwoFactor(props: Props) {
                         </Button>
                     ) : (
                         <Form
+                            noValidate
                             {...enable.form()}
                             onSuccess={() => setShowSetupModal(true)}
                         >

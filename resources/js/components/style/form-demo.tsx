@@ -22,6 +22,7 @@ function DemoForm({
 }) {
     return (
         <form
+            noValidate
             onSubmit={(event) => event.preventDefault()}
             className="flex min-h-0 flex-1 flex-col gap-6"
         >

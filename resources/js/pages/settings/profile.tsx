@@ -39,6 +39,7 @@ export default function Profile({
                 <Heading variant="small" title={t('Profile')} />
 
                 <Form
+                    noValidate
                     {...ProfileController.update.form()}
                     options={{
                         preserveScroll: true,

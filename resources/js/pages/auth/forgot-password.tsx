@@ -26,7 +26,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             )}
 
             <div className="space-y-6">
-                <Form {...email.form()}>
+                <Form noValidate {...email.form()}>
                     {({ processing, errors }) => (
                         <>
                             <FormField

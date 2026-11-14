@@ -50,6 +50,7 @@ export default function Tasks({
                     <Actions>
                         {can.complete_overdue && (
                             <Form
+                                noValidate
                                 {...OverdueTaskCompletionController.store.form()}
                                 options={{ preserveScroll: true }}
                             >

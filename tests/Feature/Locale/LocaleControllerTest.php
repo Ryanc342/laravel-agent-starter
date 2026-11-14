@@ -2,8 +2,18 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 
 uses(RefreshDatabase::class);
+
+/** A users' policy that refuses the language switch, to show the controller asks it. */
+class DenyingLocalePolicy
+{
+    public function updateLocale(?User $user): bool
+    {
+        return false;
+    }
+}
 
 test('a guest\'s choice is saved in the cookie and the page comes back', function () {
     $this->from(route('home'))
@@ -46,3 +56,21 @@ test('only the two languages are accepted', function (mixed $locale) {
 
     expect($user->refresh()->locale)->toBeNull();
 })->with(['unknown' => 'fr', 'empty' => '', 'missing' => null, 'array' => [['en']]]);
+
+test('a guest and a user may both switch the language', function () {
+    $this->put(route('locale.update'), ['locale' => 'zh_CN'])->assertRedirect();
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('locale.update'), ['locale' => 'en'])
+        ->assertRedirect();
+});
+
+test('a policy that denies the switch fails the request', function () {
+    Gate::policy(User::class, DenyingLocalePolicy::class);
+
+    $this->put(route('locale.update'), ['locale' => 'zh_CN'])->assertForbidden();
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('locale.update'), ['locale' => 'zh_CN'])
+        ->assertForbidden();
+});

@@ -15,6 +15,14 @@ class UserPolicy
         return $user->is($model);
     }
 
+    /**
+     * The language switch changes only the caller's own preference, so everyone may use it, guests included.
+     */
+    public function updateLocale(?User $user): bool
+    {
+        return true;
+    }
+
     public function delete(User $user, User $model): bool
     {
         return $user->is($model);

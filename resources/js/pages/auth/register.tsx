@@ -18,6 +18,7 @@ export default function Register({ passwordRules }: Props) {
         <>
             <Head title={t('Register')} />
             <Form
+                noValidate
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing

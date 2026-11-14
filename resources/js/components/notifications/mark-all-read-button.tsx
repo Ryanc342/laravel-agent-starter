@@ -16,6 +16,7 @@ export default function MarkAllReadButton({
 }) {
     return (
         <Form
+            noValidate
             {...AllNotificationsReadController.store.form()}
             options={{ preserveScroll: true }}
             onSuccess={onSuccess}

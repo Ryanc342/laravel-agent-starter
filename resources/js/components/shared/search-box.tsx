@@ -31,6 +31,7 @@ export default function SearchBox({
 
     return (
         <form
+            noValidate
             role="search"
             onSubmit={submit}
             className="relative w-full max-w-sm"

@@ -88,43 +88,31 @@ test('one bad row imports nothing and the error names its row', function (string
     'a title that is too long' => ['Title'."\n".str_repeat('x', 256)."\n", 'Row 2: Title can have at most 255 characters.'],
 ]);
 
-test('at most five row errors show, in row order, then one line for the rest', function () {
+test('every row error comes back, in row order, with no line for the rest', function () {
     $user = User::factory()->create();
     $rows = array_map(fn (int $row): string => "Task {$row},not a date", range(2, 8));
     $csv = "Title,Due date\n".implode("\n", $rows)."\n";
 
     $this->actingAs($user)->post(route('tasks.import.store'), ['file' => taskImportFile($csv)])->assertSessionHasErrors();
 
+    expect(array_values(taskImportErrors()))->toBe(array_map(
+        fn (int $row): string => "Row {$row}: Due date is not a date.",
+        range(2, 8),
+    ))->and(implode(' ', taskImportErrors()))->not->toContain('more')
+        ->and(Task::query()->count())->toBe(0);
+});
+
+test('errors of different columns are listed in row order', function () {
+    $user = User::factory()->create();
+    $csv = "Title,Due date\nA,tomorrow\n,2026-11-10\nB,nonsense\n";
+
+    $this->actingAs($user)->post(route('tasks.import.store'), ['file' => taskImportFile($csv)])->assertSessionHasErrors();
+
     expect(array_values(taskImportErrors()))->toBe([
         'Row 2: Due date is not a date.',
-        'Row 3: Due date is not a date.',
+        'Row 3: Title is required.',
         'Row 4: Due date is not a date.',
-        'Row 5: Due date is not a date.',
-        'Row 6: Due date is not a date.',
-        'And 2 more errors.',
-    ])->and(Task::query()->count())->toBe(0);
-});
-
-test('with exactly six errors the line says one more error', function () {
-    $user = User::factory()->create();
-    $rows = array_map(fn (int $row): string => "Task {$row},not a date", range(2, 7));
-    $csv = "Title,Due date\n".implode("\n", $rows)."\n";
-
-    $this->actingAs($user)->post(route('tasks.import.store'), ['file' => taskImportFile($csv)])->assertSessionHasErrors();
-
-    expect(array_values(taskImportErrors()))->toHaveCount(6)
-        ->and(array_values(taskImportErrors())[5])->toBe('And 1 more error.');
-});
-
-test('five errors or fewer show every error and no "more" line', function () {
-    $user = User::factory()->create();
-    $rows = array_map(fn (int $row): string => "Task {$row},not a date", range(2, 6));
-    $csv = "Title,Due date\n".implode("\n", $rows)."\n";
-
-    $this->actingAs($user)->post(route('tasks.import.store'), ['file' => taskImportFile($csv)])->assertSessionHasErrors();
-
-    expect(array_values(taskImportErrors()))->toHaveCount(5)
-        ->and(implode(' ', taskImportErrors()))->not->toContain('more');
+    ]);
 });
 
 test('a file the import cannot read is refused with one message and nothing is imported', function (?UploadedFile $file, string $message) {

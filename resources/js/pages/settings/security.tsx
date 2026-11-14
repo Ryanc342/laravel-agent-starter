@@ -29,6 +29,7 @@ export default function Security(props: Props) {
                 <Heading variant="small" title={t('Update password')} />
 
                 <Form
+                    noValidate
                     {...SecurityController.update.form()}
                     options={{
                         preserveScroll: true,

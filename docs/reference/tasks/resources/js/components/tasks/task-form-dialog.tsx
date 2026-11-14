@@ -36,6 +36,7 @@ export default function TaskFormDialog({ task, trigger }: TaskFormDialogProps) {
             title={task ? t('Edit task') : t('Add task')}
         >
             <Form
+                noValidate
                 {...(task
                     ? TaskController.update.form(task.id)
                     : TaskController.store.form())}

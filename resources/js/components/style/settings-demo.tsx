@@ -22,6 +22,7 @@ export default function SettingsDemo({
                 <Heading variant="small" title="Profile" />
 
                 <form
+                    noValidate
                     onSubmit={(event) => event.preventDefault()}
                     className="space-y-6"
                 >

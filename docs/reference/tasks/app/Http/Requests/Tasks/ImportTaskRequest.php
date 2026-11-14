@@ -18,9 +18,6 @@ final class ImportTaskRequest extends FormRequest
 {
     use TaskValidationRules;
 
-    /** How many row errors are shown before "And N more errors". */
-    private const int SHOWN_ERRORS = 5;
-
     /** The largest file, in kilobytes. */
     private const int MAX_KILOBYTES = 1024;
 
@@ -116,28 +113,31 @@ final class ImportTaskRequest extends FormRequest
     }
 
     /**
-     * A problem with the file itself is shown alone; row errors are shown in row order, at most five, then the count of the rest.
+     * A problem with the file itself is shown alone; row errors all come back, in row order. The page's
+     * validation toasts show the first five and "And N more errors" (docs/rules/frontend.md).
      */
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator): void
     {
         $errors = $validator->errors();
+        $messages = $errors->messages();
 
         if ($errors->has('file')) {
-            foreach (array_keys($errors->messages()) as $key) {
+            foreach (array_keys($messages) as $key) {
                 if ($key !== 'file') {
                     $errors->forget($key);
                 }
             }
         } else {
-            $keys = array_keys($errors->messages());
-            usort($keys, fn (string $a, string $b): int => $this->rowOf($a) <=> $this->rowOf($b));
+            uksort($messages, fn (string $a, string $b): int => $this->rowOf($a) <=> $this->rowOf($b));
 
-            foreach (array_slice($keys, self::SHOWN_ERRORS) as $key) {
+            foreach (array_keys($messages) as $key) {
                 $errors->forget($key);
             }
 
-            if (count($keys) > self::SHOWN_ERRORS) {
-                $errors->add('more_errors', trans_choice('And :count more error.|And :count more errors.', count($keys) - self::SHOWN_ERRORS));
+            foreach ($messages as $key => $list) {
+                foreach ($list as $message) {
+                    $errors->add($key, $message);
+                }
             }
         }
 

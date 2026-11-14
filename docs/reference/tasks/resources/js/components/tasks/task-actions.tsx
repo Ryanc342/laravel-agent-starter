@@ -42,7 +42,7 @@ export default function TaskActions({ task }: { task: Task }) {
                         { title: task.title },
                     )}
                 >
-                    <Form {...TaskController.destroy.form(task.id)}>
+                    <Form noValidate {...TaskController.destroy.form(task.id)}>
                         {({ processing }) => (
                             <ConfirmDialogActions>
                                 <Button
@@ -60,6 +60,7 @@ export default function TaskActions({ task }: { task: Task }) {
             )}
             {task.can.complete && (
                 <Form
+                    noValidate
                     {...TaskCompletionController.store.form(task.id)}
                     options={{ preserveScroll: true }}
                 >

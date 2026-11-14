@@ -24,7 +24,7 @@ export default function VerifyEmail({
                 </div>
             )}
 
-            <Form {...send.form()} className="space-y-6 text-center">
+            <Form noValidate {...send.form()} className="space-y-6 text-center">
                 {({ processing }) => (
                     <>
                         <Button

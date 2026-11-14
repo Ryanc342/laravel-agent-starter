@@ -31,6 +31,7 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
             title={t('Import tasks')}
         >
             <Form
+                noValidate
                 {...TaskImportController.store.form()}
                 options={{ preserveScroll: true }}
                 onSuccess={() => setOpen(false)}
