@@ -354,7 +354,7 @@
     "Fills: a button, a badge, a status. The component sets the text on top": "填充色：按钮、徽章、状态。文字由组件设置",
     "Form": "表单",
     "FormField in a narrow column (the label moves above the input) and with a hidden label (a search box)": "窄栏中的 FormField（标签移到输入框上方）和隐藏标签的 FormField（搜索框）",
-    "FormField: the label on the left on desktop and above on a phone; a field with an error has a red border and its message is a toast (open the dialog under Form)": "FormField：表单较宽时标签在输入框左侧，较窄时在上方；出错的字段有红色边框，错误信息以提示条显示（打开“表单”下的对话框）",
+    "FormField: the label sits beside the input in a wide form and above it in a narrow one; a field with an error has a red border and its message is a toast (open the dialog under Form)": "FormField：表单较宽时标签在输入框左侧，较窄时在上方；出错的字段有红色边框，错误信息以提示条显示（打开“表单”下的对话框）",
     "Help / FAQ": "帮助 / 常见问题",
     "History": "历史",
     "Home / landing": "首页 / 落地页",
@@ -430,7 +430,6 @@
     "The card's content.": "卡片的内容。",
     "The card": "这张卡片",
     "Amount": "金额",
-    "And 2 more errors.": "还有 2 个错误。",
     "Could not load your :subject.": "无法加载你的:subject。",
     "Create team": "创建团队",
     "Customer": "客户",
@@ -441,5 +440,12 @@
     "Second member": "第二位成员",
     "Team name": "团队名称",
     "You have no :subject yet.": "你还没有:subject。",
-    "tasks": "任务"
+    "tasks": "任务",
+    "Order moved.": "订单已移动。",
+    "Team created.": "团队已创建。",
+    "You": "你",
+    "just now": "刚刚",
+    "Enter :field.": "请输入:field。",
+    "The template is a CSV file with the column names.": "模板是一个带有列名的 CSV 文件。",
+    "The export downloads tasks.csv, as the list is shown.": "导出会按列表当前的显示下载 tasks.csv。"
 }

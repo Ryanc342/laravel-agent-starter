@@ -16,17 +16,15 @@ import { t } from '@/lib/i18n';
  * Moving a list in and out as a CSV file. Export is a plain download of the
  * list as the user sees it. Import is upload then import: the backend checks
  * every row, and when any is wrong nothing is imported and the errors are
- * toasts, at most five and then "And N more errors". The demo's import always
- * finds the errors it is given.
+ * toasts, at most five and then "And N more errors" (the shared
+ * `useValidationErrorToasts` cuts them). The demo's import always fails with
+ * every row error it is given, through the event Inertia fires.
  */
 export default function ImportExportDemo({
     rowErrors,
-    more,
 }: {
-    /** The first five row errors the backend would send. */
+    /** Every row error the backend would send, in row order. */
     rowErrors: string[];
-    /** The line for the rest ("And 2 more errors."). */
-    more: string;
 }) {
     const [open, setOpen] = useState(false);
 
@@ -47,9 +45,18 @@ export default function ImportExportDemo({
                             noValidate
                             onSubmit={(event) => {
                                 event.preventDefault();
-                                [...rowErrors, more].forEach((message, index) =>
-                                    toast.error(message, {
-                                        id: `import-error-${index}`,
+                                document.dispatchEvent(
+                                    new CustomEvent('inertia:error', {
+                                        detail: {
+                                            errors: Object.fromEntries(
+                                                rowErrors.map(
+                                                    (message, index) => [
+                                                        `rows.${index + 2}.row`,
+                                                        message,
+                                                    ],
+                                                ),
+                                            ),
+                                        },
                                     }),
                                 );
                             }}
@@ -73,7 +80,9 @@ export default function ImportExportDemo({
                                     className="w-fit"
                                     onClick={() =>
                                         toast(
-                                            'The template is a CSV file with the column names.',
+                                            t(
+                                                'The template is a CSV file with the column names.',
+                                            ),
                                         )
                                     }
                                 >
@@ -94,7 +103,9 @@ export default function ImportExportDemo({
                         variant="outline"
                         onClick={() =>
                             toast(
-                                'The export downloads tasks.csv, as the list is shown.',
+                                t(
+                                    'The export downloads tasks.csv, as the list is shown.',
+                                ),
                             )
                         }
                     >

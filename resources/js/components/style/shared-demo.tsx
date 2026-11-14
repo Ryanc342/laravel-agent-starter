@@ -29,7 +29,7 @@ export default function SharedDemo({
         <div className="grid gap-8">
             <Specimen
                 label={t(
-                    'FormField: the label on the left on desktop and above on a phone; a field with an error has a red border and its message is a toast (open the dialog under Form)',
+                    'FormField: the label sits beside the input in a wide form and above it in a narrow one; a field with an error has a red border and its message is a toast (open the dialog under Form)',
                 )}
             >
                 <div className="grid w-full max-w-xl gap-6">

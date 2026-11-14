@@ -88,7 +88,7 @@ test('the print bar sits at the right end with Print last', () => {
 });
 
 test('the list toolbar sits at the right end with the create button last', () => {
-    render(<ImportExportDemo rowErrors={[]} more="" />);
+    render(<ImportExportDemo rowErrors={[]} />);
     const actions = screen.getByTestId('list-actions');
 
     expect(buttonNames(actions).at(-1)).toBe('Add task');

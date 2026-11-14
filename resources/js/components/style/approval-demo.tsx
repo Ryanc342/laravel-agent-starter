@@ -58,9 +58,9 @@ export default function ApprovalDemo({
             ...history,
             {
                 id: history.length + 1,
-                actor: 'You',
+                actor: t('You'),
                 action: states[decision].label.toLowerCase(),
-                when: 'just now',
+                when: t('just now'),
                 note,
             },
         ]);

@@ -69,7 +69,8 @@ export default function BulkActionsDemo({
                     onTogglePage: selection.togglePage,
                     isSelected: (task) => selection.isSelected(task.id),
                     onToggle: (task) => selection.toggle(task.id),
-                    rowLabel: (task) => `Select ${task.title}`,
+                    rowLabel: (task) =>
+                        t('Select :title', { title: task.title }),
                 }}
             />
             <BulkActionBar

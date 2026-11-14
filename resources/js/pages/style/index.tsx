@@ -224,7 +224,10 @@ const answerWizardStep = (
     Object.fromEntries(
         fields
             .filter((field) => !values[field.id]?.trim())
-            .map((field) => [field.id, `Enter ${field.label.toLowerCase()}.`]),
+            .map((field) => [
+                field.id,
+                t('Enter :field.', { field: t(field.label).toLowerCase() }),
+            ]),
     );
 
 // Stands in for what the backend sends with each state of the request: the
@@ -568,8 +571,9 @@ export default function Style() {
                                 'Row 4: Due date is not a date.',
                                 'Row 5: Due date is not a date.',
                                 'Row 6: Due date is not a date.',
+                                'Row 7: Due date is not a date.',
+                                'Row 8: Title is required.',
                             ]}
-                            more={t('And 2 more errors.')}
                         />
                     </DemoFrame>
                 </StyleSection>

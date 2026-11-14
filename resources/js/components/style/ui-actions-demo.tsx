@@ -10,6 +10,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { t } from '@/lib/i18n';
+import { NETWORK_ERROR_MESSAGE } from '@/hooks/use-network-error-toast';
 
 const variants = [
     'default',
@@ -105,17 +106,13 @@ export default function UiActionsDemo() {
             >
                 <Button
                     variant="outline"
-                    onClick={() => toast.success('Task created.')}
+                    onClick={() => toast.success(t('Task created.'))}
                 >
                     {t('Success toast')}
                 </Button>
                 <Button
                     variant="outline"
-                    onClick={() =>
-                        toast.error(
-                            'Cannot reach the server. Check your connection and try again.',
-                        )
-                    }
+                    onClick={() => toast.error(t(NETWORK_ERROR_MESSAGE))}
                 >
                     {t('Error toast')}
                 </Button>

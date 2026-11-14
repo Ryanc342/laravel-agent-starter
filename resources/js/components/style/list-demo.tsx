@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate, formatMoney } from '@/lib/format';
 import type { ResourceCollection } from '@/types/resource';
 import { t } from '@/lib/i18n';
+import Actions from '@/components/shared/actions';
 
 function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
     return [
@@ -90,7 +91,9 @@ export default function ListDemo({
         <div className="flex flex-col gap-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <Heading title={t('Tasks')} />
-                <Button>{t('Add task')}</Button>
+                <Actions>
+                    <Button>{t('Add task')}</Button>
+                </Actions>
             </div>
 
             <div className="flex flex-col gap-4">

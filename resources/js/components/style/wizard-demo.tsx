@@ -50,7 +50,7 @@ export default function WizardDemo({
         }
 
         if (last) {
-            toast.success('Team created.');
+            toast.success(t('Team created.'));
             setCurrent(0);
             setValues({});
 
@@ -80,7 +80,7 @@ export default function WizardDemo({
                             </Button>
                         )}
                         <Button onClick={next}>
-                            {last ? submitLabel : 'Next'}
+                            {last ? t(submitLabel) : t('Next')}
                         </Button>
                     </>
                 }

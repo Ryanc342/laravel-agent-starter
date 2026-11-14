@@ -5,6 +5,7 @@ import KanbanBoard from '@/components/shared/kanban-board';
 import { Button } from '@/components/ui/button';
 import type { KanbanColumn, KanbanMove } from '@/lib/kanban';
 import { t } from '@/lib/i18n';
+import Actions from '@/components/shared/actions';
 
 export type ExampleCard = { id: string; title: string; owner: string };
 
@@ -48,13 +49,15 @@ export default function KanbanDemo({
         <div className="grid gap-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <Heading title={t('Orders')} />
-                <Button>{t('Add order')}</Button>
+                <Actions>
+                    <Button>{t('Add order')}</Button>
+                </Actions>
             </div>
             <KanbanBoard
                 columns={columns}
                 onMove={(move) => {
                     setColumns(applyMove(columns, move));
-                    toast.success('Order moved.', { id: 'kanban-move' });
+                    toast.success(t('Order moved.'), { id: 'kanban-move' });
                 }}
                 renderCard={(card) => (
                     <>
