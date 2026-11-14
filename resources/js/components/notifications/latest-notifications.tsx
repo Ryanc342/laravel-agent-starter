@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useLatestNotifications } from '@/hooks/use-latest-notifications';
 import { index } from '@/routes/notifications';
 import { t } from '@/lib/i18n';
+import Actions from '@/components/shared/actions';
 
 /**
  * The dashboard's block of the five newest notifications. Like the bell, it
@@ -40,13 +41,13 @@ export default function LatestNotifications() {
                 ))}
             </FeedList>
             {latest !== undefined && latest.length > 0 && (
-                <Button
-                    variant="outline"
-                    className="justify-self-start"
-                    asChild
-                >
-                    <Link href={index()}>{t('View all notifications')}</Link>
-                </Button>
+                <Actions>
+                    <Button variant="outline" asChild>
+                        <Link href={index()}>
+                            {t('View all notifications')}
+                        </Link>
+                    </Button>
+                </Actions>
             )}
         </div>
     );

@@ -447,5 +447,16 @@
     "just now": "刚刚",
     "Enter :field.": "请输入:field。",
     "The template is a CSV file with the column names.": "模板是一个带有列名的 CSV 文件。",
-    "The export downloads tasks.csv, as the list is shown.": "导出会按列表当前的显示下载 tasks.csv。"
+    "The export downloads tasks.csv, as the list is shown.": "导出会按列表当前的显示下载 tasks.csv。",
+    "Team": "团队",
+    "Members": "成员",
+    "Review": "确认",
+    "Pending": "待审批",
+    "Approved": "已批准",
+    "Rejected": "已拒绝",
+    "New": "新订单",
+    "Packing": "打包中",
+    "Shipped": "已发货",
+    "Enter a reason.": "请填写原因。",
+    "The title field is required.": "标题不能为空。"
 }

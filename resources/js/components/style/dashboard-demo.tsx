@@ -6,6 +6,7 @@ import type { ExampleNotification } from '@/components/style/types';
 import { Button } from '@/components/ui/button';
 import type { NavItem } from '@/types';
 import { t } from '@/lib/i18n';
+import Actions from '@/components/shared/actions';
 
 /** The page after login: the newest notifications beside the quick links. */
 export default function DashboardDemo({
@@ -35,9 +36,11 @@ export default function DashboardDemo({
                             />
                         ))}
                     </FeedList>
-                    <Button variant="outline" className="justify-self-start">
-                        {t('View all notifications')}
-                    </Button>
+                    <Actions>
+                        <Button variant="outline">
+                            {t('View all notifications')}
+                        </Button>
+                    </Actions>
                 </section>
 
                 <section className="grid content-start gap-4">

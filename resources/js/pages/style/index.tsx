@@ -200,18 +200,18 @@ const searchGroups: SearchGroup[] = [
 
 const wizardSteps = [
     {
-        name: 'Team',
+        name: msg('Team'),
         fields: [{ id: 'team-name', label: msg('Team name') }],
     },
     {
-        name: 'Members',
+        name: msg('Members'),
         fields: [
             { id: 'member-1', label: msg('First member') },
             { id: 'member-2', label: msg('Second member') },
         ],
     },
     {
-        name: 'Review',
+        name: msg('Review'),
         fields: [{ id: 'team-note', label: msg('Note for the team') }],
     },
 ];
@@ -237,17 +237,17 @@ const approvalStates: Record<
     ApprovalState
 > = {
     pending: {
-        label: 'Pending',
+        label: msg('Pending'),
         variant: 'warning',
         can: { approve: true, reject: true },
     },
     approved: {
-        label: 'Approved',
+        label: msg('Approved'),
         variant: 'success',
         can: { approve: false, reject: false },
     },
     rejected: {
-        label: 'Rejected',
+        label: msg('Rejected'),
         variant: 'destructive',
         can: { approve: false, reject: false },
     },
@@ -255,7 +255,7 @@ const approvalStates: Record<
 
 // Stands in for the FormRequest that checks the reason.
 const answerRejection = (reason: string) =>
-    reason.trim() ? null : 'Enter a reason.';
+    reason.trim() ? null : t('Enter a reason.');
 
 const approvalEvents: TimelineEvent[] = [
     {
@@ -388,7 +388,7 @@ const calendarEvents = [
 const kanbanColumns: KanbanColumn<ExampleCard>[] = [
     {
         id: 'new',
-        label: 'New',
+        label: msg('New'),
         cards: [
             { id: 'o1', title: 'Order 1041, spare parts', owner: 'Mei Ling' },
             { id: 'o2', title: 'Order 1042, delivery to Ipoh', owner: 'Ahmad' },
@@ -396,10 +396,10 @@ const kanbanColumns: KanbanColumn<ExampleCard>[] = [
     },
     {
         id: 'packing',
-        label: 'Packing',
+        label: msg('Packing'),
         cards: [{ id: 'o3', title: 'Order 1040, 20 boxes', owner: 'Siti' }],
     },
-    { id: 'shipped', label: 'Shipped', cards: [] },
+    { id: 'shipped', label: msg('Shipped'), cards: [] },
 ];
 
 const menu = [
@@ -511,7 +511,7 @@ export default function Style() {
                 <StyleSection id="form" title={t('Form')}>
                     <FormDemo
                         task={tasks[1]}
-                        requiredMessage="The title field is required."
+                        requiredMessage={t('The title field is required.')}
                     />
                 </StyleSection>
 
@@ -566,13 +566,27 @@ export default function Style() {
                     <DemoFrame>
                         <ImportExportDemo
                             rowErrors={[
-                                'Row 2: Due date is not a date.',
-                                'Row 3: Title is required.',
-                                'Row 4: Due date is not a date.',
-                                'Row 5: Due date is not a date.',
-                                'Row 6: Due date is not a date.',
-                                'Row 7: Due date is not a date.',
-                                'Row 8: Title is required.',
+                                t('Row :index: Due date is not a date.', {
+                                    index: 2,
+                                }),
+                                t('Row :index: Title is required.', {
+                                    index: 3,
+                                }),
+                                t('Row :index: Due date is not a date.', {
+                                    index: 4,
+                                }),
+                                t('Row :index: Due date is not a date.', {
+                                    index: 5,
+                                }),
+                                t('Row :index: Due date is not a date.', {
+                                    index: 6,
+                                }),
+                                t('Row :index: Due date is not a date.', {
+                                    index: 7,
+                                }),
+                                t('Row :index: Title is required.', {
+                                    index: 8,
+                                }),
                             ]}
                         />
                     </DemoFrame>
@@ -669,7 +683,7 @@ export default function Style() {
                                     id: 'password',
                                     label: t('Password'),
                                     type: 'password',
-                                    placeholder: 'Password',
+                                    placeholder: t('Password'),
                                 },
                             ]}
                             submitLabel={t('Log in')}

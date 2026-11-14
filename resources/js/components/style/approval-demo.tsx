@@ -59,7 +59,7 @@ export default function ApprovalDemo({
             {
                 id: history.length + 1,
                 actor: t('You'),
-                action: states[decision].label.toLowerCase(),
+                action: t(states[decision].label).toLowerCase(),
                 when: t('just now'),
                 note,
             },
@@ -88,7 +88,7 @@ export default function ApprovalDemo({
                 <div className="flex min-w-0 flex-wrap items-start gap-2">
                     <Heading title={title} />
                     <Badge variant={view.variant} className="mt-1">
-                        {view.label}
+                        {t(view.label)}
                     </Badge>
                 </div>
 

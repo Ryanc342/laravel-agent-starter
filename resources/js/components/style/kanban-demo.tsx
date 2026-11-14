@@ -43,7 +43,9 @@ export default function KanbanDemo({
 }: {
     columns: KanbanColumn<ExampleCard>[];
 }) {
-    const [columns, setColumns] = useState(initial);
+    const [columns, setColumns] = useState(() =>
+        initial.map((column) => ({ ...column, label: t(column.label) })),
+    );
 
     return (
         <div className="grid gap-6">

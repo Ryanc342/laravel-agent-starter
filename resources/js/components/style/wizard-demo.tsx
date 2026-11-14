@@ -64,7 +64,7 @@ export default function WizardDemo({
         <div className="grid gap-6">
             <Heading title={title} />
             <WizardLayout
-                steps={steps.map((item) => item.name)}
+                steps={steps.map((item) => t(item.name))}
                 current={current}
                 footer={
                     <>

@@ -10,8 +10,9 @@ use Illuminate\Validation\Validator;
 /**
  * The uploaded CSV and every one of its rows. The file is read here and each row
  * is checked with the rules of the create form (TaskValidationRules), so a bad
- * row is an error that names its row. The errors are capped: five, then one line
- * for the rest. Whether the user may have these tasks (the open-task limit) is
+ * row is an error that names its row. Every row error comes back, in row order;
+ * the page cuts them to five toasts and one "And N more errors." line
+ * (useValidationErrorToasts). Whether the user may have these tasks (the open-task limit) is
  * the Action's question.
  */
 final class ImportTaskRequest extends FormRequest
