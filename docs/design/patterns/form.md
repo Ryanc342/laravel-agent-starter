@@ -13,7 +13,7 @@ Use for creating or editing something.
 
 1. The dialog title names the action in full ("Add task", "Edit task"), with no description under it.
 2. The fields in one column, each a `FormField`: the label on the left of the input on desktop and above it on a phone; a field with an error has a red border and no text under it. A label is hidden (`sr-only`) only when the layout already says what the field is; it is never left out.
-3. The buttons last: the main one first ("Save changes", "Add task"), then Cancel (`outline`). While sending, the main button is disabled and shows a `Spinner`.
+3. The buttons last, at the right end of the row: Cancel (`outline`) first, then the main one ("Save changes", "Add task") as the rightmost button. While sending, the main button is disabled and shows a `Spinner`. On a phone the buttons are full width and stacked, the main one on top.
 
 ## After sending
 

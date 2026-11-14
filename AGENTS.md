@@ -40,6 +40,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 | app/Models/**, app/Enums/**, app/Policies/**, database/** | docs/rules/models.md          |
 | resources/js/**, app/Http/Resources/**                    | docs/rules/frontend.md        |
 | resources/js/**, resources/css/**, DESIGN.md, docs/design/** | docs/rules/visual-design.md |
+| app/**, resources/**, routes/** (any sentence a user reads) | docs/rules/translations.md |
 | tests/**                                                  | docs/rules/tests.md           |
 
 ## Red lines

@@ -41,8 +41,10 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 
 ## English and Chinese
 
-Every screen holds English and Chinese text. The default language stays English; the language switch is a separate request.
+The app speaks two languages, English (`en`) and Simplified Chinese (`zh_CN`). A first visit follows the browser's `Accept-Language` (any Chinese gives `zh_CN`, anything else `en`); the user switches on Settings → Appearance, and a guest with the "EN / 中文" switch at the top right. The rules for writing and translating a sentence are in docs/rules/translations.md.
 
+- Every sentence a user reads is written in English through `t()` (React) or `__()` (PHP) and has its Chinese in the same commit. Copy rules (short, sentence case, a button says what happens) hold in both languages; check a screen in both.
+- Dates, numbers and money go through `lib/format.ts`, which follows the current language; the date picker's month and day names follow it too.
 - Give text room: no width, column or button size fitted to one English label. Text wraps or truncates (`min-w-0`, `truncate`) and never overflows or overlaps. A Chinese label is shorter than an English one and has no spaces, so a layout looks right with either.
 - Names, titles and messages from the user's data arrive in either language: show them as they come.
 

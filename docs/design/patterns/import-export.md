@@ -4,13 +4,13 @@ Use for moving many records in or out of a list as a file. Files are CSV only. I
 
 ## Export
 
-- An "Export" `Button` (`outline`) in the list's header row, next to the create button. It downloads the list as the user sees it: the same search, sort and filters, every page, not only the one showing.
+- An "Export" `Button` (`outline`) in the list's header row, at its right end and before the create button (the main button is the rightmost). It downloads the list as the user sees it: the same search, sort and filters, every page, not only the one showing.
 - The file is UTF-8 with a byte order mark, so Excel shows Chinese and other non-English text correctly, and its first line holds the column names.
 - It is a plain download link to the backend (`<a href>` built with a Wayfinder route and the list's query string), not an Inertia visit.
 
 ## Import
 
-- An "Import" `Button` (`outline`) opens a `ResponsiveDialog` titled "Import tasks": a file field for a CSV file, a "Download template" `TextLink` that gives the header row to fill in, and the buttons "Import" (`default`) and Cancel, disabled with a `Spinner` while sending.
+- An "Import" `Button` (`outline`) opens a `ResponsiveDialog` titled "Import tasks": a file field for a CSV file, a "Download template" `TextLink` that gives the header row to fill in, and, at the right end, the buttons Cancel and "Import" (`default`, the rightmost), disabled with a `Spinner` while sending.
 - Upload then import in one step: the backend checks every row. If any row has an error, nothing is imported and the errors come back as toasts: at most five, each naming the row and the problem ("Row 3: Due date is not a date"), then one more toast, "And 2 more errors", when there are more. The dialog stays open.
 - On success the dialog closes, the list shows the new records and one toast says how many ("Imported 41 tasks").
 

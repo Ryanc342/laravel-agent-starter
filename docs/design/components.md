@@ -16,6 +16,12 @@ Read when choosing a component or a variant. It says which one to use for what; 
 | A button that is sending | the same `Button`, `disabled`, with a `Spinner` |
 | Previous and next in a list, and how many rows a page shows (10, 20, 50 or 100) | `Pagination` (`components/shared`) |
 
+### Where a row of action buttons sits
+
+- A row of buttons that act on a page, a form, a dialog or a step sits at the right end of its row: the actions of a page or record header, the buttons at the end of a form, a dialog, a wizard step or a settings form, and a toolbar of actions above content (Print / Download PDF, Import / Export). In a header whose title wraps, the actions stay on the right, on their own line aligned right, never under the title on the left.
+- The main button is the rightmost one: Cancel (or Back) and the other actions first, then the main button. On a phone the buttons of a form, a dialog or a wizard step stay full width and stacked, with the main button on top.
+- These are not action rows and keep their own place: the sign-in pages (one full-width button, patterns/auth.md), the centred empty and error states, the landing hero's buttons (they follow the hero text), and controls that are not actions on the content: pagination, menus, tabs, the public bar, the kanban columns, the month calendar's navigation and the floating bulk action bar.
+
 Every enabled clickable element (button, link, tab, menu item, checkbox, clickable row) shows the pointing-hand cursor; a disabled one keeps the normal arrow. The cursor comes from `resources/css/app.css`, never from a `className`.
 
 Every enabled clickable element also has a hover state (grey, foundations.md) and a press state one step darker (`active:` with a `-pressed` token), in every variant of `Button` and in the shared blocks that are clickable (menu and select items, toggles, column headers, notification rows, quick links, sidebar items). A new clickable component gets both.
