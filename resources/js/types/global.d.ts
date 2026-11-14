@@ -23,6 +23,8 @@ declare module '@inertiajs/core' {
             auth: Auth;
             notificationSummary: NotificationSummary | null;
             latestNotifications?: AppNotification[];
+            /** Today in the app's timezone (HandleInertiaRequests). */
+            today: { date: string; year: number };
             perPageOptions: number[];
             sidebarOpen: boolean;
             [key: string]: unknown;

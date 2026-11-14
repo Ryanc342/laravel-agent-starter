@@ -16,6 +16,7 @@ vi.mock('@inertiajs/react', async () => {
     return {
         router: { get: state.get },
         usePage: () => ({
+            props: { today: { date: '2026-11-14', year: 2026 } },
             url: useSyncExternalStore(
                 (listener) => {
                     state.listeners.add(listener);

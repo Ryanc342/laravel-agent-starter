@@ -7,6 +7,7 @@ const page = vi.hoisted(() => ({
     props: {
         name: 'Acme',
         auth: { user: null } as { user: unknown },
+        today: { date: '2026-11-14', year: 2026 },
         locale: 'en',
         locales: [
             { value: 'en', label: 'English', short: 'EN' },
@@ -53,4 +54,14 @@ test('signed in, the layout shows Dashboard', () => {
 
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Log in' })).toBeNull();
+});
+
+test("the footer's year is the backend's, not the clock's", () => {
+    render(
+        <PublicLayout>
+            <p>Page</p>
+        </PublicLayout>,
+    );
+
+    expect(screen.getByText(/© 2026 Acme/)).toBeTruthy();
 });

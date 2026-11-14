@@ -9,6 +9,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { parseDateValue, toDateValue } from '@/lib/date-value';
+import { useToday } from '@/hooks/use-today';
 import { formatDate } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ export default function DatePicker({
     className,
 }: Props) {
     const [open, setOpen] = useState(false);
+    const today = useToday();
     const [inner, setInner] = useState(defaultValue);
     const current = value ?? inner;
     const date = parseDateValue(current);
@@ -86,6 +88,7 @@ export default function DatePicker({
                     required
                     selected={date}
                     defaultMonth={date}
+                    today={parseDateValue(today.date)}
                     onSelect={(picked) => change(toDateValue(picked))}
                 />
                 {date ? (

@@ -7,7 +7,10 @@ const state = vi.hoisted(() => ({ url: '/tasks', get: vi.fn() }));
 
 vi.mock('@inertiajs/react', () => ({
     router: { get: state.get },
-    usePage: () => ({ url: state.url }),
+    usePage: () => ({
+        url: state.url,
+        props: { today: { date: '2026-11-14', year: 2026 } },
+    }),
 }));
 
 const statuses = [

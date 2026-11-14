@@ -69,6 +69,12 @@ class HandleInertiaRequests extends Middleware
                 : NotificationResource::collection(
                     Notification::query()->ownedBy($user)->listOrder()->limit(5)->get(),
                 )->resolve($request)),
+            // Today in the app's timezone, for the calendar's and the date picker's today mark and the
+            // footer's year (resources/js/hooks/use-today.ts): React never reads the clock.
+            'today' => [
+                'date' => now(config('app.timezone'))->toDateString(),
+                'year' => now(config('app.timezone'))->year,
+            ],
             // The rows-per-page choices under every paginated list (components/shared/pagination.tsx).
             'perPageOptions' => PerPage::values(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

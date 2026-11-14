@@ -2,6 +2,7 @@
 
 use App\Models\Notification;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -72,4 +73,15 @@ test('every page receives the rows-per-page choices a list offers', function () 
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('perPageOptions', [10, 20, 50, 100]));
+});
+
+test('every page receives today\'s date and year in the app\'s timezone', function () {
+    config(['app.timezone' => 'Asia/Kuala_Lumpur']);
+    $this->travelTo(CarbonImmutable::parse('2026-12-31 20:00:00', 'UTC'));
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('today.date', '2027-01-01')
+            ->where('today.year', 2027),
+        );
 });

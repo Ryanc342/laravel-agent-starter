@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useListQuery } from '@/hooks/use-list-query';
-import { toDateValue } from '@/lib/date-value';
+import { useToday } from '@/hooks/use-today';
+import { parseDateValue } from '@/lib/date-value';
 import { formatDate } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { listParam } from '@/lib/list-query';
@@ -45,7 +46,7 @@ export default function MonthCalendar({
     onMore,
     locale = 'en',
     weekStartsOn = 0,
-    today = toDateValue(new Date()),
+    today: todayProp,
     defaultMonth,
 }: {
     events: CalendarEvent[];
@@ -53,15 +54,20 @@ export default function MonthCalendar({
     onMore: (date: string) => void;
     locale?: string;
     weekStartsOn?: number;
-    /** The day that counts as today, `YYYY-MM-DD`. */
+    /** The day that counts as today, `YYYY-MM-DD`; the backend's by default. */
     today?: string;
     /** The month shown when the URL has none (`YYYY-MM`); this month by default. */
     defaultMonth?: string;
 }) {
     const isMobile = useIsMobile();
+    const shared = useToday();
+    const today = todayProp ?? shared.date;
     const { url, change } = useListQuery();
     const month = monthValue(
-        parseMonth(listParam(url, 'month') || defaultMonth || ''),
+        parseMonth(
+            listParam(url, 'month') || defaultMonth || '',
+            parseDateValue(today),
+        ),
     );
     const byDate = new Map<string, CalendarEvent[]>();
 
@@ -97,9 +103,7 @@ export default function MonthCalendar({
                 {nav(t('Next month'), shiftMonth(month, 1), <ChevronRight />)}
                 <Button
                     variant="outline"
-                    onClick={() =>
-                        change({ month: monthValue(parseMonth(today)) })
-                    }
+                    onClick={() => change({ month: today.slice(0, 7) })}
                 >
                     {t('Today')}
                 </Button>

@@ -12,7 +12,10 @@ const state = vi.hoisted(() => ({
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
 vi.mock('@inertiajs/react', () => ({
     router: { get: state.get },
-    usePage: () => ({ url: state.url }),
+    usePage: () => ({
+        url: state.url,
+        props: { today: { date: '2026-11-14', year: 2026 } },
+    }),
 }));
 
 const events = [
@@ -68,6 +71,19 @@ test('the header names the month and the grid places each event on its day', () 
     expect(within(cell('2026-11-20')).getByText('Delivery')).toBeTruthy();
 });
 
+test("without a today prop the calendar marks the backend's today", () => {
+    render(
+        <TooltipProvider>
+            <MonthCalendar events={[]} onEvent={vi.fn()} onMore={vi.fn()} />
+        </TooltipProvider>,
+    );
+
+    const marked = document.querySelectorAll('[aria-current="date"]');
+
+    expect(marked).toHaveLength(1);
+    expect(marked[0].textContent).toBe('14');
+});
+
 test('the days are listed under their weekday names, today marked', () => {
     calendar();
 
@@ -116,16 +132,11 @@ test('Previous month, Next month and Today change only the month in the URL', ()
     expect(visited().searchParams.get('month')).toBe('2026-11');
 });
 
-test('with no month in the URL it shows the current month', () => {
+test("with no month in the URL it shows the month of the backend's today", () => {
     state.url = '/calendar';
     calendar([]);
 
-    const title = new Intl.DateTimeFormat('en', {
-        month: 'long',
-        year: 'numeric',
-    }).format(new Date());
-
-    expect(screen.getByRole('heading', { name: title })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'November 2026' })).toBeTruthy();
 });
 
 test('on a phone the month is a list ordered by date, without the days that have nothing', () => {

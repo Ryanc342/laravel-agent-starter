@@ -2,6 +2,10 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { expect, test, vi } from 'vite-plus/test';
 import DatePicker from '@/components/shared/date-picker';
 
+vi.mock('@inertiajs/react', () => ({
+    usePage: () => ({ props: { today: { date: '2026-11-14', year: 2026 } } }),
+}));
+
 function field(props: Partial<React.ComponentProps<typeof DatePicker>> = {}) {
     return render(
         <form data-testid="form">
@@ -97,4 +101,13 @@ test('it has no hidden field without a name', () => {
     render(<DatePicker id="x" defaultValue="2026-11-04" />);
 
     expect(document.querySelector('input')).toBeNull();
+});
+
+test("the calendar marks the backend's today", () => {
+    field({ defaultValue: '2026-11-04' });
+    fireEvent.click(screen.getByLabelText('Due date'));
+
+    const today = document.querySelector('[data-today="true"]');
+
+    expect(today?.textContent).toContain('14');
 });
