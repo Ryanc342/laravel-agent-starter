@@ -90,6 +90,26 @@ Changed
 
 - Every row of action buttons sits at the right end of its row with the main button rightmost (Cancel or Back first), also when a record's title wraps; on a phone the buttons of a form, dialog or wizard step are full width and stacked with the main one on top. This turns round `form.md`'s "the main one first, then Cancel"; `ResponsiveDialogFooter` and `WizardLayout`'s footer carry it, and the reference task pages, the settings Save buttons, the print bars and the two-factor steps follow.
 
+### Batch 3 feedback 2: rules without exceptions (still part of 1.2.0)
+
+Added
+
+- Shared blocks that own what used to be written as exceptions: `Actions` (every row of action buttons: at the right end with the main button last, full width and stacked with the main one on top when its container is narrow), `ConfirmDialog` with `ConfirmDialogActions` (its `consequence` is the one sentence under a title for something that cannot be undone), `StatTiles` (a row of number tiles, backend numbers only), and an `instruction` for a step the user must take (`ResponsiveDialog`, `WizardLayout`).
+- Six oxlint rules for the UI rules a machine can see: `ezdev/no-raw-style` (palette or hex colours, arbitrary values, `dark:` colour overrides), `ezdev/no-component-resize` (`h-*`, `p-*`, `size-*` on a component with a `size` variant), `ezdev/no-display-size`, `ezdev/icon-button-label`, `ezdev/form-no-validate` and `ezdev/no-date-input`. `components/ui` gained the sizes that code needed: Button `icon-sm`, Input `end-icon` and `start-icon`, Badge `count`, Checkbox `sm`.
+- A DocsTest check: DESIGN.md and `docs/design/` name tokens and component sizes, never a pixel value or a Tailwind size class.
+- The shared prop `today` (the date and year in the app's timezone), read by `useToday()` for the calendar's and the date picker's today mark and the footer's year; React no longer reads the clock.
+- `UserPolicy::updateLocale`: the language switch is authorised like every endpoint (guests included), and `LocaleController::update` asks the Policy.
+
+Changed
+
+- `FormField` decides from its own width (a container query): the label sits beside the input in a wide form and above it in a narrow one; the `stacked` prop is gone. `ResponsiveDialog` has no `description`; a confirmation uses `ConfirmDialog`.
+- Every form sets `noValidate`: the browser shows no message of its own, an empty required field reaches the server, and the message comes back in the app's language.
+- Any burst of errors shows at most five toasts plus "And N more errors" (`useValidationErrorToasts`); the reference import request returns every row error instead of cutting its own list.
+- The display sizes are drawn only inside `Hero` and `PricingPlans` (`PricingPlans` takes the page `title`). The single section buttons (Security, Delete account) are at the right end too.
+- `/style` is translated like every page (its lint exemption is gone), its demo frames are a light tinted surface with no border, and its example data is shown as it is.
+- Frontend tests check what a user does or hears, never a class name: 22 class-only tests and the two source-scanning test files were removed; the token-definition tests stay.
+- The rules and the spec agree: one rule for where a form lives, every list reads `per_page` through `ReadsPerPage`, a row of number tiles is `StatTiles`, and no "except" is left in principle 10.
+
 ## [1.1.0] - 2026-11-10
 
 Public Composer package release; the older 2.x entries below describe the template's history before its public 1.0 release.
