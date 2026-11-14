@@ -79,6 +79,17 @@ Removed
 
 - The old styled home page (raw colours and sizes) and all five rows of `docs/exec-plans/tech-debt.md`.
 
+### Batch 3 feedback (still part of 1.2.0)
+
+Added
+
+- English and Simplified Chinese for the whole app. `App\Enums\Locale` decides the language (the signed-in user's `users.locale`, the `locale` cookie, the browser's `Accept-Language`, then English), `SetLocale` applies it, and `PUT locale` (`locale.update`) saves a choice. Settings → Appearance has a "Language" `ToggleGroup`; the public bar and the sign-in pages have an "EN / 中文" switch. One source: `lang/zh_CN.json` (sentences keyed by their English text), `lang/en/` and `lang/zh_CN/` (validation, auth, passwords, pagination), React's `t()`, `tChoice()` and `msg()` in `lib/i18n.ts` fed by the shared `locale` and `translations` props (an Inertia once prop keyed by language). Dates, numbers and the date picker follow the language; notifications store their English sentence and values and are translated when read; Laravel's verify-email and reset-password mails and the task PDF are translated.
+- `docs/rules/translations.md`, a `[Structure]` check (`tests/Structure/TranslationsTest.php`: a missing or unused translation, mismatched `:placeholders`, a missing validation key) and an oxlint rule (`ezdev/no-untranslated-text`) for text written straight into JSX. The /style page's own labels stay English.
+
+Changed
+
+- Every row of action buttons sits at the right end of its row with the main button rightmost (Cancel or Back first), also when a record's title wraps; on a phone the buttons of a form, dialog or wizard step are full width and stacked with the main one on top. This turns round `form.md`'s "the main one first, then Cancel"; `ResponsiveDialogFooter` and `WizardLayout`'s footer carry it, and the reference task pages, the settings Save buttons, the print bars and the two-factor steps follow.
+
 ## [1.1.0] - 2026-11-10
 
 Public Composer package release; the older 2.x entries below describe the template's history before its public 1.0 release.

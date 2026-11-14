@@ -25,7 +25,10 @@ class NotificationFactory extends Factory
             'type' => PasswordChanged::class,
             'notifiable_type' => (new User)->getMorphClass(),
             'notifiable_id' => User::factory(),
-            'data' => ['message' => 'Your password was changed.'],
+            'data' => [
+                'message' => 'Your password was changed. If this was not you, reset your password now.',
+                'values' => [],
+            ],
             'read_at' => null,
         ];
     }

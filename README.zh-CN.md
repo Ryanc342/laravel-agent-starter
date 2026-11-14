@@ -101,6 +101,10 @@ export DB_PASSWORD='your-password'
 
 修改规则或工具需要用户批准，之后还需运行 `composer check:reference`。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
 
+## 多语言
+
+应用支持英文和简体中文。第一次访问时按浏览器的 `Accept-Language` 选择（任何中文都用中文，其他用英文）；用户在“设置 → 外观”里切换，访客用公开页顶栏和登录页右上角的“EN / 中文”切换。选择会保存在用户（`users.locale`）和 `locale` cookie 里，由 `SetLocale` 应用到每个请求。只有一个来源，Laravel 的语言文件，不装任何包：句子以英文原文为键（`lang/zh_CN.json`，`"Save changes": "保存更改"`），Laravel 自带的分组在 `lang/zh_CN/`，React 通过 `t()` 和 `tChoice()`（`resources/js/lib/i18n.ts`）读取当前语言的句子。每个句子都用英文写在 `t()` 或 `__()` 里，并在同一次提交里补上中文；缺少或多余的翻译、直接写在 JSX 里的文字都会让 `composer check` 失败。用户输入的内容不翻译。详情见 `docs/rules/translations.md`。
+
 ## 部署
 
 需要生成 PDF 的服务器，PHP 的 `memory_limit` 至少要 256M。PDF 视图用 Noto Sans SC（`resources/fonts/`，每个字重约 10.6 MB，SIL 开源字体许可）绘制所有文字，所以中文能正常打印；DOMPDF 要读完整字体才能裁出 PDF 用到的字，一次渲染的峰值约 120 到 130 MB，超过 PHP 默认的 128M。`phpunit.xml` 已为测试设为 256M。DOMPDF 把字体文件和字体度量放在 `storage/fonts`，该目录必须可写。
