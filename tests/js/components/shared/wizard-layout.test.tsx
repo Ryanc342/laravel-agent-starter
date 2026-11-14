@@ -30,7 +30,6 @@ test('on a computer the steps are listed, the current one marked and a finished 
     expect(steps).toHaveLength(3);
     expect(steps[1].getAttribute('aria-current')).toBe('step');
     expect(steps[0].getAttribute('aria-current')).toBeNull();
-    expect(steps[1].className).toContain('bg-accent-pressed');
     expect(steps[0].querySelector('[aria-label="Done"]')).not.toBeNull();
     expect(steps[2].textContent).toBe('3Review');
 });

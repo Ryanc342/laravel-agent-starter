@@ -48,12 +48,7 @@ export function DemoFrame({
     children: ReactNode;
 }) {
     return (
-        <div
-            className={cn(
-                'rounded-lg border bg-background',
-                !flush && 'p-4 md:p-6',
-            )}
-        >
+        <div className={cn('rounded-lg bg-muted/40', !flush && 'p-4 md:p-6')}>
             {children}
         </div>
     );

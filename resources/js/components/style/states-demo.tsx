@@ -8,7 +8,8 @@ import { t } from '@/lib/i18n';
 
 type Row = { id: number; title: string; status: string };
 
-const columns: TableColumn<Row>[] = [
+/** Built when the demo renders, because `t()` needs the language, which is set after the module loads. */
+const columns = (): TableColumn<Row>[] => [
     { header: t('Title'), cell: (row) => row.title },
     { header: t('Status'), cell: (row) => row.status },
 ];
@@ -47,7 +48,7 @@ function TableState({
 }) {
     return (
         <ResponsiveTable
-            columns={columns}
+            columns={columns()}
             rows={[]}
             getRowKey={(row) => row.id}
             emptyMessage={t('You have no :subject yet.', { subject })}

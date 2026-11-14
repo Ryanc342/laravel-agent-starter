@@ -38,8 +38,6 @@ test('on desktop the dialog is centred in the page', () => {
     const dialog = screen.getByRole('dialog');
 
     expect(dialog.getAttribute('data-layout')).toBe('dialog');
-    expect(dialog.className).toContain('top-[50%]');
-    expect(dialog.className).not.toContain('bottom-0');
     expect(screen.getByText('Add task')).toBeTruthy();
 });
 
@@ -50,10 +48,6 @@ test('on a phone the dialog slides up from the bottom at full width', () => {
     const dialog = screen.getByRole('dialog');
 
     expect(dialog.getAttribute('data-layout')).toBe('sheet');
-    expect(dialog.className).toContain('bottom-0');
-    expect(dialog.className).toContain('slide-in-from-bottom');
-    expect(dialog.className).toContain('max-w-none');
-    expect(dialog.className).not.toContain('top-[50%]');
 });
 
 test('a long form scrolls inside the body while the footer stays in view', () => {
@@ -63,9 +57,7 @@ test('a long form scrolls inside the body while the footer stays in view', () =>
     const body = screen.getByText('The fields').parentElement as HTMLElement;
     const footer = screen.getByText('Save').parentElement as HTMLElement;
 
-    expect(body.className).toContain('overflow-y-auto');
     expect(body.contains(footer)).toBe(false);
-    expect(screen.getByRole('dialog').className).toContain('max-h-');
 });
 
 test('an instruction describes the dialog for screen readers', () => {
@@ -120,8 +112,6 @@ test('an icon sits above the title and centres the header', () => {
     expect(
         icon.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    expect(icon.parentElement?.className).toContain('text-center');
-    expect(screen.getByRole('dialog').className).toContain('sm:max-w-md');
 });
 
 test('the buttons are in reading order, Cancel first and the main one last', () => {

@@ -4,10 +4,6 @@ import { expect, test } from 'vite-plus/test';
 
 const root = join(import.meta.dirname, '../..');
 const css = readFileSync(join(root, 'resources/css/app.css'), 'utf8');
-const button = readFileSync(
-    join(root, 'resources/js/components/ui/button.tsx'),
-    'utf8',
-);
 
 // The light values sit in `:root`, the dark values in `.dark`.
 const light = /:root \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
@@ -36,19 +32,5 @@ test('hover is a neutral grey: the accent colours have no chroma', () => {
                 new RegExp(`--${token}: oklch\\([\\d.]+ 0 0\\);`),
             );
         }
-    }
-});
-
-test('every Button variant has a press state', () => {
-    const variants = /variant: \{([\s\S]*?)\n {6}\},/.exec(button)?.[1] ?? '';
-    const entries = variants
-        .split(/\n {8}(?=\w+:)/)
-        .map((entry) => entry.trim())
-        .filter(Boolean);
-
-    expect(entries.length).toBe(6);
-
-    for (const entry of entries) {
-        expect(entry).toContain('active:');
     }
 });

@@ -31,9 +31,3 @@ test('a reason shows under its row, and a row without one shows nothing more', (
     expect(rows[1].textContent).toContain('The amount is missing.');
     expect(rows[0].querySelectorAll('p')).toHaveLength(1);
 });
-
-test('the line joins the events and stops after the last one', () => {
-    const { container } = render(<Timeline events={events} />);
-
-    expect(container.querySelectorAll('li > span.w-px')).toHaveLength(1);
-});

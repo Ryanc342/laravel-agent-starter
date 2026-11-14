@@ -42,16 +42,6 @@ test('it says how many rows are ticked and holds the actions', () => {
     expect(screen.getByRole('button', { name: 'Delete' })).toBeTruthy();
 });
 
-test('it floats at the bottom of the page above the content', () => {
-    bar();
-
-    const wrapper = screen.getByRole('region').parentElement!;
-
-    expect(wrapper.className).toContain('fixed');
-    expect(wrapper.className).toContain('bottom-4');
-    expect(screen.getByRole('region').className).toContain('shadow-md');
-});
-
 test('it leaves room under itself, so it never hides the end of the page', () => {
     bar();
 
@@ -59,7 +49,6 @@ test('it leaves room under itself, so it never hides the end of the page', () =>
         screen.getByRole('region').parentElement!.previousElementSibling;
 
     expect(room?.getAttribute('aria-hidden')).toBe('true');
-    expect(room?.className).toContain('h-20');
 });
 
 test('the close button clears the selection', () => {

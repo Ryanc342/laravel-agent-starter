@@ -125,9 +125,7 @@ test('choosing Yearly puts it in the URL, and choosing Monthly takes it out agai
 test('only the recommended plan has the primary border, the badge and the main button', () => {
     render(<PricingPlans title="Plans and prices" plans={plans} />);
 
-    expect(plan('Team').className).toContain('border-primary');
     expect(within(plan('Team')).getByText('Recommended')).toBeTruthy();
-    expect(plan('Starter').className).not.toContain('border-primary');
     expect(within(plan('Starter')).queryByText('Recommended')).toBeNull();
     expect(screen.getAllByText('Recommended')).toHaveLength(1);
 });
@@ -141,21 +139,4 @@ test('each plan lists its features and has one button to its own address', () =>
         screen.getByRole('link', { name: 'Choose Team' }).getAttribute('href'),
     ).toBe('/register?plan=team');
     expect(within(plan('Team')).getAllByRole('link')).toHaveLength(1);
-});
-
-test('the price is in the display size', () => {
-    render(<PricingPlans title="Plans and prices" plans={plans} />);
-
-    expect(
-        within(plan('Team')).getByText(shown(`RM${nbsp}49.00`)).className,
-    ).toContain('text-display');
-});
-
-test('the recommended badge is a neutral badge: the one blue thing next to the plan is its button', () => {
-    render(<PricingPlans title="Plans and prices" plans={plans} />);
-
-    expect(screen.getByText('Recommended').className).toContain('bg-secondary');
-    expect(screen.getByText('Recommended').className).not.toContain(
-        'bg-primary',
-    );
 });

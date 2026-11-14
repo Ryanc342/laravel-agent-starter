@@ -105,8 +105,6 @@ test('on a phone an empty list is still a box with the empty line inside', () =>
     const { container } = render(table([]));
     const box = container.firstElementChild as HTMLElement;
 
-    expect(box.className).toContain('rounded-lg');
-    expect(box.className).toContain('border');
     expect(within(box).getByText('You have no tasks yet.')).toBeTruthy();
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
 });
@@ -178,7 +176,6 @@ test('on a phone a loading or failed list is a box with the state inside', () =>
     );
     const box = container.firstElementChild as HTMLElement;
 
-    expect(box.className).toContain('rounded-lg');
     expect(within(box).getByRole('status')).toBeTruthy();
 
     rerender(

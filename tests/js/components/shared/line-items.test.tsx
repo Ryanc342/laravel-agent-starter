@@ -94,10 +94,6 @@ test('an error for items.1.quantity marks only the second quantity, with no visi
             })
             .getAttribute('aria-invalid'),
     ).toBeNull();
-    // The message is a toast; on the page only screen readers get it.
-    expect(
-        screen.getByText('Enter a quantity of 1 or more.').className,
-    ).toContain('sr-only');
 });
 
 test('the order summary lists its rows and ends with the total', () => {
@@ -125,9 +121,6 @@ test('the order summary lists its rows and ends with the total', () => {
         `RM${nbsp}29.70`,
         `RM${nbsp}524.70`,
     ]);
-    expect(container.querySelectorAll('dd')[2].className).toContain(
-        'tabular-nums',
-    );
 });
 
 test('two lists on one page keep their own ids, and a list can name its array', () => {

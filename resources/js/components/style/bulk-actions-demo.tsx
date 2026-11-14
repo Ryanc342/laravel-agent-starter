@@ -15,7 +15,8 @@ import { useRowSelection } from '@/hooks/use-row-selection';
 import { formatDate } from '@/lib/format';
 import { t, tChoice } from '@/lib/i18n';
 
-const columns: TableColumn<ExampleTask>[] = [
+/** Built when the demo renders, because `t()` needs the language, which is set after the module loads. */
+const columns = (): TableColumn<ExampleTask>[] => [
     {
         header: t('Title'),
         className: 'max-w-80 truncate font-medium',
@@ -59,7 +60,7 @@ export default function BulkActionsDemo({
         <div className="grid gap-4">
             <Heading title={t('Tasks')} />
             <ResponsiveTable
-                columns={columns}
+                columns={columns()}
                 rows={tasks}
                 getRowKey={(task) => task.id}
                 emptyMessage={t('You have no tasks yet.')}

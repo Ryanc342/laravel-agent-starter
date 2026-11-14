@@ -23,7 +23,7 @@ export default function PublicFrame({
     children: ReactNode;
 }) {
     return (
-        <div className="overflow-hidden rounded-lg border bg-background">
+        <div className="overflow-hidden rounded-lg bg-muted/40">
             <PublicHeader
                 links={links}
                 signedIn={signedIn}

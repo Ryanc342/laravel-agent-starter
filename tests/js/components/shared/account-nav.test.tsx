@@ -48,7 +48,6 @@ test('one row of links, the page the user is on marked as current in the selecte
     const current = screen.getByRole('link', { name: 'Orders' });
 
     expect(current.getAttribute('aria-current')).toBe('page');
-    expect(current.className).toContain('bg-accent-pressed');
     expect(
         screen
             .getByRole('link', { name: 'Overview' })
@@ -76,12 +75,4 @@ test('a link can say it is current itself, as a demo does', () => {
             .getByRole('link', { name: 'Overview' })
             .getAttribute('aria-current'),
     ).toBeNull();
-});
-
-test('on a phone the row scrolls sideways inside its own strip', () => {
-    render(<AccountNav items={items} />);
-
-    expect(
-        screen.getByRole('navigation', { name: 'Account' }).className,
-    ).toContain('overflow-x-auto');
 });

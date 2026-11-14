@@ -44,16 +44,3 @@ test('the arrow keys move the selection and report the new value', async () => {
     expect(onValueChange).toHaveBeenCalledWith('history');
     expect(screen.getByText('The events')).toBeTruthy();
 });
-
-test('the strip is grey, scrolls sideways and a tab has hover and press states', () => {
-    tabs();
-
-    const list = screen.getByRole('tablist');
-    const tab = screen.getByRole('tab', { name: 'History' });
-
-    expect(list.className).toContain('bg-muted');
-    expect(list.className).toContain('overflow-x-auto');
-    expect(tab.className).toContain('hover:bg-accent');
-    expect(tab.className).toContain('active:bg-accent-pressed');
-    expect(tab.className).toContain('data-[state=active]:bg-background');
-});

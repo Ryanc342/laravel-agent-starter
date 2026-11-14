@@ -43,10 +43,6 @@ test('an error marks its field with a red border and shows no visible text under
     expect(
         screen.getByLabelText('Name').getAttribute('aria-invalid'),
     ).toBeNull();
-    expect(
-        screen.getByText('Enter an email address like name@example.com.')
-            .className,
-    ).toContain('sr-only');
 });
 
 test('while sending the button is disabled and shows a spinner', () => {

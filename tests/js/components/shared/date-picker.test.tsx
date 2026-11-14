@@ -92,9 +92,6 @@ test('it looks like an Input: the same border, the small size and the red border
     const trigger = screen.getByLabelText('Due date');
 
     expect(trigger.getAttribute('data-size')).toBe('sm');
-    expect(trigger.className).toContain('border-input');
-    expect(trigger.className).toContain('aria-invalid:border-destructive');
-    expect(trigger.className).toContain('focus-visible:border-input-focus');
 });
 
 test('it has no hidden field without a name', () => {

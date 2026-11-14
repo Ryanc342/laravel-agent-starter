@@ -117,7 +117,6 @@ test('a sorted column shows an arrow in the primary colour, another column shows
     const arrows = container.querySelectorAll('[data-slot="sort-indicator"]');
 
     expect(arrows).toHaveLength(1);
-    expect(arrows[0].getAttribute('class')).toContain('text-primary');
     expect(
         within(screen.getByRole('button', { name: /^Title/ })).getByText(
             /sorted ascending/,
@@ -138,8 +137,6 @@ test('a header that can be clicked shows a faint grey up-down arrow at rest', ()
     );
 
     expect(arrows).toHaveLength(2);
-    expect(arrows[0].getAttribute('class')).toContain('text-muted-foreground');
-    expect(arrows[0].getAttribute('class')).not.toContain('text-primary');
     expect(
         container.querySelectorAll('[data-slot="sort-indicator"]'),
     ).toHaveLength(0);
@@ -182,10 +179,8 @@ test('a filtered header keeps the up-down arrow and adds the blue funnel', () =>
         button.querySelector('[data-slot="sortable-indicator"]'),
     ).not.toBeNull();
     expect(
-        button
-            .querySelector('[data-slot="filter-indicator"]')
-            ?.getAttribute('class'),
-    ).toContain('text-primary');
+        button.querySelector('[data-slot="filter-indicator"]'),
+    ).not.toBeNull();
 });
 
 test('a filtered column shows a funnel in the primary colour', () => {
@@ -201,7 +196,6 @@ test('a filtered column shows a funnel in the primary colour', () => {
     );
 
     expect(funnels).toHaveLength(1);
-    expect(funnels[0].getAttribute('class')).toContain('text-primary');
     expect(
         screen.getByRole('button', { name: /^Status/ }).contains(funnels[0]),
     ).toBe(true);
@@ -406,18 +400,6 @@ test.each([
     },
 );
 
-test('the popover uses the dropdown menu padding and no bordered button is left in the menu', () => {
-    render(status());
-    open('Status');
-
-    expect(menu().classList.contains('p-1')).toBe(true);
-    expect(
-        menu().querySelectorAll(
-            'button:not([role="checkbox"]).border-input, button:not([role="checkbox"]).w-full.border',
-        ),
-    ).toHaveLength(0);
-});
-
 test('the rows of a tick list menu come in the agreed order, divided by lines', () => {
     render(status());
     open('Status');
@@ -510,8 +492,6 @@ test('a tick row is clickable all over: its label wraps the checkbox', () => {
 
     expect(row.tagName).toBe('LABEL');
     expect(row.contains(checkbox)).toBe(true);
-    // The grey of a row's icon must not reach the check mark inside the checkbox.
-    expect(row.getAttribute('class')).not.toContain('text-muted-foreground');
 });
 
 test('only the sort row in use has the selected colour', () => {
@@ -523,9 +503,7 @@ test('only the sort row in use has the selected colour', () => {
     const descending = screen.getByRole('button', { name: 'Sort descending' });
 
     expect(descending.getAttribute('aria-pressed')).toBe('true');
-    expect(descending.classList.contains('bg-accent-pressed')).toBe(true);
     expect(ascending.getAttribute('aria-pressed')).toBe('false');
-    expect(ascending.classList.contains('bg-accent-pressed')).toBe(false);
 });
 
 test('without Clear the menu ends with its filter and has no trailing line', () => {

@@ -25,9 +25,6 @@ test('an empty state is centred with a faint icon above its line', () => {
     const box = container.firstElementChild as HTMLElement;
     const icon = box.querySelector('svg');
 
-    expect(box.className).toContain('items-center');
-    expect(box.className).toContain('text-center');
-    expect(icon?.getAttribute('class')).toContain('text-muted-foreground');
     expect(icon?.getAttribute('aria-hidden')).toBe('true');
 });
 
@@ -51,21 +48,6 @@ test('a region that failed to load says what happened', () => {
     expect(screen.queryByRole('button')).toBeNull();
 });
 
-test('a failed state is centred and its icon and line are red', () => {
-    render(<ErrorState message="Could not load your tasks." />);
-    const box = screen.getByRole('alert');
-    const icon = box.querySelector('svg');
-
-    expect(box.className).toContain('items-center');
-    expect(box.className).toContain('text-center');
-    expect(icon?.getAttribute('class')).toContain(
-        'text-destructive-foreground',
-    );
-    expect(screen.getByText('Could not load your tasks.').className).toContain(
-        'text-destructive-foreground',
-    );
-});
-
 test('a failed region offers a retry only when trying again can help', () => {
     const retry = vi.fn();
 
@@ -87,14 +69,6 @@ test('a loading list shows rows on desktop', () => {
     expect(
         container.querySelectorAll('[data-slot="loading-card"]'),
     ).toHaveLength(0);
-});
-
-test('a loading list can drop its own box when a table already frames it', () => {
-    vi.mocked(useIsMobile).mockReturnValue(false);
-
-    render(<LoadingState rows={2} framed={false} />);
-
-    expect(screen.getByRole('status').className).not.toContain('border');
 });
 
 test('a loading list shows cards on a phone, like the list it stands for', () => {

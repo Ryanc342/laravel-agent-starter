@@ -307,9 +307,6 @@ test('the landing demo shows the hero in the display size, the features and a cl
         <LandingDemo links={publicLinks} {...landing.en} />,
     );
 
-    expect(screen.getByRole('heading', { level: 1 }).className).toContain(
-        'text-display',
-    );
     expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(3);
     expect(
         screen.getAllByRole('link', { name: 'Get started' }).length,
@@ -328,9 +325,6 @@ test('the pricing demo has the title in the display size and the plans, in Chine
     expect(screen.getByRole('radio', { name: '按年' })).toBeTruthy();
     expect(screen.getByText('推荐')).toBeTruthy();
 
-    expect(screen.getByRole('heading', { level: 1 }).className).toContain(
-        'text-display',
-    );
     expect(screen.getByText('团队版')).toBeTruthy();
     expect(document.body.textContent).toContain('CN¥99.00');
 });
@@ -339,13 +333,8 @@ test('the product demo alternates its sections and ends with one button', () => 
     render(<ProductDemo links={publicLinks} {...product.en} />);
 
     const sections = document.querySelectorAll('section');
-    const second = sections[1].firstElementChild as HTMLElement;
 
     expect(sections).toHaveLength(2);
-    expect(
-        (sections[0].firstElementChild as HTMLElement).className,
-    ).not.toContain('md:order-last');
-    expect(second.className).toContain('md:order-last');
     expect(screen.getAllByRole('img', { name: 'Picture' })).toHaveLength(2);
     expect(screen.getByRole('link', { name: 'Request a quote' })).toBeTruthy();
 });

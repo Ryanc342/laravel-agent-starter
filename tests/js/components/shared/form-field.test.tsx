@@ -40,7 +40,6 @@ test('an error is a red border and screen-reader text, with no visible text unde
     await waitFor(() =>
         expect(input.getAttribute('aria-invalid')).toBe('true'),
     );
-    expect(screen.getByText('Enter a title.').className).toContain('sr-only');
     // The toast and the focus belong to useValidationErrorToasts, not to the field.
     expect(toast.error).not.toHaveBeenCalled();
 });

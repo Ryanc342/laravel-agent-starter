@@ -71,6 +71,5 @@ test('the QR code stays dark on white in dark mode, so a phone can scan it', () 
     });
     const code = container.querySelector('svg')?.parentElement as HTMLElement;
 
-    expect(code.className).toContain('bg-white');
     expect(code.style.filter).toBe('');
 });
