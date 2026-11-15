@@ -6,15 +6,6 @@ use Illuminate\Support\Facades\Gate;
 
 uses(RefreshDatabase::class);
 
-/** A users' policy that refuses the language switch, to show the controller asks it. */
-class DenyingLocalePolicy
-{
-    public function updateLocale(?User $user): bool
-    {
-        return false;
-    }
-}
-
 test('a guest\'s choice is saved in the cookie and the page comes back', function () {
     $this->from(route('home'))
         ->put(route('locale.update'), ['locale' => 'zh_CN'])
@@ -66,7 +57,17 @@ test('a guest and a user may both switch the language', function () {
 });
 
 test('a policy that denies the switch fails the request', function () {
-    Gate::policy(User::class, DenyingLocalePolicy::class);
+    // A users' policy that refuses the language switch, to show the controller asks it.
+    // Anonymous, because the Laravel Installer's `pest --drift` rewrites a named class
+    // declared in a test file into a plain function.
+    $policy = new class
+    {
+        public function updateLocale(?User $user): bool
+        {
+            return false;
+        }
+    };
+    Gate::policy(User::class, $policy::class);
 
     $this->put(route('locale.update'), ['locale' => 'zh_CN'])->assertForbidden();
 
