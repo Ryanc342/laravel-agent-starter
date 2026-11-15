@@ -2,7 +2,7 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
-## [1.2.0] - 2026-11-13
+## [1.2.0] - 2026-11-15
 
 Frontend design, batch 1: a clean and bright look, a design spec in four layers, and the first nine page patterns. Batch 2 (below, under "Batch 2") adds ten more patterns and real bulk actions, CSV and print to the reference task list.
 
@@ -109,6 +109,10 @@ Changed
 - `/style` is translated like every page (its lint exemption is gone), its demo frames are a light tinted surface with no border, and its example data is shown as it is.
 - Frontend tests check what a user does or hears, never a class name: 22 class-only tests and the two source-scanning test files were removed; the token-definition tests stay.
 - The rules and the spec agree: one rule for where a form lives, every list reads `per_page` through `ReadsPerPage`, a row of number tiles is `StatTiles`, and no "except" is left in principle 10.
+
+### Known limits in 1.2.0
+
+- `ezdev/icon-button-label` and `ezdev/no-date-input` check only literal attribute values, `ezdev/no-untranslated-text` does not read `toast()` arguments, conditional literals or object values, and a module-level `t()` shows only as a hydration warning. 32 `ui` rules are checked by the reviewer only. Each is a line in `docs/exec-plans/tech-debt.md`.
 
 ## [1.1.0] - 2026-11-10
 
