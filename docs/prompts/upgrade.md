@@ -14,7 +14,7 @@ First decide which kind of update this is and follow only that part. If it is un
 2. Run `composer outdated --direct` and `npm outdated`, then `composer update` and `npm update`.
 3. Run `composer check`. If something fails, read the package's changelog or upgrade notes (Boost `search-docs`) and fix the code, never the check.
 4. Run `composer check:reference`.
-5. If the new Wayfinder version generates Inertia page prop types, tell the user: tests/Structure/ResourceTypesTest.php can then be replaced (docs/rules/frontend.md).
+5. If the new Wayfinder version generates Inertia page prop types, tell the user: the hand-written TypeScript types of the Resources can then be generated (docs/rules/frontend.md).
 6. Commit once ("Update dependencies"). Move the plan to completed/ with its Progress and Outcomes. Report which packages changed version and every fix you made.
 
 ## B. Changes from the Laravel starter kit

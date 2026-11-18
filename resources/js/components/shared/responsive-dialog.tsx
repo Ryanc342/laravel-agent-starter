@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { useRef, type ComponentProps, type ReactNode } from 'react';
 import {
     Dialog,
     DialogClose,
@@ -47,6 +47,9 @@ export default function ResponsiveDialog({
     children,
 }: Props) {
     const isMobile = useIsMobile();
+    // Without a trigger (a menu item or the page opened it), Radix gives focus
+    // to no one when the dialog closes: give it back to what had it.
+    const returnTo = useRef<HTMLElement | null>(null);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,6 +57,18 @@ export default function ResponsiveDialog({
             <DialogContent
                 sheet={isMobile}
                 className={cn('flex flex-col', narrow && 'sm:max-w-md')}
+                onOpenAutoFocus={() => {
+                    returnTo.current =
+                        document.activeElement instanceof HTMLElement
+                            ? document.activeElement
+                            : null;
+                }}
+                onCloseAutoFocus={(event) => {
+                    if (!trigger && returnTo.current?.isConnected) {
+                        event.preventDefault();
+                        returnTo.current.focus();
+                    }
+                }}
                 // Radix warns about a missing description; opting out is
                 // explicit, and only when there really is none.
                 {...(instruction ? {} : { 'aria-describedby': undefined })}

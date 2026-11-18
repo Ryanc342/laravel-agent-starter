@@ -1,5 +1,17 @@
 {
-    "enabledMcpjsonServers": ["laravel-boost", "playwright"],
+    "enabledMcpjsonServers": [
+        "laravel-boost",
+        "playwright",
+        "playwright-review"
+    ],
+    "permissions": {
+        "allow": [
+            "Bash(scripts/screen-round)",
+            "Bash(php scripts/screen-round)",
+            "Bash(scripts/screen-round --reference)",
+            "Bash(php scripts/screen-round --reference)"
+        ]
+    },
     "hooks": {
         "SessionStart": [
             {
@@ -17,6 +29,62 @@
                     {
                         "type": "command",
                         "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" stop || echo '{\"systemMessage\":\"The finish check could not run.\"}'",
+                        "timeout": 60
+                    }
+                ]
+            }
+        ],
+        "SubagentStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" reviewing || true",
+                        "timeout": 60
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/reviewer-commands.php\"",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "SubagentHandback",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" handback || echo '{\"systemMessage\":\"The review ledger could not keep the report of this reviewer.\"}'",
+                        "timeout": 60
+                    }
+                ]
+            },
+            {
+                "matcher": "TaskStop",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" stopped || true",
+                        "timeout": 60
+                    }
+                ]
+            }
+        ],
+        "SubagentStop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" reviewed || echo '{\"systemMessage\":\"The review ledger could not record this review.\"}'",
                         "timeout": 60
                     }
                 ]

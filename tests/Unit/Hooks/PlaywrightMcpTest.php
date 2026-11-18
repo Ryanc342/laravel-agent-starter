@@ -18,6 +18,15 @@ fs.writeFileSync(output + '/screenshot.png', 'temporary');
 if (process.env.FAKE_EXIT === 'early-error') process.exit(5);
 readline.createInterface({ input: process.stdin }).on('line', (line) => {
     const request = JSON.parse(line);
+    // Like Playwright MCP: a file name the request gives is resolved against the workspace.
+    if (request.method === 'tools/call' && typeof request.params.arguments?.filename === 'string') {
+        const file = require('node:path').resolve(process.cwd(), request.params.arguments.filename);
+        fs.mkdirSync(require('node:path').dirname(file), { recursive: true });
+        fs.writeFileSync(file, 'saved');
+        fs.appendFileSync('saved.txt', file + '\n');
+        process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: request.id, result: {} }) + '\n');
+        return;
+    }
     if (request.method === 'tools/call' && request.params.name === 'browser_snapshot') {
         process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: request.id, result: ['tool-error', 'close-error'].includes(process.env.FAKE_EXIT) ? { isError: true } : {} }) + '\n');
     }
@@ -190,4 +199,58 @@ test('a new session removes only stale owned sessions and preserves active and u
         ->and(file_get_contents("{$base}/session-".getmypid().'-aaaaaaaaaaaaaaaa/live.png'))->toBe('active')
         ->and(file_get_contents("{$base}/session-99999998-bbbbbbbbbbbbbbbb/keep.png"))->toBe('unmarked')
         ->and(file_get_contents("{$base}/user-files/keep.png"))->toBe('user');
+});
+
+test('a file the request names, by a name or by a path, is saved in the session\'s output folder and nowhere in the project', function () {
+    $workspace = playwrightWorkspace();
+    $input = new InputStream;
+    $process = new Process(['node', dirname(__DIR__, 3).'/scripts/playwright-mcp'], $workspace, [
+        'PATH' => "{$workspace}/bin:".getenv('PATH'),
+    ]);
+    $process->setTimeout(5);
+    $process->setInput($input);
+    $process->start();
+    $outside = 'outside-'.basename($workspace).'.png';
+    $calls = [
+        ['browser_snapshot', 'style-snapshot.yml'],
+        ['browser_take_screenshot', 'screens/claims-index.png'],
+        ['browser_take_screenshot', "../{$outside}"],
+        ['browser_console_messages', "{$workspace}/resources/js/console.txt"],
+    ];
+
+    foreach ($calls as $id => [$tool, $filename]) {
+        $input->write(json_encode(['jsonrpc' => '2.0', 'id' => 30 + $id, 'method' => 'tools/call', 'params' => ['name' => $tool, 'arguments' => ['filename' => $filename]]])."\n");
+    }
+
+    $deadline = microtime(true) + 3;
+    while (substr_count((string) @file_get_contents("{$workspace}/saved.txt"), "\n") < count($calls) && microtime(true) < $deadline) {
+        // Symfony's InputStream reaches the process only while the process is polled.
+        $process->getIncrementalOutput();
+        usleep(10000);
+    }
+
+    $saved = array_filter(explode("\n", (string) @file_get_contents("{$workspace}/saved.txt")));
+    $sessions = glob(realpath($workspace).'/.playwright-mcp/session-*') ?: [];
+    $project = array_values(array_diff(scandir($workspace) ?: [], ['.', '..', '.playwright-mcp', 'bin', 'arguments.json', 'saved.txt']));
+
+    expect($saved)->toHaveCount(count($calls))
+        ->and($sessions)->toHaveCount(1)
+        ->and(array_filter($saved, fn (string $file): bool => dirname($file) !== $sessions[0]))->toBe([])
+        ->and(array_map('basename', $saved))->toBe(['style-snapshot.yml', 'claims-index.png', $outside, 'console.txt'])
+        ->and($project)->toBe([])
+        ->and(is_file(dirname($workspace)."/{$outside}"))->toBeFalse();
+
+    $input->write(json_encode(['jsonrpc' => '2.0', 'id' => 40, 'method' => 'tools/call', 'params' => ['name' => 'browser_close', 'arguments' => new stdClass]])."\n");
+    $process->wait();
+    $input->close();
+
+    expect($process->getExitCode())->toBe(0)
+        ->and(glob("{$workspace}/.playwright-mcp/session-*"))->toBe([]);
+});
+
+test('both browsers of the review run through the launcher', function () {
+    $servers = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/.mcp.json'), true)['mcpServers'];
+
+    expect($servers['playwright'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp']])
+        ->and($servers['playwright-review'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp']]);
 });

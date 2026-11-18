@@ -34,6 +34,7 @@ export default function TwoFactorVerificationStep({
             onSuccess={() => onClose()}
             resetOnError
             resetOnSuccess
+            className="w-full"
         >
             {({
                 processing,

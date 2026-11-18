@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import ColumnMenu, {
     type ColumnMenuConfig,
 } from '@/components/shared/column-menu';
+import RowActions, { type RowAction } from '@/components/shared/row-actions';
 import RegionState, {
     type RegionError,
 } from '@/components/shared/region-state';
@@ -54,6 +55,12 @@ type Props<Row> = {
     /** The data could not load: the failure sits inside the frame, under the header row. */
     error?: RegionError;
     selection?: TableSelection<Row>;
+    /**
+     * A list whose records have no detail page (patterns/list.md): each row's
+     * own actions, in one three-dot menu in the last column (on a phone, at the
+     * top right of the card).
+     */
+    rowActions?: (row: Row) => RowAction[];
 };
 
 /**
@@ -70,6 +77,7 @@ export default function ResponsiveTable<Row>({
     loading = false,
     error,
     selection,
+    rowActions,
 }: Props<Row>) {
     const isMobile = useIsMobile();
     const showState = loading || error !== undefined || rows.length === 0;
@@ -95,7 +103,10 @@ export default function ResponsiveTable<Row>({
                         key={getRowKey(row)}
                         className="grid gap-3 rounded-lg border p-4"
                     >
-                        <div className="flex min-w-0 items-start gap-3">
+                        <div
+                            data-slot="card-top"
+                            className="flex min-w-0 items-start gap-3"
+                        >
                             {selection && (
                                 <Checkbox
                                     aria-label={selection.rowLabel(row)}
@@ -105,9 +116,12 @@ export default function ResponsiveTable<Row>({
                                     }
                                 />
                             )}
-                            <div className="min-w-0 font-medium break-words">
+                            <div className="min-w-0 flex-1 font-medium break-words">
                                 {title.cell(row)}
                             </div>
+                            {rowActions && (
+                                <RowActions actions={rowActions(row)} />
+                            )}
                         </div>
                         <dl className="grid gap-2 text-sm">
                             {others.map((column) =>
@@ -170,13 +184,22 @@ export default function ResponsiveTable<Row>({
                                 )}
                             </TableHead>
                         ))}
+                        {rowActions && (
+                            <TableHead className="w-12">
+                                <span className="sr-only">{t('Actions')}</span>
+                            </TableHead>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {showState && (
                         <TableRow>
                             <TableCell
-                                colSpan={columns.length + (selection ? 1 : 0)}
+                                colSpan={
+                                    columns.length +
+                                    (selection ? 1 : 0) +
+                                    (rowActions ? 1 : 0)
+                                }
                                 className="p-0"
                             >
                                 {state}
@@ -212,6 +235,11 @@ export default function ResponsiveTable<Row>({
                                         {column.cell(row)}
                                     </TableCell>
                                 ))}
+                                {rowActions && (
+                                    <TableCell className="w-12 text-right">
+                                        <RowActions actions={rowActions(row)} />
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))}
                 </TableBody>

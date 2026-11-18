@@ -1,10 +1,10 @@
 import { Form } from '@inertiajs/react';
-import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
 import ErrorState from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
@@ -58,14 +58,9 @@ export default function TwoFactorRecoveryCodes({
     ).split('\u0001');
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex gap-3">
-                    <LockKeyhole className="size-4" aria-hidden="true" />
-                    {t('2FA recovery codes')}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
+        <div className="grid gap-4">
+            <Heading variant="small" title={t('2FA recovery codes')} />
+            <div>
                 <Actions className="select-none">
                     {canRegenerateCodes && (
                         <Form
@@ -88,6 +83,7 @@ export default function TwoFactorRecoveryCodes({
                     )}
 
                     <Button
+                        variant="outline"
                         onClick={toggleCodesVisibility}
                         aria-expanded={codesAreVisible}
                         aria-controls="recovery-codes-section"
@@ -167,7 +163,7 @@ export default function TwoFactorRecoveryCodes({
                         )}
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

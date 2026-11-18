@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+/*
+| Usage: scripts/screen-round [--reference]
+|
+| Prepares a screen round of the final review: see scripts/screen-round.php and
+| docs/workflow.md, step 4. With --reference both seats are copies with the
+| reference feature, for a change to docs/reference/tasks/. Run it from the
+| project, never from a copy.
+*/
+
+require __DIR__.'/screen-round.php';
+
+$root = trim((string) shell_exec('git rev-parse --show-toplevel 2>/dev/null'));
+
+if ($root === '' || str_ends_with($root, '-review') || str_ends_with($root, '-reference')) {
+    exit(screenRoundFail('Run scripts/screen-round inside the project, not in a copy.'));
+}
+
+$arguments = array_slice($argv, 1);
+
+if (array_diff($arguments, ['--reference']) !== []) {
+    exit(screenRoundFail('Usage: scripts/screen-round [--reference]. Nothing was changed.'));
+}
+
+try {
+    exit(screenRound($root, in_array('--reference', $arguments, true)));
+} catch (Throwable $error) {
+    exit(screenRoundFail($error->getMessage()));
+}

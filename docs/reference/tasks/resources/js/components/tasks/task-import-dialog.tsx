@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import TaskImportController from '@/actions/App/Http/Controllers/TaskImportController';
 import TaskImportTemplateController from '@/actions/App/Http/Controllers/TaskImportTemplateController';
+import FilePicker from '@/components/shared/file-picker';
 import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
@@ -10,7 +11,6 @@ import ResponsiveDialog, {
     ResponsiveDialogFooter,
 } from '@/components/shared/responsive-dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { t } from '@/lib/i18n';
 
@@ -45,10 +45,9 @@ export default function TaskImportDialog({ trigger }: { trigger: ReactNode }) {
                                 htmlFor="task-import-file"
                                 error={errors.file}
                             >
-                                <Input
+                                <FilePicker
                                     id="task-import-file"
                                     name="file"
-                                    type="file"
                                     accept=".csv,text/csv"
                                     required
                                 />

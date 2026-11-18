@@ -1,6 +1,6 @@
 # Foundations
 
-Read when a task needs colour, type, language, space, shape, motion, wording or a message. The values live in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. This file names the tokens and says when to use them. Use the classes (`bg-primary`, `text-muted-foreground`, `rounded-lg`), never raw colours (`bg-blue-500`, `#hex`), arbitrary values in square brackets or `dark:` colour overrides. The spec names tokens and component sizes and never a value: a pixel size or a Tailwind size class does not appear in DESIGN.md or docs/design/ (tests/Structure/DocsTest.php), so a value changes in app.css or in a component's `size` variant only.
+Read when a task needs colour, type, language, space, shape, motion, wording or a message. The values live in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. This file names the tokens and says when to use them. Use the classes (`bg-primary`, `text-muted-foreground`, `rounded-lg`), never raw colours (`bg-blue-500`, `#hex`), arbitrary values in square brackets or `dark:` colour overrides. The spec names tokens and component sizes and never a value: a pixel size or a Tailwind size class does not appear in DESIGN.md or docs/design/ (tests/Structure/DesignDocsTest.php), so a value changes in app.css or in a component's `size` variant only.
 
 ## Colour
 
@@ -14,6 +14,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 | Brand | `primary`, `primary-foreground` | the main action of a screen, links, the selected item, the unread dot |
 | Lines and focus | `border`, `input`, `input-focus`, `ring` | dividers and boxes; input borders; the dark grey border of a field you click into; the keyboard focus ring of buttons, toggles and badges |
 | Status | `destructive`, `success`, `warning`, each with its `-foreground` | a status and nothing else: an error or a delete, something done or paid, something that needs attention |
+| Scan surface | `qr-background` | behind a QR code only; white in dark mode too, so a phone can scan it |
 | Charts | `chart-1` to `chart-5` | chart series: one series is `chart-1`; several take `chart-1` to `chart-5` in that order and show a legend; never a status colour (patterns/report.md) |
 
 - One primary colour, blue, for the one main action of a screen. No other accent colour.

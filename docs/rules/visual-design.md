@@ -8,8 +8,8 @@ Applies to `resources/js/**`, `resources/css/**`, `DESIGN.md` and `docs/design/*
 
 - Every colour, radius, font and spacing value is defined once, in `resources/css/app.css`: light values in `:root`, dark values in `.dark`, mapped to Tailwind classes in `@theme`. The spec files name tokens and say when to use them; they never repeat a value. To change a value, change it in app.css only.
 - Fonts load through the `fonts` list in vite.config.ts.
-- Use the theme classes (`bg-primary`, `text-muted-foreground`, `text-success`, `rounded-lg`), never raw colors (`bg-blue-500`, `#hex`), arbitrary values in square brackets or `dark:` color overrides, and resize a component only through its `size` variant. The oxlint rules in principle 10 fail on each of these.
-- The spec files name tokens and component sizes and never a pixel value or a Tailwind size class; tests/Structure/DocsTest.php fails on one.
+- Use the theme classes (`bg-primary`, `text-muted-foreground`, `text-success`, `rounded-lg`), never raw colors (`bg-blue-500`, `#hex`), arbitrary values in square brackets or `dark:` color overrides, and resize a component only through its `size` variant. The reviewers check each of these (lane `look`).
+- The spec files name tokens and component sizes and never a pixel value or a Tailwind size class.
 
 ## Every page
 
@@ -17,7 +17,7 @@ Applies to `resources/js/**`, `resources/css/**`, `DESIGN.md` and `docs/design/*
 - Use `components/ui` (shadcn) and `components/shared`, and restyle them through their variants. Do not install another UI library.
 - Keep light and dark mode working, and keep every screen working with English and Chinese text.
 - Compare the page with the style overview page (`/style`, development only): its token, component and pattern demos show how each should look.
-- Before you report, open the page with the Playwright MCP server at desktop (1280px) and phone (390px) width and fix what looks wrong. The reviewer does the same (docs/prompts/review.md step 5) against principle 10 in docs/golden-principles.md.
-- Use the configured isolated headless Playwright session, never the user's browser. Take screenshots without a filename so they go to the session's temporary output directory. Inspect them before closing the browser; `browser_close` removes that session's temporary output. Always close the browser after the check, including when an error occurs. The launcher also closes it after a tool error; there is no idle timeout, so a forgotten close can leave the browser and screenshots until the server stops. If the user explicitly asks to keep a screenshot, save it directly to the requested destination. Do not delete other sessions' files or the user's existing files. A stopped server cleans its own output; the next server run cleans abandoned session directories.
+- The page check with Playwright is the final review's `look` and `behaviour` rounds (docs/workflow.md, step 4): the reviewers open each changed page at desktop (1280px) and phone (390px) width against principle 10 in docs/golden-principles.md (docs/prompts/review.md, step 7). Make no browser pass of your own before them; fix what they find.
+- Whoever opens a page uses a configured isolated headless Playwright session (`playwright`, or `playwright-review` for the review copy), never the user's browser. Take screenshots without a filename so they go to the session's temporary output directory. Inspect them before closing the browser; `browser_close` removes that session's temporary output. Always close the browser after the check, including when an error occurs. The launcher also closes it after a tool error; there is no idle timeout, so a forgotten close can leave the browser and screenshots until the server stops. If the user explicitly asks to keep a screenshot, save it directly to the requested destination. Do not delete other sessions' files or the user's existing files. A stopped server cleans its own output; the next server run cleans abandoned session directories.
 
 `resources/js/pages/welcome` is Laravel's own start page with its own colors. Replace it when the project gets a home page; do not copy from it.

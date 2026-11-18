@@ -1,7 +1,7 @@
 # Architecture
 
 Goal: every business rule lives in exactly one place, so a change is made once and nothing drifts.
-Every rule, and the check that stops it, is listed once in docs/golden-principles.md. This file explains the layers and where each kind of rule goes.
+Every rule, and the check or reviewer lane that stops it, is listed once in docs/golden-principles.md. This file explains the layers and where each kind of rule goes.
 
 ## Layers
 
@@ -20,25 +20,20 @@ A layer may use the layers below it, never the ones above it. Inside React, a pa
 - `app/Concerns/`: validation rule traits shared by FormRequests (`PasswordValidationRules`).
 - `app/Notifications/`: messages to a user (`PasswordChanged`). Only Actions send them, with `$user->notify()`.
 
-Rules about structure (where code goes, which layer uses which, what a class looks like) are checked by machines: a linter reads the code without running it, a structure test reads the files, and each stops a broken rule with a message that says what to do instead. Whether code gets a business rule right needs someone who reads it, so those rules are the reviewer's (docs/golden-principles.md). `composer check` runs every machine check:
+Machines check a skeleton of 18 rules: the layers, the folders of app/, where pages and components go, that code lives where the checks read it, that no check is silenced or turned down, that the design spec keeps its index and names no values, and that `t()` never runs at import time. A linter reads the code without running it, a structure test reads the files, and each stops a broken rule with a message that says what to do instead. Every other rule, structure and business alike, is read by the two reviewers, one lane at a time (docs/golden-principles.md, Review lanes; docs/prompts/review.md). `composer check` runs every machine check:
 
 | Check                                        | What it stops                                                         |
 | -------------------------------------------- | --------------------------------------------------------------------- |
-| `phpstan.neon` (disallowed calls and namespaces) | a layer using a layer above it, writes outside Actions, query conditions outside model scopes, validation outside FormRequests, queries in FormRequests, whole models in Resources, HTTP or permission checks in Actions, row locks outside Actions, events and listeners, seeders, factories or test code in the app |
-| `lint/phpstan/ClassShapeRule.php`, `lint/phpstan/TraitPlacementRule.php` | an Action that is not final, sits outside `app/Actions/{Domain}/`, has more than `handle()` or takes a `bool`, extra controller methods, a folder in app/Http other than Controllers, Requests, Resources, Middleware and Fortify, event, listener and observer classes, a Resource sending `$this->resource` whole or a relation without its Resource, `authorize()` in a FormRequest, non-enums in app/Enums, traits in app/Enums or app/Actions, interfaces, Service/Repository/DTO classes, wrong class names |
-| `lint/phpstan/ModelScopesRule.php`           | a `scopeFoo()` method instead of `#[Scope]`                           |
-| `lint/phpstan/PagePropsUseResourcesRule.php` | a model sent to React or as JSON without a Resource, also as `->toArray()` |
-| `lint/phpstan/CompanionFilesRule.php`        | an Action without a test, an Action that locks without a lock test, a model without a factory, a `can.*` Resource without a buttons test |
-| `lint/phpstan/ControllerInputRule.php`       | a controller reading input anywhere but from its FormRequest          |
-| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | `fetch` and `axios`; another UI library; a component importing another domain's components or a page; circular imports |
-| `tests/Structure/ResourceTypesTest.php`      | a TypeScript type out of step with its Resource (a test until Wayfinder generates the types) |
-| `tests/Structure/FoldersTest.php`            | a folder or file outside the fixed layout: app/ and resources/js top level, pages and components folders, test names and places, non-TypeScript files in resources/js, non-Markdown files in docs/, symlinks, PHP in public/ |
-| `tests/Structure/RoutesTest.php`             | an unnamed route, a closure route, a fixed path registered after a wildcard path that catches it |
-| `tests/Structure/CodeTest.php`               | a silenced check, rows inserted by hand in tests, `lib/format.ts` without its test, components/ui importing app code, imports leaving resources/js, PHP required from other files, PHP in views, a CSS-only UI library |
-| `tests/Structure/ConfigTest.php`             | a check turned down: PHPStan level, paths, extensions or rules, an oxlint rule off or code ignored, TypeScript not strict, a Pest suite left out, `composer check` changed, another lint config, a `script-shell` |
-| `tests/Structure/DocsTest.php`               | AGENTS.md over 100 lines, a path in the docs that does not exist, an ExecPlan missing a section, a rule in docs/golden-principles.md without its two tags |
+| `phpstan.neon` (disallowed namespaces and functions) | a layer using a layer above it (principle 2): enums, models, policies, notifications, Resources and FormRequests using what sits above them, HTTP classes or helpers in Actions, the Gate in models, the `DB` facade in controllers, integrations outside Actions, the HTTP client outside app/Integrations, seeders, factories or test code in the app |
+| `vite.config.ts` (`lint`) and `lint/oxlint/ezdev.js` | a component importing another domain's components or a page, components/shared importing a domain, circular imports, `t()` or `tChoice()` at module level |
+| `tests/Structure/FoldersTest.php`            | a folder or file outside the fixed layout: app/ and resources/js top level, pages and components folders, non-TypeScript files in resources/js, non-Markdown files in docs/, symlinks, PHP in public/ |
+| `tests/Structure/CodeTest.php`               | a silenced check, components/ui importing app code, imports leaving resources/js, PHP required from other files, PHP in views |
+| `tests/Structure/ConfigTest.php`             | a check turned down: PHPStan level, paths, extensions or a layer rule and its folders, an oxlint rule off or code ignored, TypeScript not strict, a Pest suite left out, `composer check` changed, another lint config, a `script-shell`, a check without its fixture |
+| `tests/Structure/DesignDocsTest.php`         | a pattern file missing from the DESIGN.md index or without its Sample or Demo, a file a pattern names that does not exist, a pixel value or Tailwind size class in DESIGN.md or docs/design/ |
+| `tests/Unit/Lint/SkeletonChecksTest.php`     | a kept check that no longer fails: it breaks every machine rule once in a fixture project and runs the real check on it |
 | `tests/Structure/RunFinishedTest.php`        | the last test: its file proves the test run reached its end           |
 | `scripts/hooks/finish-check.php` (when the AI stops) | code without a plan written in this conversation, a fixed tech-debt line without a QUALITY.md update, a protected file without recorded approval, code without fresh validation (milestone checks only for an incomplete active plan; full `composer check` for final acceptance), a completed plan without its records |
+| `scripts/hooks/reviewer-commands.php` (before a reviewer's Bash call) | a reviewer subagent running a command that is not a git command that reads, piped only into filters that read; the refusal is logged in the state folder |
 
 ## Where each rule goes
 
@@ -63,7 +58,7 @@ Before writing a business rule, decide what it is about, then write it once, in 
 
 ## The ten principles
 
-The rules are grouped under ten principles. docs/golden-principles.md lists every rule under them and says which check stops it.
+The rules are grouped under ten principles. docs/golden-principles.md lists every rule under them and says which check or reviewer lane stops it.
 
 1. Every business rule is written once.
 2. Layers only depend downwards.
@@ -74,7 +69,7 @@ The rules are grouped under ten principles. docs/golden-principles.md lists ever
 7. Files go where the conventions say.
 8. Every feature is tested.
 9. Work follows the steps: plan, check, review, report (docs/workflow.md). The finish check in scripts/hooks/ sends back a missing step.
-10. Screens follow DESIGN.md and the files in docs/design/. The reviewer checks them on screenshots at desktop and phone width, and against the style overview page.
+10. Screens follow DESIGN.md and the files in docs/design/. The reviewers check them on screenshots at desktop and phone width, and against the style overview page.
 
 ## Request flow
 

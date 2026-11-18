@@ -53,40 +53,17 @@ export default defineConfig({
         // The default plugins plus import (for import/no-cycle). Setting
         // plugins replaces the default list, so every plugin is named here.
         plugins: ['typescript', 'unicorn', 'oxc', 'import'],
-        // Ezdev's own structure rules, docs/golden-principles.md principles 4 and 7.
+        // Ezdev's own rules, docs/golden-principles.md principles 7 and 10.
+        // Only these and import cycles are machine rules.
         jsPlugins: ['./lint/oxlint/ezdev.js'],
         rules: {
-            'ezdev/no-direct-backend-calls': 'error',
             'ezdev/component-boundaries': 'error',
-            'ezdev/no-untranslated-text': 'error',
-            'ezdev/no-raw-style': 'error',
-            'ezdev/no-display-size': 'error',
-            'ezdev/no-component-resize': 'error',
-            'ezdev/icon-button-label': 'error',
-            'ezdev/form-no-validate': 'error',
-            'ezdev/no-date-input': 'error',
+            'ezdev/no-module-level-t': 'error',
             'import/no-cycle': 'error',
             // Only no-cycle is wanted from the import plugin; these two are
             // its rules that oxlint turns on by default.
             'import/default': 'off',
             'import/namespace': 'off',
-            'no-restricted-imports': [
-                'error',
-                {
-                    patterns: [
-                        {
-                            regex: '^(antd|bootstrap|react-bootstrap|primereact|semantic-ui-react|flowbite|flowbite-react|@headlessui/react)(/.*)?$',
-                            message:
-                                'No other UI library: build the interface from resources/js/components/ui (shadcn). See docs/rules/frontend.md.',
-                        },
-                        {
-                            regex: '^@(mui|chakra-ui|mantine|nextui-org|heroui|ant-design)/',
-                            message:
-                                'No other UI library: build the interface from resources/js/components/ui (shadcn). See docs/rules/frontend.md.',
-                        },
-                    ],
-                },
-            ],
         },
         ignorePatterns: [
             'vendor/**',

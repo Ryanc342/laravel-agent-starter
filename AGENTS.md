@@ -1,11 +1,11 @@
 # Ezdev Template: agent guide
 
-This file is a map, not a manual. It stays under 100 lines (tests/Structure checks it).
+This file is a map, not a manual. It stays under 100 lines (the reviewers check it).
 Details live in the files it points to; read them when the task needs them.
 
 ## Commands
 
-- `composer check`: every check (Pint, PHPStan with Ezdev's rules, oxlint with Ezdev's rules, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running.
+- `composer check`: every machine check (Pint, PHPStan with the layer rules, oxlint with the component boundaries, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running.
 - `composer check:milestone -- <test paths>`: all static checks and affected tests between milestones. `composer check:static`: just the full static phase. Final plan acceptance still needs `composer check`.
 - `php artisan test --compact --filter=<Name>`: one test.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
@@ -17,7 +17,7 @@ Details live in the files it points to; read them when the task needs them.
 1. Grill. Every request starts with questions in the user's language, in the format in docs/workflow.md, a request to fix tech debt included. Look facts up yourself; put every decision to the user.
 2. Plan. When no decision is open, write docs/exec-plans/active/<feature>.md (format: docs/PLANS.md). Change no code until the user says "start". A one-line change with no open decision may skip the plan; say so.
 3. Build, one milestone at a time: Pest tests first, then code bottom-up, then `composer check:milestone -- <affected test paths>`, then commit and update Progress. Run full `composer check` when the plan is implemented, and earlier for shared infrastructure or unbounded impact (docs/workflow.md).
-4. Review. Ask the `reviewer` subagent to compare the diff with the plan (docs/prompts/review.md). Fix P0 and P1 findings. At most 3 rounds.
+4. Review. Ask `reviewer-opus` and `reviewer-haiku` to compare the diff with the plan, one lane per run, for the lanes the change touches (docs/prompts/review.md, docs/golden-principles.md Review lanes). Fix P0 and P1 findings. Rounds: docs/workflow.md.
 5. Report where each agreed decision lives, the check output, and UI inspection results. Move the plan to docs/exec-plans/completed/. Remove fixed tech-debt lines and update docs/QUALITY.md.
 
 Starting a new conversation? Read docs/exec-plans/active/ first and continue from Progress.
@@ -48,7 +48,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - Fix the code, not the test. Change an assertion only when the user changed the requirement, and say why.
 - Build only what the plan lists. Anything else is a new question for the user.
 - Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
-- Do not change AGENTS.md, CLAUDE.md, ARCHITECTURE.md, DESIGN.md, docs/golden-principles.md, docs/rules/, docs/design/, docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/ or the checks and tools (phpstan.neon, vite.config.ts, tsconfig.json, pint.json, phpunit.xml, .npmrc, .gitignore, artisan, lint/, tests/Structure/, tests/Support/, tests/Unit/Hooks/, tests/bootstrap.php, tests/Pest.php, tests/TestCase.php, tests/js/setup.ts, scripts/, .claude/, .codex/, .agents/, .github/) without the user's approval, and record it in the plan's Decision Log, naming the file. One exception: the weekly cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 5).
+- Do not change AGENTS.md, CLAUDE.md, ARCHITECTURE.md, DESIGN.md, docs/golden-principles.md, docs/rules/, docs/design/, docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/ or the checks and tools (phpstan.neon, vite.config.ts, tsconfig.json, pint.json, phpunit.xml, .npmrc, .gitignore, artisan, lint/, tests/Structure/, tests/Support/, tests/Unit/Hooks/, tests/bootstrap.php, tests/Pest.php, tests/TestCase.php, tests/js/setup.ts, scripts/, .claude/, .github/) without the user's approval, and record it in the plan's Decision Log, naming the file. One exception: the cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 5).
 - Do not add or upgrade dependencies without the user's approval.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
 
@@ -63,7 +63,7 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 - docs/PLANS.md: how to write an ExecPlan
 - docs/exec-plans/active/: work in progress. docs/exec-plans/completed/: finished plans
 - docs/exec-plans/tech-debt.md: known debt, oldest first
-- docs/golden-principles.md: every rule, grouped in ten principles, and the check that stops each one
+- docs/golden-principles.md: every rule, grouped in ten principles, the check or reviewer lane that stops each one, and the six review lanes
 - docs/QUALITY.md: quality grade per domain
 - docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
 - docs/reference/tasks/: the reference feature
@@ -73,8 +73,8 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 ## Tools
 
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Playwright MCP (`playwright`): use its isolated headless browser, never the user's Chrome; close it after checks. Screenshot handling: docs/rules/visual-design.md.
-- Subagents: `explorer` (read-only lookups, small model) and `reviewer` (fresh context, read-only).
+- Playwright MCP (`playwright`, and `playwright-review` for `reviewer-haiku`'s seat in a screen round): isolated headless browsers, never the user's Chrome; close them after checks. Screenshot handling: docs/rules/visual-design.md.
+- Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models).
 - Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back missing plans, quality updates, approvals or validation. An incomplete active plan may use a fresh milestone result; final acceptance requires full `composer check`. Do the step.
 
 ## Code Review Rules

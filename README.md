@@ -2,12 +2,12 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/tests.yml)
 
-A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects where AI (Codex or Claude Code) writes the code.
+A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects where AI (Claude Code) writes the code.
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
 
 1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
 2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. All rules are listed once, in ten principles, in `docs/golden-principles.md`; `ARCHITECTURE.md` explains them.
-3. **Machine checks for structure, a second AI for business logic.** Machines check where code goes and what it may use: PHPStan for PHP (with Ezdev's rules in `lint/phpstan/`), oxlint for React (with Ezdev's rules in `lint/oxlint/`), and structure tests for folders, routes, check configs, docs and the Resource types. One command runs them all: `composer check`. Whether the business logic is right needs reading, so a reviewer AI checks those rules on every change. When the AI is about to stop, a finish check sends back any step of the workflow it skipped.
+3. **Machine checks for a skeleton, two AI reviewers for everything else.** Machines check 18 rules: the layers (PHPStan, the layer rules in `phpstan.neon`), the component boundaries, import cycles and no `t()` at import time (oxlint, with Ezdev's rules in `lint/oxlint/`), the folders of `app/`, where pages and components go, that no check is silenced or turned down, and the design spec's index and values (structure tests). One command runs them all: `composer check`. Every other rule (106 of them, in six review lanes) needs reading, so two reviewer subagents on different models, `reviewer-opus` and `reviewer-haiku`, read every change for them. When the AI is about to stop, a finish check sends back any step of the workflow it skipped, review rounds included.
 
 The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
 
@@ -40,7 +40,7 @@ Keep the installer's default choices if it asks about Pest, Boost or frontend de
 
 **MySQL is the default.** No database flag is needed. `my-project` gets the database `my_project`, with separate `my_project_test` and `my_project_reference_test` databases for checks. The default connection is `127.0.0.1:3306`, user `root`, with an empty password. An explicitly configured database or connection URL is preserved.
 
-Open the project in Codex or Claude Code and describe what you need. In Codex, open `/hooks` once and trust `.codex/hooks.json`; Claude Code uses `.claude/settings.json`.
+Open the project in Claude Code and describe what you need. Claude Code is the supported tool: the review rounds need its subagents and hooks (`.claude/settings.json`).
 
 ### If your MySQL credentials differ
 
@@ -66,10 +66,12 @@ To work on the template itself, clone this repository and run `composer setup` w
 1. **Grilling.** The AI looks up the code, then asks every decision it needs in rounds, each with a recommended answer. Reply "yes", or answer by number ("1 yes 2 no, because...").
 2. **ExecPlan.** It writes the plan to `docs/exec-plans/active/<feature>.md`: agreed decisions, milestones, how it will be checked. Say "start" when it is right.
 3. **Milestones.** For each one: tests first, code bottom-up, then `composer check:milestone -- <affected test paths>` for full static checks and affected tests. Include unchanged callers' tests where relevant. Commit and record the scope, command and result. Run full `composer check` when the plan is implemented, earlier for shared test/database infrastructure or unbounded impact, and again after final review code changes.
-4. **Review.** A `reviewer` subagent with a fresh context compares the change with the plan and reports only real problems (at most 3 rounds).
+4. **Review.** All review happens once, in the final review, after full `composer check`: no milestone has a review round. A round runs both reviewers at the same time on the same commit, one run each for every review lane the change touches (`docs/golden-principles.md`, Review lanes). A lane is done when, in its latest round, both report no P0 and no P1 on committed code and nothing in the lane's places changed since; the AI fixes the findings and starts the next round, with no cap on rounds. The screens come last: the lanes `look` and `behaviour` start when every other lane is done, on two seats at once. `scripts/screen-round` prepares them: `reviewer-opus` opens the project's own app in the `playwright` browser, `reviewer-haiku` a review copy (`../<project folder>-review`, its own database and port) in the `playwright-review` browser; both walk the plan's flows through the forms and look at every changed page at 1280px, 390px and in dark mode. A change to the reference feature (`docs/reference/tasks/`) is reviewed like app code: `scripts/screen-round --reference` makes both seats copies with the feature installed. A reviewer runs only the git commands that read: a hook refuses every other command before it runs and logs the refusal.
 5. **Report.** Where each decision lives, the check output and UI inspection results. Screenshots are temporary unless you ask to keep them. You approve the merge; CI runs `composer check` again.
 
-Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back missing plans, quality updates, approvals or validation. A valid active plan with completed and remaining milestones may use a fresh milestone check. Final acceptance requires full `composer check` on the current code; a partial pass cannot replace it.
+Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back missing plans, quality updates, approvals, validation or review rounds. A valid active plan with completed and remaining milestones may use a fresh milestone check. Final acceptance requires full `composer check` on the current code; a partial pass cannot replace it. Each reviewer run writes one line to a review ledger (Claude Code's subagent hooks), and the finish check reads the ledger, not what the AI writes: a plan is finished only when every lane it touches is done.
+
+The review rounds add time and model cost to every change: at least two reviewer runs per touched lane, again after each fix, and the screen rounds drive two browsers. Claude Code is the supported tool, because the rounds need its subagents and hooks.
 
 Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update dependencies, take changes from the Laravel starter kit or move to a new Laravel version, run `docs/prompts/upgrade.md`.
 
@@ -84,19 +86,22 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | `docs/rules/`                             | Detailed rules per folder (actions, controllers, models, frontend, tests) |
 | `DESIGN.md`, `docs/design/`               | How the app looks: the style, foundations, components and one file per page pattern |
 | `docs/reference/tasks/`                   | A complete reference feature the AI copies the structure from            |
-| `docs/golden-principles.md`, `docs/QUALITY.md` | What review and the weekly cleanup check; quality grade per domain       |
-| `phpstan.neon`, `lint/phpstan/`           | PHP linter rules: forbidden calls and layers, class shapes, scopes, companion files |
-| `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter rules: React never does the backend's job, component boundaries |
-| `tests/Structure/`                        | Docs checks; code checks across folders; Resource and TypeScript type comparison |
-| `.codex/`, `.claude/`, `.mcp.json`        | Subagents (explorer, reviewer), MCP servers (Boost, Playwright) and the finish check hooks |
-| `scripts/hooks/finish-check.php`          | The finish check: what is missing when the AI is about to stop            |
+| `docs/golden-principles.md`, `docs/QUALITY.md` | Every rule, who checks it and the six review lanes; quality grade per domain |
+| `docs/prompts/review.md`                  | What a reviewer run reads and how it reports                              |
+| `phpstan.neon`, `lint/phpstan/`           | PHP linter: the layer rules (disallowed namespaces and functions)         |
+| `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter: component boundaries and import cycles                   |
+| `tests/Structure/`, `tests/Unit/Lint/`    | Folder layout, code placement, silenced or turned-down checks, the design spec; every machine rule proved on a broken fixture |
+| `.claude/`, `.mcp.json`                   | Subagents (explorer, reviewer-opus, reviewer-haiku), MCP servers (Boost, two Playwright browsers) and the hooks (finish check, review ledger) |
+| `scripts/hooks/finish-check.php`          | The finish check: what is missing when the AI is about to stop, and the review ledger |
+| `scripts/hooks/reviewer-commands.php`     | The command check: a reviewer runs only the git commands that read        |
+| `scripts/screen-round`                    | Prepares a screen round: the review copy, both databases reset, both apps answering; `--reference` for the reference feature |
 | `scripts/worktree-up`                     | A git worktree with its own .env, database and port for parallel work    |
 
 ## Commands
 
 | Command                    | Does                                                                  |
 | -------------------------- | --------------------------------------------------------------------- |
-| `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Feature, Structure) |
+| `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Unit, Feature, Structure) |
 | `composer check:static` | Full PHP/frontend formatting, lint, static analysis and type checks |
 | `composer check:milestone -- <test paths>` | Full static checks, then selected PHP/frontend tests; record affected scope in the plan |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
@@ -108,15 +113,15 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 
 ## Changing the rules
 
-The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (a test checks it): add details to `docs/`, not to the map. When a structure rule is broken twice, turn it into a check (`phpstan.neon`, `lint/phpstan/`, `lint/oxlint/ezdev.js` or `tests/Structure/`) with an error message that says what to do instead; business rules stay with the reviewer. The weekly cleanup lists gaps in the checks and rules to merge or remove; you decide, and a check only ever gets stricter. After changing rules or tooling, run `composer check:reference`.
+The AI proposes rule changes when it gets stuck or is corrected twice; you approve them. Keep `AGENTS.md` under 100 lines (the reviewers check it): add details to `docs/`, not to the map. The 18 machine checks are the skeleton; every other rule is a `[review]` rule in `docs/golden-principles.md` and stays with the reviewers. The weekly cleanup (`docs/prompts/cleanup.md`) goes through the `[review]` rules lane by lane and lists the gaps in the 18 machine checks and the rules to merge or remove; you decide, and a check only ever gets stricter. After changing rules or tooling, run `composer check:reference`.
 
 ## Design: how the app looks
 
-The template ships a design for a clean and bright work tool, in four layers that the AI reads only as far as the task needs: `DESIGN.md` (the style, and an index of which file to read for which task), `docs/design/foundations.md` (colour, type, space, messages), `docs/design/components.md` (which component for which need) and `docs/design/patterns/` (one file per kind of page: list, detail, form, empty / error / loading states, dashboard, settings, feed, login and register, error pages, bulk actions, import and export, print, search results, wizard, approval, list and detail, report, calendar, kanban, and the customer pages: home / landing, pricing, product, customer area, checkout, help / FAQ and contact). The home page `/` is built in that style on the public layout (`resources/js/layouts/public-layout.tsx`: a top bar and a footer; the links are the pages the project has). The values are the theme in `resources/css/app.css`, not text in the documents. Every pattern has a demo: in development, open `/style` to see the tokens, the components and the pattern demos (it answers 404 outside the local environment). The AI follows the patterns and looks at each changed page at desktop and phone width and in light and dark mode; the reviewer compares it with the style overview page and checks the `ui` rules (principle 10). For a project with its own brand, change `DESIGN.md` and the theme tokens; they are protected, so the AI asks you first. Details: `docs/rules/visual-design.md`.
+The template ships a design for a clean and bright work tool, in four layers that the AI reads only as far as the task needs: `DESIGN.md` (the style, and an index of which file to read for which task), `docs/design/foundations.md` (colour, type, space, messages), `docs/design/components.md` (which component for which need) and `docs/design/patterns/` (one file per kind of page: list, detail, form, empty / error / loading states, dashboard, settings, feed, login and register, error pages, bulk actions, import and export, print, search results, wizard, approval, list and detail, report, calendar, kanban, and the customer pages: home / landing, pricing, product, customer area, checkout, help / FAQ and contact). The home page `/` is built in that style on the public layout (`resources/js/layouts/public-layout.tsx`: a top bar and a footer; the links are the pages the project has). The values are the theme in `resources/css/app.css`, not text in the documents. Every pattern has a demo: in development, open `/style` to see the tokens, the components and the pattern demos (it answers 404 outside the local environment). The AI follows the patterns; in the final review's screen rounds the two reviewers open each changed page at desktop and phone width and in dark mode, compare it with the style overview page and check the `ui` rules (principle 10). For a project with its own brand, change `DESIGN.md` and the theme tokens; they are protected, so the AI asks you first. Details: `docs/rules/visual-design.md`.
 
 ## Languages
 
-The app speaks English and Simplified Chinese. A first visit follows the browser's `Accept-Language` (any Chinese gives Chinese, anything else English); users switch on Settings → Appearance, and guests with the "EN / 中文" switch at the top right of the public bar and the sign-in pages. The choice is saved on the user (`users.locale`) and in the `locale` cookie, and `SetLocale` applies it to every request. There is one source, Laravel's language files and no package: a sentence is keyed by its English text (`lang/zh_CN.json`, `"Save changes": "保存更改"`), Laravel's own groups live in `lang/zh_CN/`, and React reads the current language's sentences through `t()` and `tChoice()` (`resources/js/lib/i18n.ts`). Write every sentence in English through `t()` or `__()` and add its Chinese in the same commit; `composer check` fails on a missing or unused translation and on text written straight into JSX. What users type is never translated. Details: `docs/rules/translations.md`.
+The app speaks English and Simplified Chinese. A first visit follows the browser's `Accept-Language` (any Chinese gives Chinese, anything else English); users switch on Settings → Appearance, and guests with the "EN / 中文" switch at the top right of the public bar and the sign-in pages. The choice is saved on the user (`users.locale`) and in the `locale` cookie, and `SetLocale` applies it to every request. There is one source, Laravel's language files and no package: a sentence is keyed by its English text (`lang/zh_CN.json`, `"Save changes": "保存更改"`), Laravel's own groups live in `lang/zh_CN/`, and React reads the current language's sentences through `t()` and `tChoice()` (`resources/js/lib/i18n.ts`). Write every sentence in English through `t()` or `__()` and add its Chinese in the same commit; the reviewers report a missing or unused translation and text written straight into JSX (lane `behaviour`), and oxlint fails on a `t()` that runs at import time: mark such a sentence with `msg()` and translate it where it is shown. What users type is never translated. Details: `docs/rules/translations.md`.
 
 ## Deploying
 

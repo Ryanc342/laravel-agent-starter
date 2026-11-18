@@ -38,6 +38,9 @@ import ImportExportDemo from '@/components/style/import-export-demo';
 import LandingDemo from '@/components/style/landing-demo';
 import KanbanDemo, { type ExampleCard } from '@/components/style/kanban-demo';
 import ListDemo from '@/components/style/list-demo';
+import RowActionsDemo, {
+    type ExampleCategory,
+} from '@/components/style/row-actions-demo';
 import ListDetailDemo, {
     type ExampleTicket,
 } from '@/components/style/list-detail-demo';
@@ -252,6 +255,17 @@ const approvalStates: Record<
         can: { approve: false, reject: false },
     },
 };
+
+// A list without a detail page: its rows carry their own actions.
+const categories: ExampleCategory[] = [
+    { id: 1, name: 'Office supplies', expenses: 12 },
+    { id: 2, name: 'Travel', expenses: 7 },
+    { id: 3, name: 'Meals with clients', expenses: 4 },
+];
+
+// Stands in for the FormRequest that checks a category's name.
+const answerCategoryName = (name: string) =>
+    name.trim() ? null : t('Enter a name for the category.');
 
 // Stands in for the FormRequest that checks the reason.
 const answerRejection = (reason: string) =>
@@ -486,6 +500,12 @@ export default function Style() {
                             tasks={tasks}
                             pagination={pagination}
                             statusChoices={statusChoices}
+                        />
+                    </DemoFrame>
+                    <DemoFrame>
+                        <RowActionsDemo
+                            categories={categories}
+                            answer={answerCategoryName}
                         />
                     </DemoFrame>
                 </StyleSection>

@@ -91,6 +91,8 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 | A side panel | `Sheet` |
 | A small card that opens from a button (the notification bell) | `Popover` |
 | A menu of actions | `DropdownMenu` |
+| A row's own actions, in a list whose records have no detail page | `RowActions` (`components/shared`, through `ResponsiveTable`'s `rowActions`): one three-dot icon button that opens a menu, the destructive action last and set apart (patterns/list.md) |
+| Choosing a file in a form (an import) | `FilePicker` (`components/shared`): a "Choose file" button and the chosen file's name, in the app's language; the browser's own file input stays hidden, so its English never shows |
 | A hint for a control | `Tooltip` |
 | Details the user opens on demand | `Collapsible` |
 

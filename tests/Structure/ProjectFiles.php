@@ -29,9 +29,35 @@ final class ProjectFiles
      */
     private const array GENERATED = ['storage', 'bootstrap/cache', 'bootstrap/ssr', 'public/build', 'public/hot', 'public/storage'];
 
+    /**
+     * The root of a fixture project while ProjectFiles::at() runs a check on it.
+     */
+    private static ?string $fixture = null;
+
     public static function root(): string
     {
-        return dirname(__DIR__, 2);
+        return self::$fixture ?? dirname(__DIR__, 2);
+    }
+
+    /**
+     * Runs a check on a fixture project instead of this one
+     * (tests/Unit/Lint/SkeletonChecksTest.php plants a broken rule there).
+     *
+     * @template T
+     *
+     * @param  callable(): T  $check
+     * @return T
+     */
+    public static function at(string $root, callable $check): mixed
+    {
+        $before = self::$fixture;
+        self::$fixture = rtrim($root, '/');
+
+        try {
+            return $check();
+        } finally {
+            self::$fixture = $before;
+        }
     }
 
     public static function read(string $path): string
@@ -87,6 +113,21 @@ final class ProjectFiles
         sort($files);
 
         return array_values(array_unique($files));
+    }
+
+    /**
+     * The code files (.php, .ts, .tsx, .js) under the given folders.
+     *
+     * @param  list<string>  $folders  relative to the root
+     * @param  list<string>  $skip  files or folders to leave out, relative to the root
+     * @return list<string>
+     */
+    public static function code(array $folders, array $skip = []): array
+    {
+        return array_values(array_filter(
+            self::in($folders, $skip),
+            fn (string $path): bool => preg_match('/\.(php|ts|tsx|js)$/', $path) === 1,
+        ));
     }
 
     /**

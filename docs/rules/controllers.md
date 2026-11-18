@@ -10,7 +10,7 @@ Applies to `app/Http/Controllers/**`, `routes/**` and the Fortify adapters in `a
 
 Authorize before calling the Action. This is the only permission check; the Action does not repeat it. List, create and bulk endpoints ask the Policy too (`viewAny`, `create` or a named bulk ability), even when every signed-in user is currently allowed. Do not invent a new role restriction while doing this.
 
-No business `if` statements, no calculations, no direct model writes (PHPStan rejects model writes outside Actions).
+No business `if` statements, no calculations, no direct model writes (only Actions write).
 
 ```php
 // Correct
@@ -37,7 +37,7 @@ public function store(Request $request): RedirectResponse
 
 ## Always use a FormRequest for input
 
-A controller reads input only from a FormRequest: `$request->validated()`, `$request->safe()` or a method the FormRequest declares. PHPStan rejects `$request->validate()`, `Validator::make()`, `validator()`, `$request->input()`, `all()`, `query()`, `boolean()`, `enum()`, `$request->field` and the Request facade in a controller (lint/phpstan/ControllerInputRule.php), even for one field. An endpoint with no input (mark all as read) needs no FormRequest; a list page with filters gets one for its query string.
+A controller reads input only from a FormRequest: `$request->validated()`, `$request->safe()` or a method the FormRequest declares. Never `$request->validate()`, `Validator::make()`, `validator()`, `$request->input()`, `all()`, `query()`, `boolean()`, `enum()`, `$request->field` or the Request facade in a controller, even for one field. An endpoint with no input (mark all as read) needs no FormRequest; a list page with filters gets one for its query string.
 
 ## Reads
 
@@ -52,7 +52,7 @@ return Inertia::render('tasks/index', [
 
 A list page is paginated, never with `take()`. Every list page reads `per_page` through the FormRequest for its query string with `ReadsPerPage` (10, 20, 50 or 100; anything else counts as 20), shows the rows-per-page choice, and the page links keep it (`withQueryString()`). The page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
 
-Conditions are written only in model scopes: PHPStan rejects `where…` and `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
+Conditions are written only in model scopes: no `where…` or `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 
 Form choices (the options of a select) are reads too. Build them from the same scope the Action uses to accept the chosen value, so the list and the check cannot disagree. Do not write role, type or active conditions in the controller.
 
@@ -72,11 +72,11 @@ To read an enum from the request, give the FormRequest a method and call it from
 
 ## Non-CRUD operations get their own controller
 
-An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. PHPStan allows only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`, and controllers only in app/Http/Controllers.
+An operation like "complete a task" or "approve an invoice" gets a small controller (`TaskCompletionController@store`, `NotificationReadController@store`) instead of a custom method on the resource controller. A controller has only the standard methods: `index`, `create`, `store`, `show`, `edit`, `update`, `destroy` and `__invoke`, and controllers only in app/Http/Controllers.
 
 ## Routes
 
 - One route file per domain (`routes/{domain}.php`, like docs/reference/tasks/routes/tasks.php), required from `routes/web.php`.
 - Every route is named (`tasks.index`, `tasks.completion.store`) and calls a controller, never a closure (`Route::inertia()` for a page with no data is fine). React reaches routes only through Wayfinder imports, never hard-coded URLs.
 - Use route model binding (`{task}`); never look records up by id manually.
-- Register fixed paths (`tasks/overdue/completion`) before wildcard paths (`tasks/{task}`). tests/Structure/RoutesTest.php checks names, closures and this order on the booted app.
+- Register fixed paths (`tasks/overdue/completion`) before wildcard paths (`tasks/{task}`).

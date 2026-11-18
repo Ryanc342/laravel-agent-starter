@@ -7,7 +7,7 @@ Applies to `app/Http/Requests/**`.
 A FormRequest answers one question: _is this input well-formed?_
 Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, enum values.
 
-It does **not** check business state. Those checks go in the Action. PHPStan rejects database queries (`Model::query()`, `->where()`, `DB::`) in FormRequests and in app/Concerns.
+It does **not** check business state. Those checks go in the Action. No database queries (`Model::query()`, `->where()`, `DB::`) in FormRequests or in app/Concerns.
 
 `exists` only means "this record exists", not "this record is eligible". Do not chain business conditions onto `Rule::exists` or `Rule::unique`: active or expired state, ownership and remaining stock belong in the Action (or the Policy for who may act). This also applies to shared validation traits.
 
@@ -36,7 +36,7 @@ public function rules(): array
 
 ## The controller reads input only from here
 
-A controller reads input through the FormRequest only: `$request->validated()`, `$request->safe()`, or a method the FormRequest declares (PHPStan rejects `input()`, `query()`, `enum()` and the rest in controllers). A list page with filters gets a FormRequest for its query string too:
+A controller reads input through the FormRequest only: `$request->validated()`, `$request->safe()`, or a method the FormRequest declares (never `input()`, `query()`, `enum()` and the rest in controllers). A list page with filters gets a FormRequest for its query string too:
 
 ```php
 final class IndexTaskRequest extends FormRequest
@@ -55,7 +55,7 @@ final class IndexTaskRequest extends FormRequest
 
 ## Authorization
 
-Do not write `authorize()` (PHPStan rejects it). Authorization happens in the controller through the Policy, so there is one place to look.
+Do not write `authorize()`. Authorization happens in the controller through the Policy, so there is one place to look.
 
 ## Sharing rules
 

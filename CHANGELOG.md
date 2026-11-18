@@ -2,6 +2,48 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [1.3.0] - 2026-11-18
+
+Review first: machines check a skeleton of 18 rules, and two reviewer subagents on different models read every other rule, all in one final review. The template supports Claude Code only.
+
+### Added
+
+- Two reviewer subagents, `reviewer-opus` and `reviewer-haiku` (`.claude/agents/`), on different models. They share `docs/prompts/review.md` and review one lane per run.
+- Six review lanes in `docs/golden-principles.md` (business, input, frontend, tests, look, behaviour), each with its principles and the places that touch it. The 106 `[review]` rules are split over them.
+- The review ledger: Claude Code's `SubagentStart`, `SubagentStop` and `PostToolUse` hooks (`.claude/settings.json`) run `scripts/hooks/finish-check.php` (`reviewing`, `reviewed`, `handback`, `stopped`), which writes one line per reviewer run (lane, round, P0, P1, model, commit, whether the code was committed). The finish check reads the ledger and sends the AI back until every lane the plan touches is done. `php scripts/hooks/finish-check.php review <plan>` prints each lane as done or not, and changes nothing; `lanes` prints the lane table.
+- Screen rounds on two seats: `scripts/screen-round` makes and reuses a review copy (`../<project folder>-review`, its own database, port and session cookie), puts the commit under review into it, resets both databases to the seeded state and checks that both apps answer. A second isolated browser, `playwright-review` (`.mcp.json`), is `reviewer-haiku`'s seat; `scripts/playwright-mcp` launches both browsers and keeps every saved file in the browser's temporary folder.
+- A walk list in the plan format (`docs/PLANS.md`, `W1 <role>: <flow>`): the `behaviour` reviewers walk each item through the forms and report it as walked or not.
+- The command check: a PreToolUse hook (`scripts/hooks/reviewer-commands.php`, `.claude/settings.json`) lets a reviewer subagent run only the git commands that read, alone, joined or piped into filters that read; every other command is refused before it runs, with the reason, and logged in `reviewer-refusals.jsonl` in the state folder. The builder's own commands and `explorer` are not looked at.
+- A row's own actions in one three-dot menu: `RowActions` (`components/shared`), placed by `ResponsiveTable`'s `rowActions` in the last column and at the top right of a card on a phone, for a list whose records have no detail page; the destructive action last, set apart and confirmed. `docs/design/patterns/list.md`, `docs/design/components.md` and a `ui` rule describe it, and `/style` shows it in a list of expense categories.
+- `ezdev/no-module-level-t` (oxlint): `t()` and `tChoice()` never run at module level, where the language is not set yet; mark the sentence with `msg()` and translate it where it is shown.
+- `tests/Structure/DesignDocsTest.php`: every pattern file is in the DESIGN.md index with its Sample or Demo section, every file a pattern names exists, and DESIGN.md and `docs/design/` hold no pixel value or Tailwind size class.
+- A change to the reference feature is reviewed: its files other than Markdown are code and touch the lanes of their path inside the feature, and `scripts/screen-round --reference` runs the screen rounds on two copies with the feature installed, without touching the project's own app or database.
+- `FilePicker` (`components/shared`): a file field whose button and file name are the app's own translated words, in place of the browser's file input, with `required` announced and focus passed to the button after a failed submit. The reference task import and the `/style` import demo use it.
+- The reviewers can upload a file in their browser (`browser_file_upload`), so the `behaviour` walk imports the exported CSV and a wrong file.
+- A theme token `qr-background` (`resources/css/app.css`, `docs/design/foundations.md`): the white behind a QR code, white in dark mode too.
+- `tests/Unit/Lint/SkeletonChecksTest.php` breaks every machine rule once in a fixture project and runs the real check on it. `tests/Structure/CheckSettings.php` and `PlacementChecks.php` hold what the structure tests read. `ReviewLedgerTest`, `ScreenRoundTest`, `ReviewerCommandsTest` and `PlaywrightMcpTest` cover the new hooks and scripts.
+
+### Changed
+
+- Machine checks keep a skeleton of 18 rules (55 before): the layer rules in `phpstan.neon`, `ezdev/component-boundaries`, `ezdev/no-module-level-t` and `import/no-cycle` in oxlint, and the structure tests for the folders of `app/`, where pages and components go, code placement, checks that are silenced or turned down, and the design spec. Every other rule is a `[review]` rule; `ARCHITECTURE.md` and `docs/golden-principles.md` say which check owns what.
+- All review happens in the final review, after full `composer check`: no milestone has a review round. A round starts both reviewers together on the same commit, for every lane the change touches; a lane is done when both report no P0 and no P1 on committed code and nothing in its places changed since. There is no cap on rounds, and the screen lanes `look` and `behaviour` come last (`docs/workflow.md`, step 4). The rounds add time and model cost to every change.
+- `docs/workflow.md`, `docs/PLANS.md`, `docs/prompts/review.md`, `docs/prompts/cleanup.md`, `docs/prompts/upgrade.md`, `docs/rules/` and `AGENTS.md` describe this workflow; the weekly cleanup lists gaps in the 18 machine checks and leaves the `[review]` rules with the reviewers.
+- The page check with Playwright is the final review's screen rounds: the AI makes no browser pass of its own before them.
+- README.md and README.zh-CN.md describe this workflow and name Claude Code as the supported tool.
+- The two-factor screens, opened in the browser for the first time: the code step fills the dialog's width, the recovery codes are a plain section with a `Heading` title and an outline toggle, and the QR code has no frame of its own.
+
+### Fixed
+
+- A `ResponsiveDialog` opened without a trigger (from a menu item, for example) gives focus back on close to what had it when it opened.
+
+### Removed
+
+- Codex support: `.codex/` (its settings, hooks and two agents), `.agents/` (the skills Laravel Boost writes for Codex) and `codex` in `boost.json`. The review rounds need Claude Code's subagents and hooks.
+- The single `reviewer` subagent (`.claude/agents/reviewer.md`) and its limit of three rounds.
+- The PHPStan rules `ClassShapeRule`, `CompanionFilesRule`, `ControllerInputRule`, `ModelScopesRule`, `PagePropsUseResourcesRule` and `TraitPlacementRule` (`lint/phpstan/`), and the disallowed method and static calls in `phpstan.neon`.
+- The oxlint rules `form-no-validate`, `icon-button-label`, `no-component-resize`, `no-date-input`, `no-direct-backend-calls`, `no-display-size`, `no-raw-style` and `no-untranslated-text` (`lint/oxlint/ezdev.js`).
+- `tests/Structure/DocsTest.php` (its design spec checks are `DesignDocsTest.php` now), `ResourceTypesTest.php`, `RoutesTest.php` and `TranslationsTest.php`, and the checks of `CodeTest.php`, `FoldersTest.php` and `ConfigTest.php` outside the skeleton. What they checked is read by the reviewers.
+
 ## [1.2.0] - 2026-11-15
 
 Frontend design, batch 1: a clean and bright look, a design spec in four layers, and the first nine page patterns. Batch 2 (below, under "Batch 2") adds ten more patterns and real bulk actions, CSV and print to the reference task list.

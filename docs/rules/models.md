@@ -13,7 +13,7 @@ Before writing a condition, decide what it is about and write it once:
 | One loaded record, no query needs it     | Model method                    | `$order->isCancellable()`                                |
 | Who may act                              | Policy ability                  | controller `Gate::authorize()`, Resource `can.*`         |
 
-Never write the same condition both as a scope and as a PHP comparison. A single record asks the scope. PHPStan rejects `where…` outside app/Models. A comparison on a model field or enum case outside app/Models and app/Enums, and a model method that compares a column one of its scopes filters on, are the reviewer's to find (docs/golden-principles.md principle 1): no linter can tell a business comparison from display.
+Never write the same condition both as a scope and as a PHP comparison. A single record asks the scope. A `where…` outside app/Models, a comparison on a model field or enum case outside app/Models and app/Enums, and a model method that compares a column one of its scopes filters on, are the reviewers' to find (docs/golden-principles.md principles 1 and 3): no linter can tell a business comparison from display.
 
 ```php
 public function isOverdue(): bool
@@ -24,14 +24,14 @@ public function isOverdue(): bool
 
 ## Enums
 
-- Every fixed set of values is a backed enum in `app/Enums/` with TitleCase cases. app/Enums holds nothing else (PHPStan).
+- Every fixed set of values is a backed enum in `app/Enums/` with TitleCase cases. app/Enums holds nothing else.
 - Facts about a value are enum methods (`label()`, `isOpen()`, `requiresAddress()`). Queries use a static helper derived from those methods (`TaskStatus::openValues()`), so cases are never listed twice.
-- To get one enum from another, call a method on the enum (`$role->locationType()`). Never rely on two enums sharing the same values. `from()` and `tryFrom()` are allowed only where input arrives (PHPStan enforces this).
+- To get one enum from another, call a method on the enum (`$role->locationType()`). Never rely on two enums sharing the same values. `from()` and `tryFrom()` are allowed only where input arrives.
 
 ## Models
 
 - Use `#[Fillable([...])]` and `casts()`, as in `app/Models/User.php`. Cast enums, dates and money.
-- Scopes use the `#[Scope]` attribute on a protected method with a typed `Builder<self>` parameter. PHPStan rejects `scopeFoo()` methods.
+- Scopes use the `#[Scope]` attribute on a protected method with a typed `Builder<self>` parameter. Never `scopeFoo()` methods.
 - Relationships have return types with generics (`@return BelongsTo<User, $this>`).
 - A model may extend a framework model to add scopes, as `App\Models\Notification` extends `DatabaseNotification`. Then ask its scopes, not the framework's instance methods that compare the same column again (`unread()`).
 - Models never call Actions, Policies or HTTP classes (PHPStan).
@@ -45,4 +45,4 @@ public function isOverdue(): bool
 ## Database
 
 - Migrations: foreign keys with `foreignId()->constrained()`, money as unsigned integers in cents, statuses as strings cast to enums.
-- Every model has a factory with states for the cases tests need (`completed()`, `overdue()`); PHPStan checks that the factory exists. Tests never insert rows by hand.
+- Every model has a factory with states for the cases tests need (`completed()`, `overdue()`). Tests never insert rows by hand.

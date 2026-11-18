@@ -5,8 +5,8 @@ use Symfony\Component\Process\Process;
 require_once dirname(__DIR__, 3).'/scripts/check-run.php';
 
 /*
-| scripts/hooks/finish-check.php, run the way Claude Code, Codex and composer
-| check run it, in a throwaway git repository: each test starts a conversation,
+| scripts/hooks/finish-check.php, run the way Claude Code and composer check
+| run it, in a throwaway git repository: each test starts a conversation,
 | changes files and reads what the script sends back when the AI is about to stop.
 */
 
@@ -400,7 +400,7 @@ test('an error inside the finish check is told to the user and lets the AI stop'
         ->and($output['systemMessage'])->toStartWith('The finish check failed: ');
 });
 
-test('both AI tools run the finish check, and a missing or broken script still tells the user', function () {
+test('Claude Code runs the finish check, and a missing or broken script still tells the user', function () {
     $root = dirname(__DIR__, 3);
     $repo = finishCheckRepo();
     $missing = sys_get_temp_dir().'/ezdev-no-finish-check-'.bin2hex(random_bytes(6));
@@ -417,16 +417,17 @@ test('both AI tools run the finish check, and a missing or broken script still t
         return $process->getOutput();
     };
 
-    foreach (['.claude/settings.json', '.codex/hooks.json'] as $config) {
-        $hooks = json_decode((string) file_get_contents("{$root}/{$config}"), true)['hooks'];
+    // The template supports Claude Code only: no other tool's hook configuration is shipped.
+    expect(glob("{$root}/.*/hooks.json"))->toBe([]);
 
-        foreach (['SessionStart', 'Stop'] as $event) {
-            $command = $hooks[$event][0]['hooks'][0]['command'];
+    $hooks = json_decode((string) file_get_contents("{$root}/.claude/settings.json"), true)['hooks'];
 
-            expect($run($command, $repo))->toBe('', "{$config} {$event}")
-                ->and($run($command, $missing))->toBe("{\"systemMessage\":\"The finish check could not run.\"}\n", "{$config} {$event}")
-                ->and($run($command, $broken))->toBe("{\"systemMessage\":\"The finish check could not run.\"}\n", "{$config} {$event}");
-        }
+    foreach (['SessionStart', 'Stop'] as $event) {
+        $command = $hooks[$event][0]['hooks'][0]['command'];
+
+        expect($run($command, $repo))->toBe('', $event)
+            ->and($run($command, $missing))->toBe("{\"systemMessage\":\"The finish check could not run.\"}\n", $event)
+            ->and($run($command, $broken))->toBe("{\"systemMessage\":\"The finish check could not run.\"}\n", $event);
     }
 });
 

@@ -74,6 +74,20 @@ function stopChild(signal = 'SIGTERM') {
     }
 }
 
+// Tools whose filename names a file to read, not one to write.
+const readsFile = new Set(['browser_run_code', 'browser_run_code_unsafe', 'browser_set_storage_state']);
+
+// Playwright resolves a filename against the project: every file a browser tool
+// writes, also under a name or a path the request gives, goes to this session's
+// output folder instead, under the name's last part, and browser_close removes it.
+function keepInOutput(request) {
+    const args = request.params?.arguments;
+    if (readsFile.has(request.params?.name) || typeof args?.filename !== 'string' || args.filename === '') return false;
+    const name = args.filename.split(/[\\/]/).pop().replace(/^\.+/, '');
+    args.filename = join(output, name === '' || name === marker ? 'output' : name);
+    return true;
+}
+
 const input = createInterface({ input: process.stdin });
 input.on('line', (line) => {
     try {
@@ -81,6 +95,7 @@ input.on('line', (line) => {
         if (request.method === 'tools/call') {
             toolRequests.add(request.id);
             if (request.params?.name === 'browser_close') closeRequests.add(request.id);
+            if (keepInOutput(request)) line = JSON.stringify(request);
         }
     } catch {}
     child.stdin.write(`${line}\n`);

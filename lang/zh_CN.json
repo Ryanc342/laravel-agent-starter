@@ -458,5 +458,21 @@
     "Packing": "打包中",
     "Shipped": "已发货",
     "Enter a reason.": "请填写原因。",
-    "The title field is required.": "标题不能为空。"
+    "The title field is required.": "标题不能为空。",
+    "More actions": "更多操作",
+    "Actions": "操作",
+    "Expense categories": "费用类别",
+    "Category": "类别",
+    "Expenses": "费用笔数",
+    "No categories yet.": "还没有类别。",
+    "Edit category": "编辑类别",
+    "Category name": "类别名称",
+    "Delete this category?": "删除这个类别？",
+    "“:name” will be deleted. This cannot be undone.": "“:name”将被删除，此操作无法撤销。",
+    "Delete category": "删除类别",
+    "Enter a name for the category.": "请输入类别名称。",
+    "Category saved.": "类别已保存。",
+    "Category deleted.": "类别已删除。",
+    "Choose file": "选择文件",
+    "No file chosen": "未选择文件"
 }

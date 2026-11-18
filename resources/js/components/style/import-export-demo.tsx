@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
+import FilePicker from '@/components/shared/file-picker';
 import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
@@ -9,7 +10,6 @@ import ResponsiveDialog, {
     ResponsiveDialogFooter,
 } from '@/components/shared/responsive-dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
 
 /**
@@ -67,9 +67,8 @@ export default function ImportExportDemo({
                                     label={t('CSV file')}
                                     htmlFor="import-demo-file"
                                 >
-                                    <Input
+                                    <FilePicker
                                         id="import-demo-file"
-                                        type="file"
                                         accept=".csv,text/csv"
                                     />
                                 </FormField>

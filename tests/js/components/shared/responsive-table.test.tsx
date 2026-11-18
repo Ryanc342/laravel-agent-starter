@@ -4,6 +4,7 @@ import ResponsiveTable, {
     type TableColumn,
     type TableSelection,
 } from '@/components/shared/responsive-table';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
@@ -338,4 +339,96 @@ test('an empty table with a selection still spans every column, the checkbox one
     selectableTable({}, []);
 
     expect(screen.getAllByRole('cell')[0].getAttribute('colspan')).toBe('4');
+});
+
+function tableWithActions() {
+    render(
+        <TooltipProvider>
+            <ResponsiveTable
+                columns={columns}
+                rows={rows}
+                getRowKey={(row) => row.id}
+                emptyMessage="You have no tasks yet."
+                rowActions={(row) => [
+                    { label: `Edit ${row.title}`, onSelect: vi.fn() },
+                ]}
+            />
+        </TooltipProvider>,
+    );
+}
+
+test("on desktop a row's actions are one menu button in the last column", () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    tableWithActions();
+
+    expect(screen.getAllByRole('columnheader')).toHaveLength(
+        columns.length + 1,
+    );
+    expect(screen.getAllByRole('columnheader').at(-1)?.textContent).toBe(
+        'Actions',
+    );
+
+    for (const row of screen.getAllByRole('row').slice(1)) {
+        const cells = within(row).getAllByRole('cell');
+
+        expect(cells).toHaveLength(columns.length + 1);
+        expect(within(row).getAllByRole('button')).toHaveLength(1);
+        expect(
+            within(cells[cells.length - 1]).getByRole('button', {
+                name: 'More actions',
+            }),
+        ).toBeTruthy();
+    }
+});
+
+test("on a phone the menu button sits in the card's top row, after the name", () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    tableWithActions();
+
+    const card = screen.getAllByRole('listitem')[0];
+    const button = within(card).getByRole('button', { name: 'More actions' });
+
+    expect(within(card).getAllByRole('button')).toHaveLength(1);
+    expect(button.closest('[data-slot="card-top"]')).not.toBeNull();
+    expect(button.closest('[data-slot="card-top"]')).toBe(
+        within(card).getByText('Buy milk').closest('[data-slot="card-top"]'),
+    );
+    expect(
+        within(card).getByText('Buy milk').compareDocumentPosition(button) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+});
+
+test('an empty table with row actions still spans every column', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    render(
+        <ResponsiveTable
+            columns={columns}
+            rows={[]}
+            getRowKey={(row) => row.id}
+            emptyMessage="You have no tasks yet."
+            rowActions={() => []}
+        />,
+    );
+
+    expect(screen.getAllByRole('cell')[0].getAttribute('colspan')).toBe('4');
+});
+
+test.each([
+    ['on desktop', false],
+    ['on a phone', true],
+])("%s each row's menu holds that row's actions", async (_, mobile) => {
+    vi.mocked(useIsMobile).mockReturnValue(mobile);
+    tableWithActions();
+
+    fireEvent.pointerDown(
+        screen.getAllByRole('button', { name: 'More actions' })[1],
+        { button: 0, ctrlKey: false },
+    );
+
+    expect(
+        (await screen.findAllByRole('menuitem')).map(
+            (item) => item.textContent,
+        ),
+    ).toEqual(['Edit Send quote']);
 });
