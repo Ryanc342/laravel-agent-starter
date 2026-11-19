@@ -24,7 +24,7 @@ use Tests\Structure\ProjectFiles;
 function skeletonFixture(array $files = []): string
 {
     $root = sys_get_temp_dir().'/ezdev-skeleton-'.bin2hex(random_bytes(6));
-    mkdir($root, 0777, true);
+    mkdir($root, 0777, true) ?: throw new RuntimeException("cannot make {$root}");
     // The real path: macOS reaches the temp folder through a symlink, and
     // PHPStan matches allowIn paths against the real one.
     $root = realpath($root) ?: $root;
@@ -39,11 +39,13 @@ function skeletonFixture(array $files = []): string
 
 function skeletonWrite(string $root, string $path, string $content): void
 {
-    if (! is_dir(dirname("{$root}/{$path}"))) {
-        mkdir(dirname("{$root}/{$path}"), 0777, true);
+    if (! is_dir(dirname("{$root}/{$path}")) && ! mkdir(dirname("{$root}/{$path}"), 0777, true)) {
+        throw new RuntimeException("cannot make the folder of {$path}");
     }
 
-    file_put_contents("{$root}/{$path}", $content);
+    if (file_put_contents("{$root}/{$path}", $content) === false) {
+        throw new RuntimeException("cannot write {$path}");
+    }
 }
 
 /**
@@ -61,7 +63,7 @@ function skeletonCopy(string $root, array $paths): void
 function skeletonRemove(string $path): void
 {
     if (is_link($path) || is_file($path)) {
-        unlink($path);
+        unlink($path) ?: throw new RuntimeException("cannot remove {$path}");
 
         return;
     }
@@ -74,7 +76,7 @@ function skeletonRemove(string $path): void
         skeletonRemove("{$path}/{$name}");
     }
 
-    rmdir($path);
+    rmdir($path) ?: throw new RuntimeException("cannot remove {$path}");
 }
 
 /**
@@ -327,7 +329,7 @@ function skeletonEdit(string $root, string $path, string $search, string $replac
 {
     $content = file_get_contents("{$root}/{$path}") ?: throw new RuntimeException("no {$path} to edit");
     expect($content)->toContain($search);
-    file_put_contents("{$root}/{$path}", str_replace($search, $replace, $content));
+    skeletonWrite($root, $path, str_replace($search, $replace, $content));
 }
 
 test('the copied settings pass, so each failure below comes from its one change', function () {

@@ -62,3 +62,21 @@ function sampleRead(string $path): string
 
     return $text === false ? throw new RuntimeException("cannot read {$path}") : $text;
 }
+
+/** Writes a file under $root; a write that fails stops the test. */
+function sampleWrite(string $root, string $path, string $content): void
+{
+    if (! is_dir(dirname("{$root}/{$path}")) && ! mkdir(dirname("{$root}/{$path}"), 0777, true)) {
+        throw new RuntimeException("cannot make the folder of {$path}");
+    }
+
+    if (file_put_contents("{$root}/{$path}", $content) === false) {
+        throw new RuntimeException("cannot write {$path}");
+    }
+}
+
+/** Removes a file; a removal that fails stops the test. */
+function sampleRemove(string $path): void
+{
+    unlink($path) ?: throw new RuntimeException("cannot remove {$path}");
+}

@@ -14,20 +14,16 @@ test('the copy check fails when a copy differs from its page, is missing, or is 
 
     foreach (SAMPLE_COPIES as $copy => $page) {
         foreach (["docs/reference/pages/{$copy}", "resources/js/{$page}"] as $path) {
-            if (! is_dir(dirname("{$root}/{$path}"))) {
-                mkdir(dirname("{$root}/{$path}"), 0777, true);
-            }
-
-            file_put_contents("{$root}/{$path}", "export default function Page() {}\n");
+            sampleWrite($root, $path, "export default function Page() {}\n");
         }
     }
 
     expect(sampleCopyDifferences($root))->toBe([]);
 
-    file_put_contents("{$root}/resources/js/pages/auth/login.tsx", "export default function Login() {}\n");
-    unlink("{$root}/docs/reference/pages/welcome/index.tsx");
-    unlink("{$root}/resources/js/pages/errors/show.tsx");
-    file_put_contents("{$root}/docs/reference/pages/auth/extra.tsx", "export {};\n");
+    sampleWrite($root, 'resources/js/pages/auth/login.tsx', "export default function Login() {}\n");
+    sampleRemove("{$root}/docs/reference/pages/welcome/index.tsx");
+    sampleRemove("{$root}/resources/js/pages/errors/show.tsx");
+    sampleWrite($root, 'docs/reference/pages/auth/extra.tsx', "export {};\n");
 
     expect(sampleCopyDifferences($root))->toEqualCanonicalizing([
         'docs/reference/pages/auth/login.tsx: differs from resources/js/pages/auth/login.tsx',

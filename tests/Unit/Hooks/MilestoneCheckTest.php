@@ -29,9 +29,9 @@ test('a full composer check runs the static checks and both test suites, and its
 
 test('milestone validation rejects an empty or invalid scope before executing checks, and revokes an earlier pass', function (array $paths) {
     $repo = milestoneWorkspace();
-    mkdir("{$repo}/tests/Feature/Empty");
+    mkdir("{$repo}/tests/Feature/Empty") ?: throw new RuntimeException('cannot make tests/Feature/Empty');
     expect(milestoneRun($repo)->getExitCode())->toBe(0);
-    unlink("{$repo}/runtime/commands");
+    unlink("{$repo}/runtime/commands") ?: throw new RuntimeException('cannot remove runtime/commands');
 
     $run = milestoneRun($repo, $paths);
 

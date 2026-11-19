@@ -194,12 +194,17 @@ function stop(string $stateDir, array $input): string
 
 /**
  * When the conversation started: the first time stamp of its transcript, or
- * null when there is none to read.
+ * null when Claude Code names no transcript. A named transcript that is not
+ * there, cannot be read or has no time stamp stops the check.
  */
 function conversationStart(mixed $transcript): ?float
 {
-    if (! is_string($transcript) || ! is_file($transcript)) {
+    if ($transcript === null) {
         return null;
+    }
+
+    if (! is_string($transcript) || ! is_file($transcript)) {
+        throw new RuntimeException('the transcript the Stop input names is not there');
     }
 
     $file = fopen($transcript, 'r') ?: throw new RuntimeException("cannot read the transcript {$transcript}");
@@ -221,11 +226,11 @@ function conversationStart(mixed $transcript): ?float
 
             return $time === false ? throw new RuntimeException("the transcript has a time stamp that cannot be read: {$transcript}") : (float) $time;
         }
+
+        throw new RuntimeException(feof($file) ? "the transcript has no time stamp: {$transcript}" : "cannot read the transcript {$transcript}");
     } finally {
         fclose($file);
     }
-
-    return null;
 }
 
 /**
@@ -412,7 +417,7 @@ function reviewRound(string $plan): string
  */
 function newFileDiff(string $path): string
 {
-    // git diff --no-index exits 1 when the files differ and 0 for an empty new file.
+    // git diff --no-index exits 1 when the files differ (an empty new file too) and 0 when they do not.
     [$exit, $output, $error] = gitRun(['diff', '--no-index', '--', '/dev/null', $path], trim: false);
 
     return in_array($exit, [0, 1], true) ? $output : throw new RuntimeException(trim("git diff failed for {$path}: {$error}", ' :'));

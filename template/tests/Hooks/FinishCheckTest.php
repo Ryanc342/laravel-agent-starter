@@ -232,7 +232,7 @@ test('an error inside the finish check is told to Ryan and lets the AI stop', fu
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'phpstan.neon', "changed\n");
     // A state file that cannot be written.
-    mkdir("{$repo}/.git/ezdev/told-".sha1('broken').'.json', 0777, true);
+    mkdir("{$repo}/.git/ezdev/told-".sha1('broken').'.json', 0777, true) ?: throw new RuntimeException('cannot make the state folder');
 
     $output = finishCheckStop($repo, ['session_id' => 'broken']);
 
@@ -316,6 +316,17 @@ test('a Stop input without a session, or a transcript time that cannot be read, 
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: ');
 });
 
+test('a transcript that is named but not there, or has no time stamp, is told to Ryan', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+
+    expect(finishCheckStop($repo, ['transcript_path' => "{$repo}/gone.jsonl"])['systemMessage'])->toBe('The finish check failed: the transcript the Stop input names is not there');
+
+    finishCheckWrite($repo, 'transcript.jsonl', json_encode(['type' => 'summary'])."\n");
+
+    expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: the transcript has no time stamp');
+});
+
 test('before the first commit the finish check says nothing', function () {
     $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
     finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
@@ -330,7 +341,7 @@ test('Claude Code runs only the Stop hook, and a missing or broken script still 
     $root = dirname(__DIR__, 3);
     $repo = finishCheckRepo();
     $missing = sys_get_temp_dir().'/ezdev-no-finish-check-'.bin2hex(random_bytes(6));
-    mkdir($missing);
+    mkdir($missing) ?: throw new RuntimeException("cannot make {$missing}");
     $broken = finishCheckRepo();
     finishCheckWrite($broken, 'scripts/hooks/finish-check.php', "<?php\n\nthis is not php\n");
     register_shutdown_function(fn () => (new Process(['rm', '-rf', $missing]))->run());
