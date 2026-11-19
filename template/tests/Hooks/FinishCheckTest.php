@@ -276,6 +276,20 @@ test('outside a git repository the finish check says nothing in any language', f
     expect($process->mustRun()->getOutput())->toBe('');
 });
 
+test('a transcript or state file that cannot be read is told to Ryan, never read as none', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    chmod("{$repo}/transcript.jsonl", 0000);
+
+    expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: cannot read the transcript');
+
+    chmod("{$repo}/transcript.jsonl", 0644);
+    finishCheckWrite($repo, 'phpstan.neon', "changed\n");
+    finishCheckWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '{not json');
+
+    expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: ');
+});
+
 test('before the first commit the finish check says nothing', function () {
     $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
     finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
@@ -306,7 +320,7 @@ test('Claude Code runs only the Stop hook, and a missing or broken script still 
     // The template supports Claude Code only: no other tool's hook configuration is shipped.
     expect(glob("{$root}/.*/hooks.json"))->toBe([]);
 
-    $hooks = json_decode((string) file_get_contents("{$root}/.claude/settings.json"), true)['hooks'];
+    $hooks = json_decode(file_get_contents("{$root}/.claude/settings.json") ?: throw new RuntimeException('no .claude/settings.json'), true, flags: JSON_THROW_ON_ERROR)['hooks'];
     $command = $hooks['Stop'][0]['hooks'][0]['command'];
 
     expect(array_keys($hooks))->toBe(['Stop'])
@@ -316,7 +330,7 @@ test('Claude Code runs only the Stop hook, and a missing or broken script still 
 });
 
 test('the session has no question tool and no workflows, and its subagents run in the foreground', function () {
-    $settings = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/.claude/settings.json'), true);
+    $settings = json_decode(file_get_contents(dirname(__DIR__, 3).'/.claude/settings.json') ?: throw new RuntimeException('no .claude/settings.json'), true, flags: JSON_THROW_ON_ERROR);
 
     expect($settings['permissions']['deny'] ?? [])->toContain('AskUserQuestion')->toContain('Workflow')
         ->and($settings['env']['CLAUDE_CODE_DISABLE_BACKGROUND_TASKS'] ?? null)->toBe('1');

@@ -169,7 +169,7 @@ function stop(string $stateDir, array $input): string
     $checks = array_values(array_filter($changed, 'isCheckFile'));
     $session = is_string($input['session_id'] ?? null) ? $input['session_id'] : 'default';
     $told = "{$stateDir}/told-".sha1($session).'.json';
-    $before = is_file($told) ? json_decode((string) file_get_contents($told), true) : [];
+    $before = is_file($told) ? json_decode(readText($told), true, flags: JSON_THROW_ON_ERROR) : [];
 
     if ($checks !== [] && array_diff($checks, is_array($before) ? $before : []) !== []) {
         $lines[] = 'This conversation changed a check: '.implode(', ', $checks).'.';
@@ -193,11 +193,7 @@ function conversationStart(mixed $transcript): ?float
         return null;
     }
 
-    $file = fopen($transcript, 'r');
-
-    if ($file === false) {
-        return null;
-    }
+    $file = fopen($transcript, 'r') ?: throw new RuntimeException("cannot read the transcript {$transcript}");
 
     try {
         while (($line = fgets($file)) !== false) {
@@ -242,7 +238,7 @@ function hasPassed(string $stateDir): bool
 {
     $file = "{$stateDir}/".PASSED;
 
-    return is_file($file) && trim((string) file_get_contents($file)) === fingerprint();
+    return is_file($file) && trim(readText($file)) === fingerprint();
 }
 
 /**
@@ -299,11 +295,13 @@ function isCodePath(string $path): bool
 }
 
 /**
- * The plan's text; a plan that cannot be read stops the round.
+ * A file's text; a file that cannot be read stops the check, never reads as empty.
  */
-function readPlan(string $plan): string
+function readText(string $path): string
 {
-    return file_get_contents($plan) ?: throw new RuntimeException("cannot read {$plan}");
+    $text = file_get_contents($path);
+
+    return $text === false ? throw new RuntimeException("cannot read {$path}") : $text;
 }
 
 /**
@@ -335,7 +333,7 @@ function planChanges(string $plan): array
 {
     $paths = changedSince(planBase($plan));
 
-    if (preg_match(TEMPLATE_COMMIT, readPlan($plan), $match) !== 1) {
+    if (preg_match(TEMPLATE_COMMIT, readText($plan), $match) !== 1) {
         return $paths;
     }
 
@@ -376,7 +374,7 @@ function reviewRound(string $plan): string
     $diffFile = REVIEW_FILES.pathinfo($name, PATHINFO_FILENAME).'.diff';
     $planFile = REVIEW_FILES.$name;
     writeFile($diffFile, $diff);
-    writeFile($planFile, readPlan($plan));
+    writeFile($planFile, readText($plan));
 
     return "Diff: {$diffFile}\nPlan: {$planFile}\n";
 }

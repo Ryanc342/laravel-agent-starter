@@ -37,7 +37,7 @@ function sampleCopyDifferences(string $root): array
             $found[] = "docs/reference/pages/{$copy}: missing";
         } elseif (! is_file("{$root}/resources/js/{$page}")) {
             $found[] = "resources/js/{$page}: missing, the page docs/reference/pages/{$copy} copies";
-        } elseif (file_get_contents("{$folder}/{$copy}") !== file_get_contents("{$root}/resources/js/{$page}")) {
+        } elseif (sampleRead("{$folder}/{$copy}") !== sampleRead("{$root}/resources/js/{$page}")) {
             $found[] = "docs/reference/pages/{$copy}: differs from resources/js/{$page}";
         }
     }
@@ -53,4 +53,12 @@ function sampleCopyDifferences(string $root): array
     }
 
     return $found;
+}
+
+/** A file's text; a file that cannot be read fails the check, never compares as equal. */
+function sampleRead(string $path): string
+{
+    $text = file_get_contents($path);
+
+    return $text === false ? throw new RuntimeException("cannot read {$path}") : $text;
 }

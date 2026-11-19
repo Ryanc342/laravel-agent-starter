@@ -54,7 +54,7 @@ function skeletonWrite(string $root, string $path, string $content): void
 function skeletonCopy(string $root, array $paths): void
 {
     foreach ($paths as $path) {
-        skeletonWrite($root, $path, (string) file_get_contents(dirname(__DIR__, 3)."/{$path}"));
+        skeletonWrite($root, $path, file_get_contents(dirname(__DIR__, 3)."/{$path}") ?: throw new RuntimeException("no {$path} to copy"));
     }
 }
 
@@ -325,7 +325,7 @@ function skeletonSettingsFixture(): string
 
 function skeletonEdit(string $root, string $path, string $search, string $replace): void
 {
-    $content = (string) file_get_contents("{$root}/{$path}");
+    $content = file_get_contents("{$root}/{$path}") ?: throw new RuntimeException("no {$path} to edit");
     expect($content)->toContain($search);
     file_put_contents("{$root}/{$path}", str_replace($search, $replace, $content));
 }
