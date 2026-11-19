@@ -137,7 +137,7 @@ To pick up later starter kit or Laravel changes, run `docs/prompts/upgrade.md`. 
 
 ## Taking a new template release
 
-A project takes a template release with [Copier](https://copier.readthedocs.io), which merges the template's changes between two releases into the project and keeps the project's own changes. Install it once with `pipx install copier` (or `uv tool install copier`, or `brew install copier`); it needs Python 3.9 or later and Git. Then ask the AI to sync the template to a release (`v1.5.0`): it follows `docs/prompts/upgrade.md`, "Projects made from this template", asks about each conflict in the plan, and after your "开始" resolves them, runs `composer check` and the review.
+A project takes a template release with [Copier](https://copier.readthedocs.io), which merges the template's changes between two releases into the project and keeps the project's own changes. Install it once with `pipx install copier` (or `uv tool install copier`, or `brew install copier`); it needs Python 3.9 or later and Git. Then ask the AI to sync the template to a release (`v1.6.0`): it follows `docs/prompts/upgrade.md`, "Projects made from this template", asks about each conflict in the plan, and after your "开始" resolves them, runs `composer check` and the review.
 
 ## Contributing and security
 

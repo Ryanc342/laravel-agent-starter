@@ -115,7 +115,7 @@ AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；�
 
 ## 接收新的模板版本
 
-项目用 [Copier](https://copier.readthedocs.io) 接收模板的新版本：它把两个版本之间的模板改动合并进项目，并保留项目自己的改动。先安装一次：`pipx install copier`（或 `uv tool install copier`、`brew install copier`），需要 Python 3.9 或更新版本和 Git。然后让 AI 把模板同步到某个版本（如 `v1.5.0`）：它按 `docs/prompts/upgrade.md` 的“Projects made from this template”执行，把每个冲突作为计划里的问题问你，你说“开始”后再按回答解决冲突，运行 `composer check` 并完成审查。
+项目用 [Copier](https://copier.readthedocs.io) 接收模板的新版本：它把两个版本之间的模板改动合并进项目，并保留项目自己的改动。先安装一次：`pipx install copier`（或 `uv tool install copier`、`brew install copier`），需要 Python 3.9 或更新版本和 Git。然后让 AI 把模板同步到某个版本（如 `v1.6.0`）：它按 `docs/prompts/upgrade.md` 的“Projects made from this template”执行，把每个冲突作为计划里的问题问你，你说“开始”后再按回答解决冲突，运行 `composer check` 并完成审查。
 
 ## 来源与许可
 
