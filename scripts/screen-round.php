@@ -4,41 +4,46 @@
 | scripts/screen-round: prepares a screen round of the final review
 | (docs/workflow.md, step 4). One command, run without asking the user:
 |
-| 1. It resets the project's database only when APP_ENV is `local` and the
-|    database is on this machine; otherwise it changes nothing and the builder
-|    asks the user.
-| 2. The project's own app must answer (composer dev); otherwise it says so.
-| 3. The review copy, ../<project folder>-review, is a git worktree detached at
-|    the commit under review, with its own .env: its own database, port (the
-|    project's plus 100) and session cookie. It is made the first time and reused
-|    afterwards; nothing deletes it.
-| 4. The project's app shows the current frontend (docs/workflow.md, step 4):
-|    a Vite dev server named in public/hot that answers serves it; without
-|    public/hot the project is built (npm run build, output ignored by git); a
-|    public/hot whose server does not answer stops the round, like an app that
-|    is down.
-| 5. It puts the commit into the review copy (dependencies when a lock file
-|    changed, assets built), resets both databases to the seeded state, starts
-|    or restarts the review copy's app, checks that both apps answer, and prints
-|    the two addresses: the seat of reviewer-opus (`playwright`) and the seat of
-|    reviewer-haiku (`playwright-review`).
+| 1. It changes nothing unless APP_ENV is `local` and the project's database
+|    server is on this machine: the copies' databases live on that server. The
+|    screen lanes then do not run, and the report says why.
+| 2. Each reviewer gets a copy of its own: ../<project folder>-review-opus for
+|    reviewer-opus (`playwright`) and ../<project folder>-review-haiku for
+|    reviewer-haiku (`playwright-review`). A copy is a git worktree detached at
+|    the commit under review, with its own .env: its own database, session
+|    cookie and port. It is made the first time and reused afterwards; nothing
+|    deletes it.
+| 3. The port is the project's plus 100 (opus) or 200 (haiku), or the next free
+|    one when another program holds it; the copy's .env keeps the port it got.
+| 4. It puts the commit into each copy (dependencies when a lock file changed,
+|    the reference feature with --reference, assets built), resets each copy's
+|    database to the seeded state (only the test accounts), starts or restarts
+|    its app, checks that both answer, and prints the two addresses.
+|
+| The project's own app, its files and its development database are never
+| touched, so `composer dev` need not run. Copies of earlier versions of this
+| script (../<project folder>-review, ../<project folder>-reference) are no
+| longer used: `git worktree remove` removes them.
 */
 
-// The hosts that put a database on this machine (decision 9).
+// The hosts that put a database on this machine.
 const SCREEN_ROUND_LOCAL_HOSTS = ['127.0.0.1', 'localhost', '::1'];
 
-// The review copy's port is the project's plus this (decision 7).
-const SCREEN_ROUND_PORT_OFFSET = 100;
+// The two seats: the copy's folder suffix, its port offset from the project's,
+// its database suffix, the reviewer and its browser.
+const SCREEN_ROUND_SEATS = [
+    ['-review-opus', 100, '_review_opus', 'reviewer-opus', 'playwright'],
+    ['-review-haiku', 200, '_review_haiku', 'reviewer-haiku', 'playwright-review'],
+];
 
-// With --reference, seat 1's copy (../<project folder>-reference) has the
-// project's port plus this.
-const SCREEN_ROUND_REFERENCE_PORT_OFFSET = 200;
+// The folders of copies, of this version and of earlier ones: the command never runs inside one.
+const SCREEN_ROUND_COPY_SUFFIXES = ['-review-opus', '-review-haiku', '-review', '-reference'];
 
 // The reference feature, and the file that marks a copy it was installed in.
 const SCREEN_ROUND_REFERENCE = 'docs/reference/tasks';
 const SCREEN_ROUND_REFERENCE_MARK = 'storage/framework/screen-round-reference';
 
-// Inside the review copy: the pid of its app and the app's log.
+// Inside a copy: the pid of its app and the app's log.
 const SCREEN_ROUND_PID = 'storage/logs/screen-round.pid';
 const SCREEN_ROUND_LOG = 'storage/logs/screen-round-serve.log';
 
@@ -46,9 +51,8 @@ const SCREEN_ROUND_LOCKS = ['composer.lock', 'package-lock.json'];
 
 /**
  * Runs the command in the project at $root; returns the exit code. With
- * $reference (`scripts/screen-round --reference`) seat 1 is a second copy too,
- * both copies get the reference feature, and the project's own app, its files
- * and its database are not touched.
+ * $reference (`scripts/screen-round --reference`) both copies get the
+ * reference feature.
  */
 function screenRound(string $root, bool $reference = false): int
 {
@@ -56,13 +60,7 @@ function screenRound(string $root, bool $reference = false): int
     $refusal = screenRoundRefusal($env);
 
     if ($refusal !== null) {
-        return screenRoundFail("{$refusal} scripts/screen-round changed nothing. Ask the user before any database is reset (docs/workflow.md, step 4).");
-    }
-
-    $projectUrl = screenRoundUrl($env);
-
-    if (! $reference && ! screenRoundAnswers($projectUrl)) {
-        return screenRoundFail("The project's app at {$projectUrl} does not answer. Restart composer dev, then run scripts/screen-round again. No screen run starts before it has passed.");
+        return screenRoundFail("{$refusal} scripts/screen-round changed nothing: the copies' databases would be on that server. The screen lanes do not run; put that in the report (docs/workflow.md, step 5).");
     }
 
     $uncommitted = array_values(array_filter(
@@ -74,37 +72,24 @@ function screenRound(string $root, bool $reference = false): int
         return screenRoundFail('Commit the code before a screen round (a round of uncommitted code does not count): '.implode(', ', array_map(fn (string $line): string => trim(substr($line, 3)), $uncommitted)).'. Nothing was changed.');
     }
 
-    if (! $reference) {
-        $frontend = screenRoundFrontend($root);
-
-        if ($frontend !== null) {
-            return screenRoundFail($frontend);
-        }
-    }
-
     $commit = trim(screenRoundGit($root, ['rev-parse', 'HEAD']));
+    $seats = [];
 
-    if (! $reference) {
-        // The project's database back to the seeded state: only the test accounts.
-        screenRoundRun($root, ['php', 'artisan', 'migrate:fresh', '--seed', '--force', '--no-interaction']);
+    foreach (SCREEN_ROUND_SEATS as [$suffix, $offset, $database, $reviewer, $browser]) {
+        $seats[] = [...screenRoundCopy($root, $suffix, $commit, $offset, $database, $reference), 'reviewer' => $reviewer, 'browser' => $browser];
     }
 
-    $seat1 = $reference
-        ? screenRoundCopy($root, '-reference', $commit, SCREEN_ROUND_REFERENCE_PORT_OFFSET, '_reference_seat', true)
-        : ['url' => $projectUrl, 'down' => "The project's app at {$projectUrl} does not answer: restart composer dev, then run scripts/screen-round again."];
-    $seat2 = screenRoundCopy($root, '-review', $commit, SCREEN_ROUND_PORT_OFFSET, '_review', $reference);
-
-    foreach ([$seat1, $seat2] as $seat) {
+    foreach ($seats as $seat) {
         if (! screenRoundAnswers($seat['url'], 20)) {
             return screenRoundFail($seat['down'].' No screen run starts before scripts/screen-round has passed.');
         }
     }
 
-    echo $reference
-        ? 'Screen round ready on '.substr($commit, 0, 7).", with the reference feature in both copies and their databases reset to the seeded state; the project's own app and database were not touched.\n"
-        : 'Screen round ready on '.substr($commit, 0, 7).", both databases reset to the seeded state.\n";
-    echo "Seat 1, reviewer-opus, browser playwright: App: {$seat1['url']}\n";
-    echo "Seat 2, reviewer-haiku, browser playwright-review: App: {$seat2['url']}\n";
+    echo 'Screen round ready on '.substr($commit, 0, 7).($reference ? ', with the reference feature in both copies' : '').", both copies' databases reset to the seeded state; the project's own app and database were not touched.\n";
+
+    foreach ($seats as $number => $seat) {
+        echo 'Seat '.($number + 1).", {$seat['reviewer']}, browser {$seat['browser']}: App: {$seat['url']}\n";
+    }
 
     return 0;
 }
@@ -127,7 +112,7 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
     if ($first) {
         screenRoundRun($root, ['git', 'worktree', 'add', '--detach', $copy, $commit]);
         file_put_contents("{$copy}/.env", screenRoundCopyEnv((string) file_get_contents("{$root}/.env"), $copy, $offset, $database));
-        echo "Review copy created: {$copy}\n";
+        echo "Copy created: {$copy}\n";
     } else {
         $before = trim(screenRoundGit($copy, ['rev-parse', 'HEAD']));
 
@@ -172,8 +157,18 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
 
     screenRoundRun($copy, ['php', 'artisan', 'migrate:fresh', '--seed', '--force', '--no-interaction']);
 
+    // The copy's own app gives its port back first, so a copy keeps its port
+    // unless another program took it.
+    screenRoundStop($copy);
+    $port = screenRoundFreePort(screenRoundPort($copyEnv));
+
+    if ($port !== screenRoundPort($copyEnv)) {
+        file_put_contents("{$copy}/.env", screenRoundSetPort((string) file_get_contents("{$copy}/.env"), $port));
+        $copyEnv = screenRoundParse((string) file_get_contents("{$copy}/.env"));
+    }
+
     $url = screenRoundUrl($copyEnv);
-    screenRoundServe($copy, screenRoundPort($copyEnv));
+    screenRoundServe($copy, $port);
 
     return ['url' => $url, 'down' => "The copy's app at {$url} does not answer: read {$copy}/".SCREEN_ROUND_LOG.'.'];
 }
@@ -210,34 +205,8 @@ function screenRoundInstallReference(string $copy): void
 }
 
 /**
- * Makes the project's own app show the frontend of its working tree, which holds
- * the commit under review: a Vite dev server named in public/hot that answers
- * already serves it; without public/hot the project is built. Returns why the
- * round cannot start (a public/hot whose server does not answer), or null.
- */
-function screenRoundFrontend(string $root): ?string
-{
-    $hot = "{$root}/public/hot";
-
-    if (! is_file($hot)) {
-        screenRoundRun($root, ['npm', 'run', 'build', '--silent']);
-
-        return null;
-    }
-
-    $url = rtrim(trim((string) file_get_contents($hot)), '/');
-    $context = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true, 'follow_location' => 0]]);
-    $http_response_header = [];
-
-    if (@file_get_contents("{$url}/@vite/client", false, $context) !== false && preg_match('#^HTTP/\S+ 200#', $http_response_header[0] ?? '') === 1) {
-        return null;
-    }
-
-    return "The Vite dev server that public/hot names at {$url} does not answer, so the project's app would show no current frontend. Restart composer dev, then run scripts/screen-round again. No screen run starts before it has passed.";
-}
-
-/**
- * Why the project's database may not be reset without asking, or null when it may.
+ * Why the copies' databases may not be made and reset, or null when they may:
+ * the project's environment is not local or its database server is elsewhere.
  *
  * @param  array<string, string>  $env
  */
@@ -260,34 +229,79 @@ function screenRoundRefusal(array $env): ?string
 }
 
 /**
- * The review copy's .env: the project's, with its own URL, port, session cookie
- * and database, and jobs run in the request (composer dev's queue worker runs
- * only for the project).
+ * A copy's .env: the project's, with its own URL, port, session cookie and
+ * database, and jobs run in the request (composer dev's queue worker runs only
+ * for the project).
  */
-function screenRoundCopyEnv(string $env, string $copy, int $offset = SCREEN_ROUND_PORT_OFFSET, string $database = '_review'): string
+function screenRoundCopyEnv(string $env, string $copy, int $offset, string $database): string
 {
     $values = screenRoundParse($env);
-    $port = screenRoundPort($values) + $offset;
-    $url = parse_url($values['APP_URL'] ?? '') ?: [];
-    $set = [
-        'APP_URL' => ($url['scheme'] ?? 'http').'://'.($url['host'] ?? 'localhost').":{$port}",
-        'SERVER_PORT' => (string) $port,
+
+    return screenRoundSetPort(screenRoundSet($env, [
         'SESSION_COOKIE' => preg_replace('/[^a-z0-9_]/', '_', strtolower(basename($copy))).'_session',
         'DB_DATABASE' => ($values['DB_CONNECTION'] ?? 'mysql') === 'sqlite'
             ? "{$copy}/database/database.sqlite"
             : ($values['DB_DATABASE'] ?? 'laravel').$database,
-        // No queue worker runs for the review copy: jobs run in the request.
+        // No queue worker runs for a copy: jobs run in the request.
         'QUEUE_CONNECTION' => 'sync',
-    ];
+    ]), screenRoundPort($values) + $offset);
+}
 
+/**
+ * The .env with the app on $port: APP_URL and SERVER_PORT.
+ */
+function screenRoundSetPort(string $env, int $port): string
+{
+    $url = parse_url(screenRoundParse($env)['APP_URL'] ?? '') ?: [];
+
+    return screenRoundSet($env, [
+        'APP_URL' => ($url['scheme'] ?? 'http').'://'.($url['host'] ?? 'localhost').":{$port}",
+        'SERVER_PORT' => (string) $port,
+    ]);
+}
+
+/**
+ * The .env with each KEY=value of $set, replacing the line of that key or added at the end.
+ *
+ * @param  array<string, string>  $set
+ */
+function screenRoundSet(string $env, array $set): string
+{
     foreach ($set as $key => $value) {
         $line = "{$key}={$value}";
         $env = preg_match("/^{$key}=/m", $env) === 1
-            ? (string) preg_replace("/^{$key}=.*$/m", $line, $env)
+            ? (string) preg_replace("/^{$key}=.*$/m", addcslashes($line, '\\$'), $env)
             : rtrim($env)."\n{$line}\n";
     }
 
     return $env;
+}
+
+/**
+ * $port, or the next port after it that is free: nothing answers on it and it
+ * can be opened.
+ */
+function screenRoundFreePort(int $port): int
+{
+    for ($try = $port; $try < $port + 100; $try++) {
+        $answer = @fsockopen('127.0.0.1', $try, $code, $message, 0.2);
+
+        if ($answer !== false) {
+            fclose($answer);
+
+            continue;
+        }
+
+        $socket = @stream_socket_server("tcp://127.0.0.1:{$try}");
+
+        if ($socket !== false) {
+            fclose($socket);
+
+            return $try;
+        }
+    }
+
+    throw new RuntimeException("no free port from {$port} to ".($port + 99).'.');
 }
 
 /**
@@ -351,12 +365,11 @@ function screenRoundAnswers(string $url, int $wait = 0): bool
 }
 
 /**
- * Stops the review copy's app if it runs, and starts it again on $port.
+ * Stops a copy's app if it runs.
  */
-function screenRoundServe(string $copy, int $port): void
+function screenRoundStop(string $copy): void
 {
-    $pidFile = "{$copy}/".SCREEN_ROUND_PID;
-    $pid = (int) @file_get_contents($pidFile);
+    $pid = (int) @file_get_contents("{$copy}/".SCREEN_ROUND_PID);
 
     if ($pid > 0 && posix_kill($pid, 0)) {
         posix_kill($pid, SIGTERM);
@@ -365,6 +378,15 @@ function screenRoundServe(string $copy, int $port): void
             usleep(100_000);
         }
     }
+}
+
+/**
+ * Stops a copy's app if it runs, and starts it again on $port.
+ */
+function screenRoundServe(string $copy, int $port): void
+{
+    $pidFile = "{$copy}/".SCREEN_ROUND_PID;
+    screenRoundStop($copy);
 
     // The server artisan serve runs, started directly so that its pid is the
     // server's: one process, no workers, so stopping that pid stops the app. Only
@@ -379,7 +401,7 @@ function screenRoundServe(string $copy, int $port): void
     );
 
     if (! is_resource($process)) {
-        throw new RuntimeException("cannot start the review copy's app in {$copy}.");
+        throw new RuntimeException("cannot start the copy's app in {$copy}.");
     }
 
     $pid = trim((string) stream_get_contents($pipes[1]));

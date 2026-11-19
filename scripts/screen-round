@@ -4,17 +4,17 @@
 /*
 | Usage: scripts/screen-round [--reference]
 |
-| Prepares a screen round of the final review: see scripts/screen-round.php and
-| docs/workflow.md, step 4. With --reference both seats are copies with the
-| reference feature, for a change to docs/reference/tasks/. Run it from the
-| project, never from a copy.
+| Prepares a screen round of the final review: a copy of the app for each of
+| the two reviewers, see scripts/screen-round.php and docs/workflow.md, step 4.
+| With --reference both copies get the reference feature, for a change to
+| docs/reference/tasks/. Run it from the project, never from a copy.
 */
 
 require __DIR__.'/screen-round.php';
 
 $root = trim((string) shell_exec('git rev-parse --show-toplevel 2>/dev/null'));
 
-if ($root === '' || str_ends_with($root, '-review') || str_ends_with($root, '-reference')) {
+if ($root === '' || array_filter(SCREEN_ROUND_COPY_SUFFIXES, fn (string $suffix): bool => str_ends_with($root, $suffix)) !== []) {
     exit(screenRoundFail('Run scripts/screen-round inside the project, not in a copy.'));
 }
 

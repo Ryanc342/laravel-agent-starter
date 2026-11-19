@@ -6,9 +6,10 @@ require_once dirname(__DIR__, 3).'/scripts/screen-round.php';
 
 /*
 | scripts/screen-round prepares a screen round of the final review
-| (docs/workflow.md, step 4): the review
-| copy, both databases reset, both apps answering. It resets the project's
-| database without asking only when that database is a local development one.
+| (docs/workflow.md, step 4): two copies of the app, one per reviewer, each with
+| its own database reset to the seeded state and a free port, both answering.
+| The project's own app and database are never touched, and it changes nothing
+| unless the project's database server is a local development one.
 */
 
 test('the guard lets only a local development database be reset', function (array $env, bool $allowed) {
@@ -65,7 +66,7 @@ function screenRoundState(string $repo): array
     ];
 }
 
-test('a database that is not local, or an APP_ENV that is not local, changes nothing and sends the builder to the user', function (string $env) {
+test('a database that is not local, or an APP_ENV that is not local, changes nothing', function (string $env) {
     $repo = screenRoundRepo($env);
     $before = screenRoundState($repo);
 
@@ -73,53 +74,52 @@ test('a database that is not local, or an APP_ENV that is not local, changes not
     $process->run();
 
     expect($process->getExitCode())->toBe(1)
-        ->and($process->getOutput().$process->getErrorOutput())->toContain('changed nothing')->toContain('Ask the user')
+        ->and($process->getOutput().$process->getErrorOutput())->toContain('changed nothing')->toContain('report')->not->toContain('Ask the user')
         ->and(screenRoundState($repo))->toBe($before);
 })->with([
     'production' => ["APP_ENV=production\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop\n"],
     'a remote database' => ["APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=mysql\nDB_HOST=db.example.com\nDB_DATABASE=shop\n"],
 ]);
 
-test('a project app that does not answer stops the round before anything changes', function () {
-    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=sqlite\n");
-    $before = screenRoundState($repo);
-
-    $process = new Process(['php', 'scripts/screen-round'], $repo);
-    $process->run();
-
-    expect($process->getExitCode())->toBe(1)
-        ->and($process->getOutput().$process->getErrorOutput())->toContain('http://127.0.0.1:1 does not answer')->toContain('composer dev')
-        ->and(screenRoundState($repo))->toBe($before);
-});
-
-test('the review copy gets its own database, port and session cookie', function () {
+test('a copy gets its own database, port and session cookie', function () {
     $env = "APP_NAME=Shop\nQUEUE_CONNECTION=database\nAPP_ENV=local\nAPP_URL=http://localhost:8004\nSERVER_PORT=8004\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop_dev\nSESSION_DRIVER=database\n";
-    $copy = screenRoundCopyEnv($env, '/work/shop-review');
+    $copy = screenRoundCopyEnv($env, '/work/shop-review-haiku', 200, '_review_haiku');
 
     expect(screenRoundParse($copy))->toMatchArray([
         'APP_NAME' => 'Shop',
-        'APP_URL' => 'http://localhost:8104',
-        'SERVER_PORT' => '8104',
+        'APP_URL' => 'http://localhost:8204',
+        'SERVER_PORT' => '8204',
         'DB_HOST' => '127.0.0.1',
-        'DB_DATABASE' => 'shop_dev_review',
+        'DB_DATABASE' => 'shop_dev_review_haiku',
         'SESSION_DRIVER' => 'database',
-        'SESSION_COOKIE' => 'shop_review_session',
+        'SESSION_COOKIE' => 'shop_review_haiku_session',
         'QUEUE_CONNECTION' => 'sync',
-    ]);
+    ])->and(screenRoundParse(screenRoundSetPort($copy, 8231)))->toMatchArray(['APP_URL' => 'http://localhost:8231', 'SERVER_PORT' => '8231']);
 });
 
-test('a SQLite project gives the review copy its own database file, and a port from APP_URL', function () {
-    $copy = screenRoundParse(screenRoundCopyEnv("APP_ENV=local\nAPP_URL=http://localhost:8001\nDB_CONNECTION=sqlite\nDB_DATABASE=/work/shop/database/database.sqlite\n", '/work/shop-review'));
+test('a SQLite project gives a copy its own database file, and a port from APP_URL', function () {
+    $copy = screenRoundParse(screenRoundCopyEnv("APP_ENV=local\nAPP_URL=http://localhost:8001\nDB_CONNECTION=sqlite\nDB_DATABASE=/work/shop/database/database.sqlite\n", '/work/shop-review-opus', 100, '_review_opus'));
 
     expect($copy)->toMatchArray([
         'APP_URL' => 'http://localhost:8101',
         'SERVER_PORT' => '8101',
-        'DB_DATABASE' => '/work/shop-review/database/database.sqlite',
-        'SESSION_COOKIE' => 'shop_review_session',
+        'DB_DATABASE' => '/work/shop-review-opus/database/database.sqlite',
+        'SESSION_COOKIE' => 'shop_review_opus_session',
     ]);
 });
 
-test('the review copy\'s app starts in the background, keeps the server\'s pid, and a restart replaces it', function () {
+test('a port that is taken gives the next free one', function () {
+    $port = screenRoundFreeSeatPort();
+    $busy = stream_socket_server("tcp://127.0.0.1:{$port}");
+
+    expect(screenRoundFreePort($port))->toBe($port + 1);
+
+    fclose($busy);
+
+    expect(screenRoundFreePort($port))->toBe($port);
+});
+
+test('a copy\'s app starts in the background, keeps the server\'s pid, and a restart replaces it', function () {
     $copy = sys_get_temp_dir().'/ezdev-screen-round-serve-'.bin2hex(random_bytes(6));
     $server = "{$copy}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php";
 
@@ -176,108 +176,9 @@ test('an app that answers /up without Laravel\'s health page does not count as a
 });
 
 /**
- * A PHP server on a free port that answers every request with $body; returns its address.
- */
-function screenRoundServer(string $body): string
-{
-    $root = sys_get_temp_dir().'/ezdev-screen-round-server-'.bin2hex(random_bytes(6));
-    mkdir($root);
-    file_put_contents("{$root}/router.php", '<?php echo '.var_export($body, true).";\n");
-    $socket = stream_socket_server('tcp://127.0.0.1:0');
-    $port = (int) substr(strrchr((string) stream_socket_get_name($socket, false), ':') ?: ':0', 1);
-    fclose($socket);
-    $server = new Process([PHP_BINARY, '-S', "127.0.0.1:{$port}", "{$root}/router.php"], $root);
-    $server->start();
-    register_shutdown_function(function () use ($server, $root) {
-        $server->stop();
-        (new Process(['rm', '-rf', $root]))->run();
-    });
-
-    for ($i = 0; $i < 50 && @fsockopen('127.0.0.1', $port) === false; $i++) {
-        usleep(100_000);
-    }
-
-    return "http://127.0.0.1:{$port}";
-}
-
-/**
- * A free port nothing listens on.
- */
-function screenRoundDeadUrl(): string
-{
-    $socket = stream_socket_server('tcp://127.0.0.1:0');
-    $port = (int) substr(strrchr((string) stream_socket_get_name($socket, false), ':') ?: ':0', 1);
-    fclose($socket);
-
-    return "http://127.0.0.1:{$port}";
-}
-
-/**
- * Runs screenRoundFrontend() in the project with a fake npm on PATH that notes
- * each call in npm-calls.txt, next to the project; returns [exit code, output].
- *
- * @return array{int, string}
- */
-function screenRoundFrontendRun(string $repo): array
-{
-    $bin = dirname($repo).'/bin';
-    @mkdir($bin);
-    file_put_contents("{$bin}/npm", "#!/bin/sh\necho \"\$PWD \$*\" >> \"".dirname($repo)."/npm-calls.txt\"\n");
-    chmod("{$bin}/npm", 0755);
-    $process = new Process([PHP_BINARY, '-r', 'require "scripts/screen-round.php"; $message = screenRoundFrontend(getcwd()); echo $message ?? "ready"; exit($message === null ? 0 : 1);'], $repo, ['PATH' => "{$bin}:".getenv('PATH')]);
-    $process->run();
-
-    return [(int) $process->getExitCode(), $process->getOutput().$process->getErrorOutput()];
-}
-
-test('without a Vite dev server the project\'s frontend is built before the round', function () {
-    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=sqlite\n");
-
-    [$exit, $output] = screenRoundFrontendRun($repo);
-
-    expect($exit)->toBe(0)
-        ->and($output)->toBe('ready')
-        ->and(file_get_contents(dirname($repo).'/npm-calls.txt'))->toContain(realpath($repo).' run build');
-});
-
-test('a Vite dev server that answers serves the current frontend, so nothing is built', function () {
-    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=sqlite\n");
-    mkdir("{$repo}/public");
-    file_put_contents("{$repo}/public/hot", screenRoundServer('import "/@vite/env";'));
-
-    [$exit, $output] = screenRoundFrontendRun($repo);
-
-    expect($exit)->toBe(0)
-        ->and($output)->toBe('ready')
-        ->and(is_file(dirname($repo).'/npm-calls.txt'))->toBeFalse();
-});
-
-test('a public/hot whose dev server does not answer stops the round before anything changes', function () {
-    $app = screenRoundServer('Application up');
-    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL={$app}\nDB_CONNECTION=sqlite\n");
-    mkdir("{$repo}/public");
-    $hot = screenRoundDeadUrl();
-    file_put_contents("{$repo}/public/hot", $hot);
-    file_put_contents("{$repo}/.gitignore", ".env\n/public/hot\n");
-    (new Process(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-qam', 'ignore hot'], $repo))->mustRun();
-    $bin = dirname($repo).'/bin';
-    mkdir($bin);
-    file_put_contents("{$bin}/npm", "#!/bin/sh\necho \"\$PWD \$*\" >> \"".dirname($repo)."/npm-calls.txt\"\n");
-    chmod("{$bin}/npm", 0755);
-    $before = screenRoundState($repo);
-
-    $process = new Process(['php', 'scripts/screen-round'], $repo, ['PATH' => "{$bin}:".getenv('PATH')]);
-    $process->run();
-
-    expect($process->getExitCode())->toBe(1)
-        ->and($process->getOutput().$process->getErrorOutput())->toContain("{$hot} does not answer")->toContain('composer dev')
-        ->and(screenRoundState($repo))->toBe($before)
-        ->and(is_file(dirname($repo).'/npm-calls.txt'))->toBeFalse();
-});
-
-/**
- * A free port whose seat ports (plus 100 for the review copy, plus 200 for the
- * reference seat) are free too, so a busy neighbouring port cannot fail a run.
+ * A free port whose seat ports (plus 100 and 101 for reviewer-opus's copy, plus
+ * 200 and 201 for reviewer-haiku's) are free too, so a busy neighbouring port
+ * cannot fail a run.
  * It is drawn below the system's range for outgoing connections (49152 and
  * up), which the kernel fills in order and so keeps busy next to each other.
  */
@@ -287,7 +188,7 @@ function screenRoundFreeSeatPort(): int
         $port = random_int(20000, 40000);
         $free = true;
 
-        foreach ([0, 100, 200] as $offset) {
+        foreach ([0, 1, 100, 101, 200, 201] as $offset) {
             $seat = @stream_socket_server('tcp://127.0.0.1:'.($port + $offset));
 
             if ($seat === false) {
@@ -314,11 +215,10 @@ function screenRoundFreeSeatPort(): int
  *
  * @return array{string, int}
  */
-function screenRoundReferenceProject(string $appUrl = ''): array
+function screenRoundReferenceProject(): array
 {
     $port = screenRoundFreeSeatPort();
-    $url = $appUrl === '' ? "http://127.0.0.1:{$port}" : $appUrl;
-    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL={$url}\nSERVER_PORT={$port}\nDB_CONNECTION=sqlite\n");
+    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:{$port}\nSERVER_PORT={$port}\nDB_CONNECTION=sqlite\n");
     $calls = dirname($repo).'/calls.txt';
     $root = dirname(__DIR__, 3);
     $files = [
@@ -381,12 +281,12 @@ test('with --reference both seats are copies with the reference feature, and the
     $calls = (string) file_get_contents(dirname($repo).'/calls.txt');
 
     expect($process->getExitCode())->toBe(0, $output)
-        ->and($output)->toContain('Seat 1, reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 200))
-        ->and($output)->toContain('Seat 2, reviewer-haiku, browser playwright-review: App: http://127.0.0.1:'.($port + 100))
+        ->and($output)->toContain('Seat 1, reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 100))
+        ->and($output)->toContain('Seat 2, reviewer-haiku, browser playwright-review: App: http://127.0.0.1:'.($port + 200))
         ->and($output)->toContain('with the reference feature in both copies')
         ->and($output)->toContain("the project's own app and database were not touched");
 
-    foreach (['project-reference', 'project-review'] as $copy) {
+    foreach (['project-review-opus', 'project-review-haiku'] as $copy) {
         $dir = dirname($project)."/{$copy}";
 
         expect(is_file("{$dir}/app/Models/Task.php"))->toBeTrue($copy)
@@ -400,32 +300,50 @@ test('with --reference both seats are copies with the reference feature, and the
     expect(array_filter(explode("\n", $calls), fn (string $line): bool => str_starts_with($line, "{$project} ")))->toBe([])
         ->and((new Process(['git', 'status', '--porcelain'], $repo))->mustRun()->getOutput())->toBe($status)
         ->and((string) file_get_contents("{$repo}/.env"))->toBe($env)
-        ->and(screenRoundParse((string) file_get_contents(dirname($project).'/project-reference/.env')))->toMatchArray([
-            'SERVER_PORT' => (string) ($port + 200),
-            'SESSION_COOKIE' => 'project_reference_session',
-            'DB_DATABASE' => dirname($project).'/project-reference/database/database.sqlite',
+        ->and(screenRoundParse((string) file_get_contents(dirname($project).'/project-review-opus/.env')))->toMatchArray([
+            'SERVER_PORT' => (string) ($port + 100),
+            'SESSION_COOKIE' => 'project_review_opus_session',
+            'DB_DATABASE' => dirname($project).'/project-review-opus/database/database.sqlite',
         ]);
 });
 
-test('without --reference the project is seat 1 and the review copy no longer holds the feature of an earlier reference round', function () {
-    $app = screenRoundServer('Application up');
-    [$repo, $port] = screenRoundReferenceProject($app);
+test('without --reference both seats are copies too, the project is not touched, and a copy no longer holds the feature of an earlier reference round', function () {
+    [$repo, $port] = screenRoundReferenceProject();
+    $project = realpath($repo);
 
     $first = screenRoundRunIn($repo, ['--reference']);
 
     expect($first->getExitCode())->toBe(0, $first->getOutput().$first->getErrorOutput());
 
+    // Another program takes the port of reviewer-haiku's copy while its app is
+    // down: the copy moves to the next free one.
+    screenRoundStop(dirname($project).'/project-review-haiku');
+
+    for ($i = 0; $i < 50 && ($busy = @stream_socket_server('tcp://127.0.0.1:'.($port + 200))) === false; $i++) {
+        usleep(100_000);
+    }
+
+    expect($busy)->not->toBeFalse();
+
     $process = screenRoundRunIn($repo);
+    fclose($busy);
     $output = $process->getOutput().$process->getErrorOutput();
-    $review = dirname(realpath($repo)).'/project-review';
+    $calls = (string) file_get_contents(dirname($repo).'/calls.txt');
 
     expect($process->getExitCode())->toBe(0, $output)
-        ->and($output)->toContain("Seat 1, reviewer-opus, browser playwright: App: {$app}")
-        ->and($output)->toContain('Seat 2, reviewer-haiku, browser playwright-review: App: http://127.0.0.1:'.($port + 100))
-        ->and(is_file("{$review}/app/Models/Task.php"))->toBeFalse()
-        ->and(is_file("{$review}/".SCREEN_ROUND_REFERENCE_MARK))->toBeFalse()
-        ->and((string) file_get_contents("{$review}/routes/web.php"))->toBe("<?php\n")
-        ->and((string) file_get_contents(dirname($repo).'/calls.txt'))->toContain(realpath($repo).' artisan migrate:fresh --seed');
+        ->and($output)->toContain('Seat 1, reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 100))
+        ->and($output)->toContain('Seat 2, reviewer-haiku, browser playwright-review: App: http://127.0.0.1:'.($port + 201))
+        ->and($output)->toContain("the project's own app and database were not touched")
+        ->and(screenRoundParse((string) file_get_contents(dirname($project).'/project-review-haiku/.env'))['SERVER_PORT'] ?? '')->toBe((string) ($port + 201))
+        ->and(array_filter(explode("\n", $calls), fn (string $line): bool => str_starts_with($line, "{$project} ")))->toBe([]);
+
+    foreach (['project-review-opus', 'project-review-haiku'] as $copy) {
+        $dir = dirname($project)."/{$copy}";
+
+        expect(is_file("{$dir}/app/Models/Task.php"))->toBeFalse($copy)
+            ->and(is_file("{$dir}/".SCREEN_ROUND_REFERENCE_MARK))->toBeFalse($copy)
+            ->and((string) file_get_contents("{$dir}/routes/web.php"))->toBe("<?php\n");
+    }
 });
 
 test('an argument other than --reference changes nothing', function () {
@@ -438,16 +356,16 @@ test('an argument other than --reference changes nothing', function () {
         ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse();
 });
 
-test('a run inside a reference copy changes nothing', function () {
+test('a run inside a copy changes nothing', function (string $suffix) {
     [$repo] = screenRoundReferenceProject();
-    rename($repo, "{$repo}-reference");
+    rename($repo, "{$repo}{$suffix}");
 
-    $process = screenRoundRunIn("{$repo}-reference", ['--reference']);
+    $process = screenRoundRunIn("{$repo}{$suffix}", ['--reference']);
 
     expect($process->getExitCode())->not->toBe(0)
         ->and($process->getOutput().$process->getErrorOutput())->toContain('not in a copy')
         ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse();
-});
+})->with(['-review-opus', '-review-haiku', '-review', '-reference']);
 
 test('an uncommitted file of the reference feature stops the round, its Markdown does not count as code', function () {
     [$repo] = screenRoundReferenceProject();
@@ -462,15 +380,15 @@ test('an uncommitted file of the reference feature stops the round, its Markdown
         ->and(screenRoundIsCode('docs/reference/tasks/README.md'))->toBeFalse();
 });
 
-test('with --reference and MySQL, seat 1 has a database of its own, apart from the review copy\'s and composer check:reference\'s', function () {
+test('with MySQL each copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {
     [$repo, $port] = screenRoundReferenceProject();
     // .env is not committed, so the project switches to MySQL on this machine.
     file_put_contents("{$repo}/.env", "APP_ENV=local\nAPP_URL=http://127.0.0.1:{$port}\nSERVER_PORT={$port}\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop\n");
 
     $process = screenRoundRunIn($repo, ['--reference']);
-    $seats = array_map(fn (string $copy): string => screenRoundParse((string) file_get_contents(dirname(realpath($repo))."/{$copy}/.env"))['DB_DATABASE'] ?? '', ['project-reference', 'project-review']);
+    $seats = array_map(fn (string $copy): string => screenRoundParse((string) file_get_contents(dirname(realpath($repo))."/{$copy}/.env"))['DB_DATABASE'] ?? '', ['project-review-opus', 'project-review-haiku']);
 
     expect($process->getExitCode())->toBe(0, $process->getOutput().$process->getErrorOutput())
-        ->and($seats)->toBe(['shop_reference_seat', 'shop_review'])
+        ->and($seats)->toBe(['shop_review_opus', 'shop_review_haiku'])
         ->and(array_intersect($seats, ['shop', 'shop_reference', 'shop_reference_test']))->toBe([]);
 });
