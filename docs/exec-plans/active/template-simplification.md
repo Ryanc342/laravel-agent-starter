@@ -87,6 +87,10 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 58. The Playwright of reviewer-haiku opens WebKit (the Safari engine); reviewer-opus's keeps Chrome. .mcp.json gives the `playwright-review` server the argument `--browser=webkit`, which scripts/playwright-mcp passes on, and the setup installs WebKit for Playwright (README.md, README.zh-CN.md). Nothing else in the review changes.
 59. A plan that adds or changes a page has a static preview, made while the plan is written: a picture of each new or changed page at 1280×800 and 390×844, made with the template's design (DESIGN.md, docs/design) and example data, saved as PNG files under storage/app/private/design-previews/<plan file name>/ (not committed, not app code). The plan names the files in an agreed decision ("The pages look like the accepted previews: <files>"), and the AI names them when it hands in the plan. Ryan's "开始" accepts the previews with the plan. In lane `look`, a page that differs from its accepted preview without a decision that says so is a finding (an agreed decision implemented differently). The previews are deleted when the plan moves to completed/. docs/workflow.md step 2, docs/PLANS.md and docs/prompts/review.md say this.
 
+New on 2026-11-20, after M9's first review round (decisions 60 and 61)
+60. Every pointer to docs/rules/ follows the move (decision 52) also in the five protected files M8e left: phpstan.neon (three error messages), lint/oxlint/ezdev.js (a comment and its error message), vite.config.ts (a comment), tests/Support/TestsRowLocks.php (a comment) and docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php (a comment).
+61. The review ledger reads a reviewer's report from its last message, and when that has no result line, from the report the reviewer handed back with the SubagentHandback tool in its transcript, as before M8d, with the short wait for a transcript written a moment late. A report in neither is sent back once, as now. This changes decision 51; the rest of M8d (no Bash, `round`) stays.
+
 ## Approved changes
 - Protected files: AGENTS.md, ARCHITECTURE.md, DESIGN.md, docs/golden-principles.md, docs/rules/, docs/design/ (components.md, foundations.md and the pattern files that repeat a rule), docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/tasks/README.md, phpunit.xml, tests/TestCase.php, tests/Unit/Hooks/, tests/Structure/ (only where a check names a removed file or a count), scripts/hooks/, scripts/screen-round, scripts/screen-round.php, scripts/check-milestone.php, .claude/settings.json, .claude/agents/, .claude/skills/, .github/ (only if CI names a removed file).
 - Dependencies: none added or upgraded.
@@ -100,6 +104,9 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
   - Protected files, besides those above: scripts/playwright-mcp (decision 58).
   - Existing test assertions that change: tests/Unit/Hooks/PlaywrightMcpTest.php, only where it asserts the launcher's arguments (decision 58).
   - Not protected, also changed: .mcp.json (decision 58).
+- Added with decisions 60 and 61 (2026-11-20):
+  - Protected files, besides those above: phpstan.neon, lint/oxlint/ezdev.js, vite.config.ts, tests/Support/TestsRowLocks.php, docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php (decision 60).
+  - Existing test assertions that change: tests/Unit/Hooks/ReviewLedgerTest.php, the test that a report handed back in the transcript is not read (decision 61); and its test that a stop which says it waits for the reviewers is sent back once, changed in M8c for decision 49.
 
 ## Milestones
 - [x] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
@@ -117,6 +124,7 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - [x] M8f Copier for project syncs (decision 57).
 - [x] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
 - [x] M8h Static preview of pages in the plan (decision 59).
+- [ ] M8i Pointers and hand-backs (decisions 60 and 61): the five pointers; tests first in tests/Unit/Hooks for the hand-back reading.
 - [ ] M9 Final, on the code after M8h: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
 ## Validation
@@ -184,5 +192,6 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - 2026-11-19 Ryan changed decisions 13 and 14 after the final review: a finding must name the written rule, decision or walk item it breaks; anything else goes to the report (this plan's code) or to tech-debt.md (code from before the plan) and never adds a round. Reason: findings no rule backs kept adding rounds (DulaBot: over 30 rounds in one plan; this plan's final review: 11 rounds). Ryan sends "开始" again in the implementing conversation; that also records this plan's snapshot, which was never recorded.
 - 2026-11-19 Ryan agreed decisions 49 to 57 in the planning chat, after the trial's finish check sent the same reminder back three times and buried his questions. They replace decisions 17 and 20 and part of 25. His new "开始" in the implementing conversation takes the new snapshot (decision 9).
 - 2026-11-19 Ryan agreed decisions 58 and 59 in the planning chat and asked for one simple trial after this update (M9); the planning chat chose a new small request for it, because the passkey trial waits on a browser change Ryan left for later.
+- 2026-11-20 Ryan approved changing the five protected pointers and bringing back the reading of handed-back reports (decisions 60 and 61), after the M9 round on 4a66e670 was not recorded. His new "开始" takes the new snapshot.
 
 ## Outcomes & Retrospective
