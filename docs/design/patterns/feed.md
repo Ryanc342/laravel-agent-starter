@@ -23,4 +23,4 @@ No messages: the same box with a centred `EmptyState` inside ("You have no notif
 
 ## Sample and demo
 
-Copy `resources/js/pages/notifications/index.tsx`, `resources/js/components/notifications/notification-row.tsx` and the `FeedRow` it uses (`resources/js/components/shared/feed-row.tsx`). Demo: `resources/js/components/style/feed-demo.tsx`.
+Copy the samples `docs/reference/pages/notifications/index.tsx` and `docs/reference/pages/components/notifications/notification-row.tsx`, and use the `FeedRow` the row is built on (`resources/js/components/shared/feed-row.tsx`). Demo: `resources/js/components/style/feed-demo.tsx`.

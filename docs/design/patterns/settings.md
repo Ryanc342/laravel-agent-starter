@@ -20,4 +20,4 @@ A section that could not load uses `ErrorState`; one with nothing to show uses `
 
 ## Sample and demo
 
-`resources/js/layouts/settings/layout.tsx` and the pages in `resources/js/pages/settings/`. Demo: `resources/js/components/style/settings-demo.tsx`. The Appearance section holds the theme and, next to it, the "Language" choice: a `ToggleGroup` with "English" and "中文", each named in its own language (.claude/rules/translations.md).
+Copy the samples `docs/reference/pages/settings/profile.tsx`, `docs/reference/pages/settings/security.tsx` and `docs/reference/pages/settings/appearance.tsx`, and use the settings frame `resources/js/layouts/settings/layout.tsx`. Demo: `resources/js/components/style/settings-demo.tsx`. The Appearance section holds the theme and, next to it, the "Language" choice: a `ToggleGroup` with "English" and "中文", each named in its own language (.claude/rules/translations.md).

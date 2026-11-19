@@ -22,4 +22,4 @@ The same blocks, full width. A skeleton row matches the phone layout of its list
 
 ## Demo
 
-`resources/js/components/style/states-demo.tsx`, shown on the style overview page. The notifications page (`resources/js/pages/notifications/index.tsx`) shows the empty line in use.
+`resources/js/components/style/states-demo.tsx`, shown on the style overview page. The notifications page (sample `docs/reference/pages/notifications/index.tsx`) shows the empty line in use.

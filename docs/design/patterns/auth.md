@@ -22,4 +22,4 @@ The same column at full width with the page padding.
 
 ## Sample and demo
 
-Copy `resources/js/pages/auth/login.tsx`, `resources/js/pages/auth/register.tsx` and `resources/js/layouts/auth/auth-simple-layout.tsx`. Demo: `resources/js/components/style/auth-demo.tsx`.
+Copy the samples `docs/reference/pages/auth/login.tsx` and `docs/reference/pages/auth/register.tsx`, and use the auth frame `resources/js/layouts/auth/auth-simple-layout.tsx`. Demo: `resources/js/components/style/auth-demo.tsx`.
