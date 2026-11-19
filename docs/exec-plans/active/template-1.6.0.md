@@ -103,7 +103,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - [x] M5 Rule format and levels (decisions 19 to 24): golden-principles, tags, the result line, no code examples.
 - [x] M6 The changed rules and the six new ones (decisions 25 and 26), and `ResponsiveDialog`'s `wide` size.
 - [x] M7 Every other review rule in the new format (decisions 27 and 28).
-- [ ] M8 Sample copies (decisions 29 to 31).
+- [x] M8 Sample copies (decisions 29 to 31).
 - [ ] M9 Sidebar links (decision 32).
 - [ ] M10 Final: full `composer check` and `composer check:reference`, the final review of every touched lane, CHANGELOG.md and the READMEs (decision 33), one trial from a small new request in a scratch worktree, then stop for "发布".
 
@@ -127,6 +127,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - 2026-11-20 M5 Rule format and levels: golden-principles defines the rule form and the three levels, tags are `[review:<lane>:<level>]` with the levels of decision 27, findings and the result line count L1/L2/L3, the report lists them by level, the eight code examples point to reference files; milestone check passed, commit b5a7619d.
 - 2026-11-20 M6 Changed and new rules: decisions 25, 26 and 37 in actions, app, controllers, form-requests, frontend, models, tests and visual-design; `ResponsiveDialog` `wide` (48rem, `data-size`) with 3 Vitest tests that failed before the code, components.md and form.md; milestone check passed, commit 61e7f1a4.
 - 2026-11-20 M7 Every other review rule: fixes.md without examples; all 123 review rules carry `[review:<lane>:<level>]` and a Why, the [PHPStan], [oxlint] and [Structure] lines are as they were before M5; milestone check passed, commit 29a649c3.
+- 2026-11-20 M8 Sample copies: ten copies in docs/reference/pages/ (paths under resources/js/ without the leading pages/), the seven pattern files and frontend.md's breadcrumb pointer name them and say "use" for the frames and shared parts, template/tests/Lint/SampleCopiesTest.php checks each copy and proves the check fails on a differing, missing or extra copy; milestone check passed, commit 4116c379.
 
 ## Surprises & Discoveries
 - 2026-11-20 M6 rewrote each of the eight rule files it touched as a whole, so every other rule of those files is already in the new format with its decision-27 level; M7 is left with fixes.md and the check of decisions 27 and 28. Splits by decision 24 (levels kept unless a part is clearly level 1): controllers (Policy for list/create/bulk, app/Http folders, route binding, fixed before wildcard path: level 1), actions (lock in the writing transaction / lock written once), tests (lock test), visual-design (feed rule merged with the notification list; URL state; submit disabled while sending, readable text, import and export: level 1; report range in the URL).
