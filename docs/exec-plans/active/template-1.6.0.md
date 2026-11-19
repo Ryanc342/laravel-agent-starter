@@ -98,7 +98,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 ## Milestones
 - [x] M1 Finish check (decisions 3 to 9): tests first in tests/Unit/Hooks; the one Stop check and the check-file line; the other hooks, the check lock and proof, the protected list and the snapshot go.
 - [x] M2 Reviews (decisions 10 to 12): three lanes, no ledger, one screen copy for reviewer-opus; docs/prompts/review.md and the agent files.
-- [ ] M3 Template-only folder (decisions 13 and 14): move the files, the two excludes, CI; check with `git archive` that a release leaves them out.
+- [x] M3 Template-only folder (decisions 13 and 14): move the files, the two excludes, CI; check with `git archive` that a release leaves them out.
 - [ ] M4 Plans, reports and docs (decisions 15 to 18).
 - [ ] M5 Rule format and levels (decisions 19 to 24): golden-principles, tags, the result line, no code examples.
 - [ ] M6 The changed rules and the six new ones (decisions 25 and 26), and `ResponsiveDialog`'s `wide` size.
@@ -122,6 +122,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - 2026-11-20 Q1 to Q3 answered by Ryan (decisions 37 to 39).
 - 2026-11-20 M1 Finish check: one Stop check, the check-file line, a fingerprint pass; milestone check passed, commit 668db900.
 - 2026-11-20 M2 Reviews: lanes backend, frontend and screens (tags renamed), no ledger, one screen copy for reviewer-opus, reviewer-haiku code only; milestone check passed, commit c6a7494f.
+- 2026-11-20 M3 Template-only folder: template/ holds CHANGELOG.md, the template's plans (template/plans/), check-installer, the hook and fixture tests with their own phpunit.xml (composer check and check:milestone run them when template/ exists); `git archive HEAD` holds no template/ file; milestone check passed, commit 1faed355.
 
 ## Surprises & Discoveries
 
