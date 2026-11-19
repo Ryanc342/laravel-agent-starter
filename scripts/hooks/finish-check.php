@@ -331,10 +331,10 @@ function planChanges(string $plan): array
         return $paths;
     }
 
-    $template = git(['rev-parse', '--verify', '--quiet', $match[1].'^{commit}'])
+    $template = gitAnswer(['rev-parse', '--verify', '--quiet', $match[1].'^{commit}'])
         ?? throw new RuntimeException("the plan's template commit {$match[1]} is not in this repository");
 
-    return array_values(array_filter($paths, fn (string $path): bool => (git(['rev-parse', '--verify', '--quiet', "{$template}:{$path}"]) ?? 'deleted') !== contentHash($path)));
+    return array_values(array_filter($paths, fn (string $path): bool => (gitAnswer(['rev-parse', '--verify', '--quiet', "{$template}:{$path}"]) ?? 'deleted') !== contentHash($path)));
 }
 
 /**
@@ -414,6 +414,23 @@ function writeFile(string $file, string $content): void
 function mustGit(array $args, array $env = []): string
 {
     return git($args, $env) ?? throw new RuntimeException('git '.$args[0].' failed');
+}
+
+/**
+ * Asks `git rev-parse --verify --quiet`: its answer, or null when the object
+ * does not exist (exit 1, no message). Any other failure throws.
+ *
+ * @param  list<string>  $args
+ */
+function gitAnswer(array $args): ?string
+{
+    [$exit, $output, $error] = gitRun($args);
+
+    return match (true) {
+        $exit === 0 => $output,
+        $exit === 1 && $error === '' => null,
+        default => throw new RuntimeException("git {$args[0]} failed: {$error}"),
+    };
 }
 
 /**

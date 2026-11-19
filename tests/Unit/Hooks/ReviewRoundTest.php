@@ -142,6 +142,25 @@ test('a round for a sync plan whose template commit is not in the repository fai
         ->and($process->getErrorOutput())->toContain('0123456789abcdef0123456789abcdef01234567');
 });
 
+test('a round for a sync plan fails and says so when git refuses to read the template commit', function () {
+    $repo = roundRepo();
+    $git = fn (string ...$args) => trim((new Process(['git', ...$args], $repo))->mustRun()->getOutput());
+    $template = $git('rev-parse', 'HEAD');
+    roundWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
+    roundWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
+    roundCommit($repo);
+    // A git that refuses to read objects of the template commit, the way a broken object store does.
+    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
+    roundWrite($repo, 'bin/git', "#!/bin/sh\ncase \"\$*\" in *{$template}:*) echo 'fatal: bad object' >&2; exit 128;; esac\nexec {$real} \"\$@\"\n");
+    chmod("{$repo}/bin/git", 0755);
+
+    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'round', 'docs/exec-plans/active/sync-template.md'], $repo, ['PATH' => "{$repo}/bin:".getenv('PATH')]);
+    $process->run();
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('fatal: bad object');
+});
+
 test('a round for a plan that does not exist writes nothing and fails', function () {
     $repo = roundRepo();
     $process = roundRun($repo, 'docs/exec-plans/active/missing.md');
