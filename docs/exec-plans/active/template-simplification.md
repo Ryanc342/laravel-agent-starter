@@ -116,7 +116,7 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - [x] M8e Rules in .claude/rules/, each written once (decisions 52 to 56).
 - [x] M8f Copier for project syncs (decision 57).
 - [x] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
-- [ ] M8h Static preview of pages in the plan (decision 59).
+- [x] M8h Static preview of pages in the plan (decision 59).
 - [ ] M9 Final, on the code after M8h: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
 ## Validation
@@ -160,6 +160,8 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 
 - 2026-11-20 M8g WebKit: 2 launcher tests failed before the code; .mcp.json gives `playwright-review` `--browser=webkit`, the launcher passes on only a `--browser=` argument; WebKit 26.6 installed and a real launch answered with a Safari user agent; READMEs and CHANGELOG.md say how to install it; `composer check:milestone -- tests/Unit/Hooks/PlaywrightMcpTest.php tests/Structure` passed (36 tests), commit e5b6ea12.
 
+- 2026-11-20 M8h previews: docs/workflow.md step 2 (how to make them) and step 5 (delete them at the move), docs/PLANS.md (the rule and the template's decision line), docs/prompts/review.md step 6 (lane `look` compares with them), both READMEs and CHANGELOG.md; a probe made a preview with the app's own stylesheet and font (Surprises); `composer check:milestone -- tests/Structure` passed (25 tests), commit 03bf95f8.
+
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
 - M1 (b): a full `composer check` ran as one foreground Bash call in 236 s (679 Pest tests, 208 s) and ended with exit 0. It needs a Bash timeout above the default two minutes; the call passed 600000 ms, the maximum.
@@ -171,6 +173,7 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - M8e: decision 52 says every pointer to docs/rules/ follows the move, but five protected files that point there are not in Approved changes: phpstan.neon (three error messages), vite.config.ts (a comment), lint/oxlint/ezdev.js (a comment and its error message), tests/Support/TestsRowLocks.php (a comment) and docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php (a comment). They are not changed and still name docs/rules/; the report lists them for Ryan.
 - M8e: decision 53 puts the `ui` rules in .claude/rules/visual-design.md, so the translation rules of lane `behaviour` and the oxlint `t()` rule are there, under "Text and translations", and its `paths:` include lang/ and resources/views/; translations.md keeps how a sentence is written. Two pairs were written twice: money (actions.md also banned `floor()` and `ceil()`; the stricter wording is kept) and lane `behaviour`'s "no Back button next to a breadcrumb, a status word starts with a capital", already in lane `look`'s breadcrumb and Badge rules (kept in `look`).
 - M8f probe: Copier 9.19.1 in a scratch folder. `copier update --defaults --vcs-ref=v2` in a project that was copied by hand and given `.copier-answers.yml` (`_src_path`, `_commit: v1`) merged the template's v1→v2 changes, kept the project's own, copied `{{ }}` text as it is, and left a line both had changed as a conflict (`<<<<<<< before updating`). It did not change `_commit`, because the template has no answers file of its own (that would be a .jinja file, and decision 57 says the template has none); with `_commit` set to v2 by hand, the next update to v3 merged only v2→v3. A project with uncommitted changes is refused. So the sync sets `_commit` itself (docs/prompts/upgrade.md, step 2).
+- M8h probe: Playwright MCP refuses `file:` pages ("Access to \"file:\" protocol is blocked"), so a preview folder is served with `php -S`. With a copy of public/build next to the HTML, the page showed the theme's colours and Instrument Sans; the screenshot is saved in the launcher's temporary folder and was copied out before the close. Only classes the app already uses are in the built CSS, which docs/workflow.md says.
 
 ## Decision Log
 - 2026-11-19 Ryan said "开始" to this plan in the planning chat. The current finish check reads approvals only from the conversation that changes the files, so the implementing conversation adds the approval line for the protected files in "Approved changes" after Ryan's "开始" there.
