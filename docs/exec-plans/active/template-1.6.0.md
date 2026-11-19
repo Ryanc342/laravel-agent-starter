@@ -100,7 +100,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - [x] M2 Reviews (decisions 10 to 12): three lanes, no ledger, one screen copy for reviewer-opus; docs/prompts/review.md and the agent files.
 - [x] M3 Template-only folder (decisions 13 and 14): move the files, the two excludes, CI; check with `git archive` that a release leaves them out.
 - [x] M4 Plans, reports and docs (decisions 15 to 18).
-- [ ] M5 Rule format and levels (decisions 19 to 24): golden-principles, tags, the result line, no code examples.
+- [x] M5 Rule format and levels (decisions 19 to 24): golden-principles, tags, the result line, no code examples.
 - [ ] M6 The changed rules and the six new ones (decisions 25 and 26), and `ResponsiveDialog`'s `wide` size.
 - [ ] M7 Every other review rule in the new format (decisions 27 and 28).
 - [ ] M8 Sample copies (decisions 29 to 31).
@@ -124,6 +124,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - 2026-11-20 M2 Reviews: lanes backend, frontend and screens (tags renamed), no ledger, one screen copy for reviewer-opus, reviewer-haiku code only; milestone check passed, commit c6a7494f.
 - 2026-11-20 M3 Template-only folder: template/ holds CHANGELOG.md, the template's plans (template/plans/), check-installer, the hook and fixture tests with their own phpunit.xml (composer check and check:milestone run them when template/ exists); `git archive HEAD` holds no template/ file; milestone check passed, commit 1faed355.
 - 2026-11-20 M4 Plans, reports and docs: docs/QUALITY.md removed, PLANS.md without Approved changes, cleanup on demand, rule-file sentences, AGENTS.md, workflow, prompts, CONTRIBUTING and both READMEs follow decisions 3 to 17; milestone check passed, commit 9c47e334.
+- 2026-11-20 M5 Rule format and levels: golden-principles defines the rule form and the three levels, tags are `[review:<lane>:<level>]` with the levels of decision 27, findings and the result line count L1/L2/L3, the report lists them by level, the eight code examples point to reference files; milestone check passed, commit b5a7619d.
 
 ## Surprises & Discoveries
 
