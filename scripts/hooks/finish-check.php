@@ -59,7 +59,9 @@
 | in the foreground (CLAUDE_CODE_DISABLE_BACKGROUND_TASKS in .claude/settings.json),
 | so nothing changes the code while they read it. A finished plan needs, for each
 | lane, a latest round with a clean run of each of the two models, with no code
-| change since that touches the lane, however many rounds that takes.
+| change since that touches the lane, however many rounds that takes. A plan that
+| syncs the template into a project names the template's commit
+| (`Template: <commit>`); a file that is as it is there is not reviewed.
 |
 | A conversation that changed no file is never stopped. The state lives in
 | .git/ezdev/ (git rev-parse --git-path ezdev), outside the repository's files.
@@ -186,6 +188,10 @@ const WALK_ITEM = '/^\s*(?:[-*+]\s+)?(W\d+)\s+[^:\n]+:/m';
 const WALKED_ITEM = '/^\W*(W\d+)\s+walked\b/mi';
 
 const REVIEW_LEDGER = 'review-ledger.jsonl';
+
+// A plan that syncs the template into a project names the template's commit
+// (docs/prompts/upgrade.md): a file identical to the template's there is not reviewed.
+const TEMPLATE_COMMIT = '/^\s*(?:[-*+]\s+)?Template:\s*`?([0-9a-f]{7,40})`?/mi';
 
 // The plan a reviewer's request names (docs/prompts/review.md): `Plan: <path>`.
 const REQUEST_PLAN = '#\bPlan:\s*`?(?:\S*/)?([^/\s`]+\.md)\b#';
@@ -419,7 +425,7 @@ function missingSteps(array $state, string $stateDir): array
         $ledger = readLedger($stateDir);
 
         foreach ($final as $plan) {
-            $reason = finalReview($plan, touchedLanes(planChanges($plan, $changed)), $ledger);
+            $reason = finalReview($plan, touchedLanes(planChanges($stateDir, $plan, $changed)), $ledger);
 
             if ($reason !== null) {
                 $missing['review:'.basename($plan)] = ['finish the review rounds of '.$plan, $reason];
@@ -632,7 +638,7 @@ function reviewStatus(string $stateDir, string $plan): string
     $lines = [];
     $done = true;
 
-    foreach (touchedLanes(planChanges($plan, changedSince(null))) as $lane) {
+    foreach (touchedLanes(planChanges($stateDir, $plan, changedSince(null))) as $lane) {
         $laneRuns = array_values(array_filter($runs, fn (array $run): bool => $run['lane'] === $lane));
         $problem = laneProblem($lane, $laneRuns);
         $rounds = count(array_unique(array_column($laneRuns, 'round')));
@@ -948,24 +954,28 @@ function touchedLanes(array $paths): array
 
 /**
  * Every file the plan's work changed: since the commit before the plan was first
- * added, or, for a plan not yet committed, in this conversation.
+ * added, or, for a plan not yet committed, in this conversation. A file that is
+ * as it is in the template commit a sync plan names is left out.
  *
  * @param  list<string>  $changed
  * @return list<string>
  */
-function planChanges(string $plan, array $changed): array
+function planChanges(string $stateDir, string $plan, array $changed): array
 {
     $name = basename($plan);
     $added = array_filter(explode("\n", git(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name]) ?? ''));
+    // The empty tree, when the plan came with the first commit.
+    $before = $added === [] ? null : git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+    $paths = $before === null ? $changed : array_values(array_unique([...changedSince($before), ...$changed]));
+    $template = preg_match(TEMPLATE_COMMIT, snapshot($stateDir, $name) ?? (string) file_get_contents($plan), $match) === 1
+        ? git(['rev-parse', '--verify', '--quiet', $match[1].'^{commit}'])
+        : null;
 
-    if ($added === []) {
-        return $changed;
+    if ($template === null) {
+        return $paths;
     }
 
-    // The empty tree, when the plan came with the first commit.
-    $before = git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
-
-    return array_values(array_unique([...changedSince($before), ...$changed]));
+    return array_values(array_filter($paths, fn (string $path): bool => (git(['rev-parse', '--verify', '--quiet', "{$template}:{$path}"]) ?? 'deleted') !== contentHash($path)));
 }
 
 /**

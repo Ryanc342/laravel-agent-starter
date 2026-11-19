@@ -83,8 +83,8 @@ Release
 ## Milestones
 - [x] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
 - [x] M2 Snapshot and finish check (decisions 6 to 12, 16, 19 as M1 found, 23 to 27). Tests first in tests/Unit/Hooks. Ryan's "开始" for this plan came before the hook existed: M2 ends by recording, once, the snapshot of this plan as committed when he approved it, with a command that is not kept in the template.
-- [ ] M3 Questions and approval in the docs (decisions 1 to 5, 8 to 12).
-- [ ] M4 Reviewers (decisions 13 to 22).
+- [x] M3 Questions and approval in the docs (decisions 1 to 5, 8 to 12).
+- [x] M4 Reviewers (decisions 13 to 22).
 - [ ] M5 Screens and tests (decisions 28 to 30).
 - [ ] M6 Plan format and report (decisions 31 to 33).
 - [ ] M7 Exceptions and text (decisions 34 to 46).
@@ -100,6 +100,8 @@ Release
 ## Progress
 - 2026-11-19 M1 probe passed (a and b), no template change, commit 6d0ff09e.
 - 2026-11-19 M2 snapshot and finish check: 44 hook tests failed before the code, then `composer check:milestone -- tests/Unit/Hooks` passed (318 tests); the one-time snapshot of this plan is still missing (Surprises), commit 64b624ef.
+- 2026-11-19 M3 questions and approval in the docs; AGENTS.md, docs/workflow.md and docs/PLANS.md are written in their final form, so they also carry decisions 13, 19, 22, 27, 31 to 33, 42 and 43 for those files; `composer check:milestone -- tests/Structure` passed, commit 4a807f71.
+- 2026-11-19 M4 reviewers: 15 hook tests failed before the code (14 command checks, 1 template sync); golden-principles by lane, the review prompt, the agent files, the seeder; `composer check:milestone -- tests/Unit/Hooks tests/Structure` passed (368 tests), commit M4.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.

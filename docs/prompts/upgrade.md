@@ -38,4 +38,4 @@ The starter kit code was copied into this project and rewritten to the v2 rules,
 
 ## Projects made from this template
 
-A project made from the template is not linked to it. To bring template changes (rules, checks, docs) into a project, read the template's CHANGELOG.md, list the changes for the user, write the picks into a plan whose Decision Log names every protected file they change, copy them, and run the project's `composer check`.
+A project made from the template is not linked to it. To bring template changes (rules, checks, docs) into a project, fetch the template's release into it (`git fetch https://github.com/ryanc342/laravel-agent-starter.git <tag>`; `git rev-parse FETCH_HEAD` prints its commit), read its CHANGELOG.md, list the changes for the user and write the picks into a plan. Its "Approved changes" starts with `Template: <commit>` and names every protected file the picks change. After the user's "开始", copy the files, run the project's `composer check` and review as for any plan: a file that is as it is in the template's commit is not reviewed (docs/prompts/review.md, step 3).

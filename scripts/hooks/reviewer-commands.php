@@ -4,19 +4,26 @@
 | The command check (docs/prompts/review.md, docs/golden-principles.md
 | principle 9): Claude Code runs this script before every Bash call
 | (.claude/settings.json, PreToolUse). A call of a reviewer subagent
-| (`agent_type` reviewer-*) runs only when it reads:
+| (`agent_type` reviewer-*) runs only when every command in it only reads:
 |
-| - a git subcommand that only reads (READ_ONLY_GIT), alone, joined with && or ;,
-| - or piped into a filter that only reads its input (FILTERS).
+| - a git subcommand that reads (READ_ONLY_GIT), also after `git -C <folder>`,
+| - a program that reads files or its input (READERS), without the options
+|   that write a file or start another program,
+| - `cd <folder>`,
 |
-| Everything else is refused before it runs: any other program, a redirection,
-| a command or process substitution, a background job, git's --output, `sed -i`,
-| a sed script that writes or runs. The reviewer reads the reason; the refusal
-| is written to reviewer-refusals.jsonl in the state folder (time, reviewer,
-| command). The builder's own calls and other subagents are never looked at.
+| alone, joined with && or ;, or piped into each other. Everything else is
+| refused before it runs: any other program (one that writes, a shell, the
+| network), a redirection, a command or process substitution, a variable, a
+| glob outside quotes, a background job. The reviewer reads the reason; the
+| refusal is written to reviewer-refusals.jsonl in the state folder (time,
+| reviewer, command). The builder's own calls and other subagents are never
+| looked at.
 */
 
-const READ_ONLY_GIT = ['diff', 'show', 'log', 'status', 'ls-files', 'ls-tree', 'rev-parse', 'rev-list', 'merge-base', 'cat-file', 'grep', 'blame', 'describe'];
+const READ_ONLY_GIT = ['diff', 'show', 'log', 'status', 'ls-files', 'ls-tree', 'rev-parse', 'rev-list', 'merge-base', 'cat-file', 'grep', 'blame', 'describe', 'shortlog', 'diff-tree', 'for-each-ref', 'name-rev', 'show-ref'];
+
+// git subcommands that read only with these words after them.
+const READ_ONLY_GIT_USES = ['worktree' => ['list'], 'branch' => ['--list', '-a', '-r', '-v', '-vv', '--show-current']];
 
 // git options that write a file or start another program. git takes any
 // unique prefix of a long option (`--open` for --open-files-in-pager), so a
@@ -27,13 +34,43 @@ const GIT_LONG_WRITES = ['output', 'open-files-in-pager', 'ext-diff'];
 // (`-iO` is `-i -O`).
 const GIT_SHORT_WRITES = ['O'];
 
-// sort options that write a file or start another program, the same way.
-const SORT_LONG_WRITES = ['output', 'compress-program'];
-const SORT_SHORT_WRITES = ['o'];
+// The programs that read, each with the long and short options that would make
+// it write a file or start another program.
+const READERS = [
+    'cat' => [[], []],
+    'head' => [[], []],
+    'tail' => [[], []],
+    'grep' => [[], []],
+    'rg' => [['pre', 'pre-glob'], []],
+    'wc' => [[], []],
+    'sort' => [['output', 'compress-program'], ['o']],
+    'uniq' => [[], []],
+    'cut' => [[], []],
+    'tr' => [[], []],
+    'ls' => [[], []],
+    'diff' => [[], []],
+    'comm' => [[], []],
+    'nl' => [[], []],
+    'stat' => [[], []],
+    'du' => [[], []],
+    'basename' => [[], []],
+    'dirname' => [[], []],
+    'realpath' => [[], []],
+    'pwd' => [[], []],
+    'echo' => [[], []],
+    'jq' => [[], []],
+    'find' => [[], []],
+    'sed' => [[], []],
+];
 
-const FILTERS = ['head', 'tail', 'grep', 'wc', 'sort', 'uniq', 'cut', 'cat', 'tr', 'sed'];
+// find's actions that delete, write a file or start a program.
+const FIND_WRITES = ['-delete', '-exec', '-execdir', '-ok', '-okdir', '-fprint', '-fprint0', '-fprintf', '-fls'];
 
-const REASON = 'Reviewers only read. Bash runs only the git commands that read (git diff, show, log, status, ls-files, ls-tree, rev-parse, rev-list, merge-base, cat-file, grep, blame, describe), alone, joined with && or ;, or piped into head, tail, grep, wc, sort, uniq, cut, cat, tr or sed -n \'<lines>p\'. No redirection, substitution, tee, xargs or awk. Read files with the Read tool and search them with Read, Grep and Glob.';
+// A sed script that only prints: an optional address or range (a line, `$`, a
+// /pattern/) followed by `p`.
+const SED_PRINT = '#^(?:(?:\d+|\$|/(?:[^/\\\\]|\\\\.)*/)(?:,(?:\d+|\$|/(?:[^/\\\\]|\\\\.)*/))?)?p$#';
+
+const REASON = 'Reviewers only read. Bash runs only commands that read: git commands that read (git diff, show, log, status, ls-files, ls-tree, rev-parse, rev-list, merge-base, cat-file, grep, blame, describe, shortlog, worktree list, also after git -C <folder>), cd <folder>, and cat, head, tail, grep, rg, find, ls, wc, sort, uniq, cut, tr, diff, jq, echo and sed -n \'<address>p\', alone, joined with && or ; or piped. No redirection, substitution, variable, glob outside quotes, tee, xargs or awk, no option that writes or starts a program (find -delete or -exec, rg --pre, sort -o, git --output), no network. Read files with the Read tool and search them with Read, Grep and Glob.';
 
 $input = json_decode((string) stream_get_contents(STDIN), true);
 $input = is_array($input) ? $input : [];
@@ -62,8 +99,8 @@ if ($state !== '') {
 echo json_encode(['hookSpecificOutput' => ['hookEventName' => 'PreToolUse', 'permissionDecision' => 'deny', 'permissionDecisionReason' => REASON]], JSON_UNESCAPED_SLASHES);
 
 /**
- * Whether the command only reads: every pipeline starts with a git command that
- * reads and pipes only into filters that read.
+ * Whether the command only reads: every stage of every pipeline is a command
+ * that reads.
  */
 function readsOnly(string $command): bool
 {
@@ -74,8 +111,8 @@ function readsOnly(string $command): bool
     }
 
     foreach ($pipelines as $pipeline) {
-        foreach ($pipeline as $index => $words) {
-            if ($words === [] || ! ($index === 0 ? gitReads($words) : filterReads($words))) {
+        foreach ($pipeline as $words) {
+            if ($words === [] || ! commandReads($words)) {
                 return false;
             }
         }
@@ -88,7 +125,7 @@ function readsOnly(string $command): bool
  * The command as pipelines (split at && and ;), each a list of stages (split
  * at |), each a list of words with their quotes removed. Null when the command
  * holds anything else outside quotes: a redirection, a substitution, a
- * background job, ||, a subshell, a variable or a new line.
+ * background job, ||, a subshell, a variable, a glob or a new line.
  *
  * @return list<list<list<string>>>|null
  */
@@ -190,7 +227,7 @@ function split(string $command): ?array
         }
 
         if (str_contains("<>&`$(){}\n\r!*?[]", $char)) {
-            // Globs (* ? [ ]) are refused too: git takes its own patterns in quotes.
+            // Globs (* ? [ ]) are refused too: a file name could turn into an option.
             return null;
         }
 
@@ -210,27 +247,72 @@ function split(string $command): ?array
 }
 
 /**
+ * Whether one command (a stage of a pipeline) only reads.
+ *
  * @param  list<string>  $words
  */
-function gitReads(array $words): bool
+function commandReads(array $words): bool
 {
-    if ($words[0] !== 'git') {
+    $program = $words[0];
+    $arguments = array_slice($words, 1);
+
+    if ($program === 'git') {
+        return gitReads($arguments);
+    }
+
+    // `cd` moves to one folder and reads nothing.
+    if ($program === 'cd') {
+        return count($arguments) <= 1;
+    }
+
+    if (! isset(READERS[$program])) {
         return false;
     }
 
-    $rest = array_slice($words, 1);
+    [$long, $short] = READERS[$program];
 
-    while (($rest[0] ?? null) === '--no-pager') {
-        array_shift($rest);
+    if (array_filter($arguments, fn (string $word): bool => writingOption($word, $long, $short)) !== []) {
+        return false;
     }
 
-    if (! in_array($rest[0] ?? null, READ_ONLY_GIT, true)) {
+    return match ($program) {
+        'find' => array_intersect($arguments, FIND_WRITES) === [],
+        // uniq writes to a second file name.
+        'uniq' => count(array_filter($arguments, fn (string $word): bool => $word === '-' || ! str_starts_with($word, '-'))) <= 1,
+        // Only printing: `sed -n '<address>p' [files]`.
+        'sed' => ($arguments[0] ?? null) === '-n' && preg_match(SED_PRINT, $arguments[1] ?? '') === 1
+            && array_filter(array_slice($arguments, 2), fn (string $word): bool => str_starts_with($word, '-')) === [],
+        default => true,
+    };
+}
+
+/**
+ * Whether the words after `git` only read: `-C <folder>` and `--no-pager` may
+ * come first, then a subcommand that reads, with no option that writes.
+ *
+ * @param  list<string>  $rest
+ */
+function gitReads(array $rest): bool
+{
+    while (in_array($rest[0] ?? null, ['--no-pager', '-C'], true)) {
+        $rest = array_slice($rest, $rest[0] === '-C' ? 2 : 1);
+    }
+
+    $subcommand = $rest[0] ?? null;
+    $arguments = array_slice($rest, 1);
+
+    if (isset(READ_ONLY_GIT_USES[$subcommand])) {
+        // A bare `git branch` lists the branches; a bare `git worktree` only prints its usage.
+        return ($arguments !== [] || $subcommand === 'branch') && array_diff($arguments, READ_ONLY_GIT_USES[$subcommand]) === [];
+    }
+
+    if (! in_array($subcommand, READ_ONLY_GIT, true)) {
         return false;
     }
 
     // Every word, also after `--`: that `--` may be an option's value
     // (`git grep -e -- -O rm`), and git then still reads what follows.
-    foreach (array_slice($rest, 1) as $word) {
+    foreach ($arguments as $word) {
         if (writingOption($word, GIT_LONG_WRITES, GIT_SHORT_WRITES)) {
             return false;
         }
@@ -255,31 +337,9 @@ function writingOption(string $word, array $long, array $short): bool
     }
 
     // The whole cluster, digits included: git reads `-1O` as `-1 -O`.
-    if (preg_match('/^-(.+)/', $word, $cluster) === 1) {
+    if ($short !== [] && preg_match('/^-(.+)/', $word, $cluster) === 1) {
         return array_intersect(str_split($cluster[1]), $short) !== [];
     }
 
     return false;
-}
-
-/**
- * @param  list<string>  $words
- */
-function filterReads(array $words): bool
-{
-    $program = $words[0];
-    $arguments = array_slice($words, 1);
-
-    if (! in_array($program, FILTERS, true)) {
-        return false;
-    }
-
-    return match ($program) {
-        'sort' => array_filter($arguments, fn (string $word): bool => writingOption($word, SORT_LONG_WRITES, SORT_SHORT_WRITES)) === [],
-        // uniq writes to a second file name; in a pipe it takes none.
-        'uniq' => array_filter($arguments, fn (string $word): bool => ! str_starts_with($word, '-')) === [],
-        // Only printing line ranges: `sed -n '10,40p'`.
-        'sed' => count($arguments) === 2 && $arguments[0] === '-n' && preg_match('/^(\d+|\$)(,(\d+|\$))?p$/', $arguments[1]) === 1,
-        default => true,
-    };
 }

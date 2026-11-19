@@ -4,10 +4,11 @@ use Symfony\Component\Process\Process;
 
 /*
 | scripts/hooks/reviewer-commands.php, run the way Claude Code's PreToolUse hook
-| runs it before a Bash call: a reviewer subagent may run only commands that
-| read (docs/prompts/review.md); everything else is refused before it runs and
-| written to the refusal log in the state folder. The builder's own commands and
-| other subagents are never looked at.
+| runs it before a Bash call: a reviewer subagent may run every command that only
+| reads (search, viewing files, git commands that read); a write, a redirection,
+| a substitution and the network are refused before they run and written to the
+| refusal log in the state folder. The builder's own commands and other
+| subagents are never looked at.
 */
 
 /**
@@ -51,7 +52,7 @@ function reviewerCommandsLog(string $repo): array
     return is_file($file) ? array_map(fn (string $line): array => json_decode($line, true), file($file, FILE_IGNORE_NEW_LINES) ?: []) : [];
 }
 
-test('a reviewer may run git commands that read, alone, joined or piped into a filter', function (string $command) {
+test('a reviewer may run every command that only reads, alone, joined or piped', function (string $command) {
     $repo = reviewerCommandsRepo();
 
     foreach (['reviewer-opus', 'reviewer-haiku'] as $reviewer) {
@@ -75,6 +76,20 @@ test('a reviewer may run git commands that read, alone, joined or piped into a f
     'every git command that reads' => ['git ls-files && git ls-tree HEAD && git rev-parse HEAD && git rev-list -1 HEAD && git merge-base HEAD main && git cat-file -t HEAD && git blame app/Models/Task.php && git describe --always'],
     'a path with a dash' => ['git ls-files docs/exec-plans/Overview.md'],
     'every filter' => ['git log | cut -c1-80 | tr a-z A-Z | cat | head -5'],
+    'a file' => ['cat .env'],
+    'files with a separator line between them' => ['cat docs/prompts/review.md && echo ---- && cat ARCHITECTURE.md | head -150'],
+    'a search of the files' => ['grep -rn "Accepted:" docs/exec-plans/ docs/QUALITY.md | head -20'],
+    'a search with ripgrep' => ['rg -n "function \\w+\\(" app/Enums app/Models'],
+    'the lines from a heading to the end' => ["sed -n '/Review lanes/,\$p' docs/golden-principles.md"],
+    'the lines between two headings' => ["sed -n '/^## 4/,/^## 5/p' docs/workflow.md"],
+    'lines of a file' => ['git log | sed -n 10p x'],
+    'another folder, then git' => ['cd /Users/ryan/Projects/app-review && git status --short'],
+    'git in another folder' => ['git -C /Users/ryan/Projects/app-review log --oneline -3'],
+    'the folders and files' => ['ls -la docs && wc -l AGENTS.md && find docs -name "*.md" -type f | sort'],
+    'the worktrees and the branches' => ['git worktree list && git branch && git branch -a'],
+    'two files compared' => ['diff docs/workflow.md docs/PLANS.md'],
+    'counted lines of a file' => ['git log | uniq -c x'],
+    'the last commits of a branch' => ['git shortlog -sn && git for-each-ref --format="%(refname)" refs/heads && git diff-tree --name-only -r HEAD'],
 ]);
 
 test('a reviewer is refused every command that could write, with the reason and a log line', function (string $command) {
@@ -122,8 +137,6 @@ test('a reviewer is refused every command that could write, with the reason and 
     'a prefix of --compress-program' => ['git log | sort --compress=rm'],
     '-o inside a cluster of sort options' => ['git log | sort -ro x'],
     'uniq with a file it writes' => ['git log | uniq - out'],
-    'uniq with a file name after an option' => ['git log | uniq -c x'],
-    'sed with a file name' => ['git log | sed -n 10p x'],
     '-O after a number in a cluster' => ['git grep -1Orm x'],
     '-O after a letter and a number in a cluster' => ['git grep -i1Orm x'],
     'sort --output' => ['git log | sort --output=x'],
@@ -161,7 +174,6 @@ test('a reviewer is refused every command that could write, with the reason and 
     'a pipe with nothing before it' => ['| head'],
     'an empty stage between two pipes' => ['git log | | head'],
     'a separator with nothing before it' => ['; git log'],
-    'a filter that reads a file' => ['cat .env'],
     'a second command that writes' => ['git log ; rm x'],
     'another program with a git word' => ['rm show'],
     'an option with its value in single quotes' => ["git diff --output='x'"],
@@ -173,6 +185,19 @@ test('a reviewer is refused every command that could write, with the reason and 
     'a sed write before the line range' => ["git log | sed -n 'w notes;10p'"],
     'a sed command that runs the line' => ['git log | sed -n 10e'],
     'a write option just before a separator' => ['git log --output=x; git status'],
+    'find that deletes' => ['find storage -name "*.log" -delete'],
+    'find that runs a program' => ['find . -name x -exec rm {} ;'],
+    'find that writes its list' => ['find . -fprint list'],
+    'ripgrep with a preprocessor' => ['rg --pre rm x'],
+    'a download' => ['curl https://example.com'],
+    'git fetch' => ['git fetch origin'],
+    'git push' => ['git push'],
+    'a branch deleted' => ['git branch -D main'],
+    'a worktree removed' => ['git worktree remove ../x'],
+    'git -C before a command that writes' => ['git -C ../x checkout .'],
+    'cd with more than a folder' => ['cd x y'],
+    'uniq with two files' => ['uniq a b'],
+    'a sed write after a pattern range' => ["sed -n '/a/,/b/w notes'"],
 ]);
 
 test('a reviewer call without a command is let through and not logged', function () {

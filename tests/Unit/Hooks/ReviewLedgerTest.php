@@ -823,3 +823,25 @@ test('the walk list is read from the plan as approved, not as the AI changed it 
 
     expect(ledgerLastLine($repo))->toMatchArray(['lane' => 'behaviour', 'unwalked' => 1]);
 });
+
+test('files identical to the template commit a sync plan names are not reviewed', function () {
+    $repo = ledgerRepo();
+    $git = fn (string ...$args) => trim((new Process(['git', ...$args], $repo))->mustRun()->getOutput());
+
+    // The template's release, fetched into the project as a commit of its own.
+    $git('checkout', '-q', '-b', 'template');
+    ledgerWrite($repo, 'app/Actions/Quotes/FromTemplate.php', LEDGER_CODE);
+    ledgerWrite($repo, 'resources/js/pages/quotes/index.tsx', "export {};\n");
+    ledgerCommit($repo);
+    $template = $git('rev-parse', 'HEAD');
+    $git('checkout', '-q', 'main');
+
+    // The sync copies the Action as it is and changes the page.
+    ledgerWrite($repo, 'app/Actions/Quotes/FromTemplate.php', LEDGER_CODE);
+    ledgerWrite($repo, 'resources/js/pages/quotes/index.tsx', "export const changed = true;\n");
+    ledgerWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Approved changes\n- Template: {$template}\n\n## Milestones\n", ledgerPlan('- [x] M1 Sync')));
+    ledgerCommit($repo);
+    ledgerPass($repo);
+
+    expect(ledgerStop($repo))->toContain('Rounds so far: input 0, frontend 0, look 0, behaviour 0.');
+});

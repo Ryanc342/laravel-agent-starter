@@ -11,12 +11,13 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Seed the application's database with one test account per role, each with
+     * the password `password`. A plan's walk list names them (docs/PLANS.md); a
+     * project adds one here for each role it brings. The template has one role,
+     * the signed-in user.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
