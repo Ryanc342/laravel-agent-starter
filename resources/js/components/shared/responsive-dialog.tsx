@@ -12,15 +12,18 @@ import Actions from '@/components/shared/actions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
-type Props = {
+/**
+ * The width on desktop, one of the two or neither (both at once does not
+ * compile): `narrow` for a short content such as a QR code, `wide` for a long
+ * form with a table of lines (an invoice). On a phone every dialog is the same
+ * full-width sheet.
+ */
+type Width =
+    | { narrow?: boolean; wide?: false }
+    | { narrow?: false; wide?: boolean };
+
+type Props = Width & {
     title: string;
-    /**
-     * The width on desktop, one of the two or neither: `narrow` for a short
-     * content such as a QR code, `wide` for a long form with a table of lines
-     * (an invoice). On a phone every dialog is the same full-width sheet.
-     */
-    narrow?: boolean;
-    wide?: boolean;
     /**
      * One sentence for a step the user must take (the two-factor setup says what
      * to do); a ConfirmDialog passes its `consequence` here. Leave it out otherwise.

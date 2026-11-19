@@ -10,7 +10,7 @@ paths:
   - "package.json"
   - "lint/**"
   - "tests/Structure/**"
-  - "tests/Unit/Lint/**"
+  - "template/tests/Lint/**"
 ---
 
 # The checks

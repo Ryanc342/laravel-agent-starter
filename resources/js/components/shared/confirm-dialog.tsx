@@ -6,6 +6,9 @@ import ResponsiveDialog, {
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/i18n';
 
+/** The dialog's props without `instruction`, kept for each width separately. */
+type WithoutInstruction<T> = T extends unknown ? Omit<T, 'instruction'> : never;
+
 /**
  * Confirm something that cannot be undone: the action named in full as the
  * title, a `consequence` that says what will happen, then the buttons. Put
@@ -15,7 +18,7 @@ import { t } from '@/lib/i18n';
 export default function ConfirmDialog({
     consequence,
     ...props
-}: Omit<ComponentProps<typeof ResponsiveDialog>, 'instruction'> & {
+}: WithoutInstruction<ComponentProps<typeof ResponsiveDialog>> & {
     consequence: string;
 }) {
     return <ResponsiveDialog instruction={consequence} {...props} />;

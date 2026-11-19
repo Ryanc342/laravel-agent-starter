@@ -1,6 +1,9 @@
 <?php
 
 use Tests\Structure\CheckSettings;
+use Tests\Structure\DesignDocChecks;
+use Tests\Structure\PlacementChecks;
+use Tests\Structure\ProjectFiles;
 
 /*
 | Principle 9 in docs/golden-principles.md: the checks stay as set. The template
@@ -31,4 +34,24 @@ test('composer check runs every check, and the npm scripts it calls are the chec
 
 test('no other lint config can change the checks, and npm runs no install scripts and no other shell', function () {
     expect(CheckSettings::noOtherLintConfig())->toBe([]);
+});
+
+test('every structure check runs on this project: no check can be dropped from tests/Structure', function () {
+    $structure = implode("\n", array_map(
+        fn (string $path): string => ProjectFiles::read($path),
+        array_filter(ProjectFiles::in(['tests/Structure']), fn (string $path): bool => str_ends_with($path, 'Test.php')),
+    ));
+    $missing = [];
+
+    foreach ([PlacementChecks::class, CheckSettings::class, DesignDocChecks::class] as $class) {
+        $short = (new ReflectionClass($class))->getShortName();
+
+        foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            if (! str_contains($structure, "{$short}::{$method->getName()}()")) {
+                $missing[] = "tests/Structure: no test calls {$short}::{$method->getName()}()";
+            }
+        }
+    }
+
+    expect($missing)->toBe([]);
 });

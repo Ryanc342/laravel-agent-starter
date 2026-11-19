@@ -5,7 +5,7 @@ use Symfony\Component\Process\Process;
 function milestoneWorkspace(): string
 {
     $repo = sys_get_temp_dir().'/ezdev-milestone-'.bin2hex(random_bytes(6));
-    $root = dirname(__DIR__, 3);
+    $root = dirname(__DIR__, 2);
     foreach (['scripts/hooks', 'vendor/bin', 'bin', 'tests/Feature', 'tests/js', 'template/tests', 'app'] as $folder) {
         mkdir("{$repo}/{$folder}", 0777, true);
     }

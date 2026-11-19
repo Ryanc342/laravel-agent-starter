@@ -219,7 +219,7 @@ function changedInConversation(?float $start): array
         return $working;
     }
 
-    $committed = explode("\n", git(['log', '--since=@'.(int) floor($start), '--format=', '--name-only', '--no-renames']) ?? '');
+    $committed = explode("\n", mustGit(['log', '--since=@'.(int) floor($start), '--format=', '--name-only', '--no-renames']));
 
     return array_values(array_unique(array_filter([...$committed, ...$working])));
 }
@@ -297,7 +297,7 @@ function isCodePath(string $path): bool
 function planChanges(string $plan): array
 {
     $name = basename($plan);
-    $added = array_filter(explode("\n", git(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name]) ?? ''));
+    $added = array_filter(explode("\n", mustGit(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name])));
     // The empty tree, when the plan came with the first commit.
     $before = $added === [] ? 'HEAD' : git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
     $paths = changedSince($before);
@@ -326,12 +326,12 @@ function reviewRound(string $plan): string
     }
 
     $name = basename($plan);
-    $added = array_filter(explode("\n", git(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name]) ?? ''));
+    $added = array_filter(explode("\n", mustGit(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name])));
     $before = $added === [] ? 'HEAD' : git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
-    $untracked = array_filter(explode("\n", git(['ls-files', '--others', '--exclude-standard']) ?? ''));
+    $untracked = array_filter(explode("\n", mustGit(['ls-files', '--others', '--exclude-standard'])));
     $paths = planChanges($plan);
     $tracked = array_values(array_diff($paths, $untracked));
-    $diff = $tracked === [] ? '' : (git(['diff', '--no-renames', $before, '--', ...$tracked]) ?? '')."\n";
+    $diff = $tracked === [] ? '' : mustGit(['diff', '--no-renames', $before, '--', ...$tracked])."\n";
 
     foreach (array_intersect($paths, $untracked) as $path) {
         $diff .= newFileDiff($path);
@@ -357,12 +357,16 @@ function newFileDiff(string $path): string
     $process = proc_open(['git', '-c', 'core.quotePath=false', 'diff', '--no-index', '--', '/dev/null', $path], [1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
 
     if (! is_resource($process)) {
-        return '';
+        throw new RuntimeException("git diff could not start for {$path}");
     }
 
     $output = (string) stream_get_contents($pipes[1]);
     fclose($pipes[1]);
-    proc_close($process);
+
+    // git diff --no-index exits 1 when the files differ, which a new file always does.
+    if (proc_close($process) > 1) {
+        throw new RuntimeException("git diff failed for {$path}");
+    }
 
     return $output;
 }
@@ -375,6 +379,17 @@ function writeFile(string $file, string $content): void
     if (@file_put_contents($file, $content) === false) {
         throw new RuntimeException(error_get_last()['message'] ?? "cannot write {$file}");
     }
+}
+
+/**
+ * Runs git where a failure must not pass as an empty answer.
+ *
+ * @param  list<string>  $args
+ * @param  array<string, string>  $env
+ */
+function mustGit(array $args, array $env = []): string
+{
+    return git($args, $env) ?? throw new RuntimeException('git '.$args[0].' failed');
 }
 
 /**
@@ -410,8 +425,8 @@ function git(array $args, array $env = []): ?string
  */
 function changedSince(string $base): array
 {
-    $tracked = git(['diff', '--name-only', '--no-renames', $base]) ?? '';
-    $untracked = git(['ls-files', '--others', '--exclude-standard']) ?? '';
+    $tracked = mustGit(['diff', '--name-only', '--no-renames', $base]);
+    $untracked = mustGit(['ls-files', '--others', '--exclude-standard']);
     $paths = array_filter(array_merge(explode("\n", $tracked), explode("\n", $untracked)));
 
     return array_values(array_unique($paths));
@@ -419,7 +434,7 @@ function changedSince(string $base): array
 
 function contentHash(string $path): string
 {
-    return is_file($path) ? (git(['hash-object', '--', $path]) ?? '') : 'deleted';
+    return is_file($path) ? mustGit(['hash-object', '--', $path]) : 'deleted';
 }
 
 /**
@@ -428,13 +443,21 @@ function contentHash(string $path): string
 function fingerprint(): string
 {
     $index = tempnam(sys_get_temp_dir(), 'ezdev-index');
+
+    if ($index === false) {
+        throw new RuntimeException('no temporary file for the fingerprint index');
+    }
+
     @unlink($index);
     $env = ['GIT_INDEX_FILE' => $index];
 
-    git(['read-tree', 'HEAD'], $env);
-    git(['add', '-A'], $env);
-    $files = git(['ls-files', '-s'], $env) ?? '';
-    @unlink($index);
+    try {
+        mustGit(['read-tree', 'HEAD'], $env);
+        mustGit(['add', '-A'], $env);
+        $files = mustGit(['ls-files', '-s'], $env);
+    } finally {
+        @unlink($index);
+    }
 
     $code = array_filter(explode("\n", $files), fn (string $line): bool => isCodePath(explode("\t", $line, 2)[1] ?? ''));
 

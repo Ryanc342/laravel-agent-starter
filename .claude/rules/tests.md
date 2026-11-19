@@ -45,7 +45,7 @@ Test each `lockForUpdate()` by playing a second user who saves at the same momen
 
 Factories are for tests: apart from the test accounts of database/seeders, no row in the app's own database is made by a factory, and the data for looking at pages comes from the walk through the forms (docs/workflow.md, step 4).
 
-`lint/`, `tests/Structure/` and `tests/Support/` belong to the template: a change to a check there is an agreed decision of the plan (docs/workflow.md, step 2). No test is skipped or unfinished (.claude/rules/checks.md); turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
+`lint/`, `tests/Structure/` and the template's helpers in `tests/Support/` belong to the template: a change to a check there is an agreed decision of the plan (docs/workflow.md, step 2). No test is skipped or unfinished (.claude/rules/checks.md); turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
 
 ## Style
 

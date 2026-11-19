@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../Support/MilestoneWorkspace.php';
+require_once dirname(__DIR__, 2).'/Support/MilestoneWorkspace.php';
 
 test('milestone validation runs all static checks and the selected PHP and frontend scopes, and its pass lets the AI stop', function () {
     $repo = milestoneWorkspace();

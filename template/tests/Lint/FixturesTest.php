@@ -10,11 +10,7 @@ use Tests\Structure\ProjectFiles;
 | (SkeletonChecksTest.php), so a check cannot be dropped from either side.
 */
 
-test('every structure check runs on this project and is proved on a broken fixture: a check cannot be dropped from either', function () {
-    $structure = implode("\n", array_map(
-        fn (string $path): string => ProjectFiles::read($path),
-        array_filter(ProjectFiles::in(['tests/Structure']), fn (string $path): bool => str_ends_with($path, 'Test.php')),
-    ));
+test('every structure check is proved on a broken fixture: no fixture can be dropped', function () {
     $fixtures = ProjectFiles::read('template/tests/Lint/SkeletonChecksTest.php');
     $missing = [];
 
@@ -23,10 +19,6 @@ test('every structure check runs on this project and is proved on a broken fixtu
 
         foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             $call = "{$short}::{$method->getName()}()";
-
-            if (! str_contains($structure, $call)) {
-                $missing[] = "tests/Structure: no test calls {$call}";
-            }
 
             if (! str_contains($fixtures, $call)) {
                 $missing[] = "template/tests/Lint/SkeletonChecksTest.php: no fixture breaks {$call}";
