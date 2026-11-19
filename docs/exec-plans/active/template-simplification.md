@@ -124,7 +124,7 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 - [x] M8f Copier for project syncs (decision 57).
 - [x] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
 - [x] M8h Static preview of pages in the plan (decision 59).
-- [ ] M8i Pointers and hand-backs (decisions 60 and 61): the five pointers; tests first in tests/Unit/Hooks for the hand-back reading.
+- [x] M8i Pointers and hand-backs (decisions 60 and 61): the five pointers; tests first in tests/Unit/Hooks for the hand-back reading.
 - [ ] M9 Final, on the code after M8h: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
 ## Validation
@@ -171,6 +171,8 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 - 2026-11-20 M8h previews: docs/workflow.md step 2 (how to make them) and step 5 (delete them at the move), docs/PLANS.md (the rule and the template's decision line), docs/prompts/review.md step 6 (lane `look` compares with them), both READMEs and CHANGELOG.md; a probe made a preview with the app's own stylesheet and font (Surprises); `composer check:milestone -- tests/Structure` passed (25 tests), commit 03bf95f8.
 
 - 2026-11-20 M9 full `composer check` (614 tests) and `composer check:reference` (793 tests) passed on 4a66e670. Review round on 4a66e670 (business 3, input 3, frontend 1, tests 12): all eight runs reported P0=0 P1=0, but the ledger recorded none of them (Surprises), so no lane counts as done. Two sentences of the old frontend rules lost in M8e (no hand-built array from a controller; a `can.*` flag never writes a condition) are back as text, and a repeated toast sentence is a pointer.
+
+- 2026-11-20 M8i: the two hand-back tests of before M8d came back and failed before the code; the ledger reads a handed-back report again; the five protected pointers name .claude/rules/; CHANGELOG.md says so; `composer check:milestone -- tests/Unit/Hooks tests/Unit/Lint tests/Structure tests/Feature/TestsRowLocksTest.php` passed (334 tests), commit 68ee092a.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
