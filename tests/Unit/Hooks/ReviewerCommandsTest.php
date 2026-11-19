@@ -219,6 +219,19 @@ test('a reviewer call without a command is let through and not logged', function
         ->and(reviewerCommandsLog($repo))->toBe([]);
 });
 
+test('a reviewer call the hook cannot read is refused, and the builder\'s is let through', function (string $agent, bool $refused) {
+    $repo = reviewerCommandsRepo();
+    $process = new Process(['php', dirname(__DIR__, 3).'/scripts/hooks/reviewer-commands.php'], $repo);
+    // A lone UTF-16 surrogate: valid for the sender, not for PHP's JSON reader.
+    $process->setInput('{"cwd":"'.$repo.'","tool_name":"Bash","tool_input":{"command":"rm -rf storage #\\ud800"},"agent_type":"'.$agent.'"}');
+    $process->mustRun();
+
+    expect(json_decode($process->getOutput(), true)['hookSpecificOutput']['permissionDecision'] ?? null)->toBe($refused ? 'deny' : null);
+})->with([
+    'a reviewer' => ['reviewer-haiku', true],
+    'the builder\'s helper' => ['explorer', false],
+]);
+
 test('the refusal is logged in the repository the call came from, wherever the hook runs', function () {
     $repo = reviewerCommandsRepo();
     $process = new Process(['php', dirname(__DIR__, 3).'/scripts/hooks/reviewer-commands.php'], sys_get_temp_dir());

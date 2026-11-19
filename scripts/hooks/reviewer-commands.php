@@ -73,16 +73,20 @@ const SED_PRINT = '#^(?:(?:\d+|\$|/(?:[^/\\\\]|\\\\.)*/)(?:,(?:\d+|\$|/(?:[^/\\\
 
 const REASON = 'Reviewers only read. Bash runs only commands that read: git commands that read (git diff, show, log, status, ls-files, ls-tree, rev-parse, rev-list, merge-base, cat-file, grep, blame, describe, shortlog, worktree list, also after git -C <folder>), cd <folder>, and cat, head, tail, grep, rg, find, ls, wc, sort, uniq, cut, tr, diff, jq, echo and sed -n \'<address>p\', alone, joined with && or ; or piped. No redirection, substitution, variable, glob outside quotes, tee, xargs or awk, no option that writes or starts a program (find -delete or -exec, rg --pre or --hostname-bin, sort -o, git --output), no network. Read files with the Read tool and search them with Read, Grep and Glob.';
 
-$input = json_decode((string) stream_get_contents(STDIN), true);
+$raw = (string) stream_get_contents(STDIN);
+$input = json_decode($raw, true);
+// Input PHP cannot read (a lone UTF-16 surrogate) holds a command nothing can
+// check: a reviewer's is refused.
+$unreadable = ! is_array($input);
 $input = is_array($input) ? $input : [];
-$agent = $input['agent_type'] ?? null;
-$command = $input['tool_input']['command'] ?? null;
+$agent = $input['agent_type'] ?? (preg_match('/"agent_type"\s*:\s*"(reviewer-[\w-]*)"/', $raw, $match) === 1 ? $match[1] : null);
+$command = $input['tool_input']['command'] ?? ($unreadable ? '(input the hook cannot read)' : null);
 
 if (! is_string($agent) || ! str_starts_with($agent, 'reviewer-') || ! is_string($command)) {
     exit(0);
 }
 
-if (readsOnly($command)) {
+if (! $unreadable && readsOnly($command)) {
     exit(0);
 }
 

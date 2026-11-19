@@ -25,6 +25,9 @@ test('the guard lets only a local development database be reset', function (arra
     'no APP_ENV' => [['DB_CONNECTION' => 'sqlite'], false],
     'local with a database on another host' => [['APP_ENV' => 'local', 'DB_CONNECTION' => 'mysql', 'DB_HOST' => 'db.example.com'], false],
     'local with a host that only starts like localhost' => [['APP_ENV' => 'local', 'DB_HOST' => 'localhost.example.com'], false],
+    'local with a database URL on this machine' => [['APP_ENV' => 'local', 'DB_HOST' => 'db.example.com', 'DB_URL' => 'mysql://shop:secret@127.0.0.1:3306/shop'], true],
+    'local with a database URL on another host' => [['APP_ENV' => 'local', 'DB_HOST' => '127.0.0.1', 'DB_URL' => 'mysql://shop:secret@db.example.com/shop'], false],
+    'local with a database URL without a host' => [['APP_ENV' => 'local', 'DB_URL' => 'not a url'], false],
 ]);
 
 /**
@@ -95,6 +98,15 @@ test('a copy gets its own database, port and session cookie', function () {
         'SESSION_COOKIE' => 'shop_review_haiku_session',
         'QUEUE_CONNECTION' => 'sync',
     ])->and(screenRoundParse(screenRoundSetPort($copy, 8231)))->toMatchArray(['APP_URL' => 'http://localhost:8231', 'SERVER_PORT' => '8231']);
+});
+
+test('a project with a database URL gives each copy its own database in that URL', function () {
+    $env = "APP_ENV=local\nAPP_URL=http://localhost:8004\nDB_CONNECTION=mysql\nDB_URL=\"mysql://shop:s%23cret@127.0.0.1:3306/shop_dev?charset=utf8mb4\"\n";
+
+    expect(screenRoundParse(screenRoundCopyEnv($env, '/work/shop-review-opus', 100, '_review_opus')))->toMatchArray([
+        'DB_URL' => 'mysql://shop:s%23cret@127.0.0.1:3306/shop_dev_review_opus?charset=utf8mb4',
+        'DB_DATABASE' => 'shop_dev_review_opus',
+    ]);
 });
 
 test('a SQLite project gives a copy its own database file, and a port from APP_URL', function () {

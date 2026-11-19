@@ -5,8 +5,10 @@
 | (docs/workflow.md, step 4). One command, run without asking the user:
 |
 | 1. It changes nothing unless APP_ENV is `local` and the project's database
-|    server is on this machine: the copies' databases live on that server. The
-|    screen lanes then do not run, and the report says why.
+|    server (DB_HOST, or the host of DB_URL when it is set) is on this machine:
+|    the copies' databases live on that server. The screen lanes then do not
+|    run, and the report says why. A copy's .env names its own database, in
+|    DB_URL too.
 | 2. Each reviewer gets a copy of its own: ../<project folder>-review-opus for
 |    reviewer-opus (`playwright`) and ../<project folder>-review-haiku for
 |    reviewer-haiku (`playwright-review`). A copy is a git worktree detached at
@@ -219,6 +221,17 @@ function screenRoundRefusal(array $env): ?string
     }
 
     $connection = $env['DB_CONNECTION'] ?? 'mysql';
+    $url = $env['DB_URL'] ?? '';
+
+    // Laravel takes the host and the database from DB_URL when it is set.
+    if ($connection !== 'sqlite' && $url !== '') {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host) && in_array(trim($host, '[]'), SCREEN_ROUND_LOCAL_HOSTS, true)
+            ? null
+            : 'The database URL (DB_URL) '.(is_string($host) ? "is on {$host}" : 'names no host').', not on this machine.';
+    }
+
     $host = $env['DB_HOST'] ?? '127.0.0.1';
 
     if ($connection !== 'sqlite' && ! in_array($host, SCREEN_ROUND_LOCAL_HOSTS, true)) {
@@ -236,15 +249,24 @@ function screenRoundRefusal(array $env): ?string
 function screenRoundCopyEnv(string $env, string $copy, int $offset, string $database): string
 {
     $values = screenRoundParse($env);
-
-    return screenRoundSetPort(screenRoundSet($env, [
+    $sqlite = ($values['DB_CONNECTION'] ?? 'mysql') === 'sqlite';
+    $url = $values['DB_URL'] ?? '';
+    // Laravel takes the database from DB_URL's path when it has one.
+    $path = $url === '' ? '' : trim((string) parse_url($url, PHP_URL_PATH), '/');
+    $name = $sqlite ? "{$copy}/database/database.sqlite" : ($path !== '' ? $path : ($values['DB_DATABASE'] ?? 'laravel')).$database;
+    $set = [
         'SESSION_COOKIE' => preg_replace('/[^a-z0-9_]/', '_', strtolower(basename($copy))).'_session',
-        'DB_DATABASE' => ($values['DB_CONNECTION'] ?? 'mysql') === 'sqlite'
-            ? "{$copy}/database/database.sqlite"
-            : ($values['DB_DATABASE'] ?? 'laravel').$database,
+        'DB_DATABASE' => $name,
         // No queue worker runs for a copy: jobs run in the request.
         'QUEUE_CONNECTION' => 'sync',
-    ]), screenRoundPort($values) + $offset);
+    ];
+
+    if ($url !== '') {
+        // The copy's database in the URL too, or the copy would reset the project's.
+        $set['DB_URL'] = $sqlite ? '' : "'".preg_replace('~^([^:/?#]+://[^/?#]*)(/[^?#]*)?~', '${1}/'.addcslashes($name, '\\$'), $url)."'";
+    }
+
+    return screenRoundSetPort(screenRoundSet($env, $set), screenRoundPort($values) + $offset);
 }
 
 /**
