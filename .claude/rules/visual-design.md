@@ -10,7 +10,7 @@ paths:
 
 # Visual design
 
-`DESIGN.md` in the project root is the style of every screen and an index of the design spec. The details are in `docs/design/`: `foundations.md` (colour, type, language, space, shape, motion, copy, messages), `components.md` (which component and variant for what) and one file per page pattern in `docs/design/patterns/`. The spec controls appearance only; the architecture, business rules, folders and the data contract win over it. A project with its own brand changes the primary colour and the logo and nothing else. These files are protected (AGENTS.md, "Red lines").
+`DESIGN.md` in the project root is the style of every screen and an index of the design spec. The details are in `docs/design/`: `foundations.md` (colour, type, language, space, shape, motion, copy, messages), `components.md` (which component and variant for what) and one file per page pattern in `docs/design/patterns/`. The spec controls appearance only; the architecture, business rules, folders and the data contract win over it. A project with its own brand changes the primary colour and the logo and nothing else.
 
 These are the Do's and Don'ts of every screen. A rule names its check in its tag (docs/golden-principles.md): both reviewers check `[review:screens]` in the changed code, and `reviewer-opus` also on screenshots of the changed pages and against the style overview page (`/style`, development only), in the final review's screen round (docs/workflow.md, step 4).
 

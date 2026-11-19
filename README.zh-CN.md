@@ -8,7 +8,7 @@
 
 - **AI 有文档可依循。** `AGENTS.md` 是入口，`docs/` 记录工作流程、执行计划和完整参考功能，`.claude/rules/` 按目录记录规则。
 - **业务规则只有一个归属。** 按 React、HTTP、Actions / Policies、Models、Enums 分层，上层调用下层。认证、设置和通知功能也遵守这些规则。
-- **机器检查骨架，两个 AI 审查者检查其余规则。** 机器只检查骨架：分层（PHPStan，`phpstan.neon` 中的分层规则）、组件边界、循环导入和不在导入时调用 `t()`（oxlint，Ezdev 规则在 `lint/oxlint/`）、`app/` 的目录、页面和组件的位置、没有检查被关闭或放宽，以及设计规范的索引和取值（结构测试）。`composer check` 统一执行全部检查。其余规则需要阅读代码，由两个使用不同模型的审查子代理 `reviewer-opus` 和 `reviewer-haiku` 按审查通道逐个审查每次改动。AI 准备结束时，结束检查会退回遗漏的流程步骤，包括审查轮次。
+- **机器检查骨架，两个 AI 审查者检查其余规则。** 机器只检查骨架：分层（PHPStan，`phpstan.neon` 中的分层规则）、组件边界、循环导入和不在导入时调用 `t()`（oxlint，Ezdev 规则在 `lint/oxlint/`）、`app/` 的目录、页面和组件的位置、没有检查被关闭或放宽，以及设计规范的索引和取值（结构测试）。`composer check` 统一执行全部检查。其余规则需要阅读代码，由两个使用不同模型的审查子代理 `reviewer-opus` 和 `reviewer-haiku` 按审查通道逐个审查每次改动。AI 改了代码却没有一次检查在这份代码上通过时，结束检查会在它准备结束时把它退回一次，让它运行检查。
 
 模板保留注册、邮箱验证、双因素认证、通行密钥、密码确认等认证功能，并内置应用内通知。内部的 Ezdev 名称用于标识模板的架构检查规则。
 
@@ -22,9 +22,9 @@
 | Node.js | 22.x 的 22.22.2+、24.x 的 24.15.0+，或 26+；CI 使用 Node 22 |
 | MySQL | 推荐 8.4，与 CI 一致；安装、开发和检查时保持运行 |
 | Git | 用于初始化项目、执行计划、提交和结束检查 |
-| 界面审查的浏览器 | `reviewer-opus` 使用 Google Chrome；`reviewer-haiku` 使用 WebKit（Safari 的引擎），执行一次 `npx -y -p @playwright/mcp@0.0.83 playwright install webkit` 安装 |
+| 预览和界面审查的浏览器 | Google Chrome，供 `reviewer-opus` 的 `playwright` 浏览器使用 |
 
-开发环境的数据库账号需要有权限创建项目数据库和测试数据库。检查使用 `<DB_DATABASE>_test`，参考功能检查使用独立的 `<DB_DATABASE>_reference_test`，界面审查轮次使用 `<DB_DATABASE>_review_opus` 和 `<DB_DATABASE>_review_haiku`。
+开发环境的数据库账号需要有权限创建项目数据库和测试数据库。检查使用 `<DB_DATABASE>_test`，参考功能检查使用独立的 `<DB_DATABASE>_reference_test`，界面审查轮次使用 `<DB_DATABASE>_review_opus`。
 
 ## 创建自己的项目
 
@@ -40,7 +40,7 @@ composer dev
 
 **默认使用 MySQL，不需要数据库参数。** `my-project` 会使用数据库 `my_project`；检查和参考功能检查分别使用 `my_project_test` 与 `my_project_reference_test`。默认连接为 `127.0.0.1:3306`，账号 `root`，密码为空。已经显式配置的数据库名或连接 URL 会保留。
 
-用 Claude Code 打开新项目，以业务语言描述需求。模板只支持 Claude Code：审查轮次需要它的子代理和 hooks（`.claude/settings.json`）。第一次打开项目时，Claude Code 会询问一次是否信任这个文件夹：请选择信任。项目的设置（hooks、子代理设置和 MCP 服务器）只在受信任的文件夹里生效，而 AI 结束前的检查正是这些 hooks。
+用 Claude Code 打开新项目，以业务语言描述需求。模板只支持 Claude Code：审查轮次需要它的子代理，结束检查需要它的 Stop hook（`.claude/settings.json`）。第一次打开项目时，Claude Code 会询问一次是否信任这个文件夹：请选择信任。项目的设置（hook、子代理设置和 MCP 服务器）只在受信任的文件夹里生效，而 AI 结束前的检查正是这个 hook。
 
 ### MySQL 账号与默认值不同时
 
@@ -59,19 +59,19 @@ export DB_PASSWORD='your-password'
 
 公开 Composer 包为 [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter)，稳定 Git 标签标识发布版本。官方安装器的短命令默认使用模板主分支的最新版；模板更新不会改动已经创建的项目；项目用 Copier 接收新的模板版本（见“接收新的模板版本”）。需要固定稳定快照时，改用 `--using=ryanc342/laravel-agent-starter:v1.0.0` 即可。
 
-维护模板源码时，克隆本仓库，在 MySQL 运行的情况下执行 `composer setup`。`composer check` 检查源码，`composer check:reference` 同时检查参考功能。本仓库的 CI 还会通过 `scripts/check-installer`，使用真实 Laravel 安装器创建两个临时项目，验证 MySQL 隔离、开发服务器和完整检查；派生项目仓库运行常规检查。
+维护模板源码时，克隆本仓库，在 MySQL 运行的情况下执行 `composer setup`。`composer check` 检查源码，`composer check:reference` 同时检查参考功能。模板自己的文件放在 `template/`：版本记录、模板自己的计划、`template/scripts/check-installer`，以及检查模板工具和检查本身的测试；在本仓库里 `composer check` 会运行它们，`laravel new` 和 Copier 都不会带上这个文件夹。本仓库的 CI 还会通过 `template/scripts/check-installer`，使用真实 Laravel 安装器创建两个临时项目，验证 MySQL 隔离、开发服务器和完整检查；派生项目仓库运行常规检查。
 
 ## AI 开发流程
 
 1. **确认需求。** 代码、数据库和规则能回答的，AI 自己查；只问它们回答不了的：要做什么，以及涉及金额、权限、谁能看到哪些数据、修改真实数据的每个决定。按轮次提问，每个问题都附推荐答案。可以回复“同意”，或者按编号逐项调整（“1 同意 2 不同意，因为……”）。提问只在这一步，写计划之前。
-2. **写执行计划。** AI 在 `docs/exec-plans/active/<功能>.md` 写下已确认的决策、将要修改的受保护文件和依赖（“Approved changes”）、里程碑和检查方法。新增或修改页面的计划还会附上每个页面在桌面和手机尺寸下的静态预览图，使用模板的设计和示例数据。确认无误后说“开始”：这就批准了计划当时的样子（包括预览图），系统会保留一份批准时的副本。
+2. **写执行计划。** AI 在 `docs/exec-plans/active/<功能>.md` 写下已确认的决策（要新增或升级的依赖、要改的检查、要改的已有测试断言，各自是一条单独的决策）、里程碑和检查方法。新增或修改页面的计划还会附上每个页面在桌面和手机尺寸下的静态预览图，使用模板的设计和示例数据。确认无误后说“开始”：这就批准了计划当时的样子（包括预览图）。
 3. **逐个里程碑实现。** 说“开始”之后 AI 不再提问。计划没写到的地方，按模板规则或保持现有行为处理，并在报告里说明。每个里程碑：先写测试，再从底层到上层实现，然后运行 `composer check:milestone -- <受影响的测试路径>`，提交，并在 Progress 里写一行。所有里程碑完成后运行完整 `composer check`。
-4. **独立审查。** 所有审查都在完整 `composer check` 之后的最终审查里一次完成，里程碑之间没有审查轮次。每一轮让两个审查者在同一个提交上同时运行，改动涉及的每个审查通道各运行一次（`docs/golden-principles.md` 的 Review lanes）。某个通道在最新一轮里两个审查者都没有报告 P0 和 P1、代码已提交、且该通道涉及的文件之后没有改动，这个通道才算完成；AI 修复问题后开始下一轮，轮数不设上限。界面放在最后：其他通道都完成后，`look` 和 `behaviour` 两个通道在两个席位上同时运行。`scripts/screen-round` 负责准备：每个审查者各有一份应用副本（`reviewer-opus` 用 `playwright` 浏览器打开 `../<项目目录>-review-opus`，`reviewer-haiku` 用 `playwright-review` 浏览器（WebKit，即 Safari 的引擎）打开 `../<项目目录>-review-haiku`），各自有独立的数据库和空闲端口；项目自己的应用和数据库都不会被动到，也不需要运行 `composer dev`。两者都通过表单走完计划里的流程，并在 1280px、390px 宽度和深色模式下查看每个改动的页面。参考功能（`docs/reference/tasks/`）的改动也和应用代码一样审查：`scripts/screen-round --reference` 在两份副本里都装好参考功能。审查者没有 shell，只能读文件、搜索和使用自己的浏览器：每一轮之前，`php scripts/hooks/finish-check.php round <计划路径>` 写出计划的 diff 和批准时的计划，请求里写明这两个文件。
+4. **独立审查。** 所有审查都在完整 `composer check` 之后的最终审查里一次完成，里程碑之间没有审查轮次。审查通道只有三条：`backend`、`frontend` 和 `screens`（`docs/golden-principles.md` 的 Review lanes）。每一轮让两个审查者在同一个提交上同时运行，改动涉及的每个通道各运行一次，所以一轮最多六次运行。某个通道在最新一轮里两个审查者都没有报告问题、代码已提交、且该通道涉及的文件之后没有改动，这个通道才算完成；AI 修复问题后开始下一轮，轮数不设上限，每一轮在计划的 Progress 里写一行。界面放在最后：其他通道都完成后才开始 `screens` 通道。`scripts/screen-round` 准备一份应用副本（`../<项目目录>-review-opus`），有独立的数据库和空闲端口；项目自己的应用和数据库都不会被动到，也不需要运行 `composer dev`。只有 `reviewer-opus` 用 `playwright` 浏览器看页面：它通过表单走完计划里的流程，并在 1280px、390px 宽度和深色模式下查看每个改动的页面；`reviewer-haiku` 阅读代码检查同样的规则。参考功能（`docs/reference/tasks/`）的改动也和应用代码一样审查：`scripts/screen-round --reference` 在副本里装好参考功能。审查者没有 shell，只能读文件、搜索，`reviewer-opus` 还能用浏览器：每一轮之前，`php scripts/hooks/finish-check.php round <计划路径>` 写出计划的 diff 和计划的副本，请求里写明这两个文件。
 5. **报告结果。** 用业务语言说明：做了什么、检查结果、规则没有覆盖的情况和与规则不同的决定，以及哪些事情等你处理。截图默认是临时文件，只有你明确要求时才保留。合并由你批准，GitHub CI 再执行完整检查。
 
-AI 准备结束时，结束检查 `scripts/hooks/finish-check.php` 会把缺少的步骤发回给它，每项一行：改了代码却没有计划、当前代码没有通过检查（还有里程碑时是里程碑检查，最后是完整 `composer check`）、完成的计划还没审查完、受保护的改动没有被批准。提醒只发回一次，不会连续发两次：下一次结束时这一步仍然缺少，AI 就结束，你会看到一行说明还缺什么。每次审查运行都会在审查记录（review ledger）里写一行（由 Claude Code 的子代理 hook 写入），结束检查读取这份记录，而不是 AI 自己写的内容：计划涉及的每个通道都完成后，计划才算完成。
+AI 准备结束时，结束检查 `scripts/hooks/finish-check.php`（Claude Code 的 Stop hook）只查一件事：这次对话改了代码，而当前代码上没有一次 `composer check` 或 `composer check:milestone` 通过。这时它把 AI 退回一次，不会连续退回两次：下一次结束时仍然没有通过，AI 就结束，你会看到一行说明。这次对话改了检查文件（`phpstan.neon`、`vite.config.ts`、`tsconfig.json`、`phpunit.xml`、`pint.json`、`lint/` 或 `tests/Structure/`）时，你也会看到一行，列出这些文件。
 
-审查轮次会给每次改动增加时间和模型费用：每个涉及的通道至少运行两次审查，每次修复后还要再审，界面轮次还要驱动两个浏览器。模板只支持 Claude Code，因为审查轮次需要它的子代理和 hooks。每周清理可使用 `docs/prompts/cleanup.md`，升级依赖或同步 Laravel 上游可使用 `docs/prompts/upgrade.md`。
+审查轮次会给每次改动增加时间和模型费用：每个涉及的通道运行两次审查，每次修复后还要再审。模板只支持 Claude Code，因为审查轮次需要它的子代理，结束检查需要它的 Stop hook。需要时可以用 `docs/prompts/cleanup.md` 做一次清理，升级依赖或同步 Laravel 上游可使用 `docs/prompts/upgrade.md`。
 
 ## 常用命令
 
@@ -100,15 +100,14 @@ AI 准备结束时，结束检查 `scripts/hooks/finish-check.php` 会把缺少�
 | [.claude/rules/](.claude/rules/) | 每条规则只写一次，写在它所涉及目录的规则文件里；AI 读到匹配的文件时，Claude Code 会自动加载 |
 | [docs/golden-principles.md](docs/golden-principles.md) | 各项原则、审查通道，以及规则如何标明由谁检查 |
 | [docs/prompts/review.md](docs/prompts/review.md) | 每次审查运行读什么、如何报告 |
-| [docs/QUALITY.md](docs/QUALITY.md) | 各领域的质量记录 |
 | [docs/reference/tasks/](docs/reference/tasks/) | 可参考的完整功能结构 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本记录 |
+| [template/CHANGELOG.md](template/CHANGELOG.md) | 模板的版本记录（只在模板仓库里） |
 
-AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；哪些要变成规则由你决定，并另写计划。修改规则或工具需要在计划的“Approved changes”里列出并经你批准，之后还需运行 `composer check:reference`。机器检查是骨架，其余规则都是 `.claude/rules/` 里的 `[review:<通道>]` 规则，留给审查者；每周清理（`docs/prompts/cleanup.md`）按通道逐条检查 `[review:<通道>]` 规则，列出机器检查的缺口和可以合并或删除的规则，由你决定，检查只会变得更严格。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
+AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；哪些要变成规则由你决定，并另写计划。修改规则或工具要在计划里写成一条决策，经你说“开始”批准，之后还需运行 `composer check:reference`。机器检查是骨架，其余规则都是 `.claude/rules/` 里的 `[review:<通道>]` 规则，留给审查者；清理（`docs/prompts/cleanup.md`，需要时运行）按通道逐条检查 `[review:<通道>]` 规则，列出机器检查的缺口和可以合并或删除的规则，由你决定，检查只会变得更严格。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
 
 ## 多语言
 
-应用支持英文和简体中文。第一次访问时按浏览器的 `Accept-Language` 选择（任何中文都用中文，其他用英文）；用户在“设置 → 外观”里切换，访客用公开页顶栏和登录页右上角的“EN / 中文”切换。选择会保存在用户（`users.locale`）和 `locale` cookie 里，由 `SetLocale` 应用到每个请求。只有一个来源，Laravel 的语言文件，不装任何包：句子以英文原文为键（`lang/zh_CN.json`，`"Save changes": "保存更改"`），Laravel 自带的分组在 `lang/zh_CN/`，React 通过 `t()` 和 `tChoice()`（`resources/js/lib/i18n.ts`）读取当前语言的句子。每个句子都用英文写在 `t()` 或 `__()` 里，并在同一次提交里补上中文；缺少或多余的翻译、直接写在 JSX 里的文字由审查者报告（`behaviour` 通道）；在导入时就运行的 `t()` 会让 oxlint 失败：这样的句子用 `msg()` 标记，在显示的地方再翻译。用户输入的内容不翻译。详情见 `.claude/rules/translations.md`。
+应用支持英文和简体中文。第一次访问时按浏览器的 `Accept-Language` 选择（任何中文都用中文，其他用英文）；用户在“设置 → 外观”里切换，访客用公开页顶栏和登录页右上角的“EN / 中文”切换。选择会保存在用户（`users.locale`）和 `locale` cookie 里，由 `SetLocale` 应用到每个请求。只有一个来源，Laravel 的语言文件，不装任何包：句子以英文原文为键（`lang/zh_CN.json`，`"Save changes": "保存更改"`），Laravel 自带的分组在 `lang/zh_CN/`，React 通过 `t()` 和 `tChoice()`（`resources/js/lib/i18n.ts`）读取当前语言的句子。每个句子都用英文写在 `t()` 或 `__()` 里，并在同一次提交里补上中文；缺少或多余的翻译、直接写在 JSX 里的文字由审查者报告（`screens` 通道）；在导入时就运行的 `t()` 会让 oxlint 失败：这样的句子用 `msg()` 标记，在显示的地方再翻译。用户输入的内容不翻译。详情见 `.claude/rules/translations.md`。
 
 ## 部署
 

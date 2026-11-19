@@ -7,11 +7,11 @@ An ExecPlan is the written plan for one feature. It lives in `docs/exec-plans/ac
 - **Self-contained.** Someone who has only this file and the repository can continue the work. Do not rely on the chat history.
 - **Living.** Tick each milestone when it is done and add its Progress line: one line per milestone or review round, with the date and the commit, no time of day. A review round is one line: its commit and the findings per lane and reviewer.
 - **Milestones are small.** Each one takes about an hour, is a few hundred lines and ends in a commit.
-- **Approved changes.** The protected files the plan changes (AGENTS.md "Red lines"), the dependencies it adds or upgrades, and the existing tests whose assertions change, each with the decision that changes the requirement. The user's "开始" approves exactly this list.
+- **Changes to dependencies, checks and tests are decisions.** A dependency the plan adds or upgrades, a check it changes and an existing test assertion it changes are each an agreed decision of their own, with the reason. The user's "开始" approves the plan as it is then.
 - **A preview for pages.** A plan that adds or changes a page names its static previews in an agreed decision: "The pages look like the accepted previews: <files>", PNG files at 1280×800 and 390×844 under `storage/app/private/design-previews/<plan file name>/` (docs/workflow.md, step 2).
 - **A walk list for pages.** A plan with pages lists its walk under Validation: one line per flow and role, `W1 <role> (<test account>): <flow, from its first step to its last>`, for every flow the plan adds or changes, with only the steps a browser can do. A step it cannot do (a mail arrives, a scheduled job runs) names the test that covers it instead. database/seeders/DatabaseSeeder.php creates one test account per role.
 
-The sections below are required, with exactly these headings. The finish check reads Purpose, Agreed decisions and Milestones; a plan that still holds this template there is no plan.
+The sections below are required, with exactly these headings. A plan that still holds this template in Purpose, Agreed decisions or Milestones is no plan.
 
 ## Template
 
@@ -25,11 +25,6 @@ What the user gets and why, in one or two sentences.
 1. <decision from the questions>
 2. <decision> (differs from <rule>)
 3. The pages look like the accepted previews: <files> (a plan with pages)
-
-## Approved changes
-- Protected files: <path> (decision <n>), or none
-- Dependencies: <package and its manifest> (decision <n>), or none
-- Existing test assertions that change: <test> (decision <n>), or none
 
 ## Milestones
 - [ ] M1 <layer or slice>: <what is built> + <tests>

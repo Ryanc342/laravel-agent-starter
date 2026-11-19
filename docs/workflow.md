@@ -1,6 +1,6 @@
 # Workflow
 
-Every request goes through the same steps: questions, plan, build, review, report. The user answers questions only while the plan is written. After the user's "开始" you ask nothing until the report. When you are about to stop, the finish check (scripts/hooks/finish-check.php) sends back a missing step: do it.
+Every request goes through the same steps: questions, plan, build, review, report. The user answers questions only while the plan is written. After the user's "开始" you ask nothing until the report. When you are about to stop after changing code, the finish check (scripts/hooks/finish-check.php) sends you back once if no check passed on that code: run it.
 
 ## 1. Questions
 
@@ -21,7 +21,7 @@ Word each question so "yes" accepts your recommendation; the user may answer by 
 
 ## 2. Plan
 
-Write `docs/exec-plans/active/<feature>.md` following docs/PLANS.md. "Agreed decisions" lists every answer. When a decision differs from a template rule, write which rule next to it, and say so when you hand in the plan. Look up the protected docs and checks the change will affect, and list them in "Approved changes" with the dependencies it adds or upgrades and the existing tests whose assertions change, each with its decision.
+Write `docs/exec-plans/active/<feature>.md` following docs/PLANS.md. "Agreed decisions" lists every answer. When a decision differs from a template rule, write which rule next to it, and say so when you hand in the plan. A dependency the plan adds or upgrades, a check it changes, and an existing test assertion it changes are each an agreed decision of their own.
 
 A plan that adds or changes a page has a static preview, made now: a picture of each new or changed page at 1280×800 and at 390×844, in the template's design (DESIGN.md, the page's pattern file and its sample, docs/design) with example data. The previews are not committed and are not app code:
 
@@ -29,11 +29,11 @@ A plan that adds or changes a page has a static preview, made now: a picture of 
 2. Serve the folder with `php -S 127.0.0.1:<free port> -t <folder>` (the browser refuses `file:` pages), open each page in the `playwright` browser, and take the screenshots at both sizes. Copy each PNG from the browser's temporary folder (`.playwright-mcp/session-*/`) into the preview folder before you close the browser, then stop the server.
 3. Name the files in an agreed decision ("The pages look like the accepted previews: <files>"), look at them yourself, and name them when you hand in the plan. The user's "开始" accepts them with the plan.
 
-Then stop: change no code until the user says "开始" (also `开始吧`, `好开始`, `好的开始`, `ok开始` or `start`, with any spaces and punctuation). That message takes the snapshot of the plan the checks and the reviewers read; a new "开始" after a change of requirements takes a new one. What you write into the plan afterwards changes nothing that was approved.
+Then stop: change no code until the user says "开始" (also `开始吧`, `好开始`, `好的开始`, `ok开始` or `start`, with any spaces and punctuation). That message approves the plan as it is then, its previews included; a change of requirements afterwards goes into the Decision Log and needs a new "开始". What you write into the plan afterwards changes nothing that was approved.
 
 ## 3. Build
 
-After "开始" you ask nothing. Whatever the plan does not say follows the template rules, or keeps the current behaviour where no rule settles it, and goes into the report. A case about money, permissions, who can see which data, or deleting or changing real data keeps the current behaviour and goes into the report for the user to decide. A protected file or dependency that "Approved changes" does not name is not changed: name it in the report.
+After "开始" you ask nothing. Whatever the plan does not say follows the template rules, or keeps the current behaviour where no rule settles it, and goes into the report. A case about money, permissions, who can see which data, or deleting or changing real data keeps the current behaviour and goes into the report for the user to decide. A dependency, a check or an existing test assertion the plan does not name is not changed: name it in the report.
 
 For each milestone:
 
@@ -65,9 +65,9 @@ Report in the user's language and in business words, with no file or method name
 - what was built, decision by decision;
 - the check results: `composer check`, and `composer check:reference` when it ran;
 - the rule gaps: cases no rule settled, and each decision that differs from a rule;
-- what waits for the user: the cases kept as they were because they are the user's to decide, and the protected changes the plan did not approve.
+- what waits for the user: the cases kept as they were because they are the user's to decide, and the dependencies, checks and test assertions the plan did not name.
 
-Include screenshots only if the user explicitly asked to keep them. Delete the plan's previews (`storage/app/private/design-previews/<plan file name>/`) when it moves to completed/. Fill in "Outcomes & Retrospective" with what was delivered and the report's rule gaps, which stay with the plan in completed/ for the weekly cleanup; in a project made from the template, mark a gap that belongs in the template "for the template". Add what you deferred to docs/exec-plans/tech-debt.md, and update that domain's row in docs/QUALITY.md. Move the plan to `docs/exec-plans/completed/` last, when the plan's Progress shows every lane it touches as done.
+Include screenshots only if the user explicitly asked to keep them. Delete the plan's previews (`storage/app/private/design-previews/<plan file name>/`) when it moves to completed/. Fill in "Outcomes & Retrospective" with what was delivered and the report's rule gaps, which stay with the plan in completed/ for the cleanup; in a project made from the template, mark a gap that belongs in the template "for the template". Add what you deferred to docs/exec-plans/tech-debt.md. Move the plan to `docs/exec-plans/completed/` last, when the plan's Progress shows every lane it touches as done.
 
 ## A new conversation
 
@@ -79,4 +79,4 @@ One plan, one git worktree: `scripts/worktree-up <name>` creates it with its own
 
 ## Cleanup
 
-Once a week, run docs/prompts/cleanup.md in a new conversation for the whole repository.
+When the user asks for it, run docs/prompts/cleanup.md in a new conversation for the whole repository.

@@ -16,7 +16,7 @@ For a feature or change to the template's rules, discuss the scope in an issue b
 4. Run `composer check` with MySQL running. For rules, tooling or reference changes, also run `composer check:reference`.
 5. Open a pull request describing the problem, resulting behavior, agreed decisions, and validation results. Include screenshots for UI changes and link the issue and execution plan when applicable.
 
-The architecture and checks apply equally to the template's built-in features and new features. Do not skip tests, silence checks, add dependencies, or alter protected files without the approval required by `AGENTS.md`.
+The architecture and checks apply equally to the template's built-in features and new features. Do not skip tests or silence checks, and add a dependency, change a check or change an existing test assertion only as an agreed decision of the plan (`docs/workflow.md`).
 
 ## Licensing
 

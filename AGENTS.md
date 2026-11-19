@@ -42,8 +42,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - docs/exec-plans/tech-debt.md: known debt, oldest first
 - .claude/rules/: every rule, once, in the file of the folders it is about; Claude Code loads a file when you read a matching file
 - docs/golden-principles.md: the principles, the review lanes and how a rule names its check
-- docs/QUALITY.md: quality grade per domain
-- docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
+- docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the cleanup and upgrades
 - docs/reference/tasks/: the reference feature
 - DESIGN.md: the style of every screen, and which design file to read for which task
 - docs/design/: foundations (colour, type, space, messages), components, and one file per page pattern

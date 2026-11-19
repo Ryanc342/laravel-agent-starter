@@ -41,7 +41,7 @@ Test each `lockForUpdate()` by playing a second user who saves at the same momen
 - `[review:backend]` Test data comes from factories: `DB::insert()`, `DB::table(…)->insert()`, `Model::create()` (also through `query()`, `forceCreate`, `createQuietly`, `createOrFirst`, `firstOrCreate` and `updateOrCreate`), `insert()`, `upsert()` and `updateOrInsert()` on models and `INSERT` statements in tests/ (tests/Structure excepted) are rejected. Factories are for tests: apart from the test accounts of database/seeders, no row in the app's own database is made by a factory, and the data for looking at pages comes from the walk through the forms (docs/workflow.md, step 4).
 - `[review:backend]` tests/ holds only Feature, Unit, Structure, Support, js, bootstrap.php, Pest.php and TestCase.php. Every PHP file in tests/Feature or tests/Unit ends in `Test.php` (helpers go in tests/Support). Vitest files are `tests/js/**/*.test.ts(x)`; tests/js holds only those and setup.ts, and no `*.test.*` or `*.spec.*` file exists anywhere else.
 
-`lint/`, `tests/Structure/` and `tests/Support/` belong to the template, and their files are protected (AGENTS.md, "Red lines"). No test is skipped or unfinished (.claude/rules/checks.md); turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
+`lint/`, `tests/Structure/` and `tests/Support/` belong to the template: a change to a check there is an agreed decision of the plan (docs/workflow.md, step 2). No test is skipped or unfinished (.claude/rules/checks.md); turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
 
 ## Style
 

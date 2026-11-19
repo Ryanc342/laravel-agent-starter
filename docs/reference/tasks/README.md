@@ -6,7 +6,7 @@ Example feature only. **Not part of the app**: nothing here is autoloaded, migra
 It shows the architecture rules applied to one small feature (a to-do list).
 When building a real feature, copy the _structure_ of the matching file here, then put your file at the same path without the `docs/reference/tasks/` prefix.
 
-Do not copy the Task domain itself into the app. The files here are protected (AGENTS.md, "Red lines").
+Do not copy the Task domain itself into the app.
 
 ## Where to look
 
