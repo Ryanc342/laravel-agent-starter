@@ -74,7 +74,7 @@ Skills
 Release
 48. Released as 1.4.0 after the final review. Publication waits for Ryan's word "发布", as for 1.3.0: fast-forward `main`, push, CI green, then the tag.
 
-New on 2026-11-19, second planning round (decisions 49 to 57)
+New on 2026-11-19, second planning round (decisions 49 to 59)
 49. The finish check sends a reminder back once, never twice in a row: when the Stop input has `stop_hook_active` true, it lets the AI stop and shows Ryan one line naming what is still missing. This replaces the count of 3 and the one-message limit of decision 25; the four checks of decision 23 stay. First a probe, like M1: record in Surprises whether `stop_hook_active` stays true after the AI calls tools in the part a reminder sent back.
 50. Reviewers have no Bash: the `tools` of reviewer-opus and reviewer-haiku list Read, Grep, Glob and their browser tools only. Before each round the builder runs `php scripts/hooks/finish-check.php round <plan path>`, which writes the plan's diff (as docs/prompts/review.md step 3 defines it, the template-sync rule included) and a copy of the approved snapshot to storage/framework/testing/ezdev-review/ and prints both paths. The request names them: `Lane: <lane>. Round: <n>. Plan: <plan path>. Diff: <file>. Snapshot: <file>.` Remove scripts/hooks/reviewer-commands.php, its PreToolUse hook in .claude/settings.json, tests/Unit/Hooks/ReviewerCommandsTest.php, the refusal log and the Bash paragraph of docs/prompts/review.md. This replaces decision 17.
 51. The review ledger reads a reviewer's report only from `last_assistant_message` (reviewers run in the foreground, decision 19): remove the reading of handed-back reports from the transcript and its 3-second retry, with their tests.
@@ -84,6 +84,8 @@ New on 2026-11-19, second planning round (decisions 49 to 57)
 55. "A file over 300 lines is a signal, not an error" is no longer a review rule: the weekly cleanup lists the files over 300 lines that do more than one job (docs/prompts/cleanup.md).
 56. How a reviewer opens pages is written only in docs/prompts/review.md step 6: remove the `ui` rule "Every changed page is opened with isolated headless Playwright…" and the same instruction in docs/rules/visual-design.md.
 57. Projects take template updates with Copier. The template gets a copier.yml with no questions, so every file is copied as it is (Copier renders only files ending in .jinja; the template has none). The part "Projects made from this template" of docs/prompts/upgrade.md becomes: a project's first sync adds `.copier-answers.yml` with `_src_path` (the template's GitHub address) and `_commit` (the template release the project is on); each sync runs `copier update --defaults --vcs-ref=<tag>` on the sync branch at plan time, which merges the template's changes between the two releases into the project and keeps the project's own changes, and lists each conflict as a plan question; after "开始" the conflicts are resolved as answered, then `composer check` and the review as for any plan. A sync takes the whole release; picking changes from CHANGELOG.md goes. README.md and README.zh-CN.md say how to install Copier.
+58. The Playwright of reviewer-haiku opens WebKit (the Safari engine); reviewer-opus's keeps Chrome. .mcp.json gives the `playwright-review` server the argument `--browser=webkit`, which scripts/playwright-mcp passes on, and the setup installs WebKit for Playwright (README.md, README.zh-CN.md). Nothing else in the review changes.
+59. A plan that adds or changes a page has a static preview, made while the plan is written: a picture of each new or changed page at 1280×800 and 390×844, made with the template's design (DESIGN.md, docs/design) and example data, saved as PNG files under storage/app/private/design-previews/<plan file name>/ (not committed, not app code). The plan names the files in an agreed decision ("The pages look like the accepted previews: <files>"), and the AI names them when it hands in the plan. Ryan's "开始" accepts the previews with the plan. In lane `look`, a page that differs from its accepted preview without a decision that says so is a finding (an agreed decision implemented differently). The previews are deleted when the plan moves to completed/. docs/workflow.md step 2, docs/PLANS.md and docs/prompts/review.md say this.
 
 ## Approved changes
 - Protected files: AGENTS.md, ARCHITECTURE.md, DESIGN.md, docs/golden-principles.md, docs/rules/, docs/design/ (components.md, foundations.md and the pattern files that repeat a rule), docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/tasks/README.md, phpunit.xml, tests/TestCase.php, tests/Unit/Hooks/, tests/Structure/ (only where a check names a removed file or a count), scripts/hooks/, scripts/screen-round, scripts/screen-round.php, scripts/check-milestone.php, .claude/settings.json, .claude/agents/, .claude/skills/, .github/ (only if CI names a removed file).
@@ -94,6 +96,10 @@ New on 2026-11-19, second planning round (decisions 49 to 57)
 - Added with decisions 49 to 57 (2026-11-19, second round):
   - Protected files, besides those above: .claude/rules/ (new, decisions 52 and 53); copier.yml (new, decision 57; a template file, so it joins the protected list).
   - Existing test assertions that change: tests/Unit/Hooks/FinishCheckTest.php (decision 49: one send-back, no count); tests/Unit/Hooks/ReviewLedgerTest.php (decision 51: no transcript reading); tests/Unit/Hooks/ReviewerCommandsTest.php is removed (decision 50); tests/Structure where a check names docs/rules/ or the rule list of golden-principles (decisions 52 and 53).
+- Added with decisions 58 and 59 (2026-11-19, second round):
+  - Protected files, besides those above: scripts/playwright-mcp (decision 58).
+  - Existing test assertions that change: tests/Unit/Hooks/PlaywrightMcpTest.php, only where it asserts the launcher's arguments (decision 58).
+  - Not protected, also changed: .mcp.json (decision 58).
 
 ## Milestones
 - [x] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
@@ -109,7 +115,9 @@ New on 2026-11-19, second planning round (decisions 49 to 57)
 - [ ] M8d Reviewers without Bash, ledger without transcript reading (decisions 50 and 51). Tests first.
 - [ ] M8e Rules in .claude/rules/, each written once (decisions 52 to 56).
 - [ ] M8f Copier for project syncs (decision 57).
-- [ ] M9 Final, on the code after M8f: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48).
+- [ ] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
+- [ ] M8h Static preview of pages in the plan (decision 59).
+- [ ] M9 Final, on the code after M8h: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
 ## Validation
 - Per milestone: `composer check:milestone -- <affected test paths>` passes.
@@ -155,5 +163,6 @@ New on 2026-11-19, second planning round (decisions 49 to 57)
 - 2026-11-19 Ryan said "开始" in the implementing conversation: it approves the protected changes listed in "Approved changes". The work runs on the branch `template-simplification`; `main` moves only at "发布" (decision 48).
 - 2026-11-19 Ryan changed decisions 13 and 14 after the final review: a finding must name the written rule, decision or walk item it breaks; anything else goes to the report (this plan's code) or to tech-debt.md (code from before the plan) and never adds a round. Reason: findings no rule backs kept adding rounds (DulaBot: over 30 rounds in one plan; this plan's final review: 11 rounds). Ryan sends "开始" again in the implementing conversation; that also records this plan's snapshot, which was never recorded.
 - 2026-11-19 Ryan agreed decisions 49 to 57 in the planning chat, after the trial's finish check sent the same reminder back three times and buried his questions. They replace decisions 17 and 20 and part of 25. His new "开始" in the implementing conversation takes the new snapshot (decision 9).
+- 2026-11-19 Ryan agreed decisions 58 and 59 in the planning chat and asked for one simple trial after this update (M9); the planning chat chose a new small request for it, because the passkey trial waits on a browser change Ryan left for later.
 
 ## Outcomes & Retrospective
