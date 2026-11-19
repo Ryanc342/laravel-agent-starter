@@ -30,8 +30,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 
 - Fix the code, not the test. Change or delete an existing test assertion only when a decision of the plan changes the requirement, and name that decision.
 - Build only what the plan lists. What it does not say follows the template rules or keeps the current behaviour (docs/workflow.md, step 3).
-- Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
-- The template's own files are protected: the docs and the checks and tools, listed path by path in `PROTECTED_FILES` of scripts/hooks/finish-check.php, and the dependency sections of composer.json and package.json with their lock files. Change one only when the plan's "Approved changes", as the user approved it with "开始", names it. Anything else is reverted and named in the report.
+- Never silence a check: no ignore comments, no skipped tests, no lowered level or wider exception; the error says what to do instead.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
 
 ## Docs map
@@ -54,7 +53,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
 - Playwright MCP (`playwright` for `reviewer-opus`, `playwright-review` for `reviewer-haiku`): isolated headless browsers, never the user's Chrome; close them after checks. How a reviewer opens pages: docs/prompts/review.md, step 6.
 - Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models). They run in the foreground: the session waits for their answers.
-- Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back what is missing, one line each: a plan for changed code, a passing check, the review of a finished plan, the approval of a protected change. Do the step.
+- Finish check (scripts/hooks/finish-check.php): when you are about to stop after changing code that no `composer check` or `composer check:milestone` passed on, it sends you back once. Run the check.
 
 ## Code Review Rules
 

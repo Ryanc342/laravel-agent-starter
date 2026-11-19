@@ -17,44 +17,12 @@
         "deny": ["AskUserQuestion", "Workflow"]
     },
     "hooks": {
-        "SessionStart": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" start || echo '{\"systemMessage\":\"The finish check could not run.\"}'"
-                    }
-                ]
-            }
-        ],
-        "UserPromptSubmit": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" approve || echo '{\"systemMessage\":\"The approval of the plan could not be saved.\"}'",
-                        "timeout": 30
-                    }
-                ]
-            }
-        ],
         "Stop": [
             {
                 "hooks": [
                     {
                         "type": "command",
                         "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" stop || echo '{\"systemMessage\":\"The finish check could not run.\"}'",
-                        "timeout": 60
-                    }
-                ]
-            }
-        ],
-        "SubagentStop": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" reviewed || echo '{\"systemMessage\":\"The review ledger could not record this review.\"}'",
                         "timeout": 60
                     }
                 ]

@@ -6,11 +6,11 @@ function milestoneWorkspace(): string
 {
     $repo = sys_get_temp_dir().'/ezdev-milestone-'.bin2hex(random_bytes(6));
     $root = dirname(__DIR__, 2);
-    foreach (['scripts/hooks', 'vendor', 'bin', 'tests/Feature', 'tests/js', 'app', 'docs/exec-plans/active'] as $folder) {
+    foreach (['scripts/hooks', 'vendor', 'bin', 'tests/Feature', 'tests/js', 'app'] as $folder) {
         mkdir("{$repo}/{$folder}", 0777, true);
     }
     copy("{$root}/scripts/hooks/finish-check.php", "{$repo}/scripts/hooks/finish-check.php");
-    foreach (['check-milestone.php', 'check.php', 'check-run.php', 'check-process.php'] as $script) {
+    foreach (['check-milestone.php', 'check.php', 'check-process.php'] as $script) {
         if (is_file("{$root}/scripts/{$script}")) {
             copy("{$root}/scripts/{$script}", "{$repo}/scripts/{$script}");
         }
@@ -27,10 +27,6 @@ file_put_contents(__DIR__.'/'.($phase === 'js' ? '../' : '').'runtime/commands',
 if (getenv('MILESTONE_TEST_EDIT') === $phase) {
     file_put_contents(getcwd().'/app/quote.php', "<?php\n\$edited = true;\n");
 }
-if ($phase === 'php' && getenv('CHECK_NO_SENTINEL') !== '1') {
-    @mkdir(getcwd().'/storage/framework/testing', 0777, true);
-    file_put_contents(getcwd().'/storage/framework/testing/ezdev-tests-finished', json_encode(['id' => getenv('EZDEV_CHECK_RUN_ID'), 'time' => microtime(true)]));
-}
 exit(getenv('MILESTONE_TEST_FAIL') === $phase ? 7 : 0);
 PHP;
     file_put_contents("{$repo}/composer.php", $stub);
@@ -41,34 +37,22 @@ PHP;
         (new Process(['git', ...$args], $repo))->mustRun();
     }
     mkdir("{$repo}/runtime");
-    milestoneHook($repo, 'start');
+    // The conversation starts now (its transcript); the code changes in it.
+    file_put_contents("{$repo}/runtime/transcript.jsonl", json_encode(['timestamp' => gmdate('Y-m-d\TH:i:s.000\Z')])."\n");
     file_put_contents("{$repo}/app/quote.php", "<?php\n\$sent = true;\n");
-    milestonePlan($repo);
     register_shutdown_function(fn () => (new Process(['rm', '-rf', $repo]))->run());
 
     return $repo;
 }
 
-function milestonePlan(string $repo, bool $finished = false, bool $archived = false): void
+/** The Stop hook's answer: what it sends back, or '' when the AI may stop. */
+function milestoneStop(string $repo): string
 {
-    $folder = $archived ? 'completed' : 'active';
-    if (! is_dir("{$repo}/docs/exec-plans/{$folder}")) {
-        mkdir("{$repo}/docs/exec-plans/{$folder}");
-    }
-    if ($archived) {
-        unlink("{$repo}/docs/exec-plans/active/quotes.md");
-    }
-    $tick = $finished ? 'x' : ' ';
-    file_put_contents("{$repo}/docs/exec-plans/{$folder}/quotes.md", "# Quotes\n\n## Purpose\nSend customer quotes.\n\n## Agreed decisions\n1. Customers receive a quote.\n\n## Milestones\n- [x] M1 Send quotes\n- [{$tick}] M2 View quotes\n\n## Progress\n- M1 affected tests passed.\n\n## Decision Log\n\n## Outcomes & Retrospective\nQuotes can be sent and viewed by the customer.\n");
-}
-
-function milestoneHook(string $repo, string $mode): string
-{
-    $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', $mode], $repo);
-    $process->setInput(json_encode(['session_id' => 'milestone', 'cwd' => $repo]) ?: '');
+    $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', 'stop'], $repo);
+    $process->setInput(json_encode(['session_id' => 'milestone', 'cwd' => $repo, 'transcript_path' => "{$repo}/runtime/transcript.jsonl"]) ?: '');
     $process->mustRun();
 
-    return $process->getOutput();
+    return json_decode($process->getOutput() ?: '{}', true)['reason'] ?? '';
 }
 
 /** @param list<string> $paths

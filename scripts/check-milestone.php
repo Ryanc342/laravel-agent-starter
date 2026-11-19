@@ -17,10 +17,10 @@ $exit = runValidation(function () use ($argv, &$scopes): array {
     }
 
     return $commands;
-}, milestone: true);
+});
 
 if ($exit === 0) {
-    fwrite(STDOUT, 'Milestone checks passed for: '.implode(', ', [...$scopes['php'], ...$scopes['js']]).". Full plan acceptance still requires composer check.\n");
+    fwrite(STDOUT, 'Milestone checks passed for: '.implode(', ', [...$scopes['php'], ...$scopes['js']]).".\n");
 }
 exit($exit);
 

@@ -6,8 +6,8 @@ use Symfony\Component\Process\Process;
 
 /**
  * Principle 9 in docs/golden-principles.md: no check is silenced, and the
- * checks stay as set. Turning a check down is a protected change (AGENTS.md
- * "Red lines"), so these checks say so in composer check too, wherever it runs.
+ * checks stay as set (AGENTS.md "Red lines"), and these checks say so in
+ * composer check too, wherever it runs.
  * Each method returns what it found wrong; CodeTest.php and ConfigTest.php
  * expect none, and tests/Unit/Lint/SkeletonChecksTest.php breaks each once.
  */

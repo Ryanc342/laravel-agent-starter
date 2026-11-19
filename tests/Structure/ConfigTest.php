@@ -7,9 +7,9 @@ use Tests\Structure\ProjectFiles;
 
 /*
 | Principle 9 in docs/golden-principles.md: the checks stay as set. The template
-| keeps its machine rules (tagged in .claude/rules/); turning one
-| down is a protected change (AGENTS.md "Red lines"), so these tests say so in
-| composer check too, wherever it runs. The checks are in CheckSettings.php.
+| keeps its machine rules (tagged in .claude/rules/); none is turned down
+| (AGENTS.md "Red lines"), and these tests say so in composer check too,
+| wherever it runs. The checks are in CheckSettings.php.
 */
 
 test('PHPStan keeps its level, paths and extensions, covers every folder composer autoloads, and keeps every layer rule of principle 2 with its folders', function () {

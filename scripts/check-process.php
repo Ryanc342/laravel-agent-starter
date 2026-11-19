@@ -2,41 +2,45 @@
 
 use Symfony\Component\Process\Process;
 
-require_once __DIR__.'/check-run.php';
-
-/** @param callable(): list<list<string>> $commands */
-function runValidation(callable $commands, bool $milestone = false): int
+/**
+ * Runs a check (composer check or composer check:milestone): it forgets the last
+ * pass, takes the fingerprint of the code, runs every command, and records the
+ * pass when they all succeeded and the code is still the same
+ * (scripts/hooks/finish-check.php).
+ *
+ * @param  callable(): list<list<string>>  $commands
+ */
+function runValidation(callable $commands): int
 {
-    $run = null;
     try {
-        $git = new Process(['git', 'rev-parse', '--path-format=absolute', '--git-path', 'ezdev']);
-        $git->run();
-        // Installer/reference copies may not be Git repositories: execute every check, without recording a pass.
-        if ($git->isSuccessful()) {
-            $run = new CheckRun(trim($git->getOutput()));
-        }
-        $env = ['EZDEV_CHECK_RUN_ID' => $run?->id ?? false];
-        $prefix = $milestone ? 'milestone-' : '';
-        $exit = validationCommand([PHP_BINARY, 'scripts/hooks/finish-check.php', $prefix.'checking'], $env);
+        // Installer and reference copies may not be git repositories: there the
+        // finish check prints nothing and records nothing.
+        $exit = validationCommand([PHP_BINARY, 'scripts/hooks/finish-check.php', 'revoke']);
         if ($exit !== 0) {
             return $exit;
         }
-        foreach ([...$commands(), [PHP_BINARY, 'scripts/hooks/finish-check.php', $prefix.'checked']] as $command) {
-            $exit = validationCommand($command, $env);
+        $fingerprint = finishCheckOutput('fingerprint');
+        foreach ($commands() as $command) {
+            $exit = validationCommand($command);
             if ($exit !== 0) {
                 return $exit;
             }
         }
-        $run?->succeed();
 
-        return 0;
+        return $fingerprint === '' ? 0 : validationCommand([PHP_BINARY, 'scripts/hooks/finish-check.php', 'passed', $fingerprint]);
     } catch (Throwable $error) {
         fwrite(STDERR, $error->getMessage().PHP_EOL);
 
         return 1;
-    } finally {
-        $run?->close();
     }
+}
+
+function finishCheckOutput(string $mode): string
+{
+    $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', $mode]);
+    $process->mustRun();
+
+    return trim($process->getOutput());
 }
 
 /** @return list<string> */
@@ -47,12 +51,10 @@ function validationStaticCommand(): array
     return is_string($composer) && is_file($composer) ? [PHP_BINARY, $composer, 'check:static'] : ['composer', 'check:static'];
 }
 
-/** @param list<string> $command
- * @param  array<string, string|false>  $env
- */
-function validationCommand(array $command, array $env): int
+/** @param list<string> $command */
+function validationCommand(array $command): int
 {
-    $process = new Process($command, env: $env);
+    $process = new Process($command);
     $process->setTimeout(null);
 
     return $process->run(function (string $type, string $output): void {
