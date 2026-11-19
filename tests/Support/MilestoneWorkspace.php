@@ -2,24 +2,36 @@
 
 use Symfony\Component\Process\Process;
 
+/** Writes a fixture file; a write that fails stops the test. */
+function milestoneWrite(string $path, string $content): void
+{
+    if (! is_dir(dirname($path)) && ! mkdir(dirname($path), 0777, true)) {
+        throw new RuntimeException("cannot make the folder of {$path}");
+    }
+
+    if (file_put_contents($path, $content) === false) {
+        throw new RuntimeException("cannot write {$path}");
+    }
+}
+
 function milestoneWorkspace(): string
 {
     $repo = sys_get_temp_dir().'/ezdev-milestone-'.bin2hex(random_bytes(6));
     $root = dirname(__DIR__, 2);
     foreach (['scripts/hooks', 'vendor/bin', 'bin', 'tests/Feature', 'tests/js', 'template/tests', 'app'] as $folder) {
-        mkdir("{$repo}/{$folder}", 0777, true);
+        mkdir("{$repo}/{$folder}", 0777, true) ?: throw new RuntimeException("cannot make {$folder}");
     }
-    copy("{$root}/scripts/hooks/finish-check.php", "{$repo}/scripts/hooks/finish-check.php");
+    copy("{$root}/scripts/hooks/finish-check.php", "{$repo}/scripts/hooks/finish-check.php") ?: throw new RuntimeException("cannot copy the finish check");
     foreach (['check-milestone.php', 'check.php', 'check-process.php'] as $script) {
         if (is_file("{$root}/scripts/{$script}")) {
             copy("{$root}/scripts/{$script}", "{$repo}/scripts/{$script}");
         }
     }
-    file_put_contents("{$repo}/vendor/autoload.php", '<?php require '.var_export("{$root}/vendor/autoload.php", true).';');
-    file_put_contents("{$repo}/.gitignore", "/vendor/\n/runtime/\n/storage/\n");
-    file_put_contents("{$repo}/tests/Feature/QuoteTest.php", "<?php\n");
-    file_put_contents("{$repo}/tests/js/quote.test.ts", '');
-    file_put_contents("{$repo}/app/quote.php", "<?php\n");
+    milestoneWrite("{$repo}/vendor/autoload.php", '<?php require '.var_export("{$root}/vendor/autoload.php", true).';');
+    milestoneWrite("{$repo}/.gitignore", "/vendor/\n/runtime/\n/storage/\n");
+    milestoneWrite("{$repo}/tests/Feature/QuoteTest.php", "<?php\n");
+    milestoneWrite("{$repo}/tests/js/quote.test.ts", '');
+    milestoneWrite("{$repo}/app/quote.php", "<?php\n");
     $stub = <<<'PHP'
 <?php
 $phase = match (basename(__FILE__)) { 'composer.php' => 'static', 'artisan' => 'php', 'pest' => 'template', default => 'js' };
@@ -29,19 +41,19 @@ if (getenv('MILESTONE_TEST_EDIT') === $phase) {
 }
 exit(getenv('MILESTONE_TEST_FAIL') === $phase ? 7 : 0);
 PHP;
-    file_put_contents("{$repo}/composer.php", $stub);
-    file_put_contents("{$repo}/artisan", $stub);
-    file_put_contents("{$repo}/bin/npm", '#!'.PHP_BINARY."\n".$stub);
+    milestoneWrite("{$repo}/composer.php", $stub);
+    milestoneWrite("{$repo}/artisan", $stub);
+    milestoneWrite("{$repo}/bin/npm", '#!'.PHP_BINARY."\n".$stub);
     chmod("{$repo}/bin/npm", 0755);
-    file_put_contents("{$repo}/template/tests/QuoteToolTest.php", "<?php\n");
-    file_put_contents("{$repo}/vendor/bin/pest", $stub);
+    milestoneWrite("{$repo}/template/tests/QuoteToolTest.php", "<?php\n");
+    milestoneWrite("{$repo}/vendor/bin/pest", $stub);
     foreach ([['init', '-q', '-b', 'main'], ['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'fixture']] as $args) {
         (new Process(['git', ...$args], $repo))->mustRun();
     }
-    mkdir("{$repo}/runtime");
+    milestoneWrite("{$repo}/runtime/.keep", '');
     // The conversation starts now (its transcript); the code changes in it.
-    file_put_contents("{$repo}/runtime/transcript.jsonl", json_encode(['timestamp' => gmdate('Y-m-d\TH:i:s.000\Z')])."\n");
-    file_put_contents("{$repo}/app/quote.php", "<?php\n\$sent = true;\n");
+    milestoneWrite("{$repo}/runtime/transcript.jsonl", json_encode(['timestamp' => gmdate('Y-m-d\TH:i:s.000\Z')])."\n");
+    milestoneWrite("{$repo}/app/quote.php", "<?php\n\$sent = true;\n");
     register_shutdown_function(fn () => (new Process(['rm', '-rf', $repo]))->run());
 
     return $repo;

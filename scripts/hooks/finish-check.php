@@ -170,7 +170,9 @@ function stop(string $stateDir, array $input): string
     }
 
     $checks = array_values(array_filter($changed, 'isCheckFile'));
-    $session = is_string($input['session_id'] ?? null) ? $input['session_id'] : 'default';
+    $session = is_string($input['session_id'] ?? null) && $input['session_id'] !== ''
+        ? $input['session_id']
+        : throw new RuntimeException('the Stop input names no session');
     $told = "{$stateDir}/told-".sha1($session).'.json';
     $before = is_file($told) ? json_decode(readText($told), true, flags: JSON_THROW_ON_ERROR) : [];
 
@@ -204,12 +206,20 @@ function conversationStart(mixed $transcript): ?float
 
     try {
         while (($line = fgets($file)) !== false) {
-            $entry = json_decode($line, true);
-            $time = is_array($entry) && is_string($entry['timestamp'] ?? null) ? strtotime($entry['timestamp']) : false;
-
-            if ($time !== false) {
-                return (float) $time;
+            if (trim($line) === '') {
+                continue;
             }
+
+            // An entry without a time stamp is skipped; a broken line or time stops the check.
+            $entry = json_decode($line, true, flags: JSON_THROW_ON_ERROR);
+
+            if (! is_array($entry) || ! array_key_exists('timestamp', $entry)) {
+                continue;
+            }
+
+            $time = is_string($entry['timestamp']) ? strtotime($entry['timestamp']) : false;
+
+            return $time === false ? throw new RuntimeException("the transcript has a time stamp that cannot be read: {$transcript}") : (float) $time;
         }
     } finally {
         fclose($file);

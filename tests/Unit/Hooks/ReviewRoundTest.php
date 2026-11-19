@@ -29,11 +29,13 @@ function roundRepo(): string
 
 function roundWrite(string $repo, string $path, string $content): void
 {
-    if (! is_dir(dirname("{$repo}/{$path}"))) {
-        mkdir(dirname("{$repo}/{$path}"), 0777, true);
+    if (! is_dir(dirname("{$repo}/{$path}")) && ! mkdir(dirname("{$repo}/{$path}"), 0777, true)) {
+        throw new RuntimeException("cannot make the folder of {$path}");
     }
 
-    file_put_contents("{$repo}/{$path}", $content);
+    if (file_put_contents("{$repo}/{$path}", $content) === false) {
+        throw new RuntimeException("cannot write {$path}");
+    }
 }
 
 function roundCommit(string $repo): void

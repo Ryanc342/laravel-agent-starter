@@ -301,6 +301,21 @@ test('a Stop input that is not a JSON object, or a told file that holds no list,
     expect(finishCheckStop($repo)['systemMessage'])->toContain('holds no list of check files');
 });
 
+test('a Stop input without a session, or a transcript time that cannot be read, is told to Ryan', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+
+    expect(finishCheckStop($repo, ['session_id' => null])['systemMessage'])->toBe('The finish check failed: the Stop input names no session');
+
+    finishCheckWrite($repo, 'transcript.jsonl', json_encode(['type' => 'user', 'timestamp' => 'not a time'])."\n");
+
+    expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: the transcript has a time stamp that cannot be read');
+
+    finishCheckWrite($repo, 'transcript.jsonl', "{broken\n");
+
+    expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: ');
+});
+
 test('before the first commit the finish check says nothing', function () {
     $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
     finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
