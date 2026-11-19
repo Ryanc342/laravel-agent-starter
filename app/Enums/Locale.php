@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Lang;
 
 /**
  * The two languages of the app. Which one a request uses is decided here, once
- * (docs/rules/translations.md): the signed-in user's choice, then the `locale`
+ * (.claude/rules/translations.md): the signed-in user's choice, then the `locale`
  * cookie, then the browser's Accept-Language, then English.
  */
 enum Locale: string

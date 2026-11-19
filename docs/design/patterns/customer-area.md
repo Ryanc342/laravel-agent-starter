@@ -14,7 +14,7 @@ Use for the pages a signed-in customer opens to see their own orders and details
 
 ## Rules
 
-- A customer sees only their own records; the Policy decides, as everywhere (docs/rules/models.md).
+- A customer sees only their own records; the Policy decides, as everywhere (.claude/rules/models.md).
 - Each page follows its own pattern; this file only says what surrounds them.
 - A project that also has staff pages keeps them in the admin app. The two never share a sidebar.
 

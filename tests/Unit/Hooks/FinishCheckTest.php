@@ -297,7 +297,7 @@ test('a protected file is approved when the snapshot\'s "Approved changes" names
     expect(finishCheckReverts(finishCheckRun($repo, 'stop')))->toBe($kept ? [] : [$path]);
 })->with([
     'the file' => ['- Protected files: AGENTS.md, docs/workflow.md (decision 1)', 'docs/workflow.md', true],
-    'the file in backticks' => ['- Protected files: `docs/rules/tests.md`.', 'docs/rules/tests.md', true],
+    'the file in backticks' => ['- Protected files: `.claude/rules/tests.md`.', '.claude/rules/tests.md', true],
     'a folder above it' => ['- Protected files: docs/design/ (the pattern files that repeat a rule)', 'docs/design/patterns/list.md', true],
     'a longer folder that starts the same' => ['- Protected files: tests/Unit/Hooks/', 'tests/Structure/CodeTest.php', false],
     'a file whose name starts the same' => ['- Protected files: scripts/screen-round.php', 'scripts/screen-round', false],
@@ -344,7 +344,7 @@ test('composer.json and package.json are protected in their dependency sections 
 test('the template\'s own files are protected, and a project\'s own files next to them are not', function () {
     $repo = finishCheckRepo();
     $template = ['DESIGN.md', '.npmrc', 'artisan', '.gitignore', 'tests/bootstrap.php', 'tests/Pest.php', 'tests/TestCase.php', 'tests/js/setup.ts', 'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/tasks/README.md', 'docs/design/foundations.md', 'docs/design/patterns/list.md', 'tests/Support/TestsRowLocks.php', 'scripts/worktree-up', '.claude/agents/reviewer-opus.md', '.github/workflows/tests.yml'];
-    $project = ['docs/design/patterns/quote-board.md', 'tests/Support/QuoteFactories.php', 'scripts/deploy', '.claude/agents/quote-writer.md', '.github/workflows/deploy.yml', 'docs/rules/quotes.md'];
+    $project = ['docs/design/patterns/quote-board.md', 'tests/Support/QuoteFactories.php', 'scripts/deploy', '.claude/agents/quote-writer.md', '.github/workflows/deploy.yml', '.claude/rules/quotes.md'];
 
     foreach ([...$template, ...$project] as $path) {
         finishCheckWrite($repo, $path, "changed\n");

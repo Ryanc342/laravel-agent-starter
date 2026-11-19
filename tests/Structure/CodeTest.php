@@ -2,7 +2,7 @@
 
 /*
 | Checks on the code that a linter does not do: they read files across folders.
-| docs/golden-principles.md lists them as [Structure]. The checks are in
+| .claude/rules/ tags them [Structure]. The checks are in
 | PlacementChecks.php and CheckSettings.php.
 */
 

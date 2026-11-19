@@ -42,7 +42,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 
 ## English and Chinese
 
-The app speaks two languages, English (`en`) and Simplified Chinese (`zh_CN`). A first visit follows the browser's `Accept-Language` (any Chinese gives `zh_CN`, anything else `en`); the user switches on Settings → Appearance, and a guest with the "EN / 中文" switch at the top right. The rules for writing and translating a sentence are in docs/rules/translations.md.
+The app speaks two languages, English (`en`) and Simplified Chinese (`zh_CN`). A first visit follows the browser's `Accept-Language` (any Chinese gives `zh_CN`, anything else `en`); the user switches on Settings → Appearance, and a guest with the "EN / 中文" switch at the top right. The rules for writing and translating a sentence are in .claude/rules/translations.md.
 
 - Every sentence a user reads is written in English through `t()` (React) or `__()` (PHP) and has its Chinese in the same commit. Copy rules (short, sentence case, a button says what happens) hold in both languages; check a screen in both.
 - Dates, numbers and money go through `lib/format.ts`, which follows the current language; the date picker's month and day names follow it too.

@@ -1,6 +1,6 @@
 # Ezdev template: design
 
-The style of every screen, and the index of the design spec. Read this file before you change any page, then only the files the index names for your task. Every value (colour, radius, font, spacing) is defined once, in `resources/css/app.css`; the spec files name tokens and say when to use them, and never repeat a value. How to apply the spec and what the reviewer checks: docs/rules/visual-design.md. A project with its own brand changes the primary colour and the logo and nothing else; replacing the style is the user's decision.
+The style of every screen, and the index of the design spec. Read this file before you change any page, then only the files the index names for your task. Every value (colour, radius, font, spacing) is defined once, in `resources/css/app.css`; the spec files name tokens and say when to use them, and never repeat a value. How to apply the spec and what the reviewer checks: .claude/rules/visual-design.md. A project with its own brand changes the primary colour and the logo and nothing else; replacing the style is the user's decision.
 
 ## Who it is for
 
@@ -57,4 +57,4 @@ A page that matches no pattern is built freely from foundations.md and component
 
 ## Do's and Don'ts
 
-The Do's and Don'ts of every screen are the `ui` rules of docs/golden-principles.md, principle 10 (lanes `look` and `behaviour`). Read them before you build a screen.
+The Do's and Don'ts of every screen are the rules of .claude/rules/visual-design.md (lanes `look` and `behaviour`). Read them before you build a screen.

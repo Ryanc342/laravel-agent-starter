@@ -7,8 +7,8 @@ use Tests\Structure\PlacementChecks;
 use Tests\Structure\ProjectFiles;
 
 /*
-| The template keeps 18 machine rules (docs/golden-principles.md: the nine rules of
-| principle 2, component boundaries and no import cycles, the folders of app/,
+| The template keeps its machine rules (the `[PHPStan]`, `[oxlint]` and `[Structure]`
+| rules of .claude/rules/: the layer rules of principle 2, component boundaries and no import cycles, the folders of app/,
 | where pages and components live, code lives only where the checks read it,
 | no check is silenced, the checks stay as set, the design spec's index and its
 | values, no t() at module level). Each test plants code that

@@ -79,7 +79,6 @@
 const PROTECTED_FILES = [
     '' => ['AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'DESIGN.md', 'phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'pint.json', 'phpunit.xml', '.npmrc', '.gitignore', 'artisan'],
     'docs/' => ['golden-principles.md', 'workflow.md', 'PLANS.md'],
-    'docs/rules/' => ['actions.md', 'controllers.md', 'form-requests.md', 'frontend.md', 'models.md', 'tests.md', 'translations.md', 'visual-design.md'],
     'docs/design/' => ['components.md', 'foundations.md'],
     'docs/design/patterns/' => [
         'approval.md', 'auth.md', 'bulk-actions.md', 'calendar.md', 'checkout.md', 'contact.md', 'customer-area.md', 'dashboard.md', 'detail.md',
@@ -122,6 +121,7 @@ const PROTECTED_FILES = [
     'scripts/' => ['check-installer', 'check-milestone.php', 'check-process.php', 'check-reference', 'check-run.php', 'check.php', 'playwright-mcp', 'screen-round', 'screen-round.php', 'worktree-up'],
     'scripts/hooks/' => ['finish-check.php'],
     '.claude/' => ['settings.json'],
+    '.claude/rules/' => ['actions.md', 'app.md', 'checks.md', 'controllers.md', 'form-requests.md', 'frontend.md', 'models.md', 'tests.md', 'translations.md', 'visual-design.md'],
     '.claude/agents/' => ['explorer.md', 'reviewer-haiku.md', 'reviewer-opus.md'],
     '.claude/skills/wayfinder-development/' => ['SKILL.md'],
     '.github/' => ['dependabot.yml'],

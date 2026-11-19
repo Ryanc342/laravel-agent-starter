@@ -7,7 +7,7 @@ use Tests\Structure\ProjectFiles;
 
 /*
 | Principle 9 in docs/golden-principles.md: the checks stay as set. The template
-| keeps 18 machine rules (docs/golden-principles.md); turning one
+| keeps its machine rules (tagged in .claude/rules/); turning one
 | down is a protected change (AGENTS.md "Red lines"), so these tests say so in
 | composer check too, wherever it runs. The checks are in CheckSettings.php.
 */

@@ -22,7 +22,7 @@ Use for creating or editing something.
 
 ## Rules
 
-- Use Inertia's `<Form>` with `noValidate` and Wayfinder routes, so the browser shows no message of its own (an empty required field reaches the server, whose message comes back in the app's language), and let the app's validation-error toasts and `FormField` show errors (docs/rules/frontend.md). Validation lives in the FormRequest; React adds only HTML attributes.
+- Use Inertia's `<Form>` with `noValidate` and Wayfinder routes, so the browser shows no message of its own (an empty required field reaches the server, whose message comes back in the app's language), and let the app's validation-error toasts and `FormField` show errors (.claude/rules/frontend.md). Validation lives in the FormRequest; React adds only HTML attributes.
 - One `…-form-dialog.tsx` component is both the create and the edit dialog: it owns `open` and closes it in the form's `onSuccess`. One `…-fields.tsx` component holds the fields it shows.
 - Choices: `Select` for a list, `Checkbox` for yes or no, `ToggleGroup` for two to seven modes.
 - A date is a `DatePicker` (`components/shared`), never `type="date"`: a button showing the date that opens a `Popover` with a month calendar (shadcn `Calendar`), the same in every browser. It has a label like any field, the red border for an error, works with the keyboard, and reads and writes `YYYY-MM-DD`, so URLs and requests are unchanged. It also serves the from and to rows of a column menu (list.md). A number is a number `Input`.

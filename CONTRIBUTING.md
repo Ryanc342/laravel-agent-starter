@@ -6,7 +6,7 @@ Thank you for helping improve Laravel Agent Starter. English and Chinese issues 
 
 For a bug, open an [issue](https://github.com/Ryanc342/laravel-agent-starter/issues) with reproduction steps, expected and actual behavior, and relevant PHP, Node.js and MySQL versions. Remove credentials and private data from logs. Report vulnerabilities through [SECURITY.md](SECURITY.md).
 
-For a feature or change to the template's rules, discuss the scope in an issue before implementing it. Read [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md), and the applicable `docs/rules/` files. The repository's [workflow](docs/workflow.md) describes how decisions and approval are recorded in an execution plan; AI contributors must follow it.
+For a feature or change to the template's rules, discuss the scope in an issue before implementing it. Read [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md), and the applicable `.claude/rules/` files. The repository's [workflow](docs/workflow.md) describes how decisions and approval are recorded in an execution plan; AI contributors must follow it.
 
 ## Local development
 

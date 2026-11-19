@@ -25,7 +25,7 @@ abstract class InAppNotification extends Notification
     /**
      * What toArray() stores: the English sentence, written once, and the values
      * its :placeholders take. Its Chinese is in lang/zh_CN.json under the same
-     * English text (docs/rules/translations.md).
+     * English text (.claude/rules/translations.md).
      *
      * @param  array<string, string|int>  $values
      * @return array{message: string, values: array<string, string|int>}

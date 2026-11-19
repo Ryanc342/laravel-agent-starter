@@ -32,9 +32,9 @@ After "开始" you ask nothing. Whatever the plan does not say follows the templ
 For each milestone:
 
 1. Search for what already exists. For every Action, scope, enum method, model method, component or hook you are about to create, search first, including the underlying conditions (fields, enum cases, query conditions), not only helper names: `rg -n "function \w+\(" app/Enums app/Models app/Policies app/Actions`. If a rule already exists in the wrong place, move it in this change instead of adding a copy.
-2. Place every rule using the owner table in ARCHITECTURE.md, and read the docs/rules/ file for each folder you touch.
+2. Place every rule using the owner table in ARCHITECTURE.md.
 3. Copy the structure of the matching file in docs/reference/tasks/.
-4. Write the tests first (Pest, docs/rules/tests.md) and run them: they must fail. Then implement in this order: migration, enum, model and factory, policy, action, form request, resource and TypeScript type, controller and routes, React. Add new pages to `mainNavItems` in `resources/js/components/app-sidebar.tsx`. For a page, follow DESIGN.md and docs/rules/visual-design.md; the browser check is the final review's screen rounds.
+4. Write the tests first (Pest, .claude/rules/tests.md) and run them: they must fail. Then implement in this order: migration, enum, model and factory, policy, action, form request, resource and TypeScript type, controller and routes, React. Add new pages to `mainNavItems` in `resources/js/components/app-sidebar.tsx`. For a page, follow DESIGN.md and .claude/rules/visual-design.md; the browser check is the final review's screen rounds.
 5. Run `composer check:milestone -- <affected test files or directories>` and fix every failure.
 6. Commit, tick the milestone and add its Progress line (docs/PLANS.md).
 

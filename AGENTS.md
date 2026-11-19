@@ -26,19 +26,6 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - New features copy the structure of docs/reference/tasks/ and of the notifications feature in app/ (map in ARCHITECTURE.md). Never copy their domains.
 - The starter kit's auth and settings code follows the same rules (app/Actions/Users, app/Policies/UserPolicy.php, app/Http/Fortify, app/Http/Controllers/Settings).
 
-## Rules by folder: read before editing
-
-| Editing                                                   | Read first                    |
-| --------------------------------------------------------- | ----------------------------- |
-| app/Actions/**                                            | docs/rules/actions.md         |
-| app/Http/Controllers/**, app/Http/Fortify/**, routes/**   | docs/rules/controllers.md     |
-| app/Http/Requests/**                                      | docs/rules/form-requests.md   |
-| app/Models/**, app/Enums/**, app/Policies/**, database/** | docs/rules/models.md          |
-| resources/js/**, app/Http/Resources/**                    | docs/rules/frontend.md        |
-| resources/js/**, resources/css/**, DESIGN.md, docs/design/** | docs/rules/visual-design.md |
-| app/**, resources/**, routes/** (any sentence a user reads) | docs/rules/translations.md |
-| tests/**                                                  | docs/rules/tests.md           |
-
 ## Red lines
 
 - Fix the code, not the test. Change or delete an existing test assertion only when a decision of the plan changes the requirement, and name that decision.
@@ -54,7 +41,8 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 - docs/PLANS.md: how to write an ExecPlan
 - docs/exec-plans/active/: work in progress. docs/exec-plans/completed/: finished plans
 - docs/exec-plans/tech-debt.md: known debt, oldest first
-- docs/golden-principles.md: every rule, listed under its review lane, with the check or reviewer that stops it
+- .claude/rules/: every rule, once, in the file of the folders it is about; Claude Code loads a file when you read a matching file
+- docs/golden-principles.md: the principles, the review lanes and how a rule names its check
 - docs/QUALITY.md: quality grade per domain
 - docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
 - docs/reference/tasks/: the reference feature
@@ -64,7 +52,7 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 ## Tools
 
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Playwright MCP (`playwright` for `reviewer-opus`, `playwright-review` for `reviewer-haiku`): isolated headless browsers, never the user's Chrome; close them after checks. Screenshot handling: docs/rules/visual-design.md.
+- Playwright MCP (`playwright` for `reviewer-opus`, `playwright-review` for `reviewer-haiku`): isolated headless browsers, never the user's Chrome; close them after checks. How a reviewer opens pages: docs/prompts/review.md, step 6.
 - Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models). They run in the foreground: the session waits for their answers.
 - Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back what is missing, one line each: a plan for changed code, a passing check, the review of a finished plan, the approval of a protected change. Do the step.
 

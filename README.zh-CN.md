@@ -6,7 +6,7 @@
 
 它在官方 [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) 的基础上，提供明确的架构、AI 开发流程和自动检查：
 
-- **AI 有文档可依循。** `AGENTS.md` 是入口，`docs/` 记录工作流程、执行计划、分层规则和完整参考功能。
+- **AI 有文档可依循。** `AGENTS.md` 是入口，`docs/` 记录工作流程、执行计划和完整参考功能，`.claude/rules/` 按目录记录规则。
 - **业务规则只有一个归属。** 按 React、HTTP、Actions / Policies、Models、Enums 分层，上层调用下层。认证、设置和通知功能也遵守这些规则。
 - **机器检查骨架，两个 AI 审查者检查其余规则。** 机器只检查骨架：分层（PHPStan，`phpstan.neon` 中的分层规则）、组件边界、循环导入和不在导入时调用 `t()`（oxlint，Ezdev 规则在 `lint/oxlint/`）、`app/` 的目录、页面和组件的位置、没有检查被关闭或放宽，以及设计规范的索引和取值（结构测试）。`composer check` 统一执行全部检查。其余规则需要阅读代码，由两个使用不同模型的审查子代理 `reviewer-opus` 和 `reviewer-haiku` 按审查通道逐个审查每次改动。AI 准备结束时，结束检查会退回遗漏的流程步骤，包括审查轮次。
 
@@ -96,17 +96,18 @@ AI 准备结束时，结束检查 `scripts/hooks/finish-check.php` 会把缺少�
 | [docs/design/](docs/design/) | 设计基础、组件选择和二十六种页面模式（列表、详情、表单、空 / 错误 / 加载状态、仪表盘、设置、消息流、登录注册、错误页、批量操作、导入导出、打印、搜索结果、向导、审批、列表加详情、报表、日历、看板，以及面向客户的页面：首页 / 落地页、价格、产品、客户中心、结账、帮助 / 常见问题和联系表单）；开发时打开 `/style` 查看全部演示 |
 | [docs/workflow.md](docs/workflow.md) | 提问、计划、实现、验证和审查流程 |
 | [docs/PLANS.md](docs/PLANS.md) | 执行计划格式 |
-| [docs/golden-principles.md](docs/golden-principles.md) | 各项原则、每条规则由谁检查，以及审查通道 |
+| [.claude/rules/](.claude/rules/) | 每条规则只写一次，写在它所涉及目录的规则文件里；AI 读到匹配的文件时，Claude Code 会自动加载 |
+| [docs/golden-principles.md](docs/golden-principles.md) | 各项原则、审查通道，以及规则如何标明由谁检查 |
 | [docs/prompts/review.md](docs/prompts/review.md) | 每次审查运行读什么、如何报告 |
 | [docs/QUALITY.md](docs/QUALITY.md) | 各领域的质量记录 |
 | [docs/reference/tasks/](docs/reference/tasks/) | 可参考的完整功能结构 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本记录 |
 
-AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；哪些要变成规则由你决定，并另写计划。修改规则或工具需要在计划的“Approved changes”里列出并经你批准，之后还需运行 `composer check:reference`。机器检查是骨架，其余规则都是 `docs/golden-principles.md` 里的 `[review]` 规则，留给审查者；每周清理（`docs/prompts/cleanup.md`）按通道逐条检查 `[review]` 规则，列出机器检查的缺口和可以合并或删除的规则，由你决定，检查只会变得更严格。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
+AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；哪些要变成规则由你决定，并另写计划。修改规则或工具需要在计划的“Approved changes”里列出并经你批准，之后还需运行 `composer check:reference`。机器检查是骨架，其余规则都是 `.claude/rules/` 里的 `[review:<通道>]` 规则，留给审查者；每周清理（`docs/prompts/cleanup.md`）按通道逐条检查 `[review:<通道>]` 规则，列出机器检查的缺口和可以合并或删除的规则，由你决定，检查只会变得更严格。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
 
 ## 多语言
 
-应用支持英文和简体中文。第一次访问时按浏览器的 `Accept-Language` 选择（任何中文都用中文，其他用英文）；用户在“设置 → 外观”里切换，访客用公开页顶栏和登录页右上角的“EN / 中文”切换。选择会保存在用户（`users.locale`）和 `locale` cookie 里，由 `SetLocale` 应用到每个请求。只有一个来源，Laravel 的语言文件，不装任何包：句子以英文原文为键（`lang/zh_CN.json`，`"Save changes": "保存更改"`），Laravel 自带的分组在 `lang/zh_CN/`，React 通过 `t()` 和 `tChoice()`（`resources/js/lib/i18n.ts`）读取当前语言的句子。每个句子都用英文写在 `t()` 或 `__()` 里，并在同一次提交里补上中文；缺少或多余的翻译、直接写在 JSX 里的文字由审查者报告（`behaviour` 通道）；在导入时就运行的 `t()` 会让 oxlint 失败：这样的句子用 `msg()` 标记，在显示的地方再翻译。用户输入的内容不翻译。详情见 `docs/rules/translations.md`。
+应用支持英文和简体中文。第一次访问时按浏览器的 `Accept-Language` 选择（任何中文都用中文，其他用英文）；用户在“设置 → 外观”里切换，访客用公开页顶栏和登录页右上角的“EN / 中文”切换。选择会保存在用户（`users.locale`）和 `locale` cookie 里，由 `SetLocale` 应用到每个请求。只有一个来源，Laravel 的语言文件，不装任何包：句子以英文原文为键（`lang/zh_CN.json`，`"Save changes": "保存更改"`），Laravel 自带的分组在 `lang/zh_CN/`，React 通过 `t()` 和 `tChoice()`（`resources/js/lib/i18n.ts`）读取当前语言的句子。每个句子都用英文写在 `t()` 或 `__()` 里，并在同一次提交里补上中文；缺少或多余的翻译、直接写在 JSX 里的文字由审查者报告（`behaviour` 通道）；在导入时就运行的 `t()` 会让 oxlint 失败：这样的句子用 `msg()` 标记，在显示的地方再翻译。用户输入的内容不翻译。详情见 `.claude/rules/translations.md`。
 
 ## 部署
 

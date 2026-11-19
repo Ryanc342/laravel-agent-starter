@@ -1,6 +1,6 @@
 /**
  * Every sentence a user reads goes through `t()` or `tChoice()`
- * (docs/rules/translations.md). A sentence is keyed by its English text, so
+ * (.claude/rules/translations.md). A sentence is keyed by its English text, so
  * English needs no table: a missing key is shown as it is. The backend sends the
  * current language's sentences (Chinese: lang/zh_CN.json) as the `translations`
  * page prop, and `LocaleLayout` hands them here before the page renders.
