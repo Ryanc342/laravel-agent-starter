@@ -33,12 +33,11 @@ function sampleCopyDifferences(string $root): array
     $folder = "{$root}/docs/reference/pages";
 
     foreach (SAMPLE_COPIES as $copy => $page) {
-        $copied = @file_get_contents("{$folder}/{$copy}");
-        $live = @file_get_contents("{$root}/resources/js/{$page}");
-
-        if ($copied === false) {
+        if (! is_file("{$folder}/{$copy}")) {
             $found[] = "docs/reference/pages/{$copy}: missing";
-        } elseif ($copied !== $live) {
+        } elseif (! is_file("{$root}/resources/js/{$page}")) {
+            $found[] = "resources/js/{$page}: missing, the page docs/reference/pages/{$copy} copies";
+        } elseif (file_get_contents("{$folder}/{$copy}") !== file_get_contents("{$root}/resources/js/{$page}")) {
             $found[] = "docs/reference/pages/{$copy}: differs from resources/js/{$page}";
         }
     }

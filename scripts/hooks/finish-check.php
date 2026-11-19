@@ -288,6 +288,24 @@ function isCodePath(string $path): bool
 }
 
 /**
+ * The commit before the plan was first added; HEAD for a plan not committed
+ * yet, and the empty tree when the plan came with the first commit.
+ */
+function planBase(string $plan): string
+{
+    $name = basename($plan);
+    $added = array_filter(explode("\n", mustGit(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name])));
+
+    if ($added === []) {
+        return 'HEAD';
+    }
+
+    $commits = explode(' ', mustGit(['rev-list', '--parents', '-n', '1', end($added)]));
+
+    return count($commits) > 1 ? $commits[1] : '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+}
+
+/**
  * Every file the plan's work changed: since the commit before the plan was first
  * added, or, for a plan not yet committed, since HEAD. A file that is as it is
  * in the template commit a sync plan names is left out.
@@ -296,18 +314,14 @@ function isCodePath(string $path): bool
  */
 function planChanges(string $plan): array
 {
-    $name = basename($plan);
-    $added = array_filter(explode("\n", mustGit(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name])));
-    // The empty tree, when the plan came with the first commit.
-    $before = $added === [] ? 'HEAD' : git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
-    $paths = changedSince($before);
-    $template = preg_match(TEMPLATE_COMMIT, (string) file_get_contents($plan), $match) === 1
-        ? git(['rev-parse', '--verify', '--quiet', $match[1].'^{commit}'])
-        : null;
+    $paths = changedSince(planBase($plan));
 
-    if ($template === null) {
+    if (preg_match(TEMPLATE_COMMIT, (string) file_get_contents($plan), $match) !== 1) {
         return $paths;
     }
+
+    $template = git(['rev-parse', '--verify', '--quiet', $match[1].'^{commit}'])
+        ?? throw new RuntimeException("the plan's template commit {$match[1]} is not in this repository");
 
     return array_values(array_filter($paths, fn (string $path): bool => (git(['rev-parse', '--verify', '--quiet', "{$template}:{$path}"]) ?? 'deleted') !== contentHash($path)));
 }
@@ -326,8 +340,7 @@ function reviewRound(string $plan): string
     }
 
     $name = basename($plan);
-    $added = array_filter(explode("\n", mustGit(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name])));
-    $before = $added === [] ? 'HEAD' : git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+    $before = planBase($plan);
     $untracked = array_filter(explode("\n", mustGit(['ls-files', '--others', '--exclude-standard'])));
     $paths = planChanges($plan);
     $tracked = array_values(array_diff($paths, $untracked));

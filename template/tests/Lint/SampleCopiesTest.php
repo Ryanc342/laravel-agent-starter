@@ -23,11 +23,13 @@ test('the copy check fails when a copy differs from its page, is missing, or is 
 
     file_put_contents("{$root}/resources/js/pages/auth/login.tsx", "export default function Login() {}\n");
     unlink("{$root}/docs/reference/pages/welcome/index.tsx");
+    unlink("{$root}/resources/js/pages/errors/show.tsx");
     file_put_contents("{$root}/docs/reference/pages/auth/extra.tsx", "export {};\n");
 
     expect(sampleCopyDifferences($root))->toEqualCanonicalizing([
         'docs/reference/pages/auth/login.tsx: differs from resources/js/pages/auth/login.tsx',
         'docs/reference/pages/welcome/index.tsx: missing',
+        'resources/js/pages/errors/show.tsx: missing, the page docs/reference/pages/errors/show.tsx copies',
         'docs/reference/pages/auth/extra.tsx: not a copy of a page',
     ]);
 });

@@ -17,7 +17,7 @@ function finishCheckRepo(): string
     $repo = sys_get_temp_dir().'/ezdev-finish-check-'.bin2hex(random_bytes(6));
     $root = dirname(__DIR__, 3);
 
-    finishCheckWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents("{$root}/scripts/hooks/finish-check.php") ?: '');
+    finishCheckWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents("{$root}/scripts/hooks/finish-check.php") ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
     finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
     finishCheckWrite($repo, 'docs/notes.md', "# Notes\n");
     finishCheckWrite($repo, 'phpstan.neon', "parameters:\n");
@@ -278,7 +278,7 @@ test('the session has no question tool and no workflows, and its subagents run i
 
 test('outside a git repository the finish check says nothing', function () {
     $dir = sys_get_temp_dir().'/ezdev-no-git-'.bin2hex(random_bytes(6));
-    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: '');
+    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
     finishCheckWrite($dir, 'app/code.php', "<?php\n");
     register_shutdown_function(fn () => (new Process(['rm', '-rf', $dir]))->run());
 

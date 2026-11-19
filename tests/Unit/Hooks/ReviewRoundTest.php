@@ -15,7 +15,7 @@ function roundRepo(): string
 {
     $repo = sys_get_temp_dir().'/ezdev-review-round-'.bin2hex(random_bytes(6));
 
-    roundWrite($repo, 'scripts/hooks/finish-check.php', (string) file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php'));
+    roundWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
     roundWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
     roundWrite($repo, 'docs/exec-plans/active/.gitkeep', '');
     roundWrite($repo, 'storage/framework/testing/.gitignore', "*\n!.gitignore\n");
@@ -129,6 +129,17 @@ test('a round leaves out of the diff the files that are as they are in the templ
 
     expect($diff)->toContain('resources/js/pages/quotes/index.tsx')
         ->not->toContain('FromTemplate.php');
+});
+
+test('a round for a sync plan whose template commit is not in the repository fails and says so', function () {
+    $repo = roundRepo();
+    roundWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: 0123456789abcdef0123456789abcdef01234567\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
+    roundCommit($repo);
+
+    $process = roundRun($repo, 'docs/exec-plans/active/sync-template.md');
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('0123456789abcdef0123456789abcdef01234567');
 });
 
 test('a round for a plan that does not exist writes nothing and fails', function () {
