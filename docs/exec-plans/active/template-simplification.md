@@ -112,7 +112,7 @@ Release
 - 2026-11-19 Review round 2 (business, input, tests) on 82bf8388: business and input done; tests 1 P0 (`rg --hostname-bin` could start a program) and 2 P1 (the approved assertion line, now marked under Approved changes; no test of the copies' build or of a copy that does not answer), fixed in commit d82622d8.
 - 2026-11-19 Review round 3 (tests) on b74e8629: 3 P1 (the `find -exec` case never reached the `-exec` check; decision 1 and the saved-files test missing from the note under Approved changes), fixed in commit 37fb815f.
 - 2026-11-19 Review round 4 (tests) on e1db5013: haiku clean; opus 1 P0 (`uniq` could write a file whose name starts with `-`), the two new refusal cases failed before the code, fixed in commit db367b95.
-- 2026-11-19 Review round 5 (tests) on b3fedd76: haiku clean; opus 1 P0 (inside double quotes the command check dropped backslashes the shell keeps, so a sed write passed), the two new refusal cases failed before the code, fixed in commit R5.
+- 2026-11-19 Review round 5 (tests) on b3fedd76: haiku clean; opus 1 P0 (inside double quotes the command check dropped backslashes the shell keeps, so a sed write passed), the two new refusal cases failed before the code, fixed in commit 18a6e57c.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
