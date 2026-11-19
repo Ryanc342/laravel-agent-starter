@@ -7,8 +7,8 @@
 | 1. It changes nothing unless APP_ENV is `local` and the project's database
 |    server (DB_HOST, or the host of DB_URL when it is set) is on this machine:
 |    the copies' databases live on that server. The screen lanes then do not
-|    run, and the report says why. A copy's .env names its own database in
-|    DB_DATABASE, and its DB_URL names none.
+|    run, and the report says why. The .env files are read as Laravel reads
+|    them: phpdotenv for the file, ConfigurationUrlParser for DB_URL.
 | 2. Each reviewer gets a copy of its own: ../<project folder>-review-opus for
 |    reviewer-opus (`playwright`) and ../<project folder>-review-haiku for
 |    reviewer-haiku (`playwright-review`). A copy is a git worktree detached at
@@ -17,7 +17,10 @@
 |    deletes it.
 | 3. The port is the project's plus 100 (opus) or 200 (haiku), or the next free
 |    one when another program holds it; the copy's .env keeps the port it got.
-| 4. It puts the commit into each copy (dependencies when a lock file changed,
+| 4. Each round it writes the copy's .env again from the project's, with the
+|    copy's connection in full and no DB_URL, and reads it back: unless the copy
+|    would use its own database, it stops before anything is migrated.
+| 5. It puts the commit into each copy (dependencies when a lock file changed,
 |    the reference feature with --reference, assets built), resets each copy's
 |    database to the seeded state (only the test accounts), starts or restarts
 |    its app, checks that both answer, and prints the two addresses.
@@ -27,6 +30,9 @@
 | script (../<project folder>-review, ../<project folder>-reference) are no
 | longer used: `git worktree remove` removes them.
 */
+
+use Dotenv\Dotenv;
+use Illuminate\Support\ConfigurationUrlParser;
 
 // The hosts that put a database on this machine.
 const SCREEN_ROUND_LOCAL_HOSTS = ['127.0.0.1', 'localhost', '::1'];
@@ -111,11 +117,16 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
     $first = ! is_dir($copy);
     $before = null;
 
+    $projectEnv = (string) file_get_contents("{$root}/.env");
+    $env = screenRoundCopyEnv($projectEnv, $copy, $offset, $database);
+
     if ($first) {
         screenRoundRun($root, ['git', 'worktree', 'add', '--detach', $copy, $commit]);
-        file_put_contents("{$copy}/.env", screenRoundCopyEnv((string) file_get_contents("{$root}/.env"), $copy, $offset, $database));
         echo "Copy created: {$copy}\n";
     } else {
+        // A copy keeps the port it got.
+        $env = screenRoundSetPort($env, screenRoundPort(screenRoundParse((string) file_get_contents("{$copy}/.env"))));
+
         $before = trim(screenRoundGit($copy, ['rev-parse', 'HEAD']));
 
         if (is_file("{$copy}/".SCREEN_ROUND_REFERENCE_MARK)) {
@@ -127,7 +138,9 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
         }
     }
 
+    file_put_contents("{$copy}/.env", $env);
     $copyEnv = screenRoundParse((string) file_get_contents("{$copy}/.env"));
+    screenRoundCheckDatabase(screenRoundParse($projectEnv), $copyEnv, $copy, $database);
 
     if (($copyEnv['DB_CONNECTION'] ?? 'mysql') === 'sqlite') {
         $file = $copyEnv['DB_DATABASE'] ?? "{$copy}/database/database.sqlite";
@@ -220,55 +233,93 @@ function screenRoundRefusal(array $env): ?string
         return 'APP_ENV is '.($appEnv === '' ? 'not set' : "`{$appEnv}`").', not `local`.';
     }
 
-    $connection = $env['DB_CONNECTION'] ?? 'mysql';
-    $url = $env['DB_URL'] ?? '';
-
-    // Laravel takes the host and the database from DB_URL when it is set.
-    if ($connection !== 'sqlite' && $url !== '') {
-        $host = parse_url($url, PHP_URL_HOST);
-
-        return is_string($host) && in_array(trim($host, '[]'), SCREEN_ROUND_LOCAL_HOSTS, true)
-            ? null
-            : 'The database URL (DB_URL) '.(is_string($host) ? "is on {$host}" : 'names no host').', not on this machine.';
+    try {
+        $database = screenRoundDatabase($env);
+    } catch (InvalidArgumentException) {
+        return 'The database URL (DB_URL) cannot be read.';
     }
 
-    $host = $env['DB_HOST'] ?? '127.0.0.1';
+    $host = (string) ($database['host'] ?? '');
 
-    if ($connection !== 'sqlite' && ! in_array($host, SCREEN_ROUND_LOCAL_HOSTS, true)) {
-        return "The database is on {$host}, not on this machine.";
+    if ($database['driver'] !== 'sqlite' && ! in_array(trim($host, '[]'), SCREEN_ROUND_LOCAL_HOSTS, true)) {
+        return 'The database is on '.($host === '' ? 'no named host' : $host).', not on this machine.';
     }
 
     return null;
 }
 
 /**
+ * The connection Laravel builds from these .env values: config/database.php's
+ * defaults, then DB_URL applied by Laravel's own ConfigurationUrlParser (its
+ * host, path and query win over the separate values).
+ *
+ * @param  array<string, string>  $env
+ * @return array<string, mixed>
+ */
+function screenRoundDatabase(array $env): array
+{
+    $driver = ($env['DB_CONNECTION'] ?? '') === '' ? 'mysql' : $env['DB_CONNECTION'];
+    $database = (new ConfigurationUrlParser)->parseConfiguration([
+        'driver' => $driver,
+        'url' => ($env['DB_URL'] ?? '') === '' ? null : $env['DB_URL'],
+        'host' => $env['DB_HOST'] ?? '127.0.0.1',
+        'port' => $env['DB_PORT'] ?? null,
+        'database' => $env['DB_DATABASE'] ?? ($driver === 'sqlite' ? 'database/database.sqlite' : 'laravel'),
+        'username' => $env['DB_USERNAME'] ?? 'root',
+        'password' => $env['DB_PASSWORD'] ?? '',
+    ]);
+
+    return [...$database, 'driver' => (string) ($database['driver'] ?? $driver)];
+}
+
+/**
  * A copy's .env: the project's, with its own URL, port, session cookie and
  * database, and jobs run in the request (composer dev's queue worker runs only
- * for the project).
+ * for the project). The connection is written out in full and DB_URL left
+ * empty, so nothing in a URL (its host, its path, its query) can win over the
+ * copy's database; the URL's other query options are not carried over.
  */
 function screenRoundCopyEnv(string $env, string $copy, int $offset, string $database): string
 {
     $values = screenRoundParse($env);
-    $sqlite = ($values['DB_CONNECTION'] ?? 'mysql') === 'sqlite';
-    $url = $values['DB_URL'] ?? '';
-    // Laravel takes the database from DB_URL's path when it has one.
-    $path = $url === '' ? '' : trim((string) parse_url($url, PHP_URL_PATH), '/');
-    $name = $sqlite ? "{$copy}/database/database.sqlite" : ($path !== '' ? $path : ($values['DB_DATABASE'] ?? 'laravel')).$database;
+    $connection = screenRoundDatabase($values);
+    $sqlite = $connection['driver'] === 'sqlite';
     $set = [
         'SESSION_COOKIE' => preg_replace('/[^a-z0-9_]/', '_', strtolower(basename($copy))).'_session',
-        'DB_DATABASE' => $name,
         // No queue worker runs for a copy: jobs run in the request.
         'QUEUE_CONNECTION' => 'sync',
+        'DB_CONNECTION' => $connection['driver'],
+        'DB_URL' => '',
+        'DB_DATABASE' => $sqlite ? "{$copy}/database/database.sqlite" : $connection['database'].$database,
     ];
 
-    if ($url !== '') {
-        // The URL keeps the server and its credentials but names no database, so
-        // DB_DATABASE names the copy's: a database in the URL would win over it,
-        // and migrate could not create the copy's (it connects without one).
-        $set['DB_URL'] = $sqlite ? '' : "'".preg_replace('~^([^:/?#]+://[^/?#]*)(/[^?#]*)?~', '${1}', $url)."'";
+    if (! $sqlite) {
+        foreach (['DB_HOST' => 'host', 'DB_PORT' => 'port', 'DB_USERNAME' => 'username', 'DB_PASSWORD' => 'password'] as $key => $option) {
+            if (isset($connection[$option])) {
+                $set[$key] = (string) $connection[$option];
+            }
+        }
     }
 
     return screenRoundSetPort(screenRoundSet($env, $set), screenRoundPort($values) + $offset);
+}
+
+/**
+ * Stops unless the copy's .env, read as Laravel reads it, uses the copy's own
+ * database on the project's server: then nothing is migrated.
+ *
+ * @param  array<string, string>  $project
+ * @param  array<string, string>  $copyEnv
+ */
+function screenRoundCheckDatabase(array $project, array $copyEnv, string $copy, string $database): void
+{
+    $own = screenRoundDatabase($project);
+    $seat = screenRoundDatabase($copyEnv);
+    $expected = $own['driver'] === 'sqlite' ? "{$copy}/database/database.sqlite" : $own['database'].$database;
+
+    if ($seat['driver'] !== $own['driver'] || $seat['database'] !== $expected || ($own['driver'] !== 'sqlite' && ($seat['host'] ?? null) !== ($own['host'] ?? null))) {
+        throw new RuntimeException("{$copy}/.env would not use the copy's own database ({$expected}) but {$seat['database']}; nothing was migrated. Put the screen lanes in the report as not run.");
+    }
 }
 
 /**
@@ -285,20 +336,35 @@ function screenRoundSetPort(string $env, int $port): string
 }
 
 /**
- * The .env with each KEY=value of $set, replacing the line of that key or added at the end.
+ * The .env with each KEY=value of $set at its end, every earlier line of that
+ * key (also with `export`) removed.
  *
  * @param  array<string, string>  $set
  */
 function screenRoundSet(string $env, array $set): string
 {
     foreach ($set as $key => $value) {
-        $line = "{$key}={$value}";
-        $env = preg_match("/^{$key}=/m", $env) === 1
-            ? (string) preg_replace("/^{$key}=.*$/m", addcslashes($line, '\\$'), $env)
-            : rtrim($env)."\n{$line}\n";
+        $env = (string) preg_replace('/^[ \t]*(?:export[ \t]+)?'.preg_quote($key, '/').'[ \t]*=.*(?:\R|\z)/m', '', $env);
+        $env = rtrim($env)."\n{$key}=".screenRoundQuote($value)."\n";
     }
 
     return $env;
+}
+
+/**
+ * A value as phpdotenv reads it back unchanged: plain, or in single quotes.
+ */
+function screenRoundQuote(string $value): string
+{
+    if (preg_match('~^[A-Za-z0-9_./:@%+,-]*$~', $value) === 1) {
+        return $value;
+    }
+
+    if (! str_contains($value, "'")) {
+        return "'{$value}'";
+    }
+
+    throw new RuntimeException("a value with a single quote cannot be written to a copy's .env.");
 }
 
 /**
@@ -329,20 +395,14 @@ function screenRoundFreePort(int $port): int
 }
 
 /**
- * The KEY=value lines of a .env file, without quotes.
+ * The values of a .env file as Laravel reads them (phpdotenv: quotes, comments,
+ * `export`, variables).
  *
  * @return array<string, string>
  */
 function screenRoundParse(string $env): array
 {
-    preg_match_all('/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/m', $env, $lines, PREG_SET_ORDER);
-    $values = [];
-
-    foreach ($lines as [, $key, $value]) {
-        $values[$key] = preg_match('/^(["\'])(.*)\1$/', $value, $quoted) === 1 ? $quoted[2] : $value;
-    }
-
-    return $values;
+    return array_map(fn (?string $value): string => $value ?? '', Dotenv::parse($env));
 }
 
 /**

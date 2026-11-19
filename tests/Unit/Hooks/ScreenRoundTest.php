@@ -1,5 +1,6 @@
 <?php
 
+use Dotenv\Dotenv;
 use Illuminate\Support\ConfigurationUrlParser;
 use Symfony\Component\Process\Process;
 
@@ -28,7 +29,7 @@ test('the guard lets only a local development database be reset', function (arra
     'local with a host that only starts like localhost' => [['APP_ENV' => 'local', 'DB_HOST' => 'localhost.example.com'], false],
     'local with a database URL on this machine' => [['APP_ENV' => 'local', 'DB_HOST' => 'db.example.com', 'DB_URL' => 'mysql://shop:secret@127.0.0.1:3306/shop'], true],
     'local with a database URL on another host' => [['APP_ENV' => 'local', 'DB_HOST' => '127.0.0.1', 'DB_URL' => 'mysql://shop:secret@db.example.com/shop'], false],
-    'local with a database URL without a host' => [['APP_ENV' => 'local', 'DB_URL' => 'not a url'], false],
+    'local with a database URL whose query names another host' => [['APP_ENV' => 'local', 'DB_URL' => 'mysql://root:@127.0.0.1:3306?host=db.example.com'], false],
 ]);
 
 /**
@@ -47,6 +48,9 @@ function screenRoundRepo(string $env): string
 
     file_put_contents("{$repo}/.env", $env);
     file_put_contents("{$repo}/.gitignore", ".env\n");
+    // The project's Composer autoloader, as a project after composer install has it.
+    mkdir("{$repo}/vendor");
+    file_put_contents("{$repo}/vendor/autoload.php", "<?php\n\nrequire ".var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true).";\n");
 
     foreach ([['init', '-q', '-b', 'main'], ['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-q', '-m', 'work']] as $args) {
         (new Process(['git', ...$args], $repo))->mustRun();
@@ -101,16 +105,63 @@ test('a copy gets its own database, port and session cookie', function () {
     ])->and(screenRoundParse(screenRoundSetPort($copy, 8231)))->toMatchArray(['APP_URL' => 'http://localhost:8231', 'SERVER_PORT' => '8231']);
 });
 
-test('a project with a database URL gives each copy its own database, which migrate can create', function () {
-    $env = "APP_ENV=local\nAPP_URL=http://localhost:8004\nDB_CONNECTION=mysql\nDB_URL=\"mysql://shop:s%23cret@127.0.0.1:3306/shop_dev?charset=utf8mb4\"\n";
-    $copy = screenRoundParse(screenRoundCopyEnv($env, '/work/shop-review-opus', 100, '_review_opus'));
-    $parser = new ConfigurationUrlParser;
+/**
+ * The database connection Laravel builds from a .env: phpdotenv reads the file,
+ * config/database.php takes the values, ConfigurationUrlParser applies DB_URL.
+ *
+ * @return array<string, mixed>
+ */
+function screenRoundLaravelDatabase(string $env, ?string $database = 'from env'): array
+{
+    $values = Dotenv::parse($env);
 
-    // The URL keeps the server and its credentials, and names no database.
-    expect($copy)->toMatchArray(['DB_URL' => 'mysql://shop:s%23cret@127.0.0.1:3306?charset=utf8mb4', 'DB_DATABASE' => 'shop_dev_review_opus'])
-        ->and($parser->parseConfiguration(['url' => $copy['DB_URL'], 'database' => $copy['DB_DATABASE']]))->toMatchArray(['host' => '127.0.0.1', 'username' => 'shop', 'password' => 's#cret', 'database' => 'shop_dev_review_opus'])
-        // migrate creates a missing database on a connection without one: the URL must not bring one back.
-        ->and($parser->parseConfiguration(['url' => $copy['DB_URL'], 'database' => null])['database'])->toBeNull();
+    return (new ConfigurationUrlParser)->parseConfiguration([
+        'driver' => $values['DB_CONNECTION'] ?? 'mysql',
+        'url' => $values['DB_URL'] ?? null,
+        'host' => $values['DB_HOST'] ?? '127.0.0.1',
+        'port' => $values['DB_PORT'] ?? '3306',
+        'database' => $database === 'from env' ? ($values['DB_DATABASE'] ?? 'laravel') : $database,
+        'username' => $values['DB_USERNAME'] ?? 'root',
+        'password' => $values['DB_PASSWORD'] ?? '',
+    ]);
+}
+
+test('a copy uses its own database however the project\'s .env names its own', function (string $database) {
+    $env = "APP_ENV=local\nAPP_URL=http://localhost:8004\nDB_CONNECTION=mysql\n{$database}\n";
+    $copy = screenRoundCopyEnv($env, '/work/shop-review-opus', 100, '_review_opus');
+
+    expect(screenRoundLaravelDatabase($env)['database'])->toBe('shop_dev')
+        ->and(screenRoundLaravelDatabase($copy))->toMatchArray(['driver' => 'mysql', 'host' => '127.0.0.1', 'database' => 'shop_dev_review_opus'])
+        // migrate creates a missing database on a connection without one: nothing may bring one back.
+        ->and(screenRoundLaravelDatabase($copy, null)['database'])->toBeNull();
+})->with([
+    'a plain value' => ['DB_DATABASE=shop_dev'],
+    'a comment after the value' => ['DB_DATABASE=shop_dev # local'],
+    'a quoted value and a comment' => ['DB_DATABASE="shop_dev" # local'],
+    'export' => ['export DB_DATABASE=shop_dev'],
+    'a URL with the database in its path' => ["DB_DATABASE=other\nDB_URL=\"mysql://shop:s%23cret@127.0.0.1:3306/shop_dev?charset=utf8mb4\""],
+    'a URL with the database in its query' => ["DB_DATABASE=other\nexport DB_URL=mysql://root:@127.0.0.1:3306?database=shop_dev"],
+]);
+
+test('a copy whose .env would use any other database stops the round before anything is migrated', function (array $copyEnv) {
+    $project = ['DB_CONNECTION' => 'mysql', 'DB_HOST' => '127.0.0.1', 'DB_DATABASE' => 'shop'];
+
+    expect(fn () => screenRoundCheckDatabase($project, $copyEnv, '/work/shop-review-opus', '_review_opus'))->toThrow(RuntimeException::class, 'nothing was migrated');
+})->with([
+    'the project\'s database' => [['DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'shop']],
+    'the other seat\'s database' => [['DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'shop_review_haiku']],
+    'its own name on another server' => [['DB_CONNECTION' => 'mysql', 'DB_HOST' => 'db.example.com', 'DB_DATABASE' => 'shop_review_opus']],
+    'a URL that wins over its own name' => [['DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'shop_review_opus', 'DB_URL' => 'mysql://root:@127.0.0.1?database=shop']],
+]);
+
+test('a copy whose .env uses its own database passes the check', function () {
+    expect(screenRoundCheckDatabase(['DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'shop'], ['DB_CONNECTION' => 'mysql', 'DB_HOST' => '127.0.0.1', 'DB_DATABASE' => 'shop_review_opus'], '/work/shop-review-opus', '_review_opus'))->toBeNull();
+});
+
+test('a copy keeps the server and the credentials of the project\'s database URL', function () {
+    $copy = screenRoundCopyEnv("APP_ENV=local\nDB_CONNECTION=mysql\nDB_URL=\"mysql://shop:s%23cret@127.0.0.1:3307/shop_dev\"\n", '/work/shop-review-haiku', 200, '_review_haiku');
+
+    expect(screenRoundLaravelDatabase($copy))->toMatchArray(['host' => '127.0.0.1', 'port' => '3307', 'username' => 'shop', 'password' => 's#cret', 'database' => 'shop_dev_review_haiku']);
 });
 
 test('a SQLite project gives a copy its own database file, and a port from APP_URL', function () {
