@@ -1,4 +1,4 @@
-# Template simplification (1.4.0)
+# Template simplification (1.5.0)
 
 ## Purpose
 Ryan answers questions only while a plan is written. After his "开始" the session asks nothing and does not flood the screen with send-backs, and project quality stays where it is. The template gets smaller: most changes remove text, rules and hook machinery.
@@ -72,7 +72,7 @@ Skills
 47. boost.json keeps only `wayfinder-development`; remove the other six skill folders from .claude/skills/. Before removing, port into docs/rules what they hold and the template lacks (for example eager loading against N+1, HTTP client timeouts and retries, deployed migrations not edited, upload validation), without contradicting a template rule. Remove docs/rules/controllers.md's sentence about the laravel-best-practices skill.
 
 Release
-48. Released as 1.4.0 after the final review. Publication waits for Ryan's word "发布", as for 1.3.0: fast-forward `main`, push, CI green, then the tag.
+48. Released as 1.4.0 after the final review. Publication waits for Ryan's word "发布", as for 1.3.0: fast-forward `main`, push, CI green, then the tag. (The version is 1.5.0: decision 67.)
 
 New on 2026-11-19, second planning round (decisions 49 to 59)
 49. The finish check sends a reminder back once, never twice in a row: when the Stop input has `stop_hook_active` true, it lets the AI stop and shows Ryan one line naming what is still missing. This replaces the count of 3 and the one-message limit of decision 25; the four checks of decision 23 stay. First a probe, like M1: record in Surprises whether `stop_hook_active` stays true after the AI calls tools in the part a reminder sent back.
@@ -91,6 +91,19 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 60. Every pointer to docs/rules/ follows the move (decision 52) also in the five protected files M8e left: phpstan.neon (three error messages), lint/oxlint/ezdev.js (a comment and its error message), vite.config.ts (a comment), tests/Support/TestsRowLocks.php (a comment) and docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php (a comment).
 61. The review ledger reads a reviewer's report from its last message, and when that has no result line, from the report the reviewer handed back with the SubagentHandback tool in its transcript, as before M8d, with the short wait for a transcript written a moment late. A report in neither is sent back once, as now. This changes decision 51; the rest of M8d (no Bash, `round`) stays.
 
+New on 2026-11-20, before the trial and the release (decisions 62 to 67)
+62. A fix removes the cause of a problem; hiding the problem is not a fix. The rule is written once, in a new rule file .claude/rules/fixes.md without `paths:` (Claude Code loads it in every session), tagged `[review:business]` and `[review:frontend]`. It names the three ways of hiding a problem, each with its example and what a fix does instead:
+    - Swallowing an error: a `catch` that hides a failure, so the page says "saved" when nothing was saved. Fix why it fails; if that is not possible in this plan, let the error show and put it in the report.
+    - A default that covers a case the code does not handle: an unknown status shown as "paid", a missing price taken as 0. Make the case impossible (only known statuses can be stored) or handle it; a missing value is an error, not a silent 0.
+    - Retrying to get past a failure: saving again until it happens to work. Find why it fails and remove the cause (two people saving the same record at once: lock the row, .claude/rules/actions.md).
+    The one retry that hides nothing stays as it is: a call to an outside service whose network failed for a moment, and only for a request that is safe to send twice: looking up an exchange rate may be retried, charging a card may not, because it would charge twice (.claude/rules/actions.md). A cause the AI cannot find goes into the report and is never hidden with one of the three.
+    The rule file says each part in one short plain sentence with its example, as above, so that someone who does not read code understands it; no technical term without an example.
+63. Rule gaps are kept: the report's rule gaps are also written into the plan's "Outcomes & Retrospective", which stays when the plan moves to completed/. In a project made from the template, a gap that belongs in the template is marked "for the template". The weekly cleanup lists the rule gaps of the plans completed since the previous cleanup, for Ryan to decide (docs/workflow.md step 5, docs/PLANS.md, docs/prompts/cleanup.md).
+64. The rule against invented reviews, customer logos, user numbers and stock photos covers every public page, the landing page included: .claude/rules/visual-design.md says "public page (the landing page and the customer pages)" where it says "customer page", and docs/design/patterns/landing.md keeps pointing to it.
+65. .claude/rules/frontend.md also loads for app/Http/Requests/**: lane `frontend` reviews that folder (docs/golden-principles.md, lane table), so the AI that edits it sees the rules the reviewers check.
+66. The components/ui sentence in .claude/rules/frontend.md uses the wording of its check (tests/Structure/CodeTest.php): components/ui never imports the app's other components, pages, actions, routes or Wayfinder. The shared helpers it imports today stay allowed. This replaces "components/ui is shadcn's code and imports no app code", which the template's own components break.
+67. There is one release, 1.5.0, not 1.4.0: after M8j and M8k, the trial of M9, then "发布". CHANGELOG.md's 1.4.0 entry becomes 1.5.0 with the changes of decisions 60 to 66 added; the READMEs and this plan's title name 1.5.0. This changes the version of decision 48.
+
 ## Approved changes
 - Protected files: AGENTS.md, ARCHITECTURE.md, DESIGN.md, docs/golden-principles.md, docs/rules/, docs/design/ (components.md, foundations.md and the pattern files that repeat a rule), docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/tasks/README.md, phpunit.xml, tests/TestCase.php, tests/Unit/Hooks/, tests/Structure/ (only where a check names a removed file or a count), scripts/hooks/, scripts/screen-round, scripts/screen-round.php, scripts/check-milestone.php, .claude/settings.json, .claude/agents/, .claude/skills/, .github/ (only if CI names a removed file).
 - Dependencies: none added or upgraded.
@@ -107,6 +120,10 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 - Added with decisions 60 and 61 (2026-11-20):
   - Protected files, besides those above: phpstan.neon, lint/oxlint/ezdev.js, vite.config.ts, tests/Support/TestsRowLocks.php, docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php (decision 60).
   - Existing test assertions that change: tests/Unit/Hooks/ReviewLedgerTest.php, the test that a report handed back in the transcript is not read (decision 61); and its test that a stop which says it waits for the reviewers is sent back once, changed in M8c for decision 49.
+- Added with decisions 62 to 67 (2026-11-20):
+  - Protected files, besides those above: .claude/rules/fixes.md (new, decision 62; it joins the protected list), .claude/rules/frontend.md (decisions 65 and 66), .claude/rules/visual-design.md and docs/design/patterns/landing.md (decision 64), docs/workflow.md, docs/PLANS.md and docs/prompts/cleanup.md (decision 63).
+  - Existing test assertions that change: tests/Structure, only where a check reads the text or the `paths:` of a rule file this plan changes (decisions 62, 65 and 66).
+  - Not protected, also changed: CHANGELOG.md, README.md and README.zh-CN.md (decision 67).
 
 ## Milestones
 - [x] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
@@ -125,7 +142,9 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 - [x] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
 - [x] M8h Static preview of pages in the plan (decision 59).
 - [x] M8i Pointers and hand-backs (decisions 60 and 61): the five pointers; tests first in tests/Unit/Hooks for the hand-back reading.
-- [ ] M9 Final, on the code after M8h: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
+- [ ] M8j Rule text (decisions 62, 64, 65 and 66): .claude/rules/fixes.md, the public-page rule, frontend.md's paths and its components/ui sentence.
+- [ ] M8k Rule gaps kept (decision 63) and the version 1.5.0 (decision 67).
+- [ ] M9 Final, on the code after M8k: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
 ## Validation
 - Per milestone: `composer check:milestone -- <affected test paths>` passes.
@@ -199,5 +218,6 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 - 2026-11-19 Ryan agreed decisions 49 to 57 in the planning chat, after the trial's finish check sent the same reminder back three times and buried his questions. They replace decisions 17 and 20 and part of 25. His new "开始" in the implementing conversation takes the new snapshot (decision 9).
 - 2026-11-19 Ryan agreed decisions 58 and 59 in the planning chat and asked for one simple trial after this update (M9); the planning chat chose a new small request for it, because the passkey trial waits on a browser change Ryan left for later.
 - 2026-11-20 Ryan approved changing the five protected pointers and bringing back the reading of handed-back reports (decisions 60 and 61), after the M9 round on 4a66e670 was not recorded. His new "开始" takes the new snapshot.
+- 2026-11-20 Ryan agreed decisions 62 to 67 in the planning chat: the rule against hiding problems, keeping rule gaps, three rule gaps of the final review turned into rule changes, and one release as 1.5.0 after one trial. They come before M9's trial. His new "开始" takes the new snapshot (decision 9).
 
 ## Outcomes & Retrospective
