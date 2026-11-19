@@ -96,7 +96,7 @@ The finish check of 1.5.0 still runs until M1 replaces it, and it reads this sec
 This section goes from PLANS.md in M4 (decision 8); this plan keeps it as history.
 
 ## Milestones
-- [ ] M1 Finish check (decisions 3 to 9): tests first in tests/Unit/Hooks; the one Stop check and the check-file line; the other hooks, the check lock and proof, the protected list and the snapshot go.
+- [x] M1 Finish check (decisions 3 to 9): tests first in tests/Unit/Hooks; the one Stop check and the check-file line; the other hooks, the check lock and proof, the protected list and the snapshot go.
 - [ ] M2 Reviews (decisions 10 to 12): three lanes, no ledger, one screen copy for reviewer-opus; docs/prompts/review.md and the agent files.
 - [ ] M3 Template-only folder (decisions 13 and 14): move the files, the two excludes, CI; check with `git archive` that a release leaves them out.
 - [ ] M4 Plans, reports and docs (decisions 15 to 18).
@@ -120,6 +120,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - 2026-11-20 Plan written in the planning chat; the 1.5.0 plan moved to completed/ as parked, commit 470ae10a.
 - 2026-11-20 Previews made (decision 35), the wide size settled (decision 36), Q2 and Q3 added from the code.
 - 2026-11-20 Q1 to Q3 answered by Ryan (decisions 37 to 39).
+- 2026-11-20 M1 Finish check: one Stop check, the check-file line, a fingerprint pass; milestone check passed, commit 668db900.
 
 ## Surprises & Discoveries
 
