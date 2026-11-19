@@ -48,7 +48,7 @@ final class CompleteTask
 - No mode switches: `handle()` takes no bool parameter (`handle($order, $force = false)`). Two behaviours are two Actions.
 - No events, listeners or observers: when a second step must follow, the Action calls that step's Action.
 - An operation that repeats another (complete all overdue tasks) loops and calls the other Action instead of copying its checks and writes. See `docs/reference/tasks/app/Actions/Tasks/CompleteOverdueTasks.php`.
-- External services are called through a class in `app/Integrations/`, injected into the Action.
+- External services are called through a class in `app/Integrations/`, injected into the Action. Its HTTP requests set a timeout (`Http::timeout()` and `connectTimeout()`), retry only what is safe to send twice (a read, or a write with an idempotency key), and turn a failed answer into an exception (`->throw()`). Its tests fake every request with `Http::fake()` and `Http::preventStrayRequests()`.
 
 ## Tests
 

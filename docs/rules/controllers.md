@@ -52,6 +52,8 @@ return Inertia::render('tasks/index', [
 
 A list page is paginated, never with `take()`. Every list page reads `per_page` through the FormRequest for its query string with `ReadsPerPage` (10, 20, 50 or 100; anything else counts as 20), shows the rows-per-page choice, and the page links keep it (`withQueryString()`). The page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
 
+Load what the Resource reads in the same query: relations with `with()` (`Task::query()->with('project')`), a number of related rows with `withCount()`. A Resource or a loop never runs a query of its own for each row (N+1). A job or a command that walks a large table reads it in pieces, with `chunkById()` or `lazyById()`.
+
 Conditions are written only in model scopes: no `where…` or `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 
 Form choices (the options of a select) are reads too. Build them from the same scope the Action uses to accept the chosen value, so the list and the check cannot disagree. Do not write role, type or active conditions in the controller.
@@ -68,7 +70,7 @@ if (! Location::query()->selectableFor($user, $type)->whereKey($data['location_i
 }
 ```
 
-To read an enum from the request, give the FormRequest a method and call it from the controller: `public function type(): ?ShipmentType { return $this->enum('type', ShipmentType::class); }`, then `$request->type()`. `ShipmentType::from(...)` and `$request->enum()` in a controller are rejected. Boost's laravel-best-practices skill suggests `$request->string()`, `integer()` and `boolean()`: in this template those calls go inside the FormRequest's own methods.
+To read an enum from the request, give the FormRequest a method and call it from the controller: `public function type(): ?ShipmentType { return $this->enum('type', ShipmentType::class); }`, then `$request->type()`. `ShipmentType::from(...)` and `$request->enum()` in a controller are rejected. `$request->string()`, `integer()` and `boolean()` go inside the FormRequest's own methods too.
 
 ## Non-CRUD operations get their own controller
 

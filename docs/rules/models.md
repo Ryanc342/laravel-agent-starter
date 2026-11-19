@@ -45,4 +45,5 @@ public function isOverdue(): bool
 ## Database
 
 - Migrations: foreign keys with `foreignId()->constrained()`, money as unsigned integers in cents, statuses as strings cast to enums.
+- A migration that has run outside your own machine (on a server, or in a commit others pulled) is never edited: a change to the schema is a new migration. A change to the existing rows is a migration of its own, after the one that changes the schema, and its `down()` undoes what `up()` did.
 - Every model has a factory with states for the cases tests need (`completed()`, `overdue()`). Tests never insert rows by hand.

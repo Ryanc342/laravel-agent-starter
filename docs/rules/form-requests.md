@@ -9,6 +9,8 @@ Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, 
 
 It does **not** check business state. Those checks go in the Action. No database queries (`Model::query()`, `->where()`, `DB::`) in FormRequests or in app/Concerns.
 
+An uploaded file is input too: its rules are `file` (or `image`), the allowed types with `mimes:` and a `max:` size in kilobytes, as in `docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php`. A file that is kept is stored under a name the app makes (`store()`), never under the name the user sent.
+
 `exists` only means "this record exists", not "this record is eligible". Do not chain business conditions onto `Rule::exists` or `Rule::unique`: active or expired state, ownership and remaining stock belong in the Action (or the Policy for who may act). This also applies to shared validation traits.
 
 For a record the user must own (a customer picked in a form), leave out `exists`: the Action looks it up through the owner scope and gives one message for "missing" and "not yours", so nobody can find out which ids belong to other users. A record in the URL (`/invoices/{invoice}`) is different: route model binding finds it and the Policy answers 403.
