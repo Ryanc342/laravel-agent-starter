@@ -111,7 +111,7 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - [x] M7 Exceptions and text (decisions 34 to 46).
 - [x] M8 Skills (decision 47).
 - [x] M8b Review findings (decisions 13 and 14 as changed by Ryan on 2026-11-19): docs/prompts/review.md steps 8 and 9, and the CHANGELOG.md line on the two kinds of findings, say it. Only docs/ and *.md change, so the final review's rounds stand (docs/workflow.md step 4). The trial's branch then takes the new docs/prompts/review.md, and the trial finishes its open lanes with it.
-- [ ] M8c Finish check sends back once (decision 49): the probe first, then tests first in tests/Unit/Hooks.
+- [x] M8c Finish check sends back once (decision 49): the probe first, then tests first in tests/Unit/Hooks.
 - [ ] M8d Reviewers without Bash, ledger without transcript reading (decisions 50 and 51). Tests first.
 - [ ] M8e Rules in .claude/rules/, each written once (decisions 52 to 56).
 - [ ] M8f Copier for project syncs (decision 57).
@@ -149,6 +149,8 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - 2026-11-19 Trial in the scratch worktree (a five-passkey limit), stopped at the usage limit during its review: no question after "开始", no send-back from the finish check, reviewers ran together in the foreground and the ledger counted every run; lanes input, frontend and tests done, business, look and behaviour still open. M9 left: the rest of the trial, Outcomes, moving the plan, the report.
 - 2026-11-19 M8b review findings: docs/prompts/review.md steps 8 and 9 take the three kinds of findings and the lists for rule gaps, differing decisions and older code; CHANGELOG.md, AGENTS.md and docs/workflow.md say the same; `composer check:milestone -- tests/Structure tests/Unit/Hooks` passed (400 tests); the snapshot of this plan was recorded by Ryan's new "开始" (commit 7ed095b3).
 - 2026-11-19 The trial's branch takes the new docs/prompts/review.md: a setup commit before its plan, its own commits rebased on it (the old branch kept as `probe-before-review-prompt`), so its snapshot and its done lanes stand (only docs/ and *.md changed). Left for M9: the trial finishes business, look and behaviour in its own conversation ("继续" in the probe worktree), then Outcomes, moving this plan, the report.
+
+- 2026-11-19 M8c finish check sends back once: the probe passed (Surprises); 2 tests failed before the code; with `stop_hook_active` the AI stops and the user gets one line; READMEs, CHANGELOG.md and golden-principles say so; ReviewLedgerTest's waiting-stop test follows decision 49; `composer check:milestone -- tests/Unit/Hooks tests/Structure` passed (398 tests), commit b9f2b567.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
