@@ -261,6 +261,21 @@ test('a git that refuses the repository is told to Ryan, never read as no reposi
     expect($output['systemMessage'])->toBe('The finish check failed: git rev-parse failed: fatal: detected dubious ownership');
 });
 
+test('outside a git repository the finish check says nothing in any language', function () {
+    $dir = sys_get_temp_dir().'/ezdev-no-git-zh-'.bin2hex(random_bytes(6));
+    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
+    // A git that answers in Chinese unless asked for English, as a translated git does.
+    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
+    finishCheckWrite($dir, 'bin/git', "#!/bin/sh\n[ \"\$LC_ALL\" = C ] || { echo '致命错误：不是 git 仓库' >&2; exit 128; }\nexec {$real} \"\$@\"\n");
+    chmod("{$dir}/bin/git", 0755);
+    register_shutdown_function(fn () => (new Process(['rm', '-rf', $dir]))->run());
+
+    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $dir, ['PATH' => "{$dir}/bin:".getenv('PATH'), 'LANG' => 'zh_CN.UTF-8', 'LC_ALL' => 'zh_CN.UTF-8']);
+    $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $dir, 'stop_hook_active' => false]) ?: '');
+
+    expect($process->mustRun()->getOutput())->toBe('');
+});
+
 test('before the first commit the finish check says nothing', function () {
     $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
     finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));

@@ -441,7 +441,8 @@ function gitAnswer(array $args): ?string
  */
 function gitRun(array $args): array
 {
-    $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+    // Git's own messages in English, whatever the user's language: the caller reads them.
+    $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [...getenv(), 'LC_ALL' => 'C']);
 
     if (! is_resource($process)) {
         throw new RuntimeException('git could not start');
