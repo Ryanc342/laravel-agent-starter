@@ -1,9 +1,5 @@
 {
-    "enabledMcpjsonServers": [
-        "laravel-boost",
-        "playwright",
-        "playwright-review"
-    ],
+    "enabledMcpjsonServers": ["laravel-boost", "playwright"],
     "env": {
         "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1"
     },

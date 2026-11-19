@@ -248,11 +248,11 @@ test('a file the request names, by a name or by a path, is saved in the session\
         ->and(glob("{$workspace}/.playwright-mcp/session-*"))->toBe([]);
 });
 
-test('both browsers of the review run through the launcher', function () {
+test('the one browser of the review runs through the launcher', function () {
     $servers = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/.mcp.json'), true)['mcpServers'];
 
     expect($servers['playwright'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp']])
-        ->and($servers['playwright-review'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp', '--browser=webkit']]);
+        ->and($servers)->not->toHaveKey('playwright-review');
 });
 
 test('the launcher passes the browser it is given on to Playwright, and nothing else', function () {

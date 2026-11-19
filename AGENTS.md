@@ -51,8 +51,8 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 ## Tools
 
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Playwright MCP (`playwright` for `reviewer-opus`, `playwright-review` for `reviewer-haiku`): isolated headless browsers, never the user's Chrome; close them after checks. How a reviewer opens pages: docs/prompts/review.md, step 6.
-- Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models). They run in the foreground: the session waits for their answers.
+- Playwright MCP (`playwright`): an isolated headless browser, never the user's Chrome, for the previews of a plan and for `reviewer-opus` in lane `screens`; close it after checks. How the reviewer opens pages: docs/prompts/review.md, step 6.
+- Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models; only `reviewer-opus` has a browser). They run in the foreground: the session waits for their answers.
 - Finish check (scripts/hooks/finish-check.php): when you are about to stop after changing code that no `composer check` or `composer check:milestone` passed on, it sends you back once. Run the check.
 
 ## Code Review Rules

@@ -9,28 +9,28 @@
 |    the copies' databases live on that server. The screen lanes then do not
 |    run, and the report says why. The .env files are read as Laravel reads
 |    them: phpdotenv for the file, ConfigurationUrlParser for DB_URL.
-| 2. Each reviewer gets a copy of its own: ../<project folder>-review-opus for
-|    reviewer-opus (`playwright`) and ../<project folder>-review-haiku for
-|    reviewer-haiku (`playwright-review`). A copy is a git worktree detached at
-|    the commit under review, with its own .env: its own database, session
-|    cookie and port. It is made the first time and reused afterwards; nothing
+| 2. reviewer-opus, the only reviewer that looks at pages (`playwright`), gets
+|    one copy: ../<project folder>-review-opus, a git worktree detached at the
+|    commit under review, with its own .env: its own database, session cookie
+|    and port. It is made the first time and reused afterwards; nothing
 |    deletes it.
-| 3. The port is the project's plus 100 (opus) or 200 (haiku), or the next free
-|    one when another program holds it; the copy's .env keeps the port it got.
+| 3. The port is the project's plus 100, or the next free one when another
+|    program holds it; the copy's .env keeps the port it got.
 | 4. Each round it writes the copy's .env again from the project's, with the
 |    copy's connection in full and no DB_URL, and reads it back: unless the copy
 |    would use its own database, it stops before anything is migrated.
 |    The copy's commands and its app run without the variables of the shell
 |    that its .env sets and without any DB_* one, which would win over it.
-| 5. It puts the commit into each copy (dependencies when a lock file changed,
-|    the reference feature with --reference, assets built), resets each copy's
+| 5. It puts the commit into the copy (dependencies when a lock file changed,
+|    the reference feature with --reference, assets built), resets the copy's
 |    database to the seeded state (only the test accounts), starts or restarts
-|    its app, checks that both answer, and prints the two addresses.
+|    its app, checks that it answers, and prints its address.
 |
 | The project's own app, its files and its development database are never
 | touched, so `composer dev` need not run. Copies of earlier versions of this
-| script (../<project folder>-review, ../<project folder>-reference) are no
-| longer used: `git worktree remove` removes them.
+| script (../<project folder>-review-haiku, ../<project folder>-review,
+| ../<project folder>-reference) are no longer used: `git worktree remove`
+| removes them.
 */
 
 use Dotenv\Dotenv;
@@ -39,11 +39,10 @@ use Illuminate\Support\ConfigurationUrlParser;
 // The hosts that put a database on this machine.
 const SCREEN_ROUND_LOCAL_HOSTS = ['127.0.0.1', 'localhost', '::1'];
 
-// The two seats: the copy's folder suffix, its port offset from the project's,
+// The one seat: the copy's folder suffix, its port offset from the project's,
 // its database suffix, the reviewer and its browser.
 const SCREEN_ROUND_SEATS = [
     ['-review-opus', 100, '_review_opus', 'reviewer-opus', 'playwright'],
-    ['-review-haiku', 200, '_review_haiku', 'reviewer-haiku', 'playwright-review'],
 ];
 
 // The folders of copies, of this version and of earlier ones: the command never runs inside one.
@@ -61,7 +60,7 @@ const SCREEN_ROUND_LOCKS = ['composer.lock', 'package-lock.json'];
 
 /**
  * Runs the command in the project at $root; returns the exit code. With
- * $reference (`scripts/screen-round --reference`) both copies get the
+ * $reference (`scripts/screen-round --reference`) the copy gets the
  * reference feature.
  */
 function screenRound(string $root, bool $reference = false): int
@@ -95,10 +94,10 @@ function screenRound(string $root, bool $reference = false): int
         }
     }
 
-    echo 'Screen round ready on '.substr($commit, 0, 7).($reference ? ', with the reference feature in both copies' : '').", both copies' databases reset to the seeded state; the project's own app and database were not touched.\n";
+    echo 'Screen round ready on '.substr($commit, 0, 7).($reference ? ', with the reference feature in the copy' : '').", the copy's database reset to the seeded state; the project's own app and database were not touched.\n";
 
-    foreach ($seats as $number => $seat) {
-        echo 'Seat '.($number + 1).", {$seat['reviewer']}, browser {$seat['browser']}: App: {$seat['url']}\n";
+    foreach ($seats as $seat) {
+        echo "{$seat['reviewer']}, browser {$seat['browser']}: App: {$seat['url']}\n";
     }
 
     return 0;

@@ -57,4 +57,4 @@ A page that matches no pattern is built freely from foundations.md and component
 
 ## Do's and Don'ts
 
-The Do's and Don'ts of every screen are the rules of .claude/rules/visual-design.md (lanes `look` and `behaviour`). Read them before you build a screen.
+The Do's and Don'ts of every screen are the rules of .claude/rules/visual-design.md (lane `screens`). Read them before you build a screen.

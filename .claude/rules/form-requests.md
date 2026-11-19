@@ -10,9 +10,9 @@ A rule names its check in its tag (docs/golden-principles.md); text without a ta
 
 ## Only check the shape of the input
 
-- `[review:input]` A FormRequest checks the shape of the input only: no database queries (model, query builder, relation or `DB` calls) in FormRequests or app/Concerns, apart from the `exists` and `unique` rules. Business state (stock, status, ownership, limits) is checked in the Action, which throws `ValidationException::withMessages()`.
-- `[review:input]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours", so nobody can find out which ids belong to other users; the FormRequest has no `exists` rule for it. A record in the URL (route model binding, `/invoices/{invoice}`) is checked by the Policy (403).
-- `[review:input]` FormRequests have no `authorize()`. Permission is checked in the controller.
+- `[review:backend]` A FormRequest checks the shape of the input only: no database queries (model, query builder, relation or `DB` calls) in FormRequests or app/Concerns, apart from the `exists` and `unique` rules. Business state (stock, status, ownership, limits) is checked in the Action, which throws `ValidationException::withMessages()`.
+- `[review:backend]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours", so nobody can find out which ids belong to other users; the FormRequest has no `exists` rule for it. A record in the URL (route model binding, `/invoices/{invoice}`) is checked by the Policy (403).
+- `[review:backend]` FormRequests have no `authorize()`. Permission is checked in the controller.
 
 A FormRequest answers one question: _is this input well-formed?_ Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, enum values. `exists` only means "this record exists", not "this record is eligible": do not chain business conditions onto `Rule::exists` or `Rule::unique` (active or expired state, ownership and remaining stock belong in the Action, or the Policy for who may act), also not in shared validation traits.
 

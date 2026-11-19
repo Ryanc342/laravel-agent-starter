@@ -7,10 +7,6 @@
         "playwright": {
             "command": "node",
             "args": ["scripts/playwright-mcp"]
-        },
-        "playwright-review": {
-            "command": "node",
-            "args": ["scripts/playwright-mcp", "--browser=webkit"]
         }
     }
 }

@@ -8,8 +8,8 @@ require_once dirname(__DIR__, 3).'/scripts/screen-round.php';
 
 /*
 | scripts/screen-round prepares a screen round of the final review
-| (docs/workflow.md, step 4): two copies of the app, one per reviewer, each with
-| its own database reset to the seeded state and a free port, both answering.
+| (docs/workflow.md, step 4): one copy of the app for reviewer-opus, with its
+| own database reset to the seeded state and a free port, answering.
 | The project's own app and database are never touched, and it changes nothing
 | unless the project's database server is a local development one.
 */
@@ -256,8 +256,8 @@ test('an app that answers /up without Laravel\'s health page does not count as a
 });
 
 /**
- * A free port whose seat ports (plus 100 and 101 for reviewer-opus's copy, plus
- * 200 and 201 for reviewer-haiku's) are free too, so a busy neighbouring port
+ * A free port whose seat ports (plus 100 and 101 for reviewer-opus's copy, and
+ * 200 and 201 of an older second copy) are free too, so a busy neighbouring port
  * cannot fail a run.
  * It is drawn below the system's range for outgoing connections (49152 and
  * up), which the kernel fills in order and so keeps busy next to each other.
@@ -353,7 +353,7 @@ function screenRoundRunIn(string $repo, array $arguments = [], array $environmen
     return $process;
 }
 
-test('with --reference both seats are copies with the reference feature, and the project\'s own app, files and database are not touched', function () {
+test('with --reference the copy has the reference feature, and the project\'s own app, files and database are not touched', function () {
     [$repo, $port] = screenRoundReferenceProject();
     $project = realpath($repo);
     $status = (new Process(['git', 'status', '--porcelain'], $repo))->mustRun()->getOutput();
@@ -364,12 +364,13 @@ test('with --reference both seats are copies with the reference feature, and the
     $calls = (string) file_get_contents(dirname($repo).'/calls.txt');
 
     expect($process->getExitCode())->toBe(0, $output)
-        ->and($output)->toContain('Seat 1, reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 100))
-        ->and($output)->toContain('Seat 2, reviewer-haiku, browser playwright-review: App: http://127.0.0.1:'.($port + 200))
-        ->and($output)->toContain('with the reference feature in both copies')
-        ->and($output)->toContain("the project's own app and database were not touched");
+        ->and($output)->toContain('reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 100))
+        ->and($output)->not->toContain('reviewer-haiku')
+        ->and($output)->toContain('with the reference feature in the copy')
+        ->and($output)->toContain("the project's own app and database were not touched")
+        ->and(is_dir(dirname($project).'/project-review-haiku'))->toBeFalse();
 
-    foreach (['project-review-opus', 'project-review-haiku'] as $copy) {
+    foreach (['project-review-opus'] as $copy) {
         $dir = dirname($project)."/{$copy}";
 
         expect(is_file("{$dir}/app/Models/Task.php"))->toBeTrue($copy)
@@ -391,7 +392,7 @@ test('with --reference both seats are copies with the reference feature, and the
         ]);
 });
 
-test('without --reference both seats are copies too, the project is not touched, and a copy no longer holds the feature of an earlier reference round', function () {
+test('without --reference the copy is made too, the project is not touched, and the copy no longer holds the feature of an earlier reference round', function () {
     [$repo, $port] = screenRoundReferenceProject();
     $project = realpath($repo);
 
@@ -399,11 +400,11 @@ test('without --reference both seats are copies too, the project is not touched,
 
     expect($first->getExitCode())->toBe(0, $first->getOutput().$first->getErrorOutput());
 
-    // Another program takes the port of reviewer-haiku's copy while its app is
-    // down: the copy moves to the next free one.
-    screenRoundStop(dirname($project).'/project-review-haiku');
+    // Another program takes the port of the copy while its app is down: the
+    // copy moves to the next free one.
+    screenRoundStop(dirname($project).'/project-review-opus');
 
-    for ($i = 0; $i < 50 && ($busy = @stream_socket_server('tcp://127.0.0.1:'.($port + 200))) === false; $i++) {
+    for ($i = 0; $i < 50 && ($busy = @stream_socket_server('tcp://127.0.0.1:'.($port + 100))) === false; $i++) {
         usleep(100_000);
     }
 
@@ -415,13 +416,12 @@ test('without --reference both seats are copies too, the project is not touched,
     $calls = (string) file_get_contents(dirname($repo).'/calls.txt');
 
     expect($process->getExitCode())->toBe(0, $output)
-        ->and($output)->toContain('Seat 1, reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 100))
-        ->and($output)->toContain('Seat 2, reviewer-haiku, browser playwright-review: App: http://127.0.0.1:'.($port + 201))
+        ->and($output)->toContain('reviewer-opus, browser playwright: App: http://127.0.0.1:'.($port + 101))
         ->and($output)->toContain("the project's own app and database were not touched")
-        ->and(screenRoundParse((string) file_get_contents(dirname($project).'/project-review-haiku/.env'))['SERVER_PORT'] ?? '')->toBe((string) ($port + 201))
+        ->and(screenRoundParse((string) file_get_contents(dirname($project).'/project-review-opus/.env'))['SERVER_PORT'] ?? '')->toBe((string) ($port + 101))
         ->and(array_filter(explode("\n", $calls), fn (string $line): bool => str_starts_with($line, "{$project} ")))->toBe([]);
 
-    foreach (['project-review-opus', 'project-review-haiku'] as $copy) {
+    foreach (['project-review-opus'] as $copy) {
         $dir = dirname($project)."/{$copy}";
 
         expect(is_file("{$dir}/app/Models/Task.php"))->toBeFalse($copy)
@@ -440,7 +440,7 @@ test('a copy whose app does not answer stops the round and names its log', funct
         ->and($output)->toContain('Screen round NOT ready.')
         ->and($output)->toContain('does not answer: read '.dirname(realpath($repo)).'/project-review-opus/'.SCREEN_ROUND_LOG)
         ->and($output)->toContain('No screen run starts before scripts/screen-round has passed.')
-        ->and($output)->not->toContain('Seat 1');
+        ->and($output)->not->toContain('App: ');
 });
 
 test('a copy\'s commands and its app do not inherit the database settings of the shell that runs the round', function () {
@@ -453,10 +453,8 @@ test('a copy\'s commands and its app do not inherit the database settings of the
         ->and($lines)->not->toBeEmpty()
         ->and(array_values(array_filter($lines, fn (string $line): bool => ! str_ends_with($line, ' env:[]'))))->toBe([]);
 
-    // The app the reviewers walk through, as the copies serve it.
-    foreach ([100, 200] as $offset) {
-        expect(file_get_contents('http://127.0.0.1:'.($port + $offset).'/env'))->toBe('[]');
-    }
+    // The app reviewer-opus walks through, as the copy serves it.
+    expect(file_get_contents('http://127.0.0.1:'.($port + 100).'/env'))->toBe('[]');
 });
 
 test('an argument other than --reference changes nothing', function () {
@@ -493,15 +491,15 @@ test('an uncommitted file of the reference feature stops the round, its Markdown
         ->and(screenRoundIsCode('docs/reference/tasks/README.md'))->toBeFalse();
 });
 
-test('with MySQL each copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {
+test('with MySQL the copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {
     [$repo, $port] = screenRoundReferenceProject();
     // .env is not committed, so the project switches to MySQL on this machine.
     file_put_contents("{$repo}/.env", "APP_ENV=local\nAPP_URL=http://127.0.0.1:{$port}\nSERVER_PORT={$port}\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop\n");
 
     $process = screenRoundRunIn($repo, ['--reference']);
-    $seats = array_map(fn (string $copy): string => screenRoundParse((string) file_get_contents(dirname(realpath($repo))."/{$copy}/.env"))['DB_DATABASE'] ?? '', ['project-review-opus', 'project-review-haiku']);
+    $seats = array_map(fn (string $copy): string => screenRoundParse((string) file_get_contents(dirname(realpath($repo))."/{$copy}/.env"))['DB_DATABASE'] ?? '', ['project-review-opus']);
 
     expect($process->getExitCode())->toBe(0, $process->getOutput().$process->getErrorOutput())
-        ->and($seats)->toBe(['shop_review_opus', 'shop_review_haiku'])
+        ->and($seats)->toBe(['shop_review_opus'])
         ->and(array_intersect($seats, ['shop', 'shop_reference', 'shop_reference_test']))->toBe([]);
 });

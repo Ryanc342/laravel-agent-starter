@@ -50,12 +50,9 @@ const COMPLETED = 'docs/exec-plans/completed/';
 // The review lanes of docs/golden-principles.md ("Review lanes"): a change touches a
 // lane when it changes a file in one of its places.
 const REVIEW_LANES = [
-    'business' => ['app/', 'database/', 'routes/'],
-    'input' => ['app/', 'database/', 'routes/', 'resources/js/', 'composer.json', 'package.json'],
+    'backend' => ['app/', 'database/', 'routes/', 'tests/', 'resources/js/hooks/', 'resources/js/lib/', 'composer.json', 'package.json'],
     'frontend' => ['resources/js/', 'app/Http/Resources/', 'app/Http/Requests/'],
-    'tests' => ['tests/', 'app/', 'routes/', 'resources/js/hooks/', 'resources/js/lib/'],
-    'look' => ['resources/js/', 'resources/css/', 'DESIGN.md', 'docs/design/'],
-    'behaviour' => ['resources/js/', 'resources/css/', 'resources/views/', 'lang/', 'app/'],
+    'screens' => ['resources/js/', 'resources/css/', 'resources/views/', 'lang/', 'app/', 'DESIGN.md', 'docs/design/'],
 ];
 
 // The reference feature (docs/reference/tasks/): its files other than Markdown
