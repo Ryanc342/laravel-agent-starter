@@ -7,8 +7,8 @@
 | 1. It changes nothing unless APP_ENV is `local` and the project's database
 |    server (DB_HOST, or the host of DB_URL when it is set) is on this machine:
 |    the copies' databases live on that server. The screen lanes then do not
-|    run, and the report says why. A copy's .env names its own database, in
-|    DB_URL too.
+|    run, and the report says why. A copy's .env names its own database in
+|    DB_DATABASE, and its DB_URL names none.
 | 2. Each reviewer gets a copy of its own: ../<project folder>-review-opus for
 |    reviewer-opus (`playwright`) and ../<project folder>-review-haiku for
 |    reviewer-haiku (`playwright-review`). A copy is a git worktree detached at
@@ -262,8 +262,10 @@ function screenRoundCopyEnv(string $env, string $copy, int $offset, string $data
     ];
 
     if ($url !== '') {
-        // The copy's database in the URL too, or the copy would reset the project's.
-        $set['DB_URL'] = $sqlite ? '' : "'".preg_replace('~^([^:/?#]+://[^/?#]*)(/[^?#]*)?~', '${1}/'.addcslashes($name, '\\$'), $url)."'";
+        // The URL keeps the server and its credentials but names no database, so
+        // DB_DATABASE names the copy's: a database in the URL would win over it,
+        // and migrate could not create the copy's (it connects without one).
+        $set['DB_URL'] = $sqlite ? '' : "'".preg_replace('~^([^:/?#]+://[^/?#]*)(/[^?#]*)?~', '${1}', $url)."'";
     }
 
     return screenRoundSetPort(screenRoundSet($env, $set), screenRoundPort($values) + $offset);

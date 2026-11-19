@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\ConfigurationUrlParser;
 use Symfony\Component\Process\Process;
 
 require_once dirname(__DIR__, 3).'/scripts/screen-round.php';
@@ -100,13 +101,16 @@ test('a copy gets its own database, port and session cookie', function () {
     ])->and(screenRoundParse(screenRoundSetPort($copy, 8231)))->toMatchArray(['APP_URL' => 'http://localhost:8231', 'SERVER_PORT' => '8231']);
 });
 
-test('a project with a database URL gives each copy its own database in that URL', function () {
+test('a project with a database URL gives each copy its own database, which migrate can create', function () {
     $env = "APP_ENV=local\nAPP_URL=http://localhost:8004\nDB_CONNECTION=mysql\nDB_URL=\"mysql://shop:s%23cret@127.0.0.1:3306/shop_dev?charset=utf8mb4\"\n";
+    $copy = screenRoundParse(screenRoundCopyEnv($env, '/work/shop-review-opus', 100, '_review_opus'));
+    $parser = new ConfigurationUrlParser;
 
-    expect(screenRoundParse(screenRoundCopyEnv($env, '/work/shop-review-opus', 100, '_review_opus')))->toMatchArray([
-        'DB_URL' => 'mysql://shop:s%23cret@127.0.0.1:3306/shop_dev_review_opus?charset=utf8mb4',
-        'DB_DATABASE' => 'shop_dev_review_opus',
-    ]);
+    // The URL keeps the server and its credentials, and names no database.
+    expect($copy)->toMatchArray(['DB_URL' => 'mysql://shop:s%23cret@127.0.0.1:3306?charset=utf8mb4', 'DB_DATABASE' => 'shop_dev_review_opus'])
+        ->and($parser->parseConfiguration(['url' => $copy['DB_URL'], 'database' => $copy['DB_DATABASE']]))->toMatchArray(['host' => '127.0.0.1', 'username' => 'shop', 'password' => 's#cret', 'database' => 'shop_dev_review_opus'])
+        // migrate creates a missing database on a connection without one: the URL must not bring one back.
+        ->and($parser->parseConfiguration(['url' => $copy['DB_URL'], 'database' => null])['database'])->toBeNull();
 });
 
 test('a SQLite project gives a copy its own database file, and a port from APP_URL', function () {
