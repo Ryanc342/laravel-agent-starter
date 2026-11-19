@@ -24,7 +24,7 @@ In-app notifications are built in (a notifications page and an unread badge in t
 | MySQL | 8.4 recommended, matching CI; running during setup, development and checks |
 | Git | Required for project initialization, plans, commits and the finish check |
 
-The development database user must be able to create the configured database and its test databases. Checks use `<DB_DATABASE>_test`; the reference check uses a separate `<DB_DATABASE>_reference_test` database.
+The development database user must be able to create the configured database and its test databases. Checks use `<DB_DATABASE>_test`; the reference check uses a separate `<DB_DATABASE>_reference_test` database, and the screen rounds `<DB_DATABASE>_review_opus` and `<DB_DATABASE>_review_haiku`.
 
 ## Start a new project
 
@@ -40,7 +40,7 @@ Keep the installer's default choices if it asks about Pest, Boost or frontend de
 
 **MySQL is the default.** No database flag is needed. `my-project` gets the database `my_project`, with separate `my_project_test` and `my_project_reference_test` databases for checks. The default connection is `127.0.0.1:3306`, user `root`, with an empty password. An explicitly configured database or connection URL is preserved.
 
-Open the project in Claude Code and describe what you need. Claude Code is the supported tool: the review rounds need its subagents and hooks (`.claude/settings.json`).
+Open the project in Claude Code and describe what you need. Claude Code is the supported tool: the review rounds need its subagents and hooks (`.claude/settings.json`). The first time you open the project, Claude Code asks once whether you trust this folder: say yes. The project's settings, with its hooks, subagent settings and MCP servers, apply only in a folder you trust, and the checks before the AI stops are those hooks.
 
 ### If your MySQL credentials differ
 
@@ -63,13 +63,13 @@ To work on the template itself, clone this repository and run `composer setup` w
 
 ## What happens when you ask for a feature
 
-1. **Grilling.** The AI looks up the code, then asks every decision it needs in rounds, each with a recommended answer. Reply "yes", or answer by number ("1 yes 2 no, because...").
-2. **ExecPlan.** It writes the plan to `docs/exec-plans/active/<feature>.md`: agreed decisions, milestones, how it will be checked. Say "start" when it is right.
-3. **Milestones.** For each one: tests first, code bottom-up, then `composer check:milestone -- <affected test paths>` for full static checks and affected tests. Include unchanged callers' tests where relevant. Commit and record the scope, command and result. Run full `composer check` when the plan is implemented, earlier for shared test/database infrastructure or unbounded impact, and again after final review code changes.
+1. **Questions.** The AI looks up what the code, the database and the rules answer, and asks only what they cannot: what to build, and every decision about money, permissions, who sees which data, or changing real data. It asks in rounds, each question with a recommended answer. Reply "yes", or answer by number ("1 yes 2 no, because..."). Questions come only now, before the plan.
+2. **Plan.** It writes the plan to `docs/exec-plans/active/<feature>.md`: the agreed decisions, the protected files and dependencies it will change ("Approved changes"), the milestones and how they will be checked. Say "开始" (or "start") when it is right: that approves the plan as it stands, and a copy of it is kept as the approved one.
+3. **Build.** After "开始" the AI asks nothing. What the plan does not say follows the template's rules or keeps the current behaviour, and the report names it. For each milestone: tests first, code bottom-up, then `composer check:milestone -- <affected test paths>`, a commit and one Progress line. When every milestone is done, full `composer check`.
 4. **Review.** All review happens once, in the final review, after full `composer check`: no milestone has a review round. A round runs both reviewers at the same time on the same commit, one run each for every review lane the change touches (`docs/golden-principles.md`, Review lanes). A lane is done when, in its latest round, both report no P0 and no P1 on committed code and nothing in the lane's places changed since; the AI fixes the findings and starts the next round, with no cap on rounds. The screens come last: the lanes `look` and `behaviour` start when every other lane is done, on two seats at once. `scripts/screen-round` prepares them: each reviewer gets a copy of the app of its own (`../<project folder>-review-opus` for `reviewer-opus` in the `playwright` browser, `../<project folder>-review-haiku` for `reviewer-haiku` in the `playwright-review` browser), each with its own database and a free port; the project's own app and database are never touched, and `composer dev` need not run. Both walk the plan's flows through the forms and look at every changed page at 1280px, 390px and in dark mode. A change to the reference feature (`docs/reference/tasks/`) is reviewed like app code: `scripts/screen-round --reference` installs the feature in both copies. A reviewer runs only commands that read (search, viewing files, git commands that read): a hook refuses a write, a redirection and the network before it runs and logs the refusal.
-5. **Report.** Where each decision lives, the check output and UI inspection results. Screenshots are temporary unless you ask to keep them. You approve the merge; CI runs `composer check` again.
+5. **Report.** In business words: what was built, the check results, the rule gaps and the decisions that differ from a rule, and what waits for you. Screenshots are temporary unless you ask to keep them. You approve the merge; CI runs `composer check` again.
 
-Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back missing plans, quality updates, approvals, validation or review rounds. A valid active plan with completed and remaining milestones may use a fresh milestone check. Final acceptance requires full `composer check` on the current code; a partial pass cannot replace it. Each reviewer run writes one line to a review ledger (Claude Code's subagent hooks), and the finish check reads the ledger, not what the AI writes: a plan is finished only when every lane it touches is done.
+Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`) sends back what is missing, one line each: a plan for changed code, a check that passed on the current code (the milestone check while milestones remain, full `composer check` at the end), the review of a finished plan, and the approval of a protected change. Each reminder comes at most three times. Each reviewer run writes one line to a review ledger (Claude Code's subagent hook), and the finish check reads the ledger, not what the AI writes: a plan is finished only when every lane it touches is done.
 
 The review rounds add time and model cost to every change: at least two reviewer runs per touched lane, again after each fix, and the screen rounds drive two browsers. Claude Code is the supported tool, because the rounds need its subagents and hooks.
 
@@ -103,7 +103,7 @@ Once a week, run `docs/prompts/cleanup.md` to find and fix drift. To update depe
 | -------------------------- | --------------------------------------------------------------------- |
 | `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Unit, Feature, Structure) |
 | `composer check:static` | Full PHP/frontend formatting, lint, static analysis and type checks |
-| `composer check:milestone -- <test paths>` | Full static checks, then selected PHP/frontend tests; record affected scope in the plan |
+| `composer check:milestone -- <test paths>` | Full static checks, then the selected PHP/frontend tests |
 | `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
 | `composer setup`           | Install dependencies, preserve or generate the app key, migrate and build |
 | `composer dev`             | Start the application's development processes together                  |

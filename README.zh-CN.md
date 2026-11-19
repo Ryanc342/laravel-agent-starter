@@ -23,7 +23,7 @@
 | MySQL | 推荐 8.4，与 CI 一致；安装、开发和检查时保持运行 |
 | Git | 用于初始化项目、执行计划、提交和结束检查 |
 
-开发环境的数据库账号需要有权限创建项目数据库和测试数据库。检查使用 `<DB_DATABASE>_test`，参考功能检查使用独立的 `<DB_DATABASE>_reference_test`。
+开发环境的数据库账号需要有权限创建项目数据库和测试数据库。检查使用 `<DB_DATABASE>_test`，参考功能检查使用独立的 `<DB_DATABASE>_reference_test`，界面审查轮次使用 `<DB_DATABASE>_review_opus` 和 `<DB_DATABASE>_review_haiku`。
 
 ## 创建自己的项目
 
@@ -39,7 +39,7 @@ composer dev
 
 **默认使用 MySQL，不需要数据库参数。** `my-project` 会使用数据库 `my_project`；检查和参考功能检查分别使用 `my_project_test` 与 `my_project_reference_test`。默认连接为 `127.0.0.1:3306`，账号 `root`，密码为空。已经显式配置的数据库名或连接 URL 会保留。
 
-用 Claude Code 打开新项目，以业务语言描述需求。模板只支持 Claude Code：审查轮次需要它的子代理和 hooks（`.claude/settings.json`）。
+用 Claude Code 打开新项目，以业务语言描述需求。模板只支持 Claude Code：审查轮次需要它的子代理和 hooks（`.claude/settings.json`）。第一次打开项目时，Claude Code 会询问一次是否信任这个文件夹：请选择信任。项目的设置（hooks、子代理设置和 MCP 服务器）只在受信任的文件夹里生效，而 AI 结束前的检查正是这些 hooks。
 
 ### MySQL 账号与默认值不同时
 
@@ -62,13 +62,13 @@ export DB_PASSWORD='your-password'
 
 ## AI 开发流程
 
-1. **确认需求。** AI 先查看现有代码，再按轮次提问，并给出推荐选项。可以回复“同意”，或者按编号逐项调整。
-2. **写执行计划。** AI 在 `docs/exec-plans/active/` 记录已确认的决策、里程碑和验证方法；你说“开始”后才修改代码。
-3. **逐个里程碑实现。** 先写测试，再从底层到上层实现。运行 `composer check:milestone -- <受影响的测试路径>`：全量格式、静态分析和类型检查，加上受影响的测试，包括没有修改但受影响的调用方测试。提交并记录检查范围、命令和结果。整份计划实现完成后运行完整 `composer check`，最终审查改动代码后重新全量验证；共享测试/数据库基础设施变更或影响范围无法可靠界定时提前全量验证。
+1. **确认需求。** 代码、数据库和规则能回答的，AI 自己查；只问它们回答不了的：要做什么，以及涉及金额、权限、谁能看到哪些数据、修改真实数据的每个决定。按轮次提问，每个问题都附推荐答案。可以回复“同意”，或者按编号逐项调整（“1 同意 2 不同意，因为……”）。提问只在这一步，写计划之前。
+2. **写执行计划。** AI 在 `docs/exec-plans/active/<功能>.md` 写下已确认的决策、将要修改的受保护文件和依赖（“Approved changes”）、里程碑和检查方法。确认无误后说“开始”：这就批准了计划当时的样子，系统会保留一份批准时的副本。
+3. **逐个里程碑实现。** 说“开始”之后 AI 不再提问。计划没写到的地方，按模板规则或保持现有行为处理，并在报告里说明。每个里程碑：先写测试，再从底层到上层实现，然后运行 `composer check:milestone -- <受影响的测试路径>`，提交，并在 Progress 里写一行。所有里程碑完成后运行完整 `composer check`。
 4. **独立审查。** 所有审查都在完整 `composer check` 之后的最终审查里一次完成，里程碑之间没有审查轮次。每一轮让两个审查者在同一个提交上同时运行，改动涉及的每个审查通道各运行一次（`docs/golden-principles.md` 的 Review lanes）。某个通道在最新一轮里两个审查者都没有报告 P0 和 P1、代码已提交、且该通道涉及的文件之后没有改动，这个通道才算完成；AI 修复问题后开始下一轮，轮数不设上限。界面放在最后：其他通道都完成后，`look` 和 `behaviour` 两个通道在两个席位上同时运行。`scripts/screen-round` 负责准备：每个审查者各有一份应用副本（`reviewer-opus` 用 `playwright` 浏览器打开 `../<项目目录>-review-opus`，`reviewer-haiku` 用 `playwright-review` 浏览器打开 `../<项目目录>-review-haiku`），各自有独立的数据库和空闲端口；项目自己的应用和数据库都不会被动到，也不需要运行 `composer dev`。两者都通过表单走完计划里的流程，并在 1280px、390px 宽度和深色模式下查看每个改动的页面。参考功能（`docs/reference/tasks/`）的改动也和应用代码一样审查：`scripts/screen-round --reference` 在两份副本里都装好参考功能。审查者只能运行只读的命令（搜索、查看文件、只读的 git 命令）：写入、重定向和网络访问都会在运行前被 hook 拒绝并记录。
-5. **报告结果。** 说明决策由哪些文件实现、检查结果和界面检查结果；截图默认是临时文件，只有你明确要求时才保留。GitHub CI 再执行完整检查。
+5. **报告结果。** 用业务语言说明：做了什么、检查结果、规则没有覆盖的情况和与规则不同的决定，以及哪些事情等你处理。截图默认是临时文件，只有你明确要求时才保留。合并由你批准，GitHub CI 再执行完整检查。
 
-结束检查 `scripts/hooks/finish-check.php` 会提示遗漏的计划、审批、验证和审查轮次。有已完成及待完成里程碑的有效进行中计划，可以使用当前代码的里程碑检查结果；最终验收必须通过完整 `composer check`，部分检查不能记作全量通过。每次审查运行都会在审查记录（review ledger）里写一行（由 Claude Code 的子代理 hooks 写入），结束检查读取这份记录，而不是 AI 自己写的内容：计划涉及的每个通道都完成后，计划才算完成。
+AI 准备结束时，结束检查 `scripts/hooks/finish-check.php` 会把缺少的步骤发回给它，每项一行：改了代码却没有计划、当前代码没有通过检查（还有里程碑时是里程碑检查，最后是完整 `composer check`）、完成的计划还没审查完、受保护的改动没有被批准。每条提醒最多发三次。每次审查运行都会在审查记录（review ledger）里写一行（由 Claude Code 的子代理 hook 写入），结束检查读取这份记录，而不是 AI 自己写的内容：计划涉及的每个通道都完成后，计划才算完成。
 
 审查轮次会给每次改动增加时间和模型费用：每个涉及的通道至少运行两次审查，每次修复后还要再审，界面轮次还要驱动两个浏览器。模板只支持 Claude Code，因为审查轮次需要它的子代理和 hooks。每周清理可使用 `docs/prompts/cleanup.md`，升级依赖或同步 Laravel 上游可使用 `docs/prompts/upgrade.md`。
 
@@ -80,7 +80,7 @@ export DB_PASSWORD='your-password'
 | `composer dev` | 一起启动开发所需进程 |
 | `composer check` | PHP 格式、PHPStan、前端格式和 lint（含 oxlint）、TypeScript、Vitest、Pest（Unit、Feature、Structure）全部检查 |
 | `composer check:static` | 全量 PHP/前端格式、lint、静态分析和类型检查 |
-| `composer check:milestone -- <测试路径>` | 全量静态检查及指定的 PHP/前端测试；在计划里记录影响范围 |
+| `composer check:milestone -- <测试路径>` | 全量静态检查及指定的 PHP/前端测试 |
 | `composer check:reference` | 在临时副本中加入参考功能，再运行完整检查 |
 | `composer lint` | 格式化 PHP |
 | `npm run check:fix` | 格式化并修复前端 lint 问题 |

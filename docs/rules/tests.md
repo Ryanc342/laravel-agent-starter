@@ -16,11 +16,9 @@ Tests run on MySQL, like the app, in a database of their own: the app's database
 
 The reviewers check that every Action has its test file and every Resource with `can.*` has its buttons test (lane `tests`). `lint/`, `tests/Structure/` and `tests/Support/` belong to the template. Do not edit them without the user's approval.
 
-## Validation scope
+## Which tests run when
 
-During development, run the smallest relevant tests. At each milestone, use `composer check:milestone -- <affected test files or directories>` for all static checks and the affected PHP/frontend tests. Follow changed rules through their callers; a test file need not change to be affected. Include structure tests for affected rules/tooling and UI inspection for changed pages. Record the selection, reason, command and result in the plan.
-
-The complete implementation must pass full `composer check`, including after any final review code changes. Shared test/database infrastructure changes or impact that cannot be bounded need an earlier full check. Keep all test suites and CI checks intact; selecting a milestone scope does not permit skipping tests inside the full suite. See docs/workflow.md for the acceptance boundary.
+While building, run the smallest relevant tests. After each milestone, `composer check:milestone -- <affected test files or directories>` runs every static check and those tests: the tests of what changed and of its callers, also when a test file itself did not change. The finished plan passes full `composer check`, again after the final review's code fixes.
 
 ## Frontend tests
 

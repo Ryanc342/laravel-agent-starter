@@ -86,7 +86,7 @@ Release
 - [x] M3 Questions and approval in the docs (decisions 1 to 5, 8 to 12).
 - [x] M4 Reviewers (decisions 13 to 22).
 - [x] M5 Screens and tests (decisions 28 to 30).
-- [ ] M6 Plan format and report (decisions 31 to 33).
+- [x] M6 Plan format and report (decisions 31 to 33).
 - [ ] M7 Exceptions and text (decisions 34 to 46).
 - [ ] M8 Skills (decision 47).
 - [ ] M9 Final: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48).
@@ -102,7 +102,8 @@ Release
 - 2026-11-19 M2 snapshot and finish check: 44 hook tests failed before the code, then `composer check:milestone -- tests/Unit/Hooks` passed (318 tests); the one-time snapshot of this plan is still missing (Surprises), commit 64b624ef.
 - 2026-11-19 M3 questions and approval in the docs; AGENTS.md, docs/workflow.md and docs/PLANS.md are written in their final form, so they also carry decisions 13, 19, 22, 27, 31 to 33, 42 and 43 for those files; `composer check:milestone -- tests/Structure` passed, commit 4a807f71.
 - 2026-11-19 M4 reviewers: 15 hook tests failed before the code (14 command checks, 1 template sync); golden-principles by lane, the review prompt, the agent files, the seeder; `composer check:milestone -- tests/Unit/Hooks tests/Structure` passed (368 tests), commit 2ffecea8.
-- 2026-11-19 M5 screens and tests: 1 test of the Vite dev server and 9 screen-round tests failed before the code; SSR off in phpunit.xml, both seats are copies with their own database and a free port; `composer check:milestone -- tests/Unit/Hooks tests/Feature/ViteDevServerTest.php tests/Structure` passed (369 tests), commit M5.
+- 2026-11-19 M5 screens and tests: 1 test of the Vite dev server and 9 screen-round tests failed before the code; SSR off in phpunit.xml, both seats are copies with their own database and a free port; `composer check:milestone -- tests/Unit/Hooks tests/Feature/ViteDevServerTest.php tests/Structure` passed (369 tests), commit a4058421.
+- 2026-11-19 M6 plan format and report: no scope records and no early full check in docs/rules/tests.md, the cleanup and upgrade prompts and both READMEs; the READMEs' flow is written in its final form, so it also carries decisions 44 and 45; `composer check:milestone -- tests/Structure` passed, commit M6.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
