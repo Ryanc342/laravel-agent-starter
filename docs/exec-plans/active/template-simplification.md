@@ -23,8 +23,8 @@ Approval
 12. Remove "approve each file again in every conversation": the approval lives in the snapshot.
 
 Reviewers
-13. Reviewers report two kinds of findings only: a clear break of a written rule, and behaviour the plan does not have. The AI fixes both, always.
-14. A case no rule settles is not a finding: it goes into the report's "Rule gaps".
+13. Reviewers report as findings only a clear break of something written: a `[review]` rule of their lane, an agreed decision implemented differently, or a step of the walk list that fails. Each finding names the rule, the decision or the walk item. The AI fixes every finding. (Changed by Ryan on 2026-11-19: "behaviour the plan does not have" is no longer a finding.)
+14. Anything else a reviewer notices is not a finding and never adds a round. Reviewers look only at the plan's changed code: what they notice there that no rule settles, behaviour the plan does not have included, goes into the report's "Rule gaps", and Ryan decides whether it becomes a rule. A problem in code from before the plan goes into docs/exec-plans/tech-debt.md and the report. (Changed by Ryan on 2026-11-19.)
 15. Reviewers do not report what the plan decided explicitly; a decision that differs from a rule is listed in the report as "decision differs from rule".
 16. Remove "(for the user)" and `user=` from the result line, the prompts and the finish check.
 17. Reviewer Bash allows every command that only reads (search, viewing files, git commands that read); writes, redirections, substitutions and network stay refused. (Earlier counts: 531 refusals in total, 393 in one day in DulaBot.)
@@ -90,6 +90,7 @@ Release
 - [x] M6 Plan format and report (decisions 31 to 33).
 - [x] M7 Exceptions and text (decisions 34 to 46).
 - [x] M8 Skills (decision 47).
+- [x] M8b Review findings (decisions 13 and 14 as changed by Ryan on 2026-11-19): docs/prompts/review.md steps 8 and 9, and the CHANGELOG.md line on the two kinds of findings, say it. Only docs/ and *.md change, so the final review's rounds stand (docs/workflow.md step 4). The trial's branch then takes the new docs/prompts/review.md, and the trial finishes its open lanes with it.
 - [ ] M9 Final: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48).
 
 ## Validation
@@ -120,6 +121,7 @@ Release
 - 2026-11-19 Review round 10 (tests) on 2a33f70b: haiku clean; opus 1 P1 (no test that the served copy runs without the shell's database settings); the test now asks the running copies and fails without that part of the fix, fixed in commit 360f80f2.
 - 2026-11-19 Review round 11 (tests) on 743d71ab: both clean; business, input and tests done. Screen round (look) 1 on the copies at 743d71ab: both clean; every lane done. Full `composer check` (749 tests) and `composer check:reference` (928 tests) passed on 743d71ab.
 - 2026-11-19 Trial in the scratch worktree (a five-passkey limit), stopped at the usage limit during its review: no question after "开始", no send-back from the finish check, reviewers ran together in the foreground and the ledger counted every run; lanes input, frontend and tests done, business, look and behaviour still open. M9 left: the rest of the trial, Outcomes, moving the plan, the report.
+- 2026-11-19 M8b review findings: docs/prompts/review.md steps 8 and 9 take the three kinds of findings and the lists for rule gaps, differing decisions and older code; CHANGELOG.md, AGENTS.md and docs/workflow.md say the same; `composer check:milestone -- tests/Structure tests/Unit/Hooks` passed (400 tests); the snapshot of this plan was recorded by Ryan's new "开始" (commit 7ed095b3).
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
@@ -132,5 +134,6 @@ Release
 ## Decision Log
 - 2026-11-19 Ryan said "开始" to this plan in the planning chat. The current finish check reads approvals only from the conversation that changes the files, so the implementing conversation adds the approval line for the protected files in "Approved changes" after Ryan's "开始" there.
 - 2026-11-19 Ryan said "开始" in the implementing conversation: it approves the protected changes listed in "Approved changes". The work runs on the branch `template-simplification`; `main` moves only at "发布" (decision 48).
+- 2026-11-19 Ryan changed decisions 13 and 14 after the final review: a finding must name the written rule, decision or walk item it breaks; anything else goes to the report (this plan's code) or to tech-debt.md (code from before the plan) and never adds a round. Reason: findings no rule backs kept adding rounds (DulaBot: over 30 rounds in one plan; this plan's final review: 11 rounds). Ryan sends "开始" again in the implementing conversation; that also records this plan's snapshot, which was never recorded.
 
 ## Outcomes & Retrospective

@@ -70,4 +70,4 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 
 ## Code Review Rules
 
-The reviewers follow docs/prompts/review.md: one lane per run, the two kinds of findings it names, nothing else.
+The reviewers follow docs/prompts/review.md: one lane per run, findings only for what breaks a written rule, decision or walk item.
