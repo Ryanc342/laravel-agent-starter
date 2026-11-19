@@ -98,11 +98,14 @@ try {
 function finishCheck(string $mode, string $argument = ''): string
 {
     // Claude Code sends the conversation as JSON on stdin; the other modes read nothing.
-    $input = $mode === 'stop' ? json_decode((string) stream_get_contents(STDIN), true) : [];
-    $input = is_array($input) ? $input : [];
+    $input = $mode === 'stop' ? json_decode((string) stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR) : [];
 
-    if (is_string($input['cwd'] ?? null) && is_dir($input['cwd'])) {
-        chdir($input['cwd']);
+    if (! is_array($input)) {
+        throw new RuntimeException('the Stop input is not a JSON object');
+    }
+
+    if (isset($input['cwd']) && ! (is_string($input['cwd']) && is_dir($input['cwd']) && chdir($input['cwd']))) {
+        throw new RuntimeException('the Stop input names no folder to work in');
     }
 
     if ($mode === 'lanes') {
@@ -171,7 +174,11 @@ function stop(string $stateDir, array $input): string
     $told = "{$stateDir}/told-".sha1($session).'.json';
     $before = is_file($told) ? json_decode(readText($told), true, flags: JSON_THROW_ON_ERROR) : [];
 
-    if ($checks !== [] && array_diff($checks, is_array($before) ? $before : []) !== []) {
+    if (! is_array($before)) {
+        throw new RuntimeException("{$told} holds no list of check files");
+    }
+
+    if ($checks !== [] && array_diff($checks, $before) !== []) {
         $lines[] = 'This conversation changed a check: '.implode(', ', $checks).'.';
         writeFile($told, json_encode($checks, JSON_THROW_ON_ERROR));
     }
@@ -419,7 +426,9 @@ function writeFile(string $file, string $content): void
  */
 function mustGit(array $args, array $env = []): string
 {
-    return git($args, $env) ?? throw new RuntimeException('git '.$args[0].' failed');
+    [$exit, $output, $error] = gitRun($args, $env);
+
+    return $exit === 0 ? $output : throw new RuntimeException(trim("git {$args[0]} failed: {$error}", ' :'));
 }
 
 /**
@@ -443,12 +452,13 @@ function gitAnswer(array $args): ?string
  * Runs git and returns its exit code, its output and its error, both trimmed.
  *
  * @param  list<string>  $args
+ * @param  array<string, string>  $env
  * @return array{int, string, string}
  */
-function gitRun(array $args): array
+function gitRun(array $args, array $env = []): array
 {
     // Git's own messages in English, whatever the user's language: the caller reads them.
-    $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [...getenv(), 'LC_ALL' => 'C']);
+    $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [...getenv(), ...$env, 'LC_ALL' => 'C']);
 
     if (! is_resource($process)) {
         throw new RuntimeException('git could not start');
@@ -460,32 +470,6 @@ function gitRun(array $args): array
     fclose($pipes[2]);
 
     return [proc_close($process), trim($output), trim($error)];
-}
-
-/**
- * Runs git and returns its trimmed output, or null when it fails.
- *
- * @param  list<string>  $args
- * @param  array<string, string>  $env
- */
-function git(array $args, array $env = []): ?string
-{
-    $process = proc_open(
-        ['git', '-c', 'core.quotePath=false', ...$args],
-        [1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']],
-        $pipes,
-        null,
-        $env === [] ? null : [...getenv(), ...$env],
-    );
-
-    if (! is_resource($process)) {
-        return null;
-    }
-
-    $output = (string) stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-
-    return proc_close($process) === 0 ? trim($output) : null;
 }
 
 /**

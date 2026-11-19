@@ -290,6 +290,19 @@ test('a transcript or state file that cannot be read is told to Ryan, never read
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: ');
 });
 
+test('a Stop input that is not a JSON object, or a told file that holds no list, is told to Ryan', function () {
+    $repo = finishCheckRepo();
+    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $repo);
+    $process->setInput('not json');
+
+    expect(json_decode($process->mustRun()->getOutput(), true, flags: JSON_THROW_ON_ERROR)['systemMessage'])->toStartWith('The finish check failed: ');
+
+    finishCheckWrite($repo, 'phpstan.neon', "changed\n");
+    finishCheckWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '"phpstan.neon"');
+
+    expect(finishCheckStop($repo)['systemMessage'])->toContain('holds no list of check files');
+});
+
 test('before the first commit the finish check says nothing', function () {
     $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
     finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
