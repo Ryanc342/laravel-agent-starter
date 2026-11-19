@@ -49,18 +49,6 @@
                 ]
             }
         ],
-        "PreToolUse": [
-            {
-                "matcher": "Bash",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/reviewer-commands.php\"",
-                        "timeout": 30
-                    }
-                ]
-            }
-        ],
         "SubagentStop": [
             {
                 "hooks": [

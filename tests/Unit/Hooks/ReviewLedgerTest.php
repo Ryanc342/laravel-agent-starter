@@ -194,34 +194,18 @@ test('a reviewer that leaves out the result line is sent back once, then its run
         ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'model' => 'haiku', 'lane' => null]);
 });
 
-test('a report handed back with the SubagentHandback tool is read from the transcript', function () {
+test('the report is read only from the last message, never from a hand-back in the transcript', function () {
     $repo = ledgerRepo();
     $transcript = "{$repo}/../".basename($repo).'-handback.jsonl';
-    file_put_contents($transcript, implode("\n", [
-        json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "[P1] app/x.php:1 a finding\n\nRESULT lane=input round=2 P0=0 P1=1"]]]]]),
-        json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'Handed back.']]]]),
-    ])."\n");
+    file_put_contents($transcript, json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "No findings.\n\nRESULT lane=input round=2 P0=0 P1=0"]]]]])."\n");
     register_shutdown_function(fn () => @unlink($transcript));
 
-    expect(ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => 'Handed back.']))->toBe('')
-        ->and(ledgerLines($repo))->toHaveCount(1)
-        ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'lane' => 'input', 'round' => 2, 'p0' => 0, 'p1' => 1, 'committed' => true]);
-});
+    $started = microtime(true);
+    $output = ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => 'Handed back.']);
 
-test('a hand-back that reaches the transcript just after the subagent stops is still read', function () {
-    $repo = ledgerRepo();
-    $transcript = "{$repo}/../".basename($repo).'-late-handback.jsonl';
-    file_put_contents($transcript, json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'Reviewing.']]]])."\n");
-    register_shutdown_function(fn () => @unlink($transcript));
-    // Claude Code writes the transcript a moment after the hook starts.
-    $late = new Process([PHP_BINARY, '-r', 'usleep(800000); file_put_contents($argv[1], $argv[2]."\n", FILE_APPEND);', $transcript, json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "No findings.\n\nRESULT lane=business round=1 P0=0 P1=0"]]]]])]);
-    $late->start();
-
-    expect(ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => '']))->toBe('')
-        ->and(ledgerLines($repo))->toHaveCount(1)
-        ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'lane' => 'business', 'round' => 1, 'p0' => 0, 'p1' => 0]);
-
-    $late->wait();
+    expect(json_decode($output, true)['reason'])->toContain('RESULT lane=<lane> round=<n> P0=<count> P1=<count>')
+        ->and(ledgerLines($repo))->toBe([])
+        ->and(microtime(true) - $started)->toBeLessThan(2.0);
 });
 
 test('code left uncommitted when the reviewer stops is recorded as uncommitted', function (string $path) {
@@ -858,4 +842,99 @@ test('files identical to the template commit a sync plan names are not reviewed'
     ledgerPass($repo);
 
     expect(ledgerStop($repo))->toContain('Rounds so far: input 0, frontend 0, look 0, behaviour 0.');
+});
+
+/**
+ * Runs `finish-check.php round <plan>` and returns the process.
+ */
+function ledgerRound(string $repo, string $plan): Process
+{
+    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'round', $plan], $repo);
+    $process->run();
+
+    return $process;
+}
+
+/**
+ * The two files a round prints, by their label: ['Diff' => <path>, 'Snapshot' => <path>].
+ *
+ * @return array<string, string>
+ */
+function ledgerRoundFiles(Process $process): array
+{
+    preg_match_all('/^(Diff|Snapshot): (\S+)$/m', $process->getOutput(), $match);
+
+    return array_combine($match[1], $match[2]);
+}
+
+test('a round writes the plan\'s diff and the plan as approved for the reviewers, and prints both paths', function () {
+    $repo = ledgerRepo();
+    ledgerWrite($repo, 'app/Actions/Quotes/Before.php', LEDGER_CODE);
+    ledgerCommit($repo);
+    ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', ledgerPlan('- [ ] M1 Actions'));
+    ledgerCommit($repo);
+    ledgerHook($repo, 'approve', ['hook_event_name' => 'UserPromptSubmit', 'prompt' => '开始']);
+    $approved = (string) file_get_contents("{$repo}/docs/exec-plans/active/send-quotes.md");
+    ledgerWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', LEDGER_CODE);
+    ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', str_replace('- [ ] M1', '- [x] M1', $approved));
+    ledgerCommit($repo);
+    ledgerWrite($repo, 'app/Actions/Quotes/RejectQuote.php', "<?php\n\n\$rejected = true;\n");
+
+    $process = ledgerRound($repo, 'docs/exec-plans/active/send-quotes.md');
+    $files = ledgerRoundFiles($process);
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($files)->toBe([
+            'Diff' => 'storage/framework/testing/ezdev-review/send-quotes.diff',
+            'Snapshot' => 'storage/framework/testing/ezdev-review/send-quotes.md',
+        ]);
+
+    $diff = (string) file_get_contents("{$repo}/{$files['Diff']}");
+
+    expect($diff)->toContain('+++ b/app/Actions/Quotes/AcceptQuote.php')
+        ->toContain('+++ b/docs/exec-plans/active/send-quotes.md')
+        ->toContain('+++ b/app/Actions/Quotes/RejectQuote.php')
+        ->toContain('+$rejected = true;')
+        ->not->toContain('Before.php')
+        ->and(file_get_contents("{$repo}/{$files['Snapshot']}"))->toBe($approved);
+});
+
+test('a round for a plan with no snapshot copies the plan as it is, and a plan not yet committed diffs against HEAD', function () {
+    $repo = ledgerRepo();
+    ledgerWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
+    ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', ledgerPlan('- [ ] M1 Actions'));
+
+    $files = ledgerRoundFiles(ledgerRound($repo, 'docs/exec-plans/active/send-quotes.md'));
+
+    expect(file_get_contents("{$repo}/{$files['Snapshot']}"))->toBe(ledgerPlan('- [ ] M1 Actions'))
+        ->and(file_get_contents("{$repo}/{$files['Diff']}"))->toContain('+$sent = true;')->toContain('+++ b/docs/exec-plans/active/send-quotes.md');
+});
+
+test('a round leaves out of the diff the files that are as they are in the template commit a sync plan names', function () {
+    $repo = ledgerRepo();
+    $git = fn (string ...$args) => trim((new Process(['git', ...$args], $repo))->mustRun()->getOutput());
+    $git('checkout', '-q', '-b', 'template');
+    ledgerWrite($repo, 'app/Actions/Quotes/FromTemplate.php', LEDGER_CODE);
+    ledgerWrite($repo, 'resources/js/pages/quotes/index.tsx', "export {};\n");
+    ledgerCommit($repo);
+    $template = $git('rev-parse', 'HEAD');
+    $git('checkout', '-q', 'main');
+    ledgerWrite($repo, 'app/Actions/Quotes/FromTemplate.php', LEDGER_CODE);
+    ledgerWrite($repo, 'resources/js/pages/quotes/index.tsx', "export const changed = true;\n");
+    ledgerWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Approved changes\n- Template: {$template}\n\n## Milestones\n", ledgerPlan('- [x] M1 Sync')));
+    ledgerCommit($repo);
+
+    $diff = (string) file_get_contents($repo.'/'.ledgerRoundFiles(ledgerRound($repo, 'docs/exec-plans/active/sync-template.md'))['Diff']);
+
+    expect($diff)->toContain('resources/js/pages/quotes/index.tsx')
+        ->not->toContain('FromTemplate.php');
+});
+
+test('a round for a plan that does not exist writes nothing and fails', function () {
+    $repo = ledgerRepo();
+    $process = ledgerRound($repo, 'docs/exec-plans/active/missing.md');
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('docs/exec-plans/active/missing.md')
+        ->and(is_dir("{$repo}/storage/framework/testing/ezdev-review"))->toBeFalse();
 });

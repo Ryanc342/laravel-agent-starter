@@ -14,6 +14,7 @@
 |   php scripts/hooks/finish-check.php checked    composer check passed: record that code as checked
 |   milestone-checking / milestone-checked       the same for composer check:milestone, a partial pass
 |   review <plan>  read-only: print each lane of the plan as done or not done
+|   round <plan>   before a review round: write the plan's diff and the plan as approved for the reviewers
 |   lanes          print the review lanes and the places that touch them, as JSON
 |   protected      print the protected files, as JSON
 |
@@ -117,9 +118,9 @@ const PROTECTED_FILES = [
     'tests/js/' => ['setup.ts'],
     'tests/Structure/' => ['CheckSettings.php', 'CodeTest.php', 'ConfigTest.php', 'DesignDocChecks.php', 'DesignDocsTest.php', 'FoldersTest.php', 'PlacementChecks.php', 'ProjectFiles.php', 'RunFinishedTest.php'],
     'tests/Support/' => ['MilestoneWorkspace.php', 'TestsRowLocks.php', 'VirtualPasskey.php'],
-    'tests/Unit/Hooks/' => ['CheckRunTest.php', 'FinishCheckTest.php', 'MilestoneCheckTest.php', 'PlanAcceptanceTest.php', 'PlaywrightMcpTest.php', 'ReviewLedgerTest.php', 'ReviewerCommandsTest.php', 'ScreenRoundTest.php'],
+    'tests/Unit/Hooks/' => ['CheckRunTest.php', 'FinishCheckTest.php', 'MilestoneCheckTest.php', 'PlanAcceptanceTest.php', 'PlaywrightMcpTest.php', 'ReviewLedgerTest.php', 'ScreenRoundTest.php'],
     'scripts/' => ['check-installer', 'check-milestone.php', 'check-process.php', 'check-reference', 'check-run.php', 'check.php', 'playwright-mcp', 'screen-round', 'screen-round.php', 'worktree-up'],
-    'scripts/hooks/' => ['finish-check.php', 'reviewer-commands.php'],
+    'scripts/hooks/' => ['finish-check.php'],
     '.claude/' => ['settings.json'],
     '.claude/agents/' => ['explorer.md', 'reviewer-haiku.md', 'reviewer-opus.md'],
     '.claude/skills/wayfinder-development/' => ['SKILL.md'],
@@ -188,6 +189,9 @@ const WALKED_ITEM = '/^\W*(W\d+)\s+walked\b/mi';
 
 const REVIEW_LEDGER = 'review-ledger.jsonl';
 
+// Where `round` writes the diff and the snapshot the reviewers read (ignored by git).
+const REVIEW_FILES = 'storage/framework/testing/ezdev-review/';
+
 // A plan that syncs the template into a project names the template's commit
 // (docs/prompts/upgrade.md): a file identical to the template's there is not reviewed.
 const TEMPLATE_COMMIT = '/^\s*(?:[-*+]\s+)?Template:\s*`?([0-9a-f]{7,40})`?/mi';
@@ -218,6 +222,11 @@ try {
     if ($mode === 'review') {
         fwrite(STDERR, 'The finish check could not read the review: '.$error->getMessage().PHP_EOL);
         exit(2);
+    }
+
+    if ($mode === 'round') {
+        fwrite(STDERR, 'The finish check could not prepare the review round: '.$error->getMessage().PHP_EOL);
+        exit(1);
     }
 
     // composer check must not end green on a pass that was not recorded.
@@ -276,6 +285,7 @@ function finishCheck(string $mode, string $argument = ''): string
         'milestone-checked' => checked($stateDir, true),
         'reviewed' => reviewed($stateDir, $session, $input),
         'review' => reviewStatus($stateDir, $argument),
+        'round' => reviewRound($stateDir, $argument),
         default => '',
     };
 }
@@ -668,9 +678,7 @@ function laneProblem(string $lane, array $runs): string|false|null
 
 /**
  * A reviewer subagent stopped: write its ledger line. The result line is read
- * from its last message, else from the report it handed back with the
- * SubagentHandback tool (a subagent that ran in the background). A reviewer that
- * left it out is sent back once to add it; a run without one counts as not run.
+ * from its last message only. A reviewer that left it out is sent back once to add it; a run without one counts as not run.
  * The code counts as committed when no code was left uncommitted at its end: the
  * builder waits for its reviewers, so nothing changed the code during the run.
  *
@@ -688,18 +696,8 @@ function reviewed(string $stateDir, string $session, array $input): string
     $again = ($input['stop_hook_active'] ?? false) === true;
     $transcript = $input['agent_transcript_path'] ?? null;
     $report = is_string($input['last_assistant_message'] ?? null) ? $input['last_assistant_message'] : '';
+    // Reviewers run in the foreground, so their report is their last message.
     $result = reviewResult($report);
-
-    // A report handed back with SubagentHandback is read from the transcript,
-    // which Claude Code may write a moment after the subagent stops.
-    for ($try = 0; $result === null && $try < 20; $try++) {
-        if ($try > 0) {
-            usleep(150_000);
-        }
-
-        $report = handedBack($transcript) ?? '';
-        $result = reviewResult($report);
-    }
 
     if ($result === null && ! $again) {
         return json_encode(['decision' => 'block', 'reason' => 'End your answer with the result line of docs/prompts/review.md as its last line: RESULT lane=<lane> round=<n> P0=<count> P1=<count>, with one of the lanes '.implode(', ', array_keys(REVIEW_LANES)).', and in lane '.WALK_LANE.' unwalked=<count> after it. Without it this run counts as not run.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
@@ -749,25 +747,6 @@ function reviewResult(string $message): ?array
     }
 
     return ['lane' => $match[1], 'round' => (int) $match[2], 'p0' => (int) $match[3], 'p1' => (int) $match[4], 'unwalked' => ($match[5] ?? '') === '' ? null : (int) $match[5]];
-}
-
-/**
- * The report the subagent handed back last with the SubagentHandback tool, from
- * its transcript, or null.
- */
-function handedBack(mixed $path): ?string
-{
-    $report = null;
-
-    foreach (transcriptEntries($path) as $entry) {
-        foreach (is_array($entry['message']['content'] ?? null) ? $entry['message']['content'] : [] as $block) {
-            if (is_array($block) && ($block['type'] ?? null) === 'tool_use' && ($block['name'] ?? null) === 'SubagentHandback' && is_string($block['input']['message'] ?? null)) {
-                $report = $block['input']['message'];
-            }
-        }
-    }
-
-    return $report;
 }
 
 /**
@@ -964,6 +943,62 @@ function planChanges(string $stateDir, string $plan, array $changed): array
     }
 
     return array_values(array_filter($paths, fn (string $path): bool => (git(['rev-parse', '--verify', '--quiet', "{$template}:{$path}"]) ?? 'deleted') !== contentHash($path)));
+}
+
+/**
+ * Before a review round (docs/workflow.md, step 4): reviewers have no shell, so
+ * this writes what they read into REVIEW_FILES. The diff is the plan's changes
+ * since the commit before the plan was added (HEAD for a plan not committed
+ * yet), untracked files included, without the files a sync plan's template
+ * commit already has (planChanges). The snapshot is the plan as the user
+ * approved it, or the plan as it is when there is none. Prints both paths.
+ */
+function reviewRound(string $stateDir, string $plan): string
+{
+    if (preg_match(PLAN_PATH, $plan) !== 1 || ! is_file($plan)) {
+        throw new RuntimeException("no plan at {$plan}");
+    }
+
+    $name = basename($plan);
+    $added = array_filter(explode("\n", git(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name]) ?? ''));
+    $before = $added === [] ? 'HEAD' : git(['rev-parse', '--verify', '--quiet', end($added).'^']) ?? '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+    $untracked = array_filter(explode("\n", git(['ls-files', '--others', '--exclude-standard']) ?? ''));
+    $paths = planChanges($stateDir, $plan, changedSince(null));
+    $tracked = array_values(array_diff($paths, $untracked));
+    $diff = $tracked === [] ? '' : (git(['diff', '--no-renames', $before, '--', ...$tracked]) ?? '')."\n";
+
+    foreach (array_intersect($paths, $untracked) as $path) {
+        $diff .= newFileDiff($path);
+    }
+
+    if (! is_dir(REVIEW_FILES) && ! mkdir(REVIEW_FILES, 0777, true)) {
+        throw new RuntimeException('cannot create '.REVIEW_FILES);
+    }
+
+    $diffFile = REVIEW_FILES.pathinfo($name, PATHINFO_FILENAME).'.diff';
+    $snapshotFile = REVIEW_FILES.$name;
+    writeFile($diffFile, $diff);
+    writeFile($snapshotFile, snapshot($stateDir, $name) ?? (string) file_get_contents($plan));
+
+    return "Diff: {$diffFile}\nSnapshot: {$snapshotFile}\n";
+}
+
+/**
+ * The diff of an untracked file, as git shows a new file.
+ */
+function newFileDiff(string $path): string
+{
+    $process = proc_open(['git', '-c', 'core.quotePath=false', 'diff', '--no-index', '--', '/dev/null', $path], [1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+
+    if (! is_resource($process)) {
+        return '';
+    }
+
+    $output = (string) stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    proc_close($process);
+
+    return $output;
 }
 
 /**

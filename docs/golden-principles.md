@@ -6,7 +6,7 @@ Each rule carries two tags. The first says who checks it:
 
 - `[PHPStan]` the PHP linter (the layer rules in phpstan.neon) and `[oxlint]` the frontend linter (the `lint` block in vite.config.ts and Ezdev's rules in lint/oxlint/ezdev.js). A linter reads the code without running it. Both run in `composer check`; the change cannot be committed until they pass.
 - `[Structure]` tests/Structure: checks a linter does not do. FoldersTest.php and CodeTest.php read where files are and what they hold, ConfigTest.php reads the configs, DesignDocsTest.php reads the design spec. tests/Unit/Lint/SkeletonChecksTest.php breaks every machine rule once in a fixture and proves that its check still fails. Also in `composer check`.
-- `[hook]` a Claude Code hook: the finish check (scripts/hooks/finish-check.php), run when the AI is about to stop, which compares the work with the start of the conversation and sends back what is missing, never twice in a row; and the command check (scripts/hooks/reviewer-commands.php), run before a reviewer's Bash call.
+- `[hook]` a Claude Code hook: the finish check (scripts/hooks/finish-check.php), run when the AI is about to stop, which compares the work with the start of the conversation and sends back what is missing, never twice in a row.
 - `[review]` the two reviewers (`reviewer-opus`, `reviewer-haiku`) read the change for it, one lane per run, and the cleanup reads the repository for it. No machine checks it.
 
 The second says what the rule is about:
@@ -216,6 +216,5 @@ The rules of principle 10 for what a screen does and says. Its introduction is i
 docs/workflow.md has the steps.
 
 - `[hook]` `process` At each stop the finish check (scripts/hooks/finish-check.php, its four checks in its header) sends back a plan missing for changed code, a check that did not pass on this code, a finished plan whose lanes are not done, and a protected change the approved plan does not name.
-- `[hook]` `process` A reviewer subagent runs only Bash commands that read (search, viewing files, git commands that read): scripts/hooks/reviewer-commands.php refuses a write, a redirection, a substitution and the network of `reviewer-opus` and `reviewer-haiku` before it runs and writes the refusal to reviewer-refusals.jsonl in the state folder. The builder's own commands and `explorer` are not looked at.
 - `[Structure]` `process` No check is silenced: no `@phpstan-ignore`, `oxlint-disable`, `eslint-disable`, `@ts-ignore` or `@ts-expect-error`, no skipped or unfinished test (Pest fails on them), and no `ignoreErrors`, `excludePaths` or baseline in phpstan.neon.
 - `[Structure]` `process` The checks stay as set: PHPStan's level, paths and includes and every layer rule of principle 2 with its folders, the Ezdev oxlint rule and `import/no-cycle` on with only generated code ignored, strict TypeScript, the three Pest suites, the steps of `composer check`, no other lint config file, no `script-shell` in .npmrc, and every check proved on a broken fixture (tests/Unit/Lint/SkeletonChecksTest.php). Changing them is a protected change.
