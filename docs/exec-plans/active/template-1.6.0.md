@@ -77,12 +77,16 @@ Sidebar
 Release
 33. CHANGELOG.md has one 1.6.0 entry: the unreleased 1.5.0 entry plus this plan. Both READMEs name 1.6.0.
 34. Existing test assertions that change: tests/Unit/Hooks (decisions 3 to 8, 11, 12), tests/Structure where a check reads a removed file, the protected list, a rule's text or tag, a pattern's sample path or the sidebar (decisions 4, 7, 13, 17, 19 to 27, 30, 32), and tests/Unit/Lint/SkeletonChecksTest.php (it moves, decision 13). No dependency is added or upgraded.
-35. The pages look like the accepted previews: <made while this plan is settled, docs/workflow.md step 2: the sidebar without the two links, and a long form in the wide dialog>.
+35. The pages look like the accepted previews, in storage/app/private/design-previews/template-1.6.0/: sidebar-1280x800.png and sidebar-phone-390x844.png (the dashboard and the phone menu, with only the user at the bottom of the sidebar), wide-dialog-1280x800.png and wide-dialog-phone-390x844.png (an invoice with six lines in the wide dialog; on a phone the same full-width sheet as every dialog). The invoice and its line rows are example data for the size only: this plan builds no line-item component.
+36. `ResponsiveDialog`'s `wide` size is 48rem (768px) on desktop (`sm:max-w-3xl`), against the default 32rem and `narrow`'s 28rem; on a phone it is the full-width sheet like every size. `narrow` and `wide` are one prop with three values or two exclusive booleans, whichever keeps the existing callers unchanged; the Vitest test covers the wide size on desktop and on a phone. The /style demos stay as they are (decision 31); docs/design/components.md and docs/design/patterns/form.md say when to use `wide` (a long form with a table of lines).
+
+Answers to the open questions (Ryan, 2026-11-20)
+37. Q1, explaining text (decision 25): a form field may have one line under it only for a step the user must take (the password requirements), nowhere else. The visual-design.md rule says so plainly.
+38. Q2: 1.6.0 adds no line under the password fields; the rule allows it, and "show the password requirements under the password fields (register, reset password, security)" goes into docs/exec-plans/tech-debt.md for a later release. No page changes beyond the sidebar.
+39. Q3, the template-only folder (decision 13): `template/` at the root. Its tests run from the template's CI with their own PHPUnit configuration, so a project's phpunit.xml names no missing folder.
 
 ## Open questions
-Ask Ryan these while the plan is settled, before "开始", then write the answers into Agreed decisions:
-- Q1 (decision 25, explaining text): may a form field have one line under it, for example the password requirements? Recommended: only for a step the user must take (the password requirements), nowhere else.
-- Anything else the code shows is open. Ask only what the template rules and the code cannot answer.
+None left: Q1 to Q3 are answered in decisions 37 to 39.
 
 ## Approved changes
 The finish check of 1.5.0 still runs until M1 replaces it, and it reads this section from the snapshot that "开始" takes:
@@ -113,7 +117,9 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - W1 user (test@example.com): sign in, the dashboard opens, the sidebar has no Repository or Documentation link, open Settings and come back.
 
 ## Progress
-- 2026-11-20 Plan written in the planning chat; the 1.5.0 plan moved to completed/ as parked.
+- 2026-11-20 Plan written in the planning chat; the 1.5.0 plan moved to completed/ as parked, commit 470ae10a.
+- 2026-11-20 Previews made (decision 35), the wide size settled (decision 36), Q2 and Q3 added from the code.
+- 2026-11-20 Q1 to Q3 answered by Ryan (decisions 37 to 39).
 
 ## Surprises & Discoveries
 
