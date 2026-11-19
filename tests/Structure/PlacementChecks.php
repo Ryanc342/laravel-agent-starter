@@ -25,7 +25,6 @@ final class PlacementChecks
         'breadcrumbs.tsx',
         'heading.tsx',
         'input-error.tsx',
-        'nav-footer.tsx',
         'nav-main.tsx',
         'nav-user.tsx',
         'password-input.tsx',

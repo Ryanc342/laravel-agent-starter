@@ -69,8 +69,6 @@
     "Move cancelled. :title is still in :column.": "已取消移动。:title 仍在 :column。",
     "Move cancelled.": "已取消移动。",
     "To pick up a card, press Space. Use the arrow keys to move it to another place or column, press Space again to drop it, or press Escape to cancel.": "按空格键拿起卡片，用方向键将它移到其他位置或列，再按空格键放下，或按 Esc 取消。",
-    "Repository": "代码仓库",
-    "Documentation": "文档",
     "Dashboard": "仪表盘",
     "Platform": "平台",
     "Hide password": "隐藏密码",
