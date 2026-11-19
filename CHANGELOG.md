@@ -25,7 +25,7 @@ Questions only before the plan: after the user's "开始" the AI asks nothing, t
 - Subagents run in the foreground (`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`), so the session waits for the reviewers; `AskUserQuestion` and `Workflow` are denied. `composer check` runs as one foreground call with a ten-minute timeout.
 - A reviewer's finding names the written rule of its lane, the agreed decision or the walk item it breaks; anything else never adds a round: rule gaps (behaviour the plan does not have included) and decisions that differ from a rule go into the report, and problems in code from before the plan into docs/exec-plans/tech-debt.md. The result line has no `user=`. The two agent files hold only their model, their browser and the pointer to `docs/prompts/review.md`.
 - Reviewers have no shell: `reviewer-opus` and `reviewer-haiku` have Read, Grep, Glob and their browser only. Before each round the builder runs `php scripts/hooks/finish-check.php round <plan path>`, which writes the plan's diff (new files included, without the files a sync plan's template commit already has) and the plan as approved to `storage/framework/testing/ezdev-review/`, and the request names both files.
-- The review ledger reads a reviewer's report only from its last message: reviewers run in the foreground.
+- The review ledger reads a reviewer's report from its last message, or else from the report it handed back (SubagentHandback), which some Claude Code sessions use for every subagent, also in the foreground.
 - Screen rounds: both seats are copies, `../<project folder>-review-opus` and `../<project folder>-review-haiku`, each with its own database and a free port. The project's own app and database are never touched, and `composer dev` need not run. The copies of 1.3.0, `../<project folder>-review` and `../<project folder>-reference`, are no longer used: `git worktree remove` removes them.
 - Server-side rendering is off in tests (`INERTIA_SSR_ENABLED=false` in `phpunit.xml`; `config/inertia.php` reads it).
 - Progress is one line per milestone or review round, with the date and the commit and no time of day. Milestones record no scope, and no full check is run early; the finished plan still passes full `composer check`.
@@ -40,7 +40,7 @@ Questions only before the plan: after the user's "开始" the AI asks nothing, t
 - `skipUnlessFortifyHas()` from `tests/TestCase.php`: turning a Fortify feature off deletes its tests, and the structure check allows no skip anywhere in tests/.
 - The hooks `SubagentStart` and `PostToolUse` and the finish check modes `reviewing`, `handback` and `stopped`, with the open steps, the pending plans, the approvals read from the Decision Log, the check of tech-debt against QUALITY.md and the `finish` reminder.
 - Principle 7's rule on AGENTS.md's length, paths, plan headings and rule format.
-- The command check of 1.3.0 (`scripts/hooks/reviewer-commands.php`, its `PreToolUse` hook and `reviewer-refusals.jsonl`), and the ledger's reading of a report handed back in the transcript.
+- The command check of 1.3.0 (`scripts/hooks/reviewer-commands.php`, its `PreToolUse` hook and `reviewer-refusals.jsonl`).
 - Six Boost skills (`fortify-development`, `inertia-react-development`, `infer-conventions`, `laravel-best-practices`, `tailwindcss-development`, `testing-best-practices`); `boost.json` keeps `wayfinder-development`.
 - The sentence on the old welcome page in the visual design rules.
 - AGENTS.md's table "Rules by folder: read before editing": Claude Code loads the rule files itself.

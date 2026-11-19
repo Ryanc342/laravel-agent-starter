@@ -115,7 +115,7 @@ final class ImportTaskRequest extends FormRequest
 
     /**
      * A problem with the file itself is shown alone; row errors all come back, in row order. The page's
-     * validation toasts show the first five and "And N more errors" (docs/rules/frontend.md).
+     * validation toasts show the first five and "And N more errors" (.claude/rules/frontend.md).
      */
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator): void
     {

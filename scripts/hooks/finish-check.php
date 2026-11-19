@@ -678,7 +678,9 @@ function laneProblem(string $lane, array $runs): string|false|null
 
 /**
  * A reviewer subagent stopped: write its ledger line. The result line is read
- * from its last message only. A reviewer that left it out is sent back once to add it; a run without one counts as not run.
+ * from its last message, else from the report it handed back with the
+ * SubagentHandback tool (some Claude Code sessions end every subagent with it,
+ * also in the foreground). A reviewer that left it out is sent back once to add it; a run without one counts as not run.
  * The code counts as committed when no code was left uncommitted at its end: the
  * builder waits for its reviewers, so nothing changed the code during the run.
  *
@@ -696,8 +698,18 @@ function reviewed(string $stateDir, string $session, array $input): string
     $again = ($input['stop_hook_active'] ?? false) === true;
     $transcript = $input['agent_transcript_path'] ?? null;
     $report = is_string($input['last_assistant_message'] ?? null) ? $input['last_assistant_message'] : '';
-    // Reviewers run in the foreground, so their report is their last message.
     $result = reviewResult($report);
+
+    // A report handed back with SubagentHandback is read from the transcript,
+    // which Claude Code may write a moment after the subagent stops.
+    for ($try = 0; $result === null && $try < 20; $try++) {
+        if ($try > 0) {
+            usleep(150_000);
+        }
+
+        $report = handedBack($transcript) ?? '';
+        $result = reviewResult($report);
+    }
 
     if ($result === null && ! $again) {
         return json_encode(['decision' => 'block', 'reason' => 'End your answer with the result line of docs/prompts/review.md as its last line: RESULT lane=<lane> round=<n> P0=<count> P1=<count>, with one of the lanes '.implode(', ', array_keys(REVIEW_LANES)).', and in lane '.WALK_LANE.' unwalked=<count> after it. Without it this run counts as not run.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
@@ -747,6 +759,25 @@ function reviewResult(string $message): ?array
     }
 
     return ['lane' => $match[1], 'round' => (int) $match[2], 'p0' => (int) $match[3], 'p1' => (int) $match[4], 'unwalked' => ($match[5] ?? '') === '' ? null : (int) $match[5]];
+}
+
+/**
+ * The report the subagent handed back last with the SubagentHandback tool, from
+ * its transcript, or null.
+ */
+function handedBack(mixed $path): ?string
+{
+    $report = null;
+
+    foreach (transcriptEntries($path) as $entry) {
+        foreach (is_array($entry['message']['content'] ?? null) ? $entry['message']['content'] : [] as $block) {
+            if (is_array($block) && ($block['type'] ?? null) === 'tool_use' && ($block['name'] ?? null) === 'SubagentHandback' && is_string($block['input']['message'] ?? null)) {
+                $report = $block['input']['message'];
+            }
+        }
+    }
+
+    return $report;
 }
 
 /**

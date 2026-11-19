@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 
 /**
- * For a test of a row lock (docs/rules/tests.md, "Row locks"). It plays a second user
+ * For a test of a row lock (.claude/rules/tests.md, "Row locks"). It plays a second user
  * saving at the same moment, on a second connection to the test database.
  *
  * A second connection only sees committed rows, and RefreshDatabase keeps every row of

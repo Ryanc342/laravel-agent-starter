@@ -194,18 +194,34 @@ test('a reviewer that leaves out the result line is sent back once, then its run
         ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'model' => 'haiku', 'lane' => null]);
 });
 
-test('the report is read only from the last message, never from a hand-back in the transcript', function () {
+test('a report handed back with the SubagentHandback tool is read from the transcript', function () {
     $repo = ledgerRepo();
     $transcript = "{$repo}/../".basename($repo).'-handback.jsonl';
-    file_put_contents($transcript, json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "No findings.\n\nRESULT lane=input round=2 P0=0 P1=0"]]]]])."\n");
+    file_put_contents($transcript, implode("\n", [
+        json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "[P1] app/x.php:1 a finding\n\nRESULT lane=input round=2 P0=0 P1=1"]]]]]),
+        json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'Handed back.']]]]),
+    ])."\n");
     register_shutdown_function(fn () => @unlink($transcript));
 
-    $started = microtime(true);
-    $output = ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => 'Handed back.']);
+    expect(ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => 'Handed back.']))->toBe('')
+        ->and(ledgerLines($repo))->toHaveCount(1)
+        ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'lane' => 'input', 'round' => 2, 'p0' => 0, 'p1' => 1, 'committed' => true]);
+});
 
-    expect(json_decode($output, true)['reason'])->toContain('RESULT lane=<lane> round=<n> P0=<count> P1=<count>')
-        ->and(ledgerLines($repo))->toBe([])
-        ->and(microtime(true) - $started)->toBeLessThan(2.0);
+test('a hand-back that reaches the transcript just after the subagent stops is still read', function () {
+    $repo = ledgerRepo();
+    $transcript = "{$repo}/../".basename($repo).'-late-handback.jsonl';
+    file_put_contents($transcript, json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'Reviewing.']]]])."\n");
+    register_shutdown_function(fn () => @unlink($transcript));
+    // Claude Code writes the transcript a moment after the hook starts.
+    $late = new Process([PHP_BINARY, '-r', 'usleep(800000); file_put_contents($argv[1], $argv[2]."\n", FILE_APPEND);', $transcript, json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "No findings.\n\nRESULT lane=business round=1 P0=0 P1=0"]]]]])]);
+    $late->start();
+
+    expect(ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => '']))->toBe('')
+        ->and(ledgerLines($repo))->toHaveCount(1)
+        ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'lane' => 'business', 'round' => 1, 'p0' => 0, 'p1' => 0]);
+
+    $late->wait();
 });
 
 test('code left uncommitted when the reviewer stops is recorded as uncommitted', function (string $path) {

@@ -86,7 +86,7 @@ parameters:
                 - 'Illuminate\Support\Facades\Cookie'
                 - 'Inertia\*'
             message: 'only controllers deal with the request'
-            errorTip: 'Actions, enums, models, policies and notifications work with plain values: the controller reads the request and the signed-in user, passes them in and returns the response. A refusal in an Action is a ValidationException. See docs/rules/actions.md.'
+            errorTip: 'Actions, enums, models, policies and notifications work with plain values: the controller reads the request and the signed-in user, passes them in and returns the response. A refusal in an Action is a ValidationException. See .claude/rules/actions.md.'
             allowExceptIn:
                 - app/Enums/*
                 - app/Models/*
@@ -106,7 +106,7 @@ parameters:
             namespace:
                 - 'Illuminate\Support\Facades\DB'
             message: 'controllers do not use the database directly'
-            errorTip: 'Put the work, and any transaction, in an Action. See docs/rules/actions.md.'
+            errorTip: 'Put the work, and any transaction, in an Action. See .claude/rules/actions.md.'
             allowExceptIn:
                 - app/Http/Controllers/*
         -
@@ -163,7 +163,7 @@ parameters:
                 - 'url()'
                 - 'cookie()'
             message: 'only controllers deal with the request'
-            errorTip: 'Actions, enums, models, policies and notifications work with plain values (the validated array, models, enums): the controller reads the request and the signed-in user, passes them in and returns the response. A refusal in an Action is a ValidationException. See docs/rules/actions.md.'
+            errorTip: 'Actions, enums, models, policies and notifications work with plain values (the validated array, models, enums): the controller reads the request and the signed-in user, passes them in and returns the response. A refusal in an Action is a ValidationException. See .claude/rules/actions.md.'
             allowExceptIn:
                 - app/Actions/*
                 - app/Enums/*

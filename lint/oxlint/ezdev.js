@@ -6,7 +6,7 @@
  *   domain components never import another domain's components,
  *   components/shared never imports domain components, and nothing imports a
  *   page.
- * - "ezdev/no-module-level-t" (principle 10, docs/rules/translations.md): t()
+ * - "ezdev/no-module-level-t" (principle 10, .claude/rules/translations.md): t()
  *   and tChoice() from @/lib/i18n never run at import time, when the language
  *   is not set yet.
  *
@@ -196,7 +196,7 @@ const noModuleLevelT = rule(
 
                 context.report({
                     node,
-                    message: `${callee.name}() runs at import time, before the language is set, so it keeps the English sentence. Mark the sentence with msg('...') and call t() where it is shown (docs/rules/translations.md).`,
+                    message: `${callee.name}() runs at import time, before the language is set, so it keeps the English sentence. Mark the sentence with msg('...') and call t() where it is shown (.claude/rules/translations.md).`,
                 });
             },
         };
