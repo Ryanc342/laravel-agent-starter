@@ -708,7 +708,13 @@ function reviewed(string $stateDir, string $session, array $input): string
     $report = is_string($input['last_assistant_message'] ?? null) ? $input['last_assistant_message'] : '';
     $result = reviewResult($report);
 
-    if ($result === null) {
+    // A report handed back with SubagentHandback is read from the transcript,
+    // which Claude Code may write a moment after the subagent stops.
+    for ($try = 0; $result === null && $try < 20; $try++) {
+        if ($try > 0) {
+            usleep(150_000);
+        }
+
         $report = handedBack($transcript) ?? '';
         $result = reviewResult($report);
     }
