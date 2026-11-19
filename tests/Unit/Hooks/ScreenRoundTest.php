@@ -309,7 +309,8 @@ function screenRoundReferenceProject(array $override = []): array
         'database/.gitignore' => "*.sqlite\n",
         // It notes the database settings it got from the environment too.
         'artisan' => "<?php\nfile_put_contents('{$calls}', getcwd().' artisan '.implode(' ', array_slice(\$argv, 1)).' env:'.json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)).\"\\n\", FILE_APPEND);\n",
-        'public/index.php' => "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\n",
+        // It also answers /env with the database settings of its environment.
+        'public/index.php' => "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\nif (\$_SERVER['REQUEST_URI'] === '/env') { echo json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)); }\n",
         'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php' => (string) file_get_contents("{$root}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"),
         'routes/web.php' => "<?php\n",
         'docs/reference/tasks/README.md' => "# Reference feature\n",
@@ -442,8 +443,8 @@ test('a copy whose app does not answer stops the round and names its log', funct
         ->and($output)->not->toContain('Seat 1');
 });
 
-test('a copy\'s commands do not inherit the database settings of the shell that runs the round', function () {
-    [$repo] = screenRoundReferenceProject();
+test('a copy\'s commands and its app do not inherit the database settings of the shell that runs the round', function () {
+    [$repo, $port] = screenRoundReferenceProject();
 
     $process = screenRoundRunIn($repo, [], ['DB_DATABASE' => 'shop', 'DB_URL' => 'mysql://root:@127.0.0.1/shop', 'DB_HOST' => 'db.example.com', 'APP_ENV' => 'production']);
     $lines = array_filter(explode("\n", (string) file_get_contents(dirname($repo).'/calls.txt')), fn (string $line): bool => str_contains($line, ' artisan '));
@@ -451,6 +452,11 @@ test('a copy\'s commands do not inherit the database settings of the shell that 
     expect($process->getExitCode())->toBe(0, $process->getOutput().$process->getErrorOutput())
         ->and($lines)->not->toBeEmpty()
         ->and(array_values(array_filter($lines, fn (string $line): bool => ! str_ends_with($line, ' env:[]'))))->toBe([]);
+
+    // The app the reviewers walk through, as the copies serve it.
+    foreach ([100, 200] as $offset) {
+        expect(file_get_contents('http://127.0.0.1:'.($port + $offset).'/env'))->toBe('[]');
+    }
 });
 
 test('an argument other than --reference changes nothing', function () {

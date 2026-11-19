@@ -117,6 +117,7 @@ Release
 - 2026-11-19 Review round 7 (tests) on e08bf0a7: haiku clean; opus 1 P0 (with the copy's database in DB_URL's path, migrate could not create it), the new test against Laravel's URL parser failed before the code, fixed in commit 019be7b2.
 - 2026-11-19 Review round 8 (tests) on 7c3ad05b: haiku clean; opus 2 P0 (an inline comment or `export` in .env, or a database or host in DB_URL's query, could still give a copy the project's database or another server). The script now reads .env with phpdotenv and DB_URL with Laravel's parser, writes each copy's connection in full every round and reads it back before migrating; 5 new cases failed before the code, fixed in commit e2bb6b50.
 - 2026-11-19 Review round 9 (tests) on 2355697d: haiku clean; opus 1 P0 (a copy's commands inherited the shell's DB_* variables, which win over its .env); the new test failed before the code, fixed in commit 8a15e100.
+- 2026-11-19 Review round 10 (tests) on 2a33f70b: haiku clean; opus 1 P1 (no test that the served copy runs without the shell's database settings); the test now asks the running copies and fails without that part of the fix, fixed in commit R10.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
