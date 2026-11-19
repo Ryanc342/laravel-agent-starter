@@ -201,6 +201,8 @@ test('a reviewer is refused every command that could write, with the reason and 
     'git -C before a command that writes' => ['git -C ../x checkout .'],
     'cd with more than a folder' => ['cd x y'],
     'uniq with two files' => ['uniq a b'],
+    'uniq writing a file named like an option, after --' => ['uniq -- AGENTS.md -x'],
+    'uniq writing a file named like an option, after its input' => ['uniq AGENTS.md -x'],
     'a sed write after a pattern range' => ["sed -n '/a/,/b/w notes'"],
 ]);
 

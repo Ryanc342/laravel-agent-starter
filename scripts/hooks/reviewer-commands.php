@@ -279,12 +279,37 @@ function commandReads(array $words): bool
     return match ($program) {
         'find' => array_intersect($arguments, FIND_WRITES) === [],
         // uniq writes to a second file name.
-        'uniq' => count(array_filter($arguments, fn (string $word): bool => $word === '-' || ! str_starts_with($word, '-'))) <= 1,
+        'uniq' => count(fileOperands($arguments)) <= 1,
         // Only printing: `sed -n '<address>p' [files]`.
         'sed' => ($arguments[0] ?? null) === '-n' && preg_match(SED_PRINT, $arguments[1] ?? '') === 1
             && array_filter(array_slice($arguments, 2), fn (string $word): bool => str_starts_with($word, '-')) === [],
         default => true,
     };
+}
+
+/**
+ * The words a command reads as file names: every word that is not an option,
+ * and every word after `--` or after the first file name (BSD tools stop
+ * reading options there), so a name that starts with `-` counts too.
+ *
+ * @param  list<string>  $arguments
+ * @return list<string>
+ */
+function fileOperands(array $arguments): array
+{
+    $operands = [];
+
+    foreach ($arguments as $index => $word) {
+        if ($word === '--' && $operands === []) {
+            return [...$operands, ...array_slice($arguments, $index + 1)];
+        }
+
+        if ($operands !== [] || $word === '-' || ! str_starts_with($word, '-')) {
+            $operands[] = $word;
+        }
+    }
+
+    return $operands;
 }
 
 /**
