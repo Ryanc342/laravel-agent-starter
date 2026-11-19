@@ -81,7 +81,7 @@ Release
 - Not protected, also changed: boost.json, docs/QUALITY.md, docs/exec-plans/tech-debt.md, README.md, README.zh-CN.md, CHANGELOG.md, database/seeders/DatabaseSeeder.php.
 
 ## Milestones
-- [ ] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
+- [x] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
 - [ ] M2 Snapshot and finish check (decisions 6 to 12, 16, 19 as M1 found, 23 to 27). Tests first in tests/Unit/Hooks. Ryan's "开始" for this plan came before the hook existed: M2 ends by recording, once, the snapshot of this plan as committed when he approved it, with a command that is not kept in the template.
 - [ ] M3 Questions and approval in the docs (decisions 1 to 5, 8 to 12).
 - [ ] M4 Reviewers (decisions 13 to 22).
@@ -98,10 +98,15 @@ Release
 - No page changes, so no walk list.
 
 ## Progress
+- 2026-11-19 M1 probe passed (a and b), no template change, commit 6d0ff09e.
 
 ## Surprises & Discoveries
+- M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
+- M1 (b): a full `composer check` ran as one foreground Bash call in 236 s (679 Pest tests, 208 s) and ended with exit 0. It needs a Bash timeout above the default two minutes; the call passed 600000 ms, the maximum.
+- M1, extra: in the foreground a reviewer's SubagentStop input carries the whole report, result line included, in `last_assistant_message`; the run used no hand-back tool. So the ledger needs no `handback` hook.
 
 ## Decision Log
 - 2026-11-19 Ryan said "开始" to this plan in the planning chat. The current finish check reads approvals only from the conversation that changes the files, so the implementing conversation adds the approval line for the protected files in "Approved changes" after Ryan's "开始" there.
+- 2026-11-19 Ryan said "开始" in the implementing conversation: it approves the protected changes listed in "Approved changes". The work runs on the branch `template-simplification`; `main` moves only at "发布" (decision 48).
 
 ## Outcomes & Retrospective
