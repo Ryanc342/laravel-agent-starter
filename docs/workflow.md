@@ -23,6 +23,12 @@ Word each question so "yes" accepts your recommendation; the user may answer by 
 
 Write `docs/exec-plans/active/<feature>.md` following docs/PLANS.md. "Agreed decisions" lists every answer. When a decision differs from a template rule, write which rule next to it, and say so when you hand in the plan. Look up the protected docs and checks the change will affect, and list them in "Approved changes" with the dependencies it adds or upgrades and the existing tests whose assertions change, each with its decision.
 
+A plan that adds or changes a page has a static preview, made now: a picture of each new or changed page at 1280×800 and at 390×844, in the template's design (DESIGN.md, the page's pattern file and its sample, docs/design) with example data. The previews are not committed and are not app code:
+
+1. Write each page as a static HTML file in `storage/app/private/design-previews/<plan file name>/`, next to a copy of `public/build` (run `npm run build` first), linking the two stylesheets `public/build/manifest.json` and `fonts-manifest.json` name (`/build/assets/…`). Use only the theme's classes the app already uses: the built CSS holds no other.
+2. Serve the folder with `php -S 127.0.0.1:<free port> -t <folder>` (the browser refuses `file:` pages), open each page in the `playwright` browser, and take the screenshots at both sizes. Copy each PNG from the browser's temporary folder (`.playwright-mcp/session-*/`) into the preview folder before you close the browser, then stop the server.
+3. Name the files in an agreed decision ("The pages look like the accepted previews: <files>"), look at them yourself, and name them when you hand in the plan. The user's "开始" accepts them with the plan.
+
 Then stop: change no code until the user says "开始" (also `开始吧`, `好开始`, `好的开始`, `ok开始` or `start`, with any spaces and punctuation). That message takes the snapshot of the plan the checks and the reviewers read; a new "开始" after a change of requirements takes a new one. What you write into the plan afterwards changes nothing that was approved.
 
 ## 3. Build
@@ -61,7 +67,7 @@ Report in the user's language and in business words, with no file or method name
 - the rule gaps: cases no rule settled, and each decision that differs from a rule;
 - what waits for the user: the cases kept as they were because they are the user's to decide, and the protected changes the plan did not approve.
 
-Include screenshots only if the user explicitly asked to keep them. Fill in "Outcomes & Retrospective", add what you deferred to docs/exec-plans/tech-debt.md, and update that domain's row in docs/QUALITY.md. Move the plan to `docs/exec-plans/completed/` last, when `php scripts/hooks/finish-check.php review <plan path>` prints every lane as done.
+Include screenshots only if the user explicitly asked to keep them. Delete the plan's previews (`storage/app/private/design-previews/<plan file name>/`) when it moves to completed/. Fill in "Outcomes & Retrospective", add what you deferred to docs/exec-plans/tech-debt.md, and update that domain's row in docs/QUALITY.md. Move the plan to `docs/exec-plans/completed/` last, when `php scripts/hooks/finish-check.php review <plan path>` prints every lane as done.
 
 ## A new conversation
 

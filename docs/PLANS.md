@@ -8,6 +8,7 @@ An ExecPlan is the written plan for one feature. It lives in `docs/exec-plans/ac
 - **Living.** Tick each milestone when it is done and add its Progress line: one line per milestone or review round, with the date and the commit, no time of day. A review round is one summary line; the review ledger keeps its runs.
 - **Milestones are small.** Each one takes about an hour, is a few hundred lines and ends in a commit.
 - **Approved changes.** The protected files the plan changes (AGENTS.md "Red lines"), the dependencies it adds or upgrades, and the existing tests whose assertions change, each with the decision that changes the requirement. The user's "开始" approves exactly this list.
+- **A preview for pages.** A plan that adds or changes a page names its static previews in an agreed decision: "The pages look like the accepted previews: <files>", PNG files at 1280×800 and 390×844 under `storage/app/private/design-previews/<plan file name>/` (docs/workflow.md, step 2).
 - **A walk list for pages.** A plan with pages lists its walk under Validation: one line per flow and role, `W1 <role> (<test account>): <flow, from its first step to its last>`, for every flow the plan adds or changes, with only the steps a browser can do. A step it cannot do (a mail arrives, a scheduled job runs) names the test that covers it instead. database/seeders/DatabaseSeeder.php creates one test account per role.
 
 The sections below are required, with exactly these headings. The finish check reads Purpose, Agreed decisions and Milestones; a plan that still holds this template there is no plan.
@@ -23,6 +24,7 @@ What the user gets and why, in one or two sentences.
 ## Agreed decisions
 1. <decision from the questions>
 2. <decision> (differs from <rule>)
+3. The pages look like the accepted previews: <files> (a plan with pages)
 
 ## Approved changes
 - Protected files: <path> (decision <n>), or none
