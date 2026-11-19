@@ -226,3 +226,6 @@ New on 2026-11-20, before the trial and the release (decisions 62 to 67)
 - 2026-11-20 Ryan agreed decisions 62 to 67 in the planning chat: the rule against hiding problems, keeping rule gaps, three rule gaps of the final review turned into rule changes, and one release as 1.5.0 after one trial. They come before M9's trial. His new "开始" takes the new snapshot (decision 9).
 
 ## Outcomes & Retrospective
+Parked by Ryan on 2026-11-20, before M9: no trial and no 1.5.0 release. M1 to M8k are on the branch `template-simplification`; the work continues and is released as 1.6.0 (docs/exec-plans/active/template-1.6.0.md). Do not continue M9 from this plan.
+Rule gaps:
+- scripts/worktree-up does not handle a database left by an earlier worktree of the same name, and its "Remove later" line does not say to drop it (Surprises, 2026-11-20). For the template.
