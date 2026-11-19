@@ -15,14 +15,19 @@ import { cn } from '@/lib/utils';
 type Props = {
     title: string;
     /**
+     * The width on desktop, one of the two or neither: `narrow` for a short
+     * content such as a QR code, `wide` for a long form with a table of lines
+     * (an invoice). On a phone every dialog is the same full-width sheet.
+     */
+    narrow?: boolean;
+    wide?: boolean;
+    /**
      * One sentence for a step the user must take (the two-factor setup says what
      * to do); a ConfirmDialog passes its `consequence` here. Leave it out otherwise.
      */
     instruction?: string;
     /** An icon above the title; the header is then centred. */
     icon?: ReactNode;
-    /** A narrower dialog on desktop, for a short content such as a QR code. */
-    narrow?: boolean;
     /** The element that opens the dialog; leave it out when the page controls `open`. */
     trigger?: ReactNode;
     open?: boolean;
@@ -41,6 +46,7 @@ export default function ResponsiveDialog({
     instruction,
     icon,
     narrow = false,
+    wide = false,
     trigger,
     open,
     onOpenChange,
@@ -56,7 +62,12 @@ export default function ResponsiveDialog({
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
             <DialogContent
                 sheet={isMobile}
-                className={cn('flex flex-col', narrow && 'sm:max-w-md')}
+                data-size={narrow ? 'narrow' : wide ? 'wide' : 'default'}
+                className={cn(
+                    'flex flex-col',
+                    narrow && 'sm:max-w-md',
+                    wide && 'sm:max-w-3xl',
+                )}
                 onOpenAutoFocus={() => {
                     returnTo.current =
                         document.activeElement instanceof HTMLElement

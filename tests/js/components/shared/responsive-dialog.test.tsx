@@ -157,3 +157,45 @@ test('the trigger opens the dialog', () => {
 
     expect(screen.getByRole('dialog')).toBeTruthy();
 });
+
+test('a wide dialog is wide on desktop, for a long form with a table of lines', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    render(
+        <ResponsiveDialog open onOpenChange={() => {}} title="Add invoice" wide>
+            <ResponsiveDialogFooter>
+                <button type="button">Save</button>
+            </ResponsiveDialogFooter>
+        </ResponsiveDialog>,
+    );
+    const dialog = screen.getByRole('dialog');
+
+    expect(dialog.getAttribute('data-layout')).toBe('dialog');
+    expect(dialog.getAttribute('data-size')).toBe('wide');
+});
+
+test('a wide dialog is the same full-width sheet as every dialog on a phone', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    render(
+        <ResponsiveDialog open onOpenChange={() => {}} title="Add invoice" wide>
+            <ResponsiveDialogFooter>
+                <button type="button">Save</button>
+            </ResponsiveDialogFooter>
+        </ResponsiveDialog>,
+    );
+
+    expect(screen.getByRole('dialog').getAttribute('data-layout')).toBe(
+        'sheet',
+    );
+});
+
+test('a dialog is the default size unless it asks for narrow or wide', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+
+    renderDialog();
+
+    expect(screen.getByRole('dialog').getAttribute('data-size')).toBe(
+        'default',
+    );
+});

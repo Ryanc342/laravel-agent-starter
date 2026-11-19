@@ -6,17 +6,16 @@ paths:
 
 # Form Requests
 
-A rule names its check in its tag (docs/golden-principles.md); text without a tag explains how to follow them. How a controller reads a FormRequest: .claude/rules/controllers.md.
+A rule names its check in its tag, with its lane and level, and says why in one sentence (docs/golden-principles.md); text without a tag explains how to follow them. How a controller reads a FormRequest: .claude/rules/controllers.md.
 
 ## Only check the shape of the input
 
-- `[review:backend:2]` A FormRequest checks the shape of the input only: no database queries (model, query builder, relation or `DB` calls) in FormRequests or app/Concerns, apart from the `exists` and `unique` rules. Business state (stock, status, ownership, limits) is checked in the Action, which throws `ValidationException::withMessages()`.
-- `[review:backend:1]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours", so nobody can find out which ids belong to other users; the FormRequest has no `exists` rule for it. A record in the URL (route model binding, `/invoices/{invoice}`) is checked by the Policy (403).
-- `[review:backend:2]` FormRequests have no `authorize()`. Permission is checked in the controller.
+A FormRequest answers one question: _is this input well-formed?_ Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, enum values. `exists` only means "this record exists", not "this record is eligible".
 
-A FormRequest answers one question: _is this input well-formed?_ Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, enum values. `exists` only means "this record exists", not "this record is eligible": do not chain business conditions onto `Rule::exists` or `Rule::unique` (active or expired state, ownership and remaining stock belong in the Action, or the Policy for who may act), also not in shared validation traits.
-
-An uploaded file is input too: its rules are `file` (or `image`), the allowed types with `mimes:` and a `max:` size in kilobytes, as in `docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php`. A file that is kept is stored under a name the app makes (`store()`), never under the name the user sent.
+- `[review:backend:2]` A FormRequest checks the shape of the input only: no database queries (model, query builder, relation or `DB` calls) in FormRequests or app/Concerns, apart from the `exists` and `unique` rules, and no business condition chained onto `Rule::exists` (active or expired state, ownership, remaining stock). Why: business state checked in the FormRequest is skipped by every entry point that does not use it; the Action checks it and throws `ValidationException::withMessages()`. Not a break: a value that must be unique among the user's own records, checked by a `unique` rule scoped to the owner (`Rule::unique('projects')->where('user_id', $this->user()->id)`).
+- `[review:backend:1]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours"; the FormRequest has no `exists` rule for it. Why: two messages, or an `exists` rule, tell anyone which ids belong to other users. Not a break: a record in the URL (route model binding, `/invoices/{invoice}`), which the Policy checks (403).
+- `[review:backend:2]` A FormRequest has no `authorize()`. Why: permission is checked once, in the controller (.claude/rules/app.md).
+- `[review:backend:1]` An uploaded file has the rules `file` (or `image`), its allowed types with `mimes:` and a `max:` size in kilobytes (docs/reference/tasks/app/Http/Requests/Tasks/ImportTaskRequest.php), and a file that is kept is stored under a name the app makes (`store()`), never the name the user sent. Why: an unchecked upload lets any file of any size in, and the user's file name can overwrite another file.
 
 | Check                                   | Where                                         |
 | --------------------------------------- | --------------------------------------------- |

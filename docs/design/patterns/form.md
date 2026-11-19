@@ -4,7 +4,7 @@ Use for creating or editing something.
 
 ## Where a form lives
 
-- A record (create or edit) opens in a `ResponsiveDialog`, however long the form is. A long form scrolls inside the dialog; the title and the buttons stay in view.
+- A record (create or edit) opens in a `ResponsiveDialog`, however long the form is. A long form scrolls inside the dialog; the title and the buttons stay in view. A form with a table of lines (an invoice with its lines) uses the `wide` dialog; on a phone it is the same full-width sheet.
 - A page whose purpose is the form is that page: sign-in (auth.md), settings (settings.md), contact (contact.md), checkout (checkout.md) and a wizard (wizard.md). Creating or editing a record that the user opened from a list is the dialog above.
 - Search and filters are not forms of this kind (list.md).
 

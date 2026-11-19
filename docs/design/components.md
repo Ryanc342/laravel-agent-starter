@@ -86,7 +86,7 @@ Every enabled clickable element also has a hover state (grey, foundations.md) an
 
 | Need | Use |
 | --- | --- |
-| Create or edit a record that the user opened from a list | `ResponsiveDialog` (`components/shared`): a centred dialog on desktop, a full-width sheet from the bottom on a phone. It has a title and no description; its buttons are `Actions` |
+| Create or edit a record that the user opened from a list | `ResponsiveDialog` (`components/shared`): a centred dialog on desktop, a full-width sheet from the bottom on a phone. It has a title and no description; its buttons are `Actions`. `wide` for a long form with a table of lines (an invoice with its lines), `narrow` for a short content (a QR code), neither otherwise |
 | Confirm something that cannot be undone | `ConfirmDialog` (`components/shared`): the action named in full, a `consequence` line that says what will happen, and `Actions` |
 | A side panel | `Sheet` |
 | A small card that opens from a button (the notification bell) | `Popover` |
