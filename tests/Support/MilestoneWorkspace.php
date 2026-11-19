@@ -21,7 +21,7 @@ function milestoneWorkspace(): string
     foreach (['scripts/hooks', 'vendor/bin', 'bin', 'tests/Feature', 'tests/js', 'template/tests', 'app'] as $folder) {
         mkdir("{$repo}/{$folder}", 0777, true) ?: throw new RuntimeException("cannot make {$folder}");
     }
-    copy("{$root}/scripts/hooks/finish-check.php", "{$repo}/scripts/hooks/finish-check.php") ?: throw new RuntimeException("cannot copy the finish check");
+    copy("{$root}/scripts/hooks/finish-check.php", "{$repo}/scripts/hooks/finish-check.php") ?: throw new RuntimeException('cannot copy the finish check');
     foreach (['check-milestone.php', 'check.php', 'check-process.php'] as $script) {
         if (is_file("{$root}/scripts/{$script}")) {
             copy("{$root}/scripts/{$script}", "{$repo}/scripts/{$script}");
