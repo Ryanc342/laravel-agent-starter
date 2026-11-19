@@ -361,34 +361,42 @@ test('the protected list names only files the template has', function () {
         ->and(array_values(array_filter($listed, fn (string $path): bool => ! is_file("{$root}/{$path}"))))->toBe([]);
 });
 
-test('the same reminder is sent back at most three times in a conversation, also when the code changes in between', function () {
+test('a reminder goes back at every stop the AI comes to on its own, however often', function () {
     $repo = finishCheckRepo();
 
     $reasons = array_map(function (int $stop) use ($repo): string {
         finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = {$stop};\n");
 
         return finishCheckRun($repo, 'stop');
-    }, range(1, 4));
+    }, range(1, 5));
 
-    expect(array_map(fn (string $reason): bool => $reason !== '', $reasons))->toBe([true, true, true, false]);
+    expect($reasons)->each->toContain('Run composer check');
 });
 
-test('a reminder whose text changes at every stop is still sent back at most three times', function (string $kind) {
+test('a stop right after a send-back lets the AI stop and tells the user in one line what is still missing', function () {
     $repo = finishCheckRepo();
-    $files = $kind === 'protected'
-        ? ['docs/workflow.md', 'docs/PLANS.md', 'AGENTS.md', 'DESIGN.md']
-        : ['app/Actions/Quotes/SendQuote.php', 'app/Actions/Quotes/AcceptQuote.php', 'app/Actions/Quotes/RejectQuote.php', 'app/Actions/Quotes/CopyQuote.php'];
+    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);
+    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
 
-    $reasons = array_map(function (string $file) use ($repo, $kind): string {
-        finishCheckWrite($repo, $file, $kind === 'protected' ? "changed\n" : FINISH_CHECK_NEW_CODE);
-        finishCheckPass($repo);
+    expect(json_decode(finishCheckOutput($repo, 'stop'), true))->toHaveKey('decision', 'block');
 
-        return finishCheckRun($repo, 'stop');
-    }, $files);
+    $again = json_decode(finishCheckOutput($repo, 'stop', 'test', ['stop_hook_active' => true]), true);
 
-    expect(array_unique(array_slice($reasons, 0, 3)))->toHaveCount(3)
-        ->and(array_map(fn (string $reason): bool => $reason !== '', $reasons))->toBe([true, true, true, false]);
-})->with(['protected', 'plan']);
+    expect($again)->toBe([
+        'systemMessage' => 'The finish check let the AI stop without: write the plan; pass composer check; revert docs/workflow.md.',
+    ])->and(json_decode(finishCheckOutput($repo, 'stop'), true))->toHaveKey('decision', 'block');
+});
+
+test('a stop right after a send-back says nothing when nothing is missing any more', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
+
+    expect(finishCheckRun($repo, 'stop'))->toContain('Run composer check');
+
+    finishCheckPass($repo);
+
+    expect(finishCheckOutput($repo, 'stop', 'test', ['stop_hook_active' => true]))->toBe('');
+});
 
 test('each reminder is one line', function () {
     $repo = finishCheckRepo();
@@ -400,45 +408,6 @@ test('each reminder is one line', function () {
     expect($lines)->toHaveCount(4)
         ->and($lines[0])->toBe('Before you stop:')
         ->and(array_slice($lines, 1))->each->toStartWith('- ');
-});
-
-test('a step the AI stopped without is told to the user once per conversation, and the next conversation starts silent', function () {
-    $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
-
-    foreach (range(1, 3) as $stop) {
-        finishCheckRun($repo, 'stop');
-    }
-
-    expect(json_decode(finishCheckOutput($repo, 'stop'), true))->toBe([
-        'systemMessage' => 'The finish check let the AI stop without: pass composer check.',
-    ])->and(finishCheckOutput($repo, 'stop'))->toBe('');
-
-    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
-
-    foreach (range(1, 3) as $stop) {
-        finishCheckRun($repo, 'stop');
-    }
-
-    expect(finishCheckOutput($repo, 'stop'))->toBe('')
-        ->and(finishCheckOutput($repo, 'start', 'next'))->toBe('');
-});
-
-test('a stop that sends one step back and lets another go does both', function () {
-    $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
-
-    foreach (range(1, 3) as $stop) {
-        finishCheckRun($repo, 'stop');
-    }
-
-    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
-    $output = json_decode(finishCheckOutput($repo, 'stop'), true);
-
-    expect($output['decision'])->toBe('block')
-        ->and(finishCheckReverts($output['reason']))->toBe(['docs/workflow.md'])
-        ->and($output['reason'])->not->toContain('Run composer check')
-        ->and($output['systemMessage'])->toBe('The finish check let the AI stop without: pass composer check.');
 });
 
 test('the start of a conversation says nothing', function () {
@@ -463,13 +432,6 @@ test('a stop without a start record tells the user and counts changes from there
     finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE."\$e = 5;\n");
 
     expect(finishCheckRun($repo, 'stop', 'unknown'))->toContain('there is no plan');
-
-    // That was the one message of this conversation.
-    foreach (range(1, 3) as $stop) {
-        finishCheckRun($repo, 'stop', 'unknown');
-    }
-
-    expect(finishCheckOutput($repo, 'stop', 'unknown'))->toBe('');
 });
 
 test('an error inside the finish check is told to the user and lets the AI stop', function () {

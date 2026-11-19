@@ -6,7 +6,7 @@ Each rule carries two tags. The first says who checks it:
 
 - `[PHPStan]` the PHP linter (the layer rules in phpstan.neon) and `[oxlint]` the frontend linter (the `lint` block in vite.config.ts and Ezdev's rules in lint/oxlint/ezdev.js). A linter reads the code without running it. Both run in `composer check`; the change cannot be committed until they pass.
 - `[Structure]` tests/Structure: checks a linter does not do. FoldersTest.php and CodeTest.php read where files are and what they hold, ConfigTest.php reads the configs, DesignDocsTest.php reads the design spec. tests/Unit/Lint/SkeletonChecksTest.php breaks every machine rule once in a fixture and proves that its check still fails. Also in `composer check`.
-- `[hook]` a Claude Code hook: the finish check (scripts/hooks/finish-check.php), run when the AI is about to stop, which compares the work with the start of the conversation and sends back what is missing, each reminder at most three times; and the command check (scripts/hooks/reviewer-commands.php), run before a reviewer's Bash call.
+- `[hook]` a Claude Code hook: the finish check (scripts/hooks/finish-check.php), run when the AI is about to stop, which compares the work with the start of the conversation and sends back what is missing, never twice in a row; and the command check (scripts/hooks/reviewer-commands.php), run before a reviewer's Bash call.
 - `[review]` the two reviewers (`reviewer-opus`, `reviewer-haiku`) read the change for it, one lane per run, and the cleanup reads the repository for it. No machine checks it.
 
 The second says what the rule is about:

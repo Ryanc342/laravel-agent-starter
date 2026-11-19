@@ -779,14 +779,12 @@ test('the read-only mode prints each lane of a plan as done or not done and chan
         ->and($process->getOutput())->toContain("tests: done\nbehaviour: done\nEvery lane is done");
 });
 
-test('a stop that says it waits for the reviewers or the user keeps the three send-backs', function () {
+test('a stop that says it waits for the reviewers or the user is still sent back, once', function () {
     $repo = ledgerFinishedPlan();
 
-    foreach (range(1, 3) as $stop) {
-        expect(ledgerStopOutput($repo, "I wait for the reviewers and for the user's answer."))->toHaveKey('decision', 'block');
-    }
-
-    expect(ledgerStopOutput($repo))->toBe(['systemMessage' => 'The finish check let the AI stop without: finish the review rounds of docs/exec-plans/active/send-quotes.md.']);
+    expect(ledgerStopOutput($repo, "I wait for the reviewers and for the user's answer."))->toHaveKey('decision', 'block')
+        ->and(json_decode(ledgerHook($repo, 'stop', ['last_assistant_message' => 'I wait.', 'stop_hook_active' => true]), true))
+        ->toBe(['systemMessage' => 'The finish check let the AI stop without: finish the review rounds of docs/exec-plans/active/send-quotes.md.']);
 });
 
 test('a change to the reference feature touches the lanes its path inside the feature would touch, and its Markdown none', function (string $path, array $lanes) {

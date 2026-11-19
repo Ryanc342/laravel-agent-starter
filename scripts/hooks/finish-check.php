@@ -27,9 +27,10 @@
 | 3. A finished plan has every lane it touches done (the review ledger, below).
 | 4. A changed protected file is named in "Approved changes" of the snapshot.
 |
-| Each reminder is one line and goes back at most MAX_BLOCKS times per
-| conversation; a code change does not reset its count. After that the AI may
-| stop, and the user gets one message, at most one per conversation.
+| Each reminder is one line. A reminder goes back once, never twice in a row:
+| at the stop right after a send-back (stop_hook_active in the Stop input, which
+| stays true while the AI works through what was sent back) the AI may stop,
+| and the user gets one line naming what is still missing.
 |
 | Final acceptance. A plan is finished in this conversation when every milestone
 | of an active plan is ticked, or when it moved from active/ to completed/ in this
@@ -137,8 +138,6 @@ const LOCK_FILES = ['composer.lock' => 'composer.json', 'package-lock.json' => '
 
 // What the user says to approve a plan, without spaces and punctuation, in lower case.
 const APPROVAL_WORDS = ['开始', '开始吧', '好开始', '好开始吧', '好的开始', 'ok开始', 'start'];
-
-const MAX_BLOCKS = 3;
 
 // Where docs/PLANS.md puts plans.
 const PLAN_PATH = '#^docs/exec-plans/(active|completed)/[^/]+\.md$#';
@@ -270,7 +269,7 @@ function finishCheck(string $mode, string $argument = ''): string
     return match ($mode) {
         'start' => start($stateDir, $session),
         'approve' => approve($stateDir, is_string($input['prompt'] ?? null) ? $input['prompt'] : ''),
-        'stop' => stop($stateDir, $session),
+        'stop' => stop($stateDir, $session, ($input['stop_hook_active'] ?? false) === true),
         'checking' => checking($stateDir),
         'checked' => checked($stateDir),
         'milestone-checking' => checking($stateDir, true),
@@ -334,18 +333,18 @@ function snapshot(string $stateDir, string $name): ?string
 }
 
 /**
- * The AI is about to stop: send back what is missing. Each reminder goes back at
- * most MAX_BLOCKS times per conversation, so a stop never loops forever; after
- * that the AI stops, and the user is told once per conversation.
+ * The AI is about to stop: send back what is missing. Right after a send-back
+ * ($again) nothing goes back, so a stop never loops: the AI stops, and the user
+ * is told in one line what is still missing.
  */
-function stop(string $stateDir, string $session): string
+function stop(string $stateDir, string $session, bool $again = false): string
 {
     $file = sessionFile($stateDir, $session);
     $state = readSession($file);
 
     if ($state === null) {
         // Changes made before this point cannot be told apart from the user's own, so they do not count.
-        writeFile($file, json_encode([...newSession(), 'told' => true], JSON_THROW_ON_ERROR));
+        writeFile($file, json_encode(newSession(), JSON_THROW_ON_ERROR));
 
         return json_encode(['systemMessage' => 'The finish check had no start record for this conversation, so it counts changes from now on.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
@@ -353,34 +352,17 @@ function stop(string $stateDir, string $session): string
     // The active plans each stop sees, so that a plan moved to completed/ later is
     // known to have been active in this conversation.
     $state['seen'] = array_values(array_unique([...(is_array($state['seen'] ?? null) ? $state['seen'] : []), ...activePlanNames()]));
-    $send = [];
-    $released = [];
-
-    foreach (missingSteps($state, $stateDir) as $key => [$step, $reason]) {
-        $state['blocks'][$key] = ($state['blocks'][$key] ?? 0) + 1;
-
-        if ($state['blocks'][$key] <= MAX_BLOCKS) {
-            $send[] = $reason;
-        } else {
-            $released[] = $step;
-        }
-    }
-
-    $tell = $released !== [] && ($state['told'] ?? false) !== true;
-
-    if ($tell) {
-        $state['told'] = true;
-    }
-
+    $missing = missingSteps($state, $stateDir);
     writeFile($file, json_encode($state, JSON_THROW_ON_ERROR));
 
-    return stopOutput($send, $tell ? $released : []);
+    return $again
+        ? stopOutput([], array_column($missing, 0))
+        : stopOutput(array_column($missing, 1), []);
 }
 
 /**
- * The steps missing at this stop, each under a key that stays the same for the
- * whole conversation (MAX_BLOCKS counts per key): [short step for the user,
- * one-line reason for the AI].
+ * The steps missing at this stop: [short step for the user, one-line reason for
+ * the AI].
  *
  * @param  array<string, mixed>  $state
  * @return array<string, array{string, string}>
@@ -1091,8 +1073,6 @@ function newSession(): array
         'active' => activePlanNames(),
         'completedPlans' => glob(COMPLETED.'*.md') ?: [],
         'seen' => [],
-        'blocks' => [],
-        'told' => false,
     ];
 }
 
