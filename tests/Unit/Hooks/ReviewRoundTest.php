@@ -161,6 +161,18 @@ test('a round for a sync plan fails and says so when git refuses to read the tem
         ->and($process->getErrorOutput())->toContain('fatal: bad object');
 });
 
+test('a round takes an empty new file into the diff', function () {
+    $repo = roundRepo();
+    roundWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
+    roundCommit($repo);
+    roundWrite($repo, 'app/Actions/Quotes/.gitkeep', '');
+
+    $process = roundRun($repo, 'docs/exec-plans/active/send-quotes.md');
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and(file_get_contents($repo.'/'.roundFiles($process)['Diff']))->toContain('app/Actions/Quotes/.gitkeep');
+});
+
 test('a round for a plan that does not exist writes nothing and fails', function () {
     $repo = roundRepo();
     $process = roundRun($repo, 'docs/exec-plans/active/missing.md');

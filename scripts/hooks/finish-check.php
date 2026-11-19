@@ -219,6 +219,17 @@ function conversationStart(mixed $transcript): ?float
 }
 
 /**
+ * When a file was last written; a file whose time cannot be read stops the check.
+ */
+function modified(string $path): int
+{
+    clearstatcache(true, $path);
+    $time = filemtime($path);
+
+    return $time === false ? throw new RuntimeException("cannot read when {$path} was written") : $time;
+}
+
+/**
  * The files this conversation changed: touched by a commit made since $start,
  * or different from HEAD and written since $start. Without a start every file
  * that differs from HEAD counts.
@@ -227,7 +238,7 @@ function conversationStart(mixed $transcript): ?float
  */
 function changedInConversation(?float $start): array
 {
-    $working = array_values(array_filter(changedSince('HEAD'), fn (string $path): bool => $start === null || ! is_file($path) || filemtime($path) >= floor($start)));
+    $working = array_values(array_filter(changedSince('HEAD'), fn (string $path): bool => $start === null || ! is_file($path) || modified($path) >= floor($start)));
 
     if ($start === null) {
         return $working;
@@ -391,21 +402,10 @@ function reviewRound(string $plan): string
  */
 function newFileDiff(string $path): string
 {
-    $process = proc_open(['git', '-c', 'core.quotePath=false', 'diff', '--no-index', '--', '/dev/null', $path], [1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+    // git diff --no-index exits 1 when the files differ and 0 for an empty new file.
+    [$exit, $output, $error] = gitRun(['diff', '--no-index', '--', '/dev/null', $path], trim: false);
 
-    if (! is_resource($process)) {
-        throw new RuntimeException("git diff could not start for {$path}");
-    }
-
-    $output = (string) stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-
-    // git diff --no-index exits 1 when the files differ, which a new file always does.
-    if (proc_close($process) !== 1) {
-        throw new RuntimeException("git diff failed for {$path}");
-    }
-
-    return $output;
+    return in_array($exit, [0, 1], true) ? $output : throw new RuntimeException(trim("git diff failed for {$path}: {$error}", ' :'));
 }
 
 /**
@@ -455,21 +455,31 @@ function gitAnswer(array $args): ?string
  * @param  array<string, string>  $env
  * @return array{int, string, string}
  */
-function gitRun(array $args, array $env = []): array
+function gitRun(array $args, array $env = [], bool $trim = true): array
 {
-    // Git's own messages in English, whatever the user's language: the caller reads them.
-    $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [...getenv(), ...$env, 'LC_ALL' => 'C']);
+    // Git's errors go to a file, so a long error cannot fill a pipe while the
+    // output is read; its messages are in English, whatever the user's language.
+    $errors = tempnam(sys_get_temp_dir(), 'ezdev-git') ?: throw new RuntimeException('no temporary file for git');
 
-    if (! is_resource($process)) {
-        throw new RuntimeException('git could not start');
+    try {
+        $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['file', $errors, 'w']], $pipes, null, [...getenv(), ...$env, 'LC_ALL' => 'C']);
+
+        if (! is_resource($process)) {
+            throw new RuntimeException('git could not start');
+        }
+
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $exit = proc_close($process);
+
+        if ($output === false) {
+            throw new RuntimeException("cannot read the answer of git {$args[0]}");
+        }
+
+        return [$exit, $trim ? trim($output) : $output, trim(readText($errors))];
+    } finally {
+        unlink($errors);
     }
-
-    $output = (string) stream_get_contents($pipes[1]);
-    $error = (string) stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
-
-    return [proc_close($process), trim($output), trim($error)];
 }
 
 /**

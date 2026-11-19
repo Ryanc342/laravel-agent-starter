@@ -34,14 +34,12 @@ function finishCheckRepo(): string
 
 function finishCheckWrite(string $repo, string $path, string $content, ?int $time = null): void
 {
-    if (! is_dir(dirname("{$repo}/{$path}"))) {
-        mkdir(dirname("{$repo}/{$path}"), 0777, true);
+    if (! is_dir(dirname("{$repo}/{$path}")) && ! mkdir(dirname("{$repo}/{$path}"), 0777, true)) {
+        throw new RuntimeException("cannot make the folder of {$path}");
     }
 
-    file_put_contents("{$repo}/{$path}", $content);
-
-    if ($time !== null) {
-        touch("{$repo}/{$path}", $time);
+    if (file_put_contents("{$repo}/{$path}", $content) === false || ($time !== null && ! touch("{$repo}/{$path}", $time))) {
+        throw new RuntimeException("cannot write {$path}");
     }
 }
 
@@ -60,7 +58,7 @@ function finishCheckCommit(string $repo, ?int $time = null): void
  */
 function finishCheckTranscript(string $repo, int $start): void
 {
-    file_put_contents("{$repo}/transcript.jsonl", json_encode(['type' => 'user', 'timestamp' => gmdate('Y-m-d\TH:i:s.000\Z', $start)])."\n");
+    finishCheckWrite($repo, 'transcript.jsonl', json_encode(['type' => 'user', 'timestamp' => gmdate('Y-m-d\TH:i:s.000\Z', $start)])."\n");
 }
 
 /**
