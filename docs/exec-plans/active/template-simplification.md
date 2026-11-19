@@ -112,7 +112,7 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - [x] M8 Skills (decision 47).
 - [x] M8b Review findings (decisions 13 and 14 as changed by Ryan on 2026-11-19): docs/prompts/review.md steps 8 and 9, and the CHANGELOG.md line on the two kinds of findings, say it. Only docs/ and *.md change, so the final review's rounds stand (docs/workflow.md step 4). The trial's branch then takes the new docs/prompts/review.md, and the trial finishes its open lanes with it.
 - [x] M8c Finish check sends back once (decision 49): the probe first, then tests first in tests/Unit/Hooks.
-- [ ] M8d Reviewers without Bash, ledger without transcript reading (decisions 50 and 51). Tests first.
+- [x] M8d Reviewers without Bash, ledger without transcript reading (decisions 50 and 51). Tests first.
 - [ ] M8e Rules in .claude/rules/, each written once (decisions 52 to 56).
 - [ ] M8f Copier for project syncs (decision 57).
 - [ ] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
@@ -151,6 +151,8 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - 2026-11-19 The trial's branch takes the new docs/prompts/review.md: a setup commit before its plan, its own commits rebased on it (the old branch kept as `probe-before-review-prompt`), so its snapshot and its done lanes stand (only docs/ and *.md changed). Left for M9: the trial finishes business, look and behaviour in its own conversation ("继续" in the probe worktree), then Outcomes, moving this plan, the report.
 
 - 2026-11-19 M8c finish check sends back once: the probe passed (Surprises); 2 tests failed before the code; with `stop_hook_active` the AI stops and the user gets one line; READMEs, CHANGELOG.md and golden-principles say so; ReviewLedgerTest's waiting-stop test follows decision 49; `composer check:milestone -- tests/Unit/Hooks tests/Structure` passed (398 tests), commit b9f2b567.
+
+- 2026-11-19 M8d reviewers without Bash: 5 new tests failed before the code (4 for `round`, 1 for the hand-back); `round` writes the diff and the plan as approved, the agents have no Bash, the command check, its hook, its test and its log are gone, the ledger reads only the last message; review.md, workflow.md, golden-principles, both READMEs and CHANGELOG.md say so; `composer check:milestone -- tests/Unit/Hooks tests/Structure` passed (264 tests), commit 8302aa50.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
