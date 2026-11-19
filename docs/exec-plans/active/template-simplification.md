@@ -115,7 +115,7 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - [x] M8d Reviewers without Bash, ledger without transcript reading (decisions 50 and 51). Tests first.
 - [x] M8e Rules in .claude/rules/, each written once (decisions 52 to 56).
 - [x] M8f Copier for project syncs (decision 57).
-- [ ] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
+- [x] M8g Reviewer-haiku's Playwright opens WebKit (decision 58).
 - [ ] M8h Static preview of pages in the plan (decision 59).
 - [ ] M9 Final, on the code after M8h: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
@@ -157,6 +157,8 @@ New on 2026-11-19, second planning round (decisions 49 to 59)
 - 2026-11-20 M8e rules in .claude/rules/: the eight files moved with `paths:` frontmatter, two new ones (app.md for the backend as a whole, checks.md for the checks); every rule of golden-principles is now a tagged item in one file (`[review:<lane>]` or its machine check), golden keeps the principles, the lanes and the tags; the lock-test, 300-line and Playwright review rules are gone (the cleanup lists long files); AGENTS.md's rules table is gone; every pointer and the protected list follow, except the protected files Approved changes does not name (Surprises); `composer check:milestone -- tests/Structure tests/Unit/Hooks tests/Unit/Lint` passed (329 tests), commit aa00eb71.
 
 - 2026-11-20 M8f Copier: copier.yml with no questions (protected), docs/prompts/upgrade.md's sync part, both READMEs (install) and CHANGELOG.md; a probe with Copier 9.19.1 on a scratch template and project passed (Surprises); `composer check:milestone -- tests/Structure tests/Unit/Hooks/FinishCheckTest.php` passed (75 tests), commit 0154d69f.
+
+- 2026-11-20 M8g WebKit: 2 launcher tests failed before the code; .mcp.json gives `playwright-review` `--browser=webkit`, the launcher passes on only a `--browser=` argument; WebKit 26.6 installed and a real launch answered with a Safari user agent; READMEs and CHANGELOG.md say how to install it; `composer check:milestone -- tests/Unit/Hooks/PlaywrightMcpTest.php tests/Structure` passed (36 tests), commit e5b6ea12.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
