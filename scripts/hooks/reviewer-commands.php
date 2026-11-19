@@ -132,6 +132,11 @@ function readsOnly(string $command): bool
  */
 function split(string $command): ?array
 {
+    // A new line ends a command, also inside quotes it can start a second sed command.
+    if (strpbrk($command, "\n\r") !== false) {
+        return null;
+    }
+
     $pipelines = [];
     $stages = [];
     $words = [];
@@ -163,7 +168,9 @@ function split(string $command): ?array
                     return null;
                 }
 
-                if ($command[$end] === '\\' && $end + 1 < $length) {
+                // Inside double quotes the shell drops a backslash only before
+                // these; before any other character the program gets it too.
+                if ($command[$end] === '\\' && $end + 1 < $length && in_array($command[$end + 1], ['$', '`', '"', '\\'], true)) {
                     $end++;
                 }
 
@@ -182,7 +189,7 @@ function split(string $command): ?array
         }
 
         if ($char === '\\') {
-            if ($i + 1 >= $length || $command[$i + 1] === "\n") {
+            if ($i + 1 >= $length) {
                 return null;
             }
 
@@ -227,7 +234,7 @@ function split(string $command): ?array
             continue;
         }
 
-        if (str_contains("<>&`$(){}\n\r!*?[]", $char)) {
+        if (str_contains('<>&`$(){}!*?[]', $char)) {
             // Globs (* ? [ ]) are refused too: a file name could turn into an option.
             return null;
         }
