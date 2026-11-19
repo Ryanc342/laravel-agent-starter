@@ -14,7 +14,10 @@ test('the copy check fails when a copy differs from its page, is missing, or is 
 
     foreach (SAMPLE_COPIES as $copy => $page) {
         foreach (["docs/reference/pages/{$copy}", "resources/js/{$page}"] as $path) {
-            @mkdir(dirname("{$root}/{$path}"), 0777, true);
+            if (! is_dir(dirname("{$root}/{$path}"))) {
+                mkdir(dirname("{$root}/{$path}"), 0777, true);
+            }
+
             file_put_contents("{$root}/{$path}", "export default function Page() {}\n");
         }
     }

@@ -299,6 +299,14 @@ function isCodePath(string $path): bool
 }
 
 /**
+ * The plan's text; a plan that cannot be read stops the round.
+ */
+function readPlan(string $plan): string
+{
+    return file_get_contents($plan) ?: throw new RuntimeException("cannot read {$plan}");
+}
+
+/**
  * The commit before the plan was first added; HEAD for a plan not committed
  * yet, and the empty tree when the plan came with the first commit.
  */
@@ -327,7 +335,7 @@ function planChanges(string $plan): array
 {
     $paths = changedSince(planBase($plan));
 
-    if (preg_match(TEMPLATE_COMMIT, (string) file_get_contents($plan), $match) !== 1) {
+    if (preg_match(TEMPLATE_COMMIT, readPlan($plan), $match) !== 1) {
         return $paths;
     }
 
@@ -368,7 +376,7 @@ function reviewRound(string $plan): string
     $diffFile = REVIEW_FILES.pathinfo($name, PATHINFO_FILENAME).'.diff';
     $planFile = REVIEW_FILES.$name;
     writeFile($diffFile, $diff);
-    writeFile($planFile, (string) file_get_contents($plan));
+    writeFile($planFile, readPlan($plan));
 
     return "Diff: {$diffFile}\nPlan: {$planFile}\n";
 }

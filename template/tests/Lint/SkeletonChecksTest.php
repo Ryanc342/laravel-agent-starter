@@ -224,6 +224,12 @@ function skeletonOxlintErrors(): array
         }
     }
 
+    // The fixture breaks rules on purpose: oxlint must have run and failed on it
+    // (exit 1, errors reported), so a file without a line was linted and is clean.
+    if ($process->getExitCode() !== 1 || $errors === []) {
+        throw new RuntimeException("oxlint did not lint the fixture (exit {$process->getExitCode()}):\n{$process->getOutput()}{$process->getErrorOutput()}");
+    }
+
     return $errors;
 }
 
