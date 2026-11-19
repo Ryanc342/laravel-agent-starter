@@ -130,7 +130,7 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 ## Validation
 - Per milestone: `composer check:milestone -- <affected test paths>` passes.
 - Final: full `composer check` and `composer check:reference` pass on the final code.
-- tests/Unit/Hooks prove the hook behaviour: a snapshot on each "开始" variant and on no other message; a protected change outside the snapshot is reported; only the four checks; a reminder goes back once, and with `stop_hook_active` the AI may stop and Ryan gets one line (decision 49); synced plans ignored; `round` writes the diff and the snapshot copy (decision 50); the ledger reads only `last_assistant_message` (decision 51).
+- tests/Unit/Hooks prove the hook behaviour: a snapshot on each "开始" variant and on no other message; a protected change outside the snapshot is reported; only the four checks; a reminder goes back once, and with `stop_hook_active` the AI may stop and Ryan gets one line (decision 49); synced plans ignored; `round` writes the diff and the snapshot copy (decision 50); the ledger reads `last_assistant_message`, else the handed-back report (decision 61).
 - No page changes, so no walk list.
 
 ## Progress
@@ -173,6 +173,8 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 - 2026-11-20 M9 full `composer check` (614 tests) and `composer check:reference` (793 tests) passed on 4a66e670. Review round on 4a66e670 (business 3, input 3, frontend 1, tests 12): all eight runs reported P0=0 P1=0, but the ledger recorded none of them (Surprises), so no lane counts as done. Two sentences of the old frontend rules lost in M8e (no hand-built array from a controller; a `can.*` flag never writes a condition) are back as text, and a repeated toast sentence is a pointer.
 
 - 2026-11-20 M8i: the two hand-back tests of before M8d came back and failed before the code; the ledger reads a handed-back report again; the five protected pointers name .claude/rules/; CHANGELOG.md says so; `composer check:milestone -- tests/Unit/Hooks tests/Unit/Lint tests/Structure tests/Feature/TestsRowLocksTest.php` passed (334 tests), commit 68ee092a.
+
+- 2026-11-20 M9 full `composer check` (615 tests) and `composer check:reference` (794 tests) passed on 75984f89. Review round on 75984f89 (business 4, input 4, frontend 2, tests 13): business, input and tests done, recorded from the hand-backs; frontend 1 P1 (components/ui's rule had lost "imports no app code" for "no domain code"), fixed with the tick-list sentence the move had dropped.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
