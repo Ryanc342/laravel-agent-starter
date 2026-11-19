@@ -143,7 +143,7 @@ New on 2026-11-20, before the trial and the release (decisions 62 to 67)
 - [x] M8h Static preview of pages in the plan (decision 59).
 - [x] M8i Pointers and hand-backs (decisions 60 and 61): the five pointers; tests first in tests/Unit/Hooks for the hand-back reading.
 - [x] M8j Rule text (decisions 62, 64, 65 and 66): .claude/rules/fixes.md, the public-page rule, frontend.md's paths and its components/ui sentence.
-- [ ] M8k Rule gaps kept (decision 63) and the version 1.5.0 (decision 67).
+- [x] M8k Rule gaps kept (decision 63) and the version 1.5.0 (decision 67).
 - [ ] M9 Final, on the code after M8k: full `composer check` and `composer check:reference`, the final review of every touched lane; a trial in a scratch worktree from a small request to the report (questions only before "开始", none after, no send-back flood); CHANGELOG.md 1.4.0 and both READMEs; then stop for "发布" (decision 48). The trial is a new small request that makes a page and whose walk needs no passkey, so it also tries decisions 58 and 59; the passkey trial is not continued.
 
 ## Validation
@@ -198,6 +198,8 @@ New on 2026-11-20, before the trial and the release (decisions 62 to 67)
 - 2026-11-20 Review round on 18d4f913: frontend 3 clean, frontend done. Screen rounds on the copies at 18d4f913: behaviour 1 and look 2 clean in both seats; every lane done. M9 left: the small trial in a scratch worktree (it needs Ryan's own "开始" there), then stop for "发布".
 
 - 2026-11-20 M8j rule text: .claude/rules/fixes.md without `paths:` (three ways of hiding a problem, each with its example and the fix, and the one safe retry; protected, and golden-principles says a file without `paths:` loads in every session); the public-page rule covers the landing page; frontend.md loads for app/Http/Requests/ and its components/ui sentence says what its check checks; no test reads rule text, so no test came first; `composer check:milestone -- tests/Structure tests/Unit/Hooks/FinishCheckTest.php` passed (75 tests), commit e82187b9.
+
+- 2026-11-20 M8k: docs/workflow.md step 5, docs/PLANS.md's template and docs/prompts/cleanup.md step 7 keep the rule gaps (Outcomes, "for the template", the cleanup lists them); CHANGELOG.md's entry is 1.5.0 with decisions 60 to 66, both READMEs' example tag and the finish check's comment say 1.5.0; `composer check:milestone -- tests/Structure tests/Unit/Hooks/FinishCheckTest.php` passed (75 tests), commit d43a549d.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
