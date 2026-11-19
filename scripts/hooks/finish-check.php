@@ -512,7 +512,8 @@ function fingerprint(): string
         throw new RuntimeException('no temporary file for the fingerprint index');
     }
 
-    @unlink($index);
+    // git makes the index itself, so the empty file goes first.
+    unlink($index);
     $env = ['GIT_INDEX_FILE' => $index];
 
     try {
@@ -520,7 +521,9 @@ function fingerprint(): string
         mustGit(['add', '-A'], $env);
         $files = mustGit(['ls-files', '-s'], $env);
     } finally {
-        @unlink($index);
+        if (is_file($index)) {
+            unlink($index);
+        }
     }
 
     $code = array_filter(explode("\n", $files), fn (string $line): bool => isCodePath(explode("\t", $line, 2)[1] ?? ''));

@@ -118,11 +118,12 @@ function skeletonPhpstanErrors(): array
     $process->run();
 
     $report = json_decode($process->getOutput(), true);
-    expect($report)->toBeArray("PHPStan gave no report:\n{$process->getErrorOutput()}");
+    expect($report)->toBeArray("PHPStan gave no report:\n{$process->getErrorOutput()}")
+        ->and($report['errors'])->toBe([], 'PHPStan could not analyse the fixture');
 
     $errors = [];
 
-    foreach ($report['files'] ?? [] as $file => $result) {
+    foreach ($report['files'] as $file => $result) {
         foreach ($result['messages'] as $message) {
             if (str_starts_with($message['identifier'] ?? '', 'disallowed.')) {
                 $errors[substr($file, strlen($root) + 1)][] = $message['message'];

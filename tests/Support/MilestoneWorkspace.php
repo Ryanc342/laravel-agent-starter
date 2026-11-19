@@ -47,14 +47,25 @@ PHP;
     return $repo;
 }
 
-/** The Stop hook's answer: what it sends back, or '' when the AI may stop. */
+/**
+ * The Stop hook's answer: why it sends the AI back, or '' when it says nothing
+ * and the AI may stop. Any other answer (the hook's own error) fails the test.
+ */
 function milestoneStop(string $repo): string
 {
     $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', 'stop'], $repo);
     $process->setInput(json_encode(['session_id' => 'milestone', 'cwd' => $repo, 'transcript_path' => "{$repo}/runtime/transcript.jsonl"]) ?: '');
     $process->mustRun();
 
-    return json_decode($process->getOutput() ?: '{}', true)['reason'] ?? '';
+    if ($process->getOutput() === '') {
+        return '';
+    }
+
+    $answer = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+
+    return is_array($answer) && ($answer['decision'] ?? null) === 'block' && is_string($answer['reason'] ?? null)
+        ? $answer['reason']
+        : throw new RuntimeException("The Stop hook gave another answer: {$process->getOutput()}");
 }
 
 /** @param list<string> $paths
