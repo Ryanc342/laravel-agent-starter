@@ -67,7 +67,7 @@ Report in the user's language and in business words, with no file or method name
 - the rule gaps: cases no rule settled, and each decision that differs from a rule;
 - what waits for the user: the cases kept as they were because they are the user's to decide, and the protected changes the plan did not approve.
 
-Include screenshots only if the user explicitly asked to keep them. Delete the plan's previews (`storage/app/private/design-previews/<plan file name>/`) when it moves to completed/. Fill in "Outcomes & Retrospective", add what you deferred to docs/exec-plans/tech-debt.md, and update that domain's row in docs/QUALITY.md. Move the plan to `docs/exec-plans/completed/` last, when `php scripts/hooks/finish-check.php review <plan path>` prints every lane as done.
+Include screenshots only if the user explicitly asked to keep them. Delete the plan's previews (`storage/app/private/design-previews/<plan file name>/`) when it moves to completed/. Fill in "Outcomes & Retrospective" with what was delivered and the report's rule gaps, which stay with the plan in completed/ for the weekly cleanup; in a project made from the template, mark a gap that belongs in the template "for the template". Add what you deferred to docs/exec-plans/tech-debt.md, and update that domain's row in docs/QUALITY.md. Move the plan to `docs/exec-plans/completed/` last, when `php scripts/hooks/finish-check.php review <plan path>` prints every lane as done.
 
 ## A new conversation
 

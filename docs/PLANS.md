@@ -54,4 +54,6 @@ What the user gets and why, in one or two sentences.
 
 ## Outcomes & Retrospective
 <Filled in at the end: what was delivered and what is left.>
+Rule gaps:
+- <a case no rule settled, from the report> ("for the template" when it belongs there)
 ```

@@ -485,7 +485,7 @@ function movedInConversation(string $name, array $state): bool
         return false;
     }
 
-    // A start record written before 1.4.0 has no list of active plans.
+    // A start record written before 1.5.0 has no list of active plans.
     $activeAtStart = $state['active'] ?? [
         ...array_map('basename', array_filter(array_keys($state['dirty']), fn (string $path): bool => str_starts_with($path, ACTIVE))),
         ...array_map('basename', array_filter(explode("\n", git(['ls-tree', '--name-only', $state['base'], ACTIVE]) ?? ''))),

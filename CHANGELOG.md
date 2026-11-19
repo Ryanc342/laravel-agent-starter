@@ -2,12 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
-## [1.4.0] - 2026-11-19
+## [1.5.0] - 2026-11-20
 
 Questions only before the plan: after the user's "开始" the AI asks nothing, the finish check sends back only what is missing, one line each, and the template is smaller.
 
 ### Added
 
+- `.claude/rules/fixes.md`, loaded in every session: a fix removes the cause of a problem. It names the three ways of hiding one (swallowing an error, a default that covers an unhandled case, retrying past a failure), each with an example and what to do instead, and the one safe retry (an outside service, a request safe to send twice). Lanes `business` and `frontend` review it.
+- Rule gaps are kept: they go into the plan's Outcomes & Retrospective, which stays in `completed/`, marked "for the template" in a project when they belong there, and the weekly cleanup lists those of the plans completed since the previous cleanup.
 - A static preview for a plan with pages: a picture of each new or changed page at 1280×800 and 390×844, made at plan time in the template's design with example data (`storage/app/private/design-previews/<plan>/`, not committed). The plan names the files in an agreed decision and the user's "开始" accepts them; in lane `look` a page that differs from its accepted preview without a decision is a finding. The previews are deleted when the plan is completed (`docs/workflow.md` step 2, `docs/PLANS.md`, `docs/prompts/review.md`).
 - `copier.yml`: a project takes a template release with Copier (`copier update --defaults --vcs-ref=<tag>`), which merges the template's changes between two releases and keeps the project's own; the conflicts become plan questions (`docs/prompts/upgrade.md`, "Projects made from this template"). A sync takes the whole release; picking changes from CHANGELOG.md goes. Both READMEs say how to install Copier.
 - The approval snapshot: a `UserPromptSubmit` hook (`finish-check.php approve`, `.claude/settings.json`) keeps a copy of the plan and its commit when the user says "开始" (also `开始吧`, `好开始`, `好的开始`, `ok开始` or `start`, with any spaces and punctuation). Protected changes are measured against the snapshot's "Approved changes", and the reviewers read the plan as approved.
@@ -18,6 +20,7 @@ Questions only before the plan: after the user's "开始" the AI asks nothing, t
 
 ### Changed
 
+- The rule against invented reviews, logos, user numbers and stock photos covers every public page, the landing page included. The frontend rules also load for `app/Http/Requests/`, and the components/ui rule says what its check checks (no import of the app's other components, pages, actions, routes or Wayfinder; shared helpers allowed). The error messages of PHPStan and oxlint and the remaining comments point to `.claude/rules/`.
 - `reviewer-haiku`'s browser is WebKit, the Safari engine (`--browser=webkit` for `playwright-review` in `.mcp.json`; `scripts/playwright-mcp` passes on only that argument); `reviewer-opus` keeps Chrome. Install WebKit once: `npx -y -p @playwright/mcp@0.0.83 playwright install webkit`.
 - The rule files moved from `docs/rules/` to `.claude/rules/`, committed with the template; each file's `paths:` frontmatter makes Claude Code load it when the AI reads a matching file. Every rule is written once, in the file of the folders it is about, with its check (`[PHPStan]`, `[oxlint]`, `[Structure]`, or `[review:<lane>]` for the reviewers of that lane); two new files hold the rules of the backend as a whole (`app.md`) and of the checks (`checks.md`). `docs/golden-principles.md` keeps the principles, the review lanes and how a rule is written, and lists no rule; a reviewer finds its rules by searching `.claude/rules/` for its lane's tag.
 - The finish check has four checks: a plan for changed code, a check that passed on the current code (the milestone check while milestones remain, full `composer check` at the end), the review of a finished plan, and the approval of each protected change. Each reminder is one line and goes back once, never twice in a row: at the stop right after a send-back the AI may stop, and the user sees one line naming what is still missing; the start of a conversation says nothing. A plan a sync brings into `completed/`, or one finished in an earlier conversation, is history.
