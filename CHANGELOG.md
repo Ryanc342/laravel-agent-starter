@@ -2,6 +2,46 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [1.4.0] - 2026-11-19
+
+Questions only before the plan: after the user's "开始" the AI asks nothing, the finish check sends back only what is missing, one line each, and the template is smaller.
+
+### Added
+
+- The approval snapshot: a `UserPromptSubmit` hook (`finish-check.php approve`, `.claude/settings.json`) keeps a copy of the plan and its commit when the user says "开始" (also `开始吧`, `好开始`, `好的开始`, `ok开始` or `start`, with any spaces and punctuation). Protected changes are measured against the snapshot's "Approved changes", and the reviewers read the plan as approved.
+- "Approved changes" in the plan format (`docs/PLANS.md`): the protected files, the dependencies and the existing test assertions the plan changes, each with its decision. A requirement change after the plan goes into the Decision Log with a new "开始".
+- A plan that syncs the template into a project names `Template: <commit>`; a file that is as it is in that commit is not reviewed (`docs/prompts/upgrade.md`, `docs/prompts/review.md` step 3).
+- `tests/Feature/ViteDevServerTest.php`: a page renders in tests without asking the Vite dev server, also while one runs.
+- Guidance from the removed Boost skills that the template lacked, in `docs/rules/`: loading relations against N+1 and reading large tables in pieces (`controllers.md`), deployed migrations are never edited (`models.md`), HTTP timeouts, safe retries and faked requests in Integrations (`actions.md`), upload rules (`form-requests.md`), the clock and fakes in tests (`tests.md`).
+
+### Changed
+
+- The finish check has four checks: a plan for changed code, a check that passed on the current code (the milestone check while milestones remain, full `composer check` at the end), the review of a finished plan, and the approval of each protected change. Each reminder is one line and comes at most three times in a conversation; the user sees at most one message; the start of a conversation says nothing. A plan a sync brings into `completed/`, or one finished in an earlier conversation, is history.
+- Protected files are listed path by path (`PROTECTED_FILES` in `scripts/hooks/finish-check.php`). `composer.json` and `package.json` are protected only in their dependency sections, and a lock file is approved with its manifest. A name in "Approved changes" matches only that whole path.
+- Subagents run in the foreground (`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`), so the session waits for the reviewers; `AskUserQuestion` and `Workflow` are denied. `composer check` runs as one foreground call with a ten-minute timeout.
+- The reviewers report two kinds of findings, a clear break of a written rule and behaviour the plan does not have, and list rule gaps and decisions that differ from a rule apart from them. The result line has no `user=`. `docs/golden-principles.md` is ordered by review lane, and a reviewer reads its introduction and its own lane only. The two agent files hold only their model, their browser and the pointer to `docs/prompts/review.md`.
+- The command check lets a reviewer run every command that only reads: git commands that read (also after `git -C`), `cd`, and `cat`, `head`, `tail`, `grep`, `rg`, `find`, `ls`, `wc`, `sort`, `uniq`, `cut`, `tr`, `diff`, `jq`, `echo`, `sed -n '<address>p'` and others, alone, joined or piped. Writes, redirections, substitutions, variables, globs outside quotes, options that write or start a program, and the network stay refused.
+- Screen rounds: both seats are copies, `../<project folder>-review-opus` and `../<project folder>-review-haiku`, each with its own database and a free port. The project's own app and database are never touched, and `composer dev` need not run. The copies of 1.3.0, `../<project folder>-review` and `../<project folder>-reference`, are no longer used: `git worktree remove` removes them.
+- Server-side rendering is off in tests (`INERTIA_SSR_ENABLED=false` in `phpunit.xml`; `config/inertia.php` reads it).
+- Progress is one line per milestone or review round, with the date and the commit and no time of day. Milestones record no scope, and no full check is run early; the finished plan still passes full `composer check`.
+- The report speaks business language: what was built, the check results, the rule gaps and decisions that differ from a rule, and what waits for the user, with no file or method names.
+- Every kind of update in `docs/prompts/upgrade.md` ends with the final review, screens included. The weekly cleanup changes no protected file and lists stale docs in its report.
+- Every rule is written in one place: the assertion rule in AGENTS.md "Red lines", the protected files in AGENTS.md, DESIGN.md's Do's and Don'ts as the `ui` rules of principle 10, ARCHITECTURE.md's check list as a pointer, one statement of where shared traits go, the duplicate rules of `docs/golden-principles.md` merged (`noValidate`, `DatePicker`, `StatTiles`, the confirmation dialog, the field error, the icon-only button), and the pricing page title in agreement with the page title rule. No doc states how many rules or checks there are.
+- `docs/QUALITY.md` has one row per domain of the app (Users, Notifications) and `docs/exec-plans/tech-debt.md` ships empty. The rows of the template's own work are in this changelog under their versions.
+- Both READMEs describe the new flow and say that Claude Code asks once, on first open, to trust the project folder, which the hooks need.
+
+### Removed
+
+- `skipUnlessFortifyHas()` from `tests/TestCase.php`: turning a Fortify feature off deletes its tests, and the structure check allows no skip anywhere in tests/.
+- The hooks `SubagentStart` and `PostToolUse` and the finish check modes `reviewing`, `handback` and `stopped`, with the open steps, the pending plans, the approvals read from the Decision Log, the check of tech-debt against QUALITY.md and the `finish` reminder.
+- Principle 7's rule on AGENTS.md's length, paths, plan headings and rule format.
+- Six Boost skills (`fortify-development`, `inertia-react-development`, `infer-conventions`, `laravel-best-practices`, `tailwindcss-development`, `testing-best-practices`); `boost.json` keeps `wayfinder-development`.
+- The sentence on the old welcome page in `docs/rules/visual-design.md`.
+
+### Known issues
+
+- After a refused rejection reason, the approval demo on `/style` keeps the focus on its button instead of moving it to the reason field (moved from `docs/exec-plans/tech-debt.md`, where it was added on 2026-11-18).
+
 ## [1.3.0] - 2026-11-18
 
 Review first: machines check a skeleton of 18 rules, and two reviewer subagents on different models read every other rule, all in one final review. The template supports Claude Code only.
