@@ -89,6 +89,19 @@ test('a database that is not local, or an APP_ENV that is not local, changes not
     'a remote database' => ["APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=mysql\nDB_HOST=db.example.com\nDB_DATABASE=shop\n"],
 ]);
 
+test('a project without its Composer packages changes nothing', function () {
+    $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=sqlite\n");
+    unlink("{$repo}/vendor/autoload.php");
+    $before = screenRoundState($repo);
+
+    $process = new Process(['php', 'scripts/screen-round'], $repo);
+    $process->run();
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getOutput().$process->getErrorOutput())->toContain('Run composer install in the project first. Nothing was changed.')
+        ->and(screenRoundState($repo))->toBe($before);
+});
+
 test('a copy gets its own database, port and session cookie', function () {
     $env = "APP_NAME=Shop\nQUEUE_CONNECTION=database\nAPP_ENV=local\nAPP_URL=http://localhost:8004\nSERVER_PORT=8004\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop_dev\nSESSION_DRIVER=database\n";
     $copy = screenRoundCopyEnv($env, '/work/shop-review-haiku', 200, '_review_haiku');
@@ -294,7 +307,8 @@ function screenRoundReferenceProject(array $override = []): array
         'storage/logs/.gitignore' => "*\n!.gitignore\n",
         'storage/framework/.gitignore' => "*\n!.gitignore\n",
         'database/.gitignore' => "*.sqlite\n",
-        'artisan' => "<?php\nfile_put_contents('{$calls}', getcwd().' artisan '.implode(' ', array_slice(\$argv, 1)).\"\\n\", FILE_APPEND);\n",
+        // It notes the database settings it got from the environment too.
+        'artisan' => "<?php\nfile_put_contents('{$calls}', getcwd().' artisan '.implode(' ', array_slice(\$argv, 1)).' env:'.json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)).\"\\n\", FILE_APPEND);\n",
         'public/index.php' => "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\n",
         'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php' => (string) file_get_contents("{$root}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"),
         'routes/web.php' => "<?php\n",
@@ -329,9 +343,9 @@ function screenRoundReferenceProject(array $override = []): array
     return [$repo, $port];
 }
 
-function screenRoundRunIn(string $repo, array $arguments = []): Process
+function screenRoundRunIn(string $repo, array $arguments = [], array $environment = []): Process
 {
-    $process = new Process(['php', 'scripts/screen-round', ...$arguments], $repo, ['PATH' => dirname($repo).'/bin:'.getenv('PATH')]);
+    $process = new Process(['php', 'scripts/screen-round', ...$arguments], $repo, ['PATH' => dirname($repo).'/bin:'.getenv('PATH'), ...$environment]);
     $process->setTimeout(120);
     $process->run();
 
@@ -426,6 +440,17 @@ test('a copy whose app does not answer stops the round and names its log', funct
         ->and($output)->toContain('does not answer: read '.dirname(realpath($repo)).'/project-review-opus/'.SCREEN_ROUND_LOG)
         ->and($output)->toContain('No screen run starts before scripts/screen-round has passed.')
         ->and($output)->not->toContain('Seat 1');
+});
+
+test('a copy\'s commands do not inherit the database settings of the shell that runs the round', function () {
+    [$repo] = screenRoundReferenceProject();
+
+    $process = screenRoundRunIn($repo, [], ['DB_DATABASE' => 'shop', 'DB_URL' => 'mysql://root:@127.0.0.1/shop', 'DB_HOST' => 'db.example.com', 'APP_ENV' => 'production']);
+    $lines = array_filter(explode("\n", (string) file_get_contents(dirname($repo).'/calls.txt')), fn (string $line): bool => str_contains($line, ' artisan '));
+
+    expect($process->getExitCode())->toBe(0, $process->getOutput().$process->getErrorOutput())
+        ->and($lines)->not->toBeEmpty()
+        ->and(array_values(array_filter($lines, fn (string $line): bool => ! str_ends_with($line, ' env:[]'))))->toBe([]);
 });
 
 test('an argument other than --reference changes nothing', function () {

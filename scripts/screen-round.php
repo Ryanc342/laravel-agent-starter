@@ -20,6 +20,8 @@
 | 4. Each round it writes the copy's .env again from the project's, with the
 |    copy's connection in full and no DB_URL, and reads it back: unless the copy
 |    would use its own database, it stops before anything is migrated.
+|    The copy's commands and its app run without the variables of the shell
+|    that its .env sets and without any DB_* one, which would win over it.
 | 5. It puts the commit into each copy (dependencies when a lock file changed,
 |    the reference feature with --reference, assets built), resets each copy's
 |    database to the seeded state (only the test accounts), starts or restarts
@@ -141,6 +143,9 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
     file_put_contents("{$copy}/.env", $env);
     $copyEnv = screenRoundParse((string) file_get_contents("{$copy}/.env"));
     screenRoundCheckDatabase(screenRoundParse($projectEnv), $copyEnv, $copy, $database);
+    // Laravel lets a variable of the environment win over .env: the copy's
+    // commands run without the ones its .env sets and without any DB_*.
+    $environment = screenRoundEnvironment(array_keys($copyEnv));
 
     if (($copyEnv['DB_CONNECTION'] ?? 'mysql') === 'sqlite') {
         $file = $copyEnv['DB_DATABASE'] ?? "{$copy}/database/database.sqlite";
@@ -153,24 +158,24 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
         || trim(screenRoundGit($copy, ['diff', '--name-only', $before ?? $commit, $commit, '--', ...SCREEN_ROUND_LOCKS])) !== '';
 
     if ($locks) {
-        screenRoundRun($copy, ['composer', 'install', '--no-interaction', '--quiet']);
-        screenRoundRun($copy, ['npm', 'ci', '--silent']);
+        screenRoundRun($copy, ['composer', 'install', '--no-interaction', '--quiet'], $environment);
+        screenRoundRun($copy, ['npm', 'ci', '--silent'], $environment);
     }
 
     if ($reference) {
         screenRoundInstallReference($copy);
-        screenRoundRun($copy, ['composer', 'dump-autoload', '--quiet']);
+        screenRoundRun($copy, ['composer', 'dump-autoload', '--quiet'], $environment);
     }
 
     // Also regenerates the Wayfinder routes, the reference feature's too.
-    screenRoundRun($copy, ['npm', 'run', 'build', '--silent']);
+    screenRoundRun($copy, ['npm', 'run', 'build', '--silent'], $environment);
 
     if ($first) {
         // A new MySQL database is created by migrate --force; migrate:fresh needs it to exist.
-        screenRoundRun($copy, ['php', 'artisan', 'migrate', '--force', '--no-interaction']);
+        screenRoundRun($copy, ['php', 'artisan', 'migrate', '--force', '--no-interaction'], $environment);
     }
 
-    screenRoundRun($copy, ['php', 'artisan', 'migrate:fresh', '--seed', '--force', '--no-interaction']);
+    screenRoundRun($copy, ['php', 'artisan', 'migrate:fresh', '--seed', '--force', '--no-interaction'], $environment);
 
     // The copy's own app gives its port back first, so a copy keeps its port
     // unless another program took it.
@@ -183,7 +188,7 @@ function screenRoundCopy(string $root, string $suffix, string $commit, int $offs
     }
 
     $url = screenRoundUrl($copyEnv);
-    screenRoundServe($copy, $port);
+    screenRoundServe($copy, $port, $environment);
 
     return ['url' => $url, 'down' => "The copy's app at {$url} does not answer: read {$copy}/".SCREEN_ROUND_LOG.'.'];
 }
@@ -465,9 +470,24 @@ function screenRoundStop(string $copy): void
 }
 
 /**
- * Stops a copy's app if it runs, and starts it again on $port.
+ * The variables of this process's environment, without $keys and without any
+ * DB_* one, for a copy's commands.
+ *
+ * @param  list<string>  $keys
+ * @return array<string, string>
  */
-function screenRoundServe(string $copy, int $port): void
+function screenRoundEnvironment(array $keys): array
+{
+    return array_filter(getenv(), fn (string $key): bool => ! in_array($key, $keys, true) && ! str_starts_with($key, 'DB_'), ARRAY_FILTER_USE_KEY);
+}
+
+/**
+ * Stops a copy's app if it runs, and starts it again on $port, with $environment
+ * (or this process's) as its environment.
+ *
+ * @param  array<string, string>|null  $environment
+ */
+function screenRoundServe(string $copy, int $port, ?array $environment = null): void
 {
     $pidFile = "{$copy}/".SCREEN_ROUND_PID;
     screenRoundStop($copy);
@@ -482,6 +502,7 @@ function screenRoundServe(string $copy, int $port): void
         $pipes,
         // server.php serves the folder it runs in, as artisan serve does.
         "{$copy}/public",
+        $environment,
     );
 
     if (! is_resource($process)) {
@@ -494,13 +515,15 @@ function screenRoundServe(string $copy, int $port): void
 }
 
 /**
- * Runs a command in $dir, its output passed through; throws when it fails.
+ * Runs a command in $dir, its output passed through, with $environment (or this
+ * process's) as its environment; throws when it fails.
  *
  * @param  list<string>  $command
+ * @param  array<string, string>|null  $environment
  */
-function screenRoundRun(string $dir, array $command): void
+function screenRoundRun(string $dir, array $command, ?array $environment = null): void
 {
-    $process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $dir);
+    $process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $dir, $environment);
 
     if (! is_resource($process) || proc_close($process) !== 0) {
         throw new RuntimeException(implode(' ', $command)." failed in {$dir}.");
