@@ -5,7 +5,7 @@ An ExecPlan is the written plan for one feature. It lives in `docs/exec-plans/ac
 ## Rules
 
 - **Self-contained.** Someone who has only this file and the repository can continue the work. Do not rely on the chat history.
-- **Living.** Tick each milestone when it is done and add its Progress line: one line per milestone or review round, with the date and the commit, no time of day. A review round is one line: its commit and the findings per lane and reviewer.
+- **Living.** Tick each milestone when it is done and add its Progress line: one line per milestone or review round, with the date and the commit, no time of day. A review round is one line: its commit and the findings per lane, reviewer and level.
 - **Milestones are small.** Each one takes about an hour, is a few hundred lines and ends in a commit.
 - **Changes to dependencies, checks and tests are decisions.** A dependency the plan adds or upgrades, a check it changes and an existing test assertion it changes are each an agreed decision of their own, with the reason. The user's "开始" approves the plan as it is then.
 - **A preview for pages.** A plan that adds or changes a page names its static previews in an agreed decision: "The pages look like the accepted previews: <files>", PNG files at 1280×800 and 390×844 under `storage/app/private/design-previews/<plan file name>/` (docs/workflow.md, step 2).

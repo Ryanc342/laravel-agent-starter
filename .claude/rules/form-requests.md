@@ -10,9 +10,9 @@ A rule names its check in its tag (docs/golden-principles.md); text without a ta
 
 ## Only check the shape of the input
 
-- `[review:backend]` A FormRequest checks the shape of the input only: no database queries (model, query builder, relation or `DB` calls) in FormRequests or app/Concerns, apart from the `exists` and `unique` rules. Business state (stock, status, ownership, limits) is checked in the Action, which throws `ValidationException::withMessages()`.
-- `[review:backend]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours", so nobody can find out which ids belong to other users; the FormRequest has no `exists` rule for it. A record in the URL (route model binding, `/invoices/{invoice}`) is checked by the Policy (403).
-- `[review:backend]` FormRequests have no `authorize()`. Permission is checked in the controller.
+- `[review:backend:2]` A FormRequest checks the shape of the input only: no database queries (model, query builder, relation or `DB` calls) in FormRequests or app/Concerns, apart from the `exists` and `unique` rules. Business state (stock, status, ownership, limits) is checked in the Action, which throws `ValidationException::withMessages()`.
+- `[review:backend:1]` A record the user must own that is picked in a form (an id in the input) is looked up through its owner scope in the Action, with one message for "missing" and "not yours", so nobody can find out which ids belong to other users; the FormRequest has no `exists` rule for it. A record in the URL (route model binding, `/invoices/{invoice}`) is checked by the Policy (403).
+- `[review:backend:2]` FormRequests have no `authorize()`. Permission is checked in the controller.
 
 A FormRequest answers one question: _is this input well-formed?_ Types, required or optional, lengths, formats, `exists:` and `unique:` lookups, enum values. `exists` only means "this record exists", not "this record is eligible": do not chain business conditions onto `Rule::exists` or `Rule::unique` (active or expired state, ownership and remaining stock belong in the Action, or the Policy for who may act), also not in shared validation traits.
 
@@ -27,36 +27,13 @@ An uploaded file is input too: its rules are `file` (or `image`), the allowed ty
 | This task is not already completed      | Action                                        |
 | The user has fewer than 100 open tasks  | Action                                        |
 
-```php
-// Wrong: business state inside a FormRequest
-public function rules(): array
-{
-    return [
-        'quantity' => ['required', 'integer', 'min:1', function ($attr, $value, $fail) {
-            if (Product::find($this->product_id)->stock < $value) { $fail('Not enough stock.'); }
-        }],
-    ];
-}
-```
+A FormRequest that checks business state (the stock of a product, the status of a record) breaks this table: the check goes in the Action. docs/reference/tasks/app/Http/Requests/Tasks/StoreTaskRequest.php checks shape only.
 
 ## Methods the controller calls
 
 A list page with filters gets a FormRequest for its query string, and an enum or a date comes from a method of it:
 
-```php
-final class IndexTaskRequest extends FormRequest
-{
-    public function rules(): array
-    {
-        return ['status' => ['nullable', Rule::enum(TaskStatus::class)]];
-    }
-
-    public function status(): ?TaskStatus
-    {
-        return $this->enum('status', TaskStatus::class);
-    }
-}
-```
+docs/reference/tasks/app/Http/Requests/Tasks/IndexTaskRequest.php shows it (`sort()`, `direction()`).
 
 ## Sharing rules and naming
 
