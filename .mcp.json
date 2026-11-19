@@ -10,7 +10,7 @@
         },
         "playwright-review": {
             "command": "node",
-            "args": ["scripts/playwright-mcp"]
+            "args": ["scripts/playwright-mcp", "--browser=webkit"]
         }
     }
 }

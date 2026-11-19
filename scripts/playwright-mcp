@@ -36,7 +36,10 @@ for (const entry of readdirSync(root, { withFileTypes: true })) {
 const output = join(root, `session-${process.pid}-${randomBytes(8).toString('hex')}`);
 mkdirSync(output);
 writeFileSync(join(output, marker), signature, { flag: 'wx' });
-const npxArgs = ['@playwright/mcp@0.0.83', '--isolated', '--headless', '--idle-timeout', '0', '--output-dir', output];
+// .mcp.json may name the browser (`--browser=webkit` for reviewer-haiku); no other
+// argument is passed on, so the isolated, headless and temporary settings stay.
+const browser = process.argv.slice(2).filter((arg) => /^--browser=[a-z-]+$/.test(arg));
+const npxArgs = ['@playwright/mcp@0.0.83', '--isolated', '--headless', '--idle-timeout', '0', '--output-dir', output, ...browser];
 const command = process.platform === 'win32' ? process.execPath : 'npx';
 const args = process.platform === 'win32'
     ? [join(dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npx-cli.js'), ...npxArgs]

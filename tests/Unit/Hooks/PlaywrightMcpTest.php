@@ -51,10 +51,10 @@ JS);
     return $workspace;
 }
 
-function playwrightRun(string $workspace, string $exit = 'success'): Process
+function playwrightRun(string $workspace, string $exit = 'success', array $arguments = []): Process
 {
     $script = dirname(__DIR__, 3).'/scripts/playwright-mcp';
-    $process = new Process(['node', $script], $workspace, [
+    $process = new Process(['node', $script, ...$arguments], $workspace, [
         'PATH' => "{$workspace}/bin:".getenv('PATH'),
         'FAKE_EXIT' => $exit,
     ]);
@@ -252,5 +252,19 @@ test('both browsers of the review run through the launcher', function () {
     $servers = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/.mcp.json'), true)['mcpServers'];
 
     expect($servers['playwright'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp']])
-        ->and($servers['playwright-review'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp']]);
+        ->and($servers['playwright-review'])->toBe(['command' => 'node', 'args' => ['scripts/playwright-mcp', '--browser=webkit']]);
+});
+
+test('the launcher passes the browser it is given on to Playwright, and nothing else', function () {
+    $workspace = playwrightWorkspace();
+
+    playwrightRun($workspace, 'success', ['--browser=webkit', '--output-dir=/tmp/elsewhere', '--headed']);
+    $given = json_decode((string) file_get_contents("{$workspace}/arguments.json"), true);
+
+    playwrightRun($workspace);
+    $default = json_decode((string) file_get_contents("{$workspace}/arguments.json"), true);
+
+    expect($given)->toContain('--browser=webkit', '--headless', '--isolated')
+        ->not->toContain('--output-dir=/tmp/elsewhere', '--headed')
+        ->and(array_values(array_filter($default, fn (string $arg): bool => str_starts_with($arg, '--browser'))))->toBe([]);
 });

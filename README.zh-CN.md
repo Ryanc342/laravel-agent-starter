@@ -22,6 +22,7 @@
 | Node.js | 22.x 的 22.22.2+、24.x 的 24.15.0+，或 26+；CI 使用 Node 22 |
 | MySQL | 推荐 8.4，与 CI 一致；安装、开发和检查时保持运行 |
 | Git | 用于初始化项目、执行计划、提交和结束检查 |
+| 界面审查的浏览器 | `reviewer-opus` 使用 Google Chrome；`reviewer-haiku` 使用 WebKit（Safari 的引擎），执行一次 `npx -y -p @playwright/mcp@0.0.83 playwright install webkit` 安装 |
 
 开发环境的数据库账号需要有权限创建项目数据库和测试数据库。检查使用 `<DB_DATABASE>_test`，参考功能检查使用独立的 `<DB_DATABASE>_reference_test`，界面审查轮次使用 `<DB_DATABASE>_review_opus` 和 `<DB_DATABASE>_review_haiku`。
 
@@ -65,7 +66,7 @@ export DB_PASSWORD='your-password'
 1. **确认需求。** 代码、数据库和规则能回答的，AI 自己查；只问它们回答不了的：要做什么，以及涉及金额、权限、谁能看到哪些数据、修改真实数据的每个决定。按轮次提问，每个问题都附推荐答案。可以回复“同意”，或者按编号逐项调整（“1 同意 2 不同意，因为……”）。提问只在这一步，写计划之前。
 2. **写执行计划。** AI 在 `docs/exec-plans/active/<功能>.md` 写下已确认的决策、将要修改的受保护文件和依赖（“Approved changes”）、里程碑和检查方法。确认无误后说“开始”：这就批准了计划当时的样子，系统会保留一份批准时的副本。
 3. **逐个里程碑实现。** 说“开始”之后 AI 不再提问。计划没写到的地方，按模板规则或保持现有行为处理，并在报告里说明。每个里程碑：先写测试，再从底层到上层实现，然后运行 `composer check:milestone -- <受影响的测试路径>`，提交，并在 Progress 里写一行。所有里程碑完成后运行完整 `composer check`。
-4. **独立审查。** 所有审查都在完整 `composer check` 之后的最终审查里一次完成，里程碑之间没有审查轮次。每一轮让两个审查者在同一个提交上同时运行，改动涉及的每个审查通道各运行一次（`docs/golden-principles.md` 的 Review lanes）。某个通道在最新一轮里两个审查者都没有报告 P0 和 P1、代码已提交、且该通道涉及的文件之后没有改动，这个通道才算完成；AI 修复问题后开始下一轮，轮数不设上限。界面放在最后：其他通道都完成后，`look` 和 `behaviour` 两个通道在两个席位上同时运行。`scripts/screen-round` 负责准备：每个审查者各有一份应用副本（`reviewer-opus` 用 `playwright` 浏览器打开 `../<项目目录>-review-opus`，`reviewer-haiku` 用 `playwright-review` 浏览器打开 `../<项目目录>-review-haiku`），各自有独立的数据库和空闲端口；项目自己的应用和数据库都不会被动到，也不需要运行 `composer dev`。两者都通过表单走完计划里的流程，并在 1280px、390px 宽度和深色模式下查看每个改动的页面。参考功能（`docs/reference/tasks/`）的改动也和应用代码一样审查：`scripts/screen-round --reference` 在两份副本里都装好参考功能。审查者没有 shell，只能读文件、搜索和使用自己的浏览器：每一轮之前，`php scripts/hooks/finish-check.php round <计划路径>` 写出计划的 diff 和批准时的计划，请求里写明这两个文件。
+4. **独立审查。** 所有审查都在完整 `composer check` 之后的最终审查里一次完成，里程碑之间没有审查轮次。每一轮让两个审查者在同一个提交上同时运行，改动涉及的每个审查通道各运行一次（`docs/golden-principles.md` 的 Review lanes）。某个通道在最新一轮里两个审查者都没有报告 P0 和 P1、代码已提交、且该通道涉及的文件之后没有改动，这个通道才算完成；AI 修复问题后开始下一轮，轮数不设上限。界面放在最后：其他通道都完成后，`look` 和 `behaviour` 两个通道在两个席位上同时运行。`scripts/screen-round` 负责准备：每个审查者各有一份应用副本（`reviewer-opus` 用 `playwright` 浏览器打开 `../<项目目录>-review-opus`，`reviewer-haiku` 用 `playwright-review` 浏览器（WebKit，即 Safari 的引擎）打开 `../<项目目录>-review-haiku`），各自有独立的数据库和空闲端口；项目自己的应用和数据库都不会被动到，也不需要运行 `composer dev`。两者都通过表单走完计划里的流程，并在 1280px、390px 宽度和深色模式下查看每个改动的页面。参考功能（`docs/reference/tasks/`）的改动也和应用代码一样审查：`scripts/screen-round --reference` 在两份副本里都装好参考功能。审查者没有 shell，只能读文件、搜索和使用自己的浏览器：每一轮之前，`php scripts/hooks/finish-check.php round <计划路径>` 写出计划的 diff 和批准时的计划，请求里写明这两个文件。
 5. **报告结果。** 用业务语言说明：做了什么、检查结果、规则没有覆盖的情况和与规则不同的决定，以及哪些事情等你处理。截图默认是临时文件，只有你明确要求时才保留。合并由你批准，GitHub CI 再执行完整检查。
 
 AI 准备结束时，结束检查 `scripts/hooks/finish-check.php` 会把缺少的步骤发回给它，每项一行：改了代码却没有计划、当前代码没有通过检查（还有里程碑时是里程碑检查，最后是完整 `composer check`）、完成的计划还没审查完、受保护的改动没有被批准。提醒只发回一次，不会连续发两次：下一次结束时这一步仍然缺少，AI 就结束，你会看到一行说明还缺什么。每次审查运行都会在审查记录（review ledger）里写一行（由 Claude Code 的子代理 hook 写入），结束检查读取这份记录，而不是 AI 自己写的内容：计划涉及的每个通道都完成后，计划才算完成。
