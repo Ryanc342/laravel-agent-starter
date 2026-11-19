@@ -7,7 +7,7 @@ namespace Tests\Structure;
  * principle 10): its index of pattern files, the files the patterns name, and
  * that it names tokens and sizes instead of values. Each method returns what
  * it found wrong; DesignDocsTest.php expects none, and
- * tests/Unit/Lint/SkeletonChecksTest.php plants a broken spec for each.
+ * template/tests/Lint/SkeletonChecksTest.php plants a broken spec for each.
  */
 final class DesignDocChecks
 {

@@ -7,7 +7,7 @@ namespace Tests\Structure;
  * folders of app/, where pages and components live, and code lives only where
  * the checks read it. Each method returns what it found wrong, as
  * "path: problem" lines; FoldersTest.php and CodeTest.php expect none, and
- * tests/Unit/Lint/SkeletonChecksTest.php plants a broken file for each.
+ * template/tests/Lint/SkeletonChecksTest.php plants a broken file for each.
  */
 final class PlacementChecks
 {

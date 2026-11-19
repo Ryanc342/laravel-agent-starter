@@ -41,7 +41,7 @@ final class ProjectFiles
 
     /**
      * Runs a check on a fixture project instead of this one
-     * (tests/Unit/Lint/SkeletonChecksTest.php plants a broken rule there).
+     * (template/tests/Lint/SkeletonChecksTest.php plants a broken rule there).
      *
      * @template T
      *

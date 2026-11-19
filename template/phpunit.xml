@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The template's own tests (template/tests): its tools, its machine rules
+    proved on broken fixtures, and its sample copies. Projects made from the
+    template do not get this folder (.gitattributes, copier.yml). Run from the
+    project root: vendor/bin/pest -c template/phpunit.xml (composer check does).
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../vendor/autoload.php"
+         colors="true"
+         failOnSkipped="true"
+         failOnIncomplete="true"
+>
+    <testsuites>
+        <testsuite name="Template">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

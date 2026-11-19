@@ -3,3 +3,15 @@
 # There are no questions, so every file is copied as it is: Copier renders only
 # files ending in .jinja, and the template has none. Copier never copies this file.
 _min_copier_version: '9.0.0'
+# The template's own files (its changelog, plans, tools and their tests) never
+# reach a project. Copier's own default exclusions are kept.
+_exclude:
+    - copier.yaml
+    - copier.yml
+    - '~*'
+    - '*.py[co]'
+    - __pycache__
+    - .git
+    - .DS_Store
+    - .svn
+    - template

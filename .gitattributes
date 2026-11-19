@@ -8,3 +8,5 @@
 
 .github/workflows/browser-tests.yml export-ignore
 docs/exec-plans/active/*.md export-ignore
+# The template's own files (its changelog, plans, tools and their tests): laravel new leaves them out.
+/template export-ignore

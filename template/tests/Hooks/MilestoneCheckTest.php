@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../../Support/MilestoneWorkspace.php';
+require_once __DIR__.'/../Support/MilestoneWorkspace.php';
 
 test('milestone validation runs all static checks and the selected PHP and frontend scopes, and its pass lets the AI stop', function () {
     $repo = milestoneWorkspace();
@@ -71,6 +71,17 @@ test('a change during or after the check needs a new check', function (bool $dur
     expect($run->getExitCode())->toBe($during ? 1 : 0)
         ->and(milestoneStop($repo))->toContain('composer check:milestone');
 })->with(['during' => [true], 'after' => [false]]);
+
+test('the template\'s own tests run with their own configuration', function () {
+    $repo = milestoneWorkspace();
+    expect(milestoneRun($repo, ['template/tests'])->getExitCode())->toBe(0);
+    $commands = array_map(fn (string $line) => json_decode($line, true), file("{$repo}/runtime/commands", FILE_IGNORE_NEW_LINES));
+
+    expect($commands)->toBe([
+        ['static', ['check:static']],
+        ['template', ['-c', 'template/phpunit.xml', '--test-directory=template/tests', '--compact', '--fail-on-empty-test-suite', 'template/tests']],
+    ]);
+});
 
 test('a frontend-only milestone runs no backend suite', function () {
     $repo = milestoneWorkspace();

@@ -9,7 +9,7 @@ use Symfony\Component\Process\Process;
  * checks stay as set (AGENTS.md "Red lines"), and these checks say so in
  * composer check too, wherever it runs.
  * Each method returns what it found wrong; CodeTest.php and ConfigTest.php
- * expect none, and tests/Unit/Lint/SkeletonChecksTest.php breaks each once.
+ * expect none, and template/tests/Lint/SkeletonChecksTest.php breaks each once.
  */
 final class CheckSettings
 {

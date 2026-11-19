@@ -15,12 +15,15 @@ $exit = runValidation(function () use ($argv, &$scopes): array {
     if ($scopes['js'] !== []) {
         $commands[] = ['npm', 'test', '--', ...$scopes['js']];
     }
+    if ($scopes['template'] !== []) {
+        $commands[] = [PHP_BINARY, 'vendor/bin/pest', '-c', 'template/phpunit.xml', '--test-directory=template/tests', '--compact', '--fail-on-empty-test-suite', ...$scopes['template']];
+    }
 
     return $commands;
 });
 
 if ($exit === 0) {
-    fwrite(STDOUT, 'Milestone checks passed for: '.implode(', ', [...$scopes['php'], ...$scopes['js']]).".\n");
+    fwrite(STDOUT, 'Milestone checks passed for: '.implode(', ', [...$scopes['php'], ...$scopes['js'], ...$scopes['template']]).".\n");
 }
 exit($exit);
 
@@ -29,7 +32,7 @@ exit($exit);
  * Selecting the affected callers is the plan author's responsibility.
  *
  * @param  list<string>  $paths
- * @return array{php: list<string>, js: list<string>}
+ * @return array{php: list<string>, js: list<string>, template: list<string>}
  */
 function milestoneTestScopes(array $paths): array
 {
@@ -37,17 +40,22 @@ function milestoneTestScopes(array $paths): array
         throw new InvalidArgumentException('Usage: composer check:milestone -- <affected test files or directories>');
     }
 
-    $scopes = ['php' => [], 'js' => []];
+    $scopes = ['php' => [], 'js' => [], 'template' => []];
     $root = str_replace('\\', '/', (string) getcwd()).'/';
     foreach (array_unique($paths) as $path) {
         $path = rtrim(str_replace('\\', '/', $path), '/');
         $resolved = str_replace('\\', '/', realpath($path) ?: '');
-        if (preg_match('#^tests/(Unit|Feature|Structure|js)(/|$)#', $path, $match) !== 1
+        // template/tests holds the template's own tests (template/phpunit.xml).
+        if (preg_match('#^(tests/(?:Unit|Feature|Structure|js)|template/tests)(/|$)#', $path, $match) !== 1
             || in_array('..', explode('/', $path), true)
-            || (! str_starts_with($resolved, $root.'tests/'.$match[1].'/') && $resolved !== $root.'tests/'.$match[1])) {
-            throw new InvalidArgumentException("Invalid test scope: {$path}. Select existing files or directories within tests/Unit, tests/Feature, tests/Structure or tests/js.");
+            || (! str_starts_with($resolved, $root.$match[1].'/') && $resolved !== $root.$match[1])) {
+            throw new InvalidArgumentException("Invalid test scope: {$path}. Select existing files or directories within tests/Unit, tests/Feature, tests/Structure, tests/js or, in the template, template/tests.");
         }
-        $kind = $match[1] === 'js' ? 'js' : 'php';
+        $kind = match ($match[1]) {
+            'tests/js' => 'js',
+            'template/tests' => 'template',
+            default => 'php',
+        };
         $pattern = $kind === 'js' ? '/\.test\.tsx?$/' : '/Test\.php$/';
         $hasTests = is_file($path) && preg_match($pattern, $path) === 1;
         if (is_dir($path)) {

@@ -5,8 +5,8 @@ use Symfony\Component\Process\Process;
 function milestoneWorkspace(): string
 {
     $repo = sys_get_temp_dir().'/ezdev-milestone-'.bin2hex(random_bytes(6));
-    $root = dirname(__DIR__, 2);
-    foreach (['scripts/hooks', 'vendor', 'bin', 'tests/Feature', 'tests/js', 'app'] as $folder) {
+    $root = dirname(__DIR__, 3);
+    foreach (['scripts/hooks', 'vendor/bin', 'bin', 'tests/Feature', 'tests/js', 'template/tests', 'app'] as $folder) {
         mkdir("{$repo}/{$folder}", 0777, true);
     }
     copy("{$root}/scripts/hooks/finish-check.php", "{$repo}/scripts/hooks/finish-check.php");
@@ -22,8 +22,8 @@ function milestoneWorkspace(): string
     file_put_contents("{$repo}/app/quote.php", "<?php\n");
     $stub = <<<'PHP'
 <?php
-$phase = match (basename(__FILE__)) { 'composer.php' => 'static', 'artisan' => 'php', default => 'js' };
-file_put_contents(__DIR__.'/'.($phase === 'js' ? '../' : '').'runtime/commands', json_encode([$phase, array_slice($argv, 1)])."\n", FILE_APPEND);
+$phase = match (basename(__FILE__)) { 'composer.php' => 'static', 'artisan' => 'php', 'pest' => 'template', default => 'js' };
+file_put_contents(getcwd().'/runtime/commands', json_encode([$phase, array_slice($argv, 1)])."\n", FILE_APPEND);
 if (getenv('MILESTONE_TEST_EDIT') === $phase) {
     file_put_contents(getcwd().'/app/quote.php', "<?php\n\$edited = true;\n");
 }
@@ -33,6 +33,8 @@ PHP;
     file_put_contents("{$repo}/artisan", $stub);
     file_put_contents("{$repo}/bin/npm", '#!'.PHP_BINARY."\n".$stub);
     chmod("{$repo}/bin/npm", 0755);
+    file_put_contents("{$repo}/template/tests/QuoteToolTest.php", "<?php\n");
+    file_put_contents("{$repo}/vendor/bin/pest", $stub);
     foreach ([['init', '-q', '-b', 'main'], ['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'fixture']] as $args) {
         (new Process(['git', ...$args], $repo))->mustRun();
     }
