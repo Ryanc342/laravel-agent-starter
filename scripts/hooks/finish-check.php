@@ -109,15 +109,26 @@ function finishCheck(string $mode, string $argument = ''): string
         return json_encode(REVIEW_LANES, JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
 
-    $top = git(['rev-parse', '--show-toplevel']);
+    // Outside a git repository, or before its first commit, there is nothing to
+    // compare with; any other answer git refuses is an error the user is told.
+    [$exit, $top, $error] = gitRun(['rev-parse', '--show-toplevel']);
 
-    // Outside a git repository, or before its first commit, there is nothing to compare with.
-    if ($top === null || git(['rev-parse', '--verify', '--quiet', 'HEAD']) === null) {
+    if ($exit !== 0) {
+        return str_contains($error, 'not a git repository') ? '' : throw new RuntimeException("git rev-parse failed: {$error}");
+    }
+
+    [$exit, , $error] = gitRun(['rev-parse', '--verify', '--quiet', 'HEAD']);
+
+    if ($exit === 1 && $error === '') {
         return '';
     }
 
+    if ($exit !== 0) {
+        throw new RuntimeException("git rev-parse HEAD failed: {$error}");
+    }
+
     chdir($top);
-    $stateDir = git(['rev-parse', '--path-format=absolute', '--git-path', 'ezdev']) ?? "{$top}/.git/ezdev";
+    $stateDir = mustGit(['rev-parse', '--path-format=absolute', '--git-path', 'ezdev']);
 
     if (! is_dir($stateDir) && ! mkdir($stateDir, 0777, true)) {
         throw new RuntimeException("cannot create {$stateDir}");
@@ -377,7 +388,7 @@ function newFileDiff(string $path): string
     fclose($pipes[1]);
 
     // git diff --no-index exits 1 when the files differ, which a new file always does.
-    if (proc_close($process) > 1) {
+    if (proc_close($process) !== 1) {
         throw new RuntimeException("git diff failed for {$path}");
     }
 
@@ -403,6 +414,28 @@ function writeFile(string $file, string $content): void
 function mustGit(array $args, array $env = []): string
 {
     return git($args, $env) ?? throw new RuntimeException('git '.$args[0].' failed');
+}
+
+/**
+ * Runs git and returns its exit code, its output and its error, both trimmed.
+ *
+ * @param  list<string>  $args
+ * @return array{int, string, string}
+ */
+function gitRun(array $args): array
+{
+    $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+    if (! is_resource($process)) {
+        throw new RuntimeException('git could not start');
+    }
+
+    $output = (string) stream_get_contents($pipes[1]);
+    $error = (string) stream_get_contents($pipes[2]);
+    fclose($pipes[1]);
+    fclose($pipes[2]);
+
+    return [proc_close($process), trim($output), trim($error)];
 }
 
 /**

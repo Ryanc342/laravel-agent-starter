@@ -240,6 +240,31 @@ test('a git command that fails is told to Ryan, never read as no change', functi
     expect($output['systemMessage'])->toBe('The finish check failed: git log failed');
 });
 
+test('a git that refuses the repository is told to Ryan, never read as no repository', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    // A git that refuses every rev-parse, as git does for a folder it does not trust.
+    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
+    finishCheckWrite($repo, 'bin/git', "#!/bin/sh\nfor a in \"\$@\"; do [ \"\$a\" = rev-parse ] && { echo 'fatal: detected dubious ownership' >&2; exit 128; }; done\nexec {$real} \"\$@\"\n");
+    chmod("{$repo}/bin/git", 0755);
+
+    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $repo, ['PATH' => "{$repo}/bin:".getenv('PATH')]);
+    $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $repo, 'stop_hook_active' => false, 'transcript_path' => "{$repo}/transcript.jsonl"]) ?: '');
+    $output = json_decode($process->mustRun()->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($output['systemMessage'])->toBe('The finish check failed: git rev-parse failed: fatal: detected dubious ownership');
+});
+
+test('before the first commit the finish check says nothing', function () {
+    $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
+    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
+    finishCheckWrite($dir, 'app/code.php', "<?php\n");
+    (new Process(['git', 'init', '-q', '-b', 'main'], $dir))->mustRun();
+    register_shutdown_function(fn () => (new Process(['rm', '-rf', $dir]))->run());
+
+    expect(finishCheckStop($dir))->toBe([]);
+});
+
 test('Claude Code runs only the Stop hook, and a missing or broken script still tells Ryan', function () {
     $root = dirname(__DIR__, 3);
     $repo = finishCheckRepo();
