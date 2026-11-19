@@ -8,8 +8,7 @@ Each rule carries two tags. The first says who checks it:
 
 - `[PHPStan]` the PHP linter (the layer rules in phpstan.neon) and `[oxlint]` the frontend linter (the `lint` block in vite.config.ts and Ezdev's rules in lint/oxlint/ezdev.js). A linter reads the code without running it. Both run in `composer check`; the change cannot be committed until they pass.
 - `[Structure]` tests/Structure: checks a linter does not do. FoldersTest.php and CodeTest.php read where files are and what they hold, ConfigTest.php reads the configs, DesignDocsTest.php reads the design spec. tests/Unit/Lint/SkeletonChecksTest.php breaks every machine rule once in a fixture and proves that its check still fails. Also in `composer check`.
-- `[hook]` the finish check (scripts/hooks/finish-check.php). Claude Code runs it when the AI is about to stop; it compares the work with the start of the conversation and sends back what is missing. After three times it lets the AI stop and tells the user, and the next conversation, which step is still missing.
-- `[user]` the user sees it in the conversation.
+- `[hook]` a Claude Code hook: the finish check (scripts/hooks/finish-check.php), run when the AI is about to stop, which compares the work with the start of the conversation and sends back what is missing, each reminder at most three times; and the command check (scripts/hooks/reviewer-commands.php), run before a reviewer's Bash call.
 - `[review]` the two reviewers (`reviewer-opus`, `reviewer-haiku`) read the change for it, one lane per run (Review lanes, below), and the cleanup reads the repository for it. No machine checks it.
 
 The second says what the rule is about:
@@ -38,7 +37,7 @@ No milestone has a review round (docs/workflow.md, step 4): every lane is review
 
 A file of the reference feature (docs/reference/tasks/) other than Markdown touches the lanes of its path inside the feature: docs/reference/tasks/resources/js/ as resources/js/, docs/reference/tasks/app/ as app/ (docs/workflow.md, step 4).
 
-Principles 2 and 9 have no `[review]` rule: the machines, the hook and the user check them.
+Principles 2 and 9 have no `[review]` rule: the machines and the hooks check them.
 
 ## 1. Every business rule is written once
 
@@ -110,7 +109,7 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 ## 6. Keep it simple
 
 - `[review]` `structure` No classes whose name ends in Service, Repository or DTO (in any case) and no interfaces, unless the user asks for them: write an Action, query through model scopes, and pass validated arrays, models and enums.
-- `[Structure]` `structure` app/ holds only Actions, Concerns, Console, Enums, Http, Integrations, Models, Notifications, Policies, Providers and Support; a new top-level folder is a decision for the user.
+- `[Structure]` `structure` app/ holds only Actions, Concerns, Console, Enums, Http, Integrations, Models, Notifications, Policies, Providers and Support.
 - `[review]` `structure` No events or listeners: `event()`, the `Event` facade and the event dispatcher, model event callbacks (`creating()`, `saved()`, `observe()` and the like), `#[ObservedBy]`, `$dispatchesEvents` and classes in app/Events, app/Listeners or app/Observers are rejected. An Action may call another Action.
 - `[review]` `business` No code for a state nothing can reach yet: no refusal or branch for a status the app cannot create, and no test stand-in for it. The feature that adds the state adds its check and a real test.
 - `[review]` `business` Lock rows only where concurrent writes can collide, such as a number counter or stock. Reading never locks, also not a row an Action only reads to check it (whether a supplier is active).
@@ -146,16 +145,10 @@ React never calculates prices, totals, statuses, deadlines, permissions or eligi
 
 ## 9. Work follows the steps
 
-docs/workflow.md has the steps. A request to fix tech debt or review findings is a request like any other.
+docs/workflow.md has the steps.
 
-- `[user]` `process` Every request starts with questions, and code waits for the user's "start".
-- `[hook]` `process` Changed code needs a plan written or updated in this conversation, with its purpose, agreed decisions and milestones filled in. A one-line change to an existing file, with no open decision, may skip it.
-- `[hook]` `process` A changed protected file or dependency (AGENTS.md "Red lines") has the user's approval in a Decision Log line added in this conversation, naming the file.
-- `[hook]` `process` Removing a line from docs/exec-plans/tech-debt.md updates that domain in docs/QUALITY.md.
+- `[hook]` `process` At each stop the finish check (scripts/hooks/finish-check.php, its four checks in its header) sends back a plan missing for changed code, a check that did not pass on this code, a finished plan whose lanes are not done, and a protected change the approved plan does not name.
 - `[hook]` `process` A reviewer subagent runs only the Bash commands that read (docs/prompts/review.md): scripts/hooks/reviewer-commands.php refuses every other command of `reviewer-opus` and `reviewer-haiku` before it runs and writes the refusal to reviewer-refusals.jsonl in the state folder. The builder's own commands and `explorer` are not looked at.
-- `[hook]` `process` An intermediate stop with a valid active plan containing completed and remaining milestones may use a fresh `composer check:milestone` result: full static checks plus affected tests. Final acceptance, completed/archived plans and code without such a plan require full `composer check` on the current code. Partial results never count as full passes. A finished plan moves to completed/, with full check results and review rounds in Progress and a filled Outcomes & Retrospective.
-- `[hook]` `process` Checks share a worktree lock and bind their start, finish and pass to one run. Starting a new attempt revokes old passes; failed or interrupted attempts cannot certify code. Completing or newly archiving a plan requires a real current full pass across conversations, including a previously refused archive; historical record corrections do not alone count as new delivery.
-- `[user]` `process` Each milestone records its affected behavior and callers, selected test paths, commands and results. Shared test/database infrastructure or impact that cannot be bounded requires an earlier full check. Changed pages still receive UI inspection; review code fixes require final full validation (docs/workflow.md).
 - `[Structure]` `process` No check is silenced: no `@phpstan-ignore`, `oxlint-disable`, `eslint-disable`, `@ts-ignore` or `@ts-expect-error`, no skipped or unfinished test (Pest fails on them), and no `ignoreErrors`, `excludePaths` or baseline in phpstan.neon.
 - `[Structure]` `process` The checks stay as set: PHPStan's level, paths and includes and every layer rule of principle 2 with its folders, the Ezdev oxlint rule and `import/no-cycle` on with only generated code ignored, strict TypeScript, the three Pest suites, the steps of `composer check`, no other lint config file, no `script-shell` in .npmrc, and every check proved on a broken fixture (tests/Unit/Lint/SkeletonChecksTest.php). Changing them is a protected change.
 

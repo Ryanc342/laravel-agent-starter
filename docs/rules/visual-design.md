@@ -13,7 +13,7 @@ Applies to `resources/js/**`, `resources/css/**`, `DESIGN.md` and `docs/design/*
 
 ## Every page
 
-- Read DESIGN.md first. Its index names the files for your task: foundations.md for colour, type, space and messages, components.md for which component to use, and the pattern file of the page you build. Copy the structure of the sample or demo the pattern file names. A page that matches no pattern is built freely from foundations.md and components.md; tell the user, who adds its pattern later.
+- Read DESIGN.md first. Its index names the files for your task: foundations.md for colour, type, space and messages, components.md for which component to use, and the pattern file of the page you build. Copy the structure of the sample or demo the pattern file names. A page that matches no pattern is built freely from foundations.md and components.md, and the report says so.
 - Use `components/ui` (shadcn) and `components/shared`, and restyle them through their variants. Do not install another UI library.
 - Keep light and dark mode working, and keep every screen working with English and Chinese text.
 - Compare the page with the style overview page (`/style`, development only): its token, component and pattern demos show how each should look.

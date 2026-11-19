@@ -1,6 +1,6 @@
 # Components
 
-Read when choosing a component or a variant. It says which one to use for what; how a component is built is in its own file. Use what `resources/js/components/ui` (shadcn) and `resources/js/components/shared` already have before writing markup, and restyle through variants, not through `className` overrides of colour. Do not install another UI library. A shadcn component that is not installed yet is added with the shadcn CLI; ask the user first if it brings a new package.
+Read when choosing a component or a variant. It says which one to use for what; how a component is built is in its own file. Use what `resources/js/components/ui` (shadcn) and `resources/js/components/shared` already have before writing markup, and restyle through variants, not through `className` overrides of colour. Do not install another UI library. A shadcn component that is not installed yet is added with the shadcn CLI; a new package it brings is a dependency, added only when the plan's "Approved changes" names it.
 
 ## Actions
 

@@ -1,24 +1,20 @@
 # Ezdev Template: agent guide
 
-This file is a map, not a manual. It stays under 100 lines (the reviewers check it).
+This file is a map, not a manual. It stays under 100 lines.
 Details live in the files it points to; read them when the task needs them.
 
 ## Commands
 
-- `composer check`: every machine check (Pint, PHPStan with the layer rules, oxlint with the component boundaries, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running.
-- `composer check:milestone -- <test paths>`: all static checks and affected tests between milestones. `composer check:static`: just the full static phase. Final plan acceptance still needs `composer check`.
+- `composer check`: every machine check (Pint, PHPStan with the layer rules, oxlint with the component boundaries, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running. It takes a few minutes: run it in the foreground with a Bash timeout of 600000 ms.
+- `composer check:milestone -- <test paths>`: all static checks and the affected tests, between milestones. `composer check:static`: just the static phase.
 - `php artisan test --compact --filter=<Name>`: one test.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
 - `composer check:reference`: the reference feature still passes every check. Run it after changing rules or tooling.
 - `scripts/worktree-up <name>`: a git worktree with its own .env, database and port, for parallel work.
 
-## How we work (details: docs/workflow.md)
+## How we work
 
-1. Grill. Every request starts with questions in the user's language, in the format in docs/workflow.md, a request to fix tech debt included. Look facts up yourself; put every decision to the user.
-2. Plan. When no decision is open, write docs/exec-plans/active/<feature>.md (format: docs/PLANS.md). Change no code until the user says "start". A one-line change with no open decision may skip the plan; say so.
-3. Build, one milestone at a time: Pest tests first, then code bottom-up, then `composer check:milestone -- <affected test paths>`, then commit and update Progress. Run full `composer check` when the plan is implemented, and earlier for shared infrastructure or unbounded impact (docs/workflow.md).
-4. Review. Ask `reviewer-opus` and `reviewer-haiku` to compare the diff with the plan, one lane per run, for the lanes the change touches (docs/prompts/review.md, docs/golden-principles.md Review lanes). Fix P0 and P1 findings. Rounds: docs/workflow.md.
-5. Report where each agreed decision lives, the check output, and UI inspection results. Move the plan to docs/exec-plans/completed/. Remove fixed tech-debt lines and update docs/QUALITY.md.
+Read docs/workflow.md before you answer a request, and follow its steps: questions, the plan (docs/PLANS.md), the user's "开始", the build, the review, the report. After "开始" you ask nothing.
 
 Starting a new conversation? Read docs/exec-plans/active/ first and continue from Progress.
 
@@ -45,25 +41,20 @@ Starting a new conversation? Read docs/exec-plans/active/ first and continue fro
 
 ## Red lines
 
-- Fix the code, not the test. Change an assertion only when the user changed the requirement, and say why.
-- Build only what the plan lists. Anything else is a new question for the user.
+- Fix the code, not the test. Change or delete an existing test assertion only when a decision of the plan changes the requirement, and name that decision.
+- Build only what the plan lists. What it does not say follows the template rules or keeps the current behaviour (docs/workflow.md, step 3).
 - Never silence a check: no PHPStan or oxlint ignores, no wider allowIn, no skipped tests. The error says what to do instead.
-- Do not change AGENTS.md, CLAUDE.md, ARCHITECTURE.md, DESIGN.md, docs/golden-principles.md, docs/rules/, docs/design/, docs/prompts/, docs/workflow.md, docs/PLANS.md, docs/reference/ or the checks and tools (phpstan.neon, vite.config.ts, tsconfig.json, pint.json, phpunit.xml, .npmrc, .gitignore, artisan, lint/, tests/Structure/, tests/Support/, tests/Unit/Hooks/, tests/bootstrap.php, tests/Pest.php, tests/TestCase.php, tests/js/setup.ts, scripts/, .claude/, .github/) without the user's approval, and record it in the plan's Decision Log, naming the file. One exception: the cleanup may fix a path or name in them that no longer exists (docs/prompts/cleanup.md step 5).
-- Do not add or upgrade dependencies without the user's approval.
+- The template's own files are protected: the docs and the checks and tools, listed path by path in `PROTECTED_FILES` of scripts/hooks/finish-check.php, and the dependency sections of composer.json and package.json with their lock files. Change one only when the plan's "Approved changes", as the user approved it with "开始", names it. Anything else is reverted and named in the report.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
-
-## When stuck
-
-If you get stuck, or the user corrects the same thing twice, say what was missing (a doc line, a rule, a check, a tool) and propose the smallest addition. The user decides.
 
 ## Docs map
 
-- ARCHITECTURE.md: layers, dependency direction, where each rule goes, which check enforces it
-- docs/workflow.md: grilling format, plan, build, verify, review, report
+- ARCHITECTURE.md: layers, dependency direction, where each rule goes
+- docs/workflow.md: questions, plan, build, review, report
 - docs/PLANS.md: how to write an ExecPlan
 - docs/exec-plans/active/: work in progress. docs/exec-plans/completed/: finished plans
 - docs/exec-plans/tech-debt.md: known debt, oldest first
-- docs/golden-principles.md: every rule, grouped in ten principles, the check or reviewer lane that stops each one, and the six review lanes
+- docs/golden-principles.md: every rule, listed under its review lane, with the check or reviewer that stops it
 - docs/QUALITY.md: quality grade per domain
 - docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the weekly cleanup and upgrades
 - docs/reference/tasks/: the reference feature
@@ -73,21 +64,10 @@ If you get stuck, or the user corrects the same thing twice, say what was missin
 ## Tools
 
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Playwright MCP (`playwright`, and `playwright-review` for `reviewer-haiku`'s seat in a screen round): isolated headless browsers, never the user's Chrome; close them after checks. Screenshot handling: docs/rules/visual-design.md.
-- Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models).
-- Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back missing plans, quality updates, approvals or validation. An incomplete active plan may use a fresh milestone result; final acceptance requires full `composer check`. Do the step.
+- Playwright MCP (`playwright` for `reviewer-opus`, `playwright-review` for `reviewer-haiku`): isolated headless browsers, never the user's Chrome; close them after checks. Screenshot handling: docs/rules/visual-design.md.
+- Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models). They run in the foreground: the session waits for their answers.
+- Finish check (scripts/hooks/finish-check.php): when you are about to stop, it sends back what is missing, one line each: a plan for changed code, a passing check, the review of a finished plan, the approval of a protected change. Do the step.
 
 ## Code Review Rules
 
-Report P0 and P1 only:
-
-- a business rule written in a second place instead of calling its owner
-- a model write outside an Action, or a permission check outside the controller
-- React deciding prices, totals, statuses, deadlines, permissions or eligibility
-- behaviour that is not in the plan, or an agreed decision that is missing
-- an existing test assertion edited or deleted
-- an Action or endpoint without a feature test
-- a changed file over 300 lines that does more than one job
-- a screen that breaks DESIGN.md, docs/design/ or a `ui` rule (principle 10 in docs/golden-principles.md)
-
-Skip style and naming.
+The reviewers follow docs/prompts/review.md: one lane per run, the two kinds of findings it names, nothing else.

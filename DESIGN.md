@@ -53,7 +53,7 @@ The template serves two kinds of screen: internal systems that people use every 
 | No permission, page not found, server error | docs/design/patterns/error-page.md |
 | See everything in the running app | the style overview page at `/style` (development only). It has no backend: what a backend would answer (a status, a validation result, an import's errors) comes with the page's example data through props |
 
-A page that matches no pattern is built freely from foundations.md and components.md. Tell the user, who adds its pattern later.
+A page that matches no pattern is built freely from foundations.md and components.md, and the report says so.
 
 ## Do's and Don'ts
 

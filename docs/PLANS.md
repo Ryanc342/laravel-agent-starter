@@ -1,17 +1,16 @@
 # ExecPlans
 
-An ExecPlan is the written plan for one feature. It lives in `docs/exec-plans/active/<feature>.md` while the work is open and moves to `docs/exec-plans/completed/` when it is done.
+An ExecPlan is the written plan for one feature. It lives in `docs/exec-plans/active/<feature>.md` while the work is open and moves to `docs/exec-plans/completed/` when it is done. How a plan is written, approved and worked through: docs/workflow.md.
 
 ## Rules
 
 - **Self-contained.** Someone who has only this file and the repository can continue the work. Do not rely on the chat history.
-- **Living.** Update it as you go: tick milestones, add Progress lines with a timestamp, log decisions and surprises. The file always shows the current state.
-- **Milestones are small.** Each one takes about an hour, is a few hundred lines, passes full static checks and tests for its affected scope, and ends in a commit. The completed implementation passes full `composer check`; shared infrastructure or unbounded impact needs an earlier full check (docs/workflow.md).
-- **No review between milestones.** No milestone has a review round, whatever their number: every lane is reviewed in the final review (docs/workflow.md, step 4). A `(review)` mark on a milestone line asks for nothing.
-- **Decisions come from the user.** "Agreed decisions" lists the answers from the grilling. Anything new goes back to the user as a question.
-- **Validation is concrete.** For each milestone, name affected behavior and callers (including unchanged tests), selected test paths, commands and expected results. Record partial validation accurately. Name the final full check separately, plus any reason to run it early. A plan with pages lists its walk under Validation: one numbered line per flow and role, `W1 <role>: <flow, from its first step to its last>`, for every flow the plan adds or changes. Both seats of the `behaviour` lane walk the same list (docs/workflow.md, step 4).
+- **Living.** Tick each milestone when it is done and add its Progress line: one line per milestone or review round, with the date and the commit, no time of day. A review round is one summary line; the review ledger keeps its runs.
+- **Milestones are small.** Each one takes about an hour, is a few hundred lines and ends in a commit.
+- **Approved changes.** The protected files the plan changes (AGENTS.md "Red lines"), the dependencies it adds or upgrades, and the existing tests whose assertions change, each with the decision that changes the requirement. The user's "开始" approves exactly this list.
+- **A walk list for pages.** A plan with pages lists its walk under Validation: one line per flow and role, `W1 <role> (<test account>): <flow, from its first step to its last>`, for every flow the plan adds or changes, with only the steps a browser can do. A step it cannot do (a mail arrives, a scheduled job runs) names the test that covers it instead. database/seeders/DatabaseSeeder.php creates one test account per role.
 
-The sections below are required, with exactly these headings. The finish check (scripts/hooks/finish-check.php) sends back a plan whose Purpose, Agreed decisions or Milestones are empty, and a completed plan without a `composer check` result and a review round in Progress or with an empty Outcomes & Retrospective.
+The sections below are required, with exactly these headings. The finish check reads Purpose, Agreed decisions and Milestones; a plan that still holds this template there is no plan.
 
 ## Template
 
@@ -22,8 +21,13 @@ The sections below are required, with exactly these headings. The finish check (
 What the user gets and why, in one or two sentences.
 
 ## Agreed decisions
-1. <decision from the grilling>
-2. <decision>
+1. <decision from the questions>
+2. <decision> (differs from <rule>)
+
+## Approved changes
+- Protected files: <path> (decision <n>), or none
+- Dependencies: <package and its manifest> (decision <n>), or none
+- Existing test assertions that change: <test> (decision <n>), or none
 
 ## Milestones
 - [ ] M1 <layer or slice>: <what is built> + <tests>
@@ -31,22 +35,21 @@ What the user gets and why, in one or two sentences.
 - [ ] M3 ...
 
 ## Validation
-- Per milestone: `composer check:milestone -- <affected test paths>` passes; record scope and reason
-- Final implementation: full `composer check` passes, repeated after any later code change
+- Per milestone: `composer check:milestone -- <affected test paths>`
+- Final: full `composer check`
 - <test names or behaviours that prove each decision>
-- <page check, if there is UI: the final review's `look` and `behaviour` rounds (docs/workflow.md, step 4)>
-- W1 <role>: <flow, from its first step to its last>
-- W2 <role>: <flow>
+- W1 <role> (<test account>): <flow, from its first step to its last>
+- W2 <role> (<test account>): <flow>; <a step a browser cannot do>: <the test that covers it>
 
 ## Progress
-- <YYYY-MM-DD HH:MM> <what was done>, affected scope <paths/reason>, <command/result>, commit <hash>
+- <YYYY-MM-DD> <milestone or review round>, commit <hash>
 
 ## Surprises & Discoveries
 - <something you found that changed the work>
 
 ## Decision Log
-- <YYYY-MM-DD> <decision taken during the work> because <reason>
+- <YYYY-MM-DD> <a change of requirements the user made after the plan, approved with a new "开始">
 
 ## Outcomes & Retrospective
-<Filled in at the end: what was delivered, what is left, what to add to docs or checks.>
+<Filled in at the end: what was delivered and what is left.>
 ```

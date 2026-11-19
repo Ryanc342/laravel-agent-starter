@@ -99,7 +99,7 @@ Release
 
 ## Progress
 - 2026-11-19 M1 probe passed (a and b), no template change, commit 6d0ff09e.
-- 2026-11-19 M2 snapshot and finish check: 44 hook tests failed before the code, then `composer check:milestone -- tests/Unit/Hooks` passed (318 tests); the one-time snapshot of this plan is still missing (Surprises), commit M2.
+- 2026-11-19 M2 snapshot and finish check: 44 hook tests failed before the code, then `composer check:milestone -- tests/Unit/Hooks` passed (318 tests); the one-time snapshot of this plan is still missing (Surprises), commit 64b624ef.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
