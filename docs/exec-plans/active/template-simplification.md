@@ -82,7 +82,7 @@ Release
 
 ## Milestones
 - [x] M1 Probe, no template change (decision 19): in a scratch worktree with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, check that (a) three subagents started in one message all return before the session goes on, and (b) a full `composer check` finishes as a foreground command. Record both in Surprises & Discoveries.
-- [ ] M2 Snapshot and finish check (decisions 6 to 12, 16, 19 as M1 found, 23 to 27). Tests first in tests/Unit/Hooks. Ryan's "开始" for this plan came before the hook existed: M2 ends by recording, once, the snapshot of this plan as committed when he approved it, with a command that is not kept in the template.
+- [x] M2 Snapshot and finish check (decisions 6 to 12, 16, 19 as M1 found, 23 to 27). Tests first in tests/Unit/Hooks. Ryan's "开始" for this plan came before the hook existed: M2 ends by recording, once, the snapshot of this plan as committed when he approved it, with a command that is not kept in the template.
 - [ ] M3 Questions and approval in the docs (decisions 1 to 5, 8 to 12).
 - [ ] M4 Reviewers (decisions 13 to 22).
 - [ ] M5 Screens and tests (decisions 28 to 30).
@@ -99,11 +99,14 @@ Release
 
 ## Progress
 - 2026-11-19 M1 probe passed (a and b), no template change, commit 6d0ff09e.
+- 2026-11-19 M2 snapshot and finish check: 44 hook tests failed before the code, then `composer check:milestone -- tests/Unit/Hooks` passed (318 tests); the one-time snapshot of this plan is still missing (Surprises), commit M2.
 
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
 - M1 (b): a full `composer check` ran as one foreground Bash call in 236 s (679 Pest tests, 208 s) and ended with exit 0. It needs a Bash timeout above the default two minutes; the call passed 600000 ms, the maximum.
 - M1, extra: in the foreground a reviewer's SubagentStop input carries the whole report, result line included, in `last_assistant_message`; the run used no hand-back tool. So the ledger needs no `handback` hook.
+- M2: a reviewer that runs in the background hands its report back with the SubagentHandback tool. This conversation started before the env setting existed, so its reviewers still run in the background; `reviewed` reads the handed-back report from the subagent's transcript when the last message has no result line. No hook is needed for that.
+- M2: the auto-mode classifier refused the AI's command that would have written this plan's snapshot (`.git/ezdev/approved/template-simplification.md`, from commit 6d0ff09e) as the AI approving its own plan. It was not worked around. Until Ryan records it, the finish check reads no "Approved changes" for this plan and asks to revert every protected change of this branch.
 
 ## Decision Log
 - 2026-11-19 Ryan said "开始" to this plan in the planning chat. The current finish check reads approvals only from the conversation that changes the files, so the implementing conversation adds the approval line for the protected files in "Approved changes" after Ryan's "开始" there.

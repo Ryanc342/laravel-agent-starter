@@ -22,7 +22,8 @@ function finishCheckRepo(): string
     finishCheckWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents("{$root}/scripts/hooks/finish-check.php") ?: '');
     finishCheckWrite($repo, 'docs/PLANS.md', file_get_contents("{$root}/docs/PLANS.md") ?: '');
     finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
-    finishCheckWrite($repo, 'composer.json', "{}\n");
+    finishCheckWrite($repo, 'composer.json', "{\"scripts\": {\"test\": \"pest\"}}\n");
+    finishCheckWrite($repo, 'package.json', "{\"scripts\": {\"build\": \"vite build\"}}\n");
     finishCheckWrite($repo, 'docs/QUALITY.md', "# Quality\n");
     finishCheckWrite($repo, 'docs/exec-plans/active/.gitkeep', '');
     finishCheckWrite($repo, 'docs/exec-plans/tech-debt.md', "# Tech debt\n\n| Added | Where | What | Why deferred |\n| --- | --- | --- | --- |\n| 2026-11-01 | app/Actions/Quotes/SendQuote.php | a | b |\n");
@@ -58,11 +59,13 @@ function finishCheckCommit(string $repo): void
 
 /**
  * Runs the script like a hook does and returns everything it prints on stdout.
+ *
+ * @param  array<string, mixed>  $input
  */
-function finishCheckOutput(string $repo, string $mode, string $session = 'test', string $message = 'Done.'): string
+function finishCheckOutput(string $repo, string $mode, string $session = 'test', array $input = []): string
 {
     $process = new Process(['php', 'scripts/hooks/finish-check.php', $mode], $repo);
-    $process->setInput(json_encode(['session_id' => $session, 'cwd' => $repo, 'stop_hook_active' => false, 'last_assistant_message' => $message]) ?: '');
+    $process->setInput(json_encode([...['session_id' => $session, 'cwd' => $repo, 'stop_hook_active' => false, 'last_assistant_message' => 'Done.'], ...$input]) ?: '');
     $process->mustRun();
 
     return $process->getOutput();
@@ -73,7 +76,15 @@ function finishCheckOutput(string $repo, string $mode, string $session = 'test',
  */
 function finishCheckRun(string $repo, string $mode, string $session = 'test', string $message = 'Done.'): string
 {
-    return json_decode(finishCheckOutput($repo, $mode, $session, $message), true)['reason'] ?? '';
+    return json_decode(finishCheckOutput($repo, $mode, $session, ['last_assistant_message' => $message]), true)['reason'] ?? '';
+}
+
+/**
+ * The user sends a message (UserPromptSubmit).
+ */
+function finishCheckSay(string $repo, string $prompt, string $session = 'test'): string
+{
+    return finishCheckOutput($repo, 'approve', $session, ['hook_event_name' => 'UserPromptSubmit', 'prompt' => $prompt]);
 }
 
 /**
@@ -116,9 +127,19 @@ function finishCheckPlan(
     string $purpose = 'Sales staff send a quote to the customer by email.',
     string $agreed = '1. A quote is sent as a PDF attachment.',
     string $milestones = '- [ ] M1 Actions: SendQuote + tests',
-    string $decisions = '- 2026-11-02 The user approved composer.json',
+    string $approved = '- Protected files: none.',
 ): string {
-    return "# Send quotes\n\n## Purpose\n{$purpose}\n\n## Agreed decisions\n{$agreed}\n\n## Milestones\n{$milestones}\n\n## Progress\n{$progress}\n\n## Decision Log\n{$decisions}\n\n## Outcomes & Retrospective\n{$outcome}\n";
+    return "# Send quotes\n\n## Purpose\n{$purpose}\n\n## Agreed decisions\n{$agreed}\n\n## Approved changes\n{$approved}\n\n## Milestones\n{$milestones}\n\n## Progress\n{$progress}\n\n## Decision Log\n\n## Outcomes & Retrospective\n{$outcome}\n";
+}
+
+/**
+ * The files the reminder to revert names ([] when there is none).
+ *
+ * @return list<string>
+ */
+function finishCheckReverts(string $reason): array
+{
+    return preg_match('/Revert (.*?): protected/', $reason, $match) === 1 ? explode(', ', $match[1]) : [];
 }
 
 const FINISH_CHECK_NEW_CODE = "<?php\n\n\$a = 1;\n\$b = 2;\n\$c = 3;\n\$d = 4;\n";
@@ -137,12 +158,12 @@ test('code without a plan is sent back, and so is code no composer check has pas
         ->and($reason)->toContain('Run composer check');
 
     finishCheckPass($repo);
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan('', ''));
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
 
     expect(finishCheckRun($repo, 'stop'))->toBe('');
 });
 
-test('a plan from before the conversation counts for new code only once it changes', function (bool $committed) {
+test('a plan from before the conversation counts for new code once it changes, or once the user approved it', function (bool $committed) {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
 
@@ -154,17 +175,30 @@ test('a plan from before the conversation counts for new code only once it chang
     finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);
     finishCheckPass($repo);
 
-    expect(finishCheckRun($repo, 'stop', 'second'))->toContain('there is no plan in docs/exec-plans/active/ that changed in this conversation');
+    expect(finishCheckRun($repo, 'stop', 'second'))->toContain('there is no plan in docs/exec-plans/active/');
 
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan('- 2026-11-02 10:00 M1 started'));
+    finishCheckSay($repo, '开始', 'second');
 
     expect(finishCheckRun($repo, 'stop', 'second'))->toBe('');
+
+    finishCheckRun($repo, 'start', 'third');
+    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE."\$e = 5;\n");
+    finishCheckPass($repo);
+
+    // The approval lives in the snapshot, also for the next conversation.
+    expect(finishCheckRun($repo, 'stop', 'third'))->toBe('');
 })->with(['committed' => [true], 'not yet committed' => [false]]);
 
-test('a plan that still holds the template or its placeholders is sent back to be filled in', function () {
+test('a plan that still holds the template or its placeholders is no plan for the code', function () {
     $repo = finishCheckRepo();
     preg_match('/```markdown\n(.*?)```/s', (string) file_get_contents("{$repo}/docs/PLANS.md"), $template);
     finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', $template[1]);
+
+    // Without code the plan is being written: nothing is asked yet.
+    expect(finishCheckRun($repo, 'stop'))->toBe('');
+
+    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);
+    finishCheckPass($repo);
 
     expect(finishCheckRun($repo, 'stop'))->toContain('docs/exec-plans/active/send-quotes.md is not filled in (empty: Purpose, Agreed decisions, Milestones)');
 
@@ -177,7 +211,7 @@ test('a plan that still holds the template or its placeholders is sent back to b
     expect(finishCheckRun($repo, 'stop'))->toBe('');
 });
 
-test('a plan with every milestone ticked is sent back to be completed once composer check passed', function () {
+test('a plan with every milestone ticked needs a full composer check, and nothing else asks for the move or its records', function () {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);
     finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(milestones: "- [x] M1 Actions: SendQuote + tests\n- [ ] M2 Pages: quote page + tests"));
@@ -188,14 +222,15 @@ test('a plan with every milestone ticked is sent back to be completed once compo
     finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(milestones: "- [x] M1 Actions: SendQuote + tests\n- [x] M2 Pages: quote page + tests"));
     finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE."\$e = 5;\n");
 
-    expect(finishCheckRun($repo, 'stop'))->toContain('Run composer check')->not->toContain('Every milestone');
+    expect(finishCheckRun($repo, 'stop'))->toContain('Run composer check')->not->toContain('composer check:milestone');
 
     finishCheckPass($repo);
 
-    expect(finishCheckRun($repo, 'stop'))->toContain('Every milestone in docs/exec-plans/active/send-quotes.md is ticked and composer check passed. Fill in Outcomes & Retrospective and move the plan to docs/exec-plans/completed/');
+    expect(finishCheckRun($repo, 'stop'))->toBe('');
 
+    // Progress and Outcomes are not read: a completed plan without them lets the AI stop.
     unlink("{$repo}/docs/exec-plans/active/send-quotes.md");
-    finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan("- 10:00 M2 done, composer check passed\n- 10:30 review round 1: 0 P0, 0 P1", 'Quotes can be sent; nothing is left.', milestones: '- [x] M1 Actions: SendQuote + tests'));
+    finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan(milestones: '- [x] M1 Actions: SendQuote + tests'));
 
     expect(finishCheckRun($repo, 'stop'))->toBe('');
 });
@@ -210,132 +245,147 @@ test('a one-line change needs no plan, but still a passing composer check', func
         ->and($reason)->toContain('Run composer check');
 });
 
-test('removing a tech-debt line without updating docs/QUALITY.md is sent back', function () {
+test('removing a tech-debt line asks for nothing', function () {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'docs/exec-plans/tech-debt.md', "# Tech debt\n\n| Added | Where | What | Why deferred |\n| --- | --- | --- | --- |\n");
 
-    expect(finishCheckRun($repo, 'stop'))->toContain('docs/QUALITY.md did not change');
-
-    finishCheckWrite($repo, 'docs/QUALITY.md', "# Quality\n\nQuotes: A\n");
-
     expect(finishCheckRun($repo, 'stop'))->toBe('');
 });
 
-test('a changed dependency needs the user\'s approval recorded in the plan', function () {
+test('only the user\'s "开始", in any of its forms, snapshots the active plans with the commit they were taken at', function (string $prompt) {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(decisions: ''));
-    finishCheckWrite($repo, 'composer.json', "{\"require\": {}}\n");
-    finishCheckPass($repo);
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
+    finishCheckWrite($repo, 'docs/exec-plans/active/发送报价单.md', finishCheckPlan(purpose: '销售人员给客户发报价单。'));
+    $head = trim((new Process(['git', 'rev-parse', 'HEAD'], $repo))->mustRun()->getOutput());
 
-    expect(finishCheckRun($repo, 'stop'))->toContain('You changed composer.json');
+    expect(finishCheckSay($repo, $prompt))->toBe('');
 
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan('', ''));
+    foreach (['send-quotes.md', '发送报价单.md'] as $name) {
+        expect(file_get_contents("{$repo}/.git/ezdev/approved/{$name}"))->toBe(file_get_contents("{$repo}/docs/exec-plans/active/{$name}"))
+            ->and(trim((string) file_get_contents("{$repo}/.git/ezdev/approved/{$name}.commit")))->toBe($head);
+    }
+})->with(['开始', '开始吧', '好，开始！', '好开始吧', '好的，开始。', 'OK 开始', 'ok，开始', 'Start.', ' start ']);
 
-    expect(finishCheckRun($repo, 'stop'))->toBe('');
-});
-
-test('only a Decision Log line added in this conversation and naming the file approves it', function (bool $committed) {
+test('any other message takes no snapshot', function (string $prompt) {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
 
-    if ($committed) {
-        finishCheckCommit($repo);
-    }
+    expect(finishCheckSay($repo, $prompt))->toBe('')
+        ->and(is_file("{$repo}/.git/ezdev/approved/send-quotes.md"))->toBeFalse();
+})->with(['开始写计划吧', '先别开始', 'start the server', 'ok', '继续', '发布']);
 
-    finishCheckRun($repo, 'start', 'second');
-    finishCheckWrite($repo, 'composer.json', "{\"require\": {}}\n");
+test('a new "开始" takes a new snapshot, and what the AI writes into the plan after it approves nothing', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
+    finishCheckSay($repo, '开始');
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(approved: '- Protected files: docs/workflow.md'));
+    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
+
+    expect(finishCheckReverts(finishCheckRun($repo, 'stop')))->toBe(['docs/workflow.md']);
+
+    finishCheckSay($repo, '好的，开始');
+
+    expect(finishCheckRun($repo, 'stop'))->toBe('');
+});
+
+test('a protected file is approved when the snapshot\'s "Approved changes" names it or a folder above it, as a whole path', function (string $approved, string $path, bool $kept) {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(approved: $approved));
+    finishCheckSay($repo, '开始');
+    finishCheckWrite($repo, $path, "changed\n");
+
+    expect(finishCheckReverts(finishCheckRun($repo, 'stop')))->toBe($kept ? [] : [$path]);
+})->with([
+    'the file' => ['- Protected files: AGENTS.md, docs/workflow.md (decision 1)', 'docs/workflow.md', true],
+    'the file in backticks' => ['- Protected files: `docs/rules/tests.md`.', 'docs/rules/tests.md', true],
+    'a folder above it' => ['- Protected files: docs/design/ (the pattern files that repeat a rule)', 'docs/design/patterns/list.md', true],
+    'a longer folder that starts the same' => ['- Protected files: tests/Unit/Hooks/', 'tests/Structure/CodeTest.php', false],
+    'a file whose name starts the same' => ['- Protected files: scripts/screen-round.php', 'scripts/screen-round', false],
+    'the same name in another folder' => ['- Protected files: docs/AGENTS.md', 'AGENTS.md', false],
+    'not named' => ['- Protected files: none.', 'DESIGN.md', false],
+]);
+
+test('a protected change is sent back to be reverted, whatever the AI\'s last message asks', function (string $message) {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
+    finishCheckSay($repo, '开始');
+    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
+
+    $reason = finishCheckRun($repo, 'stop', message: $message);
+
+    expect(finishCheckReverts($reason))->toBe(['docs/workflow.md'])
+        ->and($reason)->toContain('Approved changes')->toContain('report');
+})->with(['Done.', "I changed docs/workflow.md.\n\nMay I keep it?", '我改了 docs/workflow.md，可以保留吗？']);
+
+test('composer.json and package.json are protected in their dependency sections only, a lock file with its manifest', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
+    finishCheckSay($repo, '开始');
+    finishCheckWrite($repo, 'composer.json', "{\"scripts\": {\"test\": \"pest --parallel\"}}\n");
+    finishCheckWrite($repo, 'package.json', "{\"scripts\": {\"build\": \"vite build --emptyOutDir\"}}\n");
+    finishCheckPass($repo);
+
+    expect(finishCheckRun($repo, 'stop'))->toBe('');
+
+    finishCheckWrite($repo, 'composer.json', "{\"scripts\": {\"test\": \"pest\"}, \"require\": {\"brick/math\": \"^0.14\"}}\n");
     finishCheckWrite($repo, 'composer.lock', "{}\n");
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan('- 2026-11-02 10:00 M1 started'));
+    finishCheckWrite($repo, 'package.json', "{\"scripts\": {\"build\": \"vite build\"}, \"devDependencies\": {\"vitest\": \"^4\"}}\n");
+    finishCheckWrite($repo, 'package-lock.json', "{}\n");
     finishCheckPass($repo);
 
-    expect(finishCheckRun($repo, 'stop', 'second'))->toContain('You changed composer.json, composer.lock');
+    expect(finishCheckReverts(finishCheckRun($repo, 'stop')))->toEqualCanonicalizing(['composer.json', 'composer.lock', 'package.json', 'package-lock.json']);
 
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan('- 2026-11-02 10:00 M1 started', decisions: "- 2026-11-02 The user approved composer.json\n- 2026-11-02 The user approved the new package"));
-
-    expect(finishCheckRun($repo, 'stop', 'second'))->toContain('You changed composer.json, composer.lock');
-
-    // A lock file is approved with its manifest.
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan('- 2026-11-02 10:00 M1 started', decisions: "- 2026-11-02 The user approved composer.json\n- 2026-11-02 The user approved adding brick/math to composer.json"));
-
-    expect(finishCheckRun($repo, 'stop', 'second'))->toBe('');
-})->with(['committed' => [true], 'not yet committed' => [false]]);
-
-test('moving a plan to completed/ makes none of its Decision Log lines new', function () {
-    $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan());
-    finishCheckCommit($repo);
-    finishCheckRun($repo, 'start', 'second');
-
-    finishCheckWrite($repo, 'composer.json', "{\"require\": {}}\n");
-    unlink("{$repo}/docs/exec-plans/active/send-quotes.md");
-    finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan("- 10:00 M1 done, composer check passed\n- 10:30 review round 1: 0 P0, 0 P1", 'Quotes can be sent; nothing is left.'));
-    finishCheckPass($repo);
-
-    expect(finishCheckRun($repo, 'stop', 'second'))->toContain('You changed composer.json');
-});
-
-test('stopping to ask about the protected files counts only when the message ends with the question', function () {
-    $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(decisions: ''));
-    finishCheckWrite($repo, 'composer.json', "{\"require\": {}}\n");
-    finishCheckPass($repo);
-
-    expect(finishCheckRun($repo, 'stop', message: "I added a package to composer.json.\n\nMay I keep it?\n"))->toBe('')
-        ->and(finishCheckRun($repo, 'stop', message: '我在 composer.json 里加了一个包，可以保留吗？'))->toBe('')
-        ->and(finishCheckRun($repo, 'stop', message: "May I keep the change to composer.json?\n\nThe rest is done."))->toContain('You changed composer.json')
-        ->and(finishCheckRun($repo, 'stop', message: 'I added a package. May I keep it?'))->toContain('You changed composer.json');
-});
-
-test('the test setup, artisan, .gitignore, .npmrc, DESIGN.md and the workflow docs are protected', function () {
-    $repo = finishCheckRepo();
-    $paths = ['DESIGN.md', '.npmrc', 'artisan', '.gitignore', 'tests/bootstrap.php', 'tests/Pest.php', 'tests/TestCase.php', 'tests/js/setup.ts', 'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/tasks/send-quote.md'];
-
-    foreach ($paths as $path) {
-        finishCheckWrite($repo, $path, "changed\n");
-    }
-
-    preg_match('/You changed (.*) \(protected files/', finishCheckRun($repo, 'stop'), $protected);
-
-    expect(explode(', ', $protected[1] ?? ''))->toEqualCanonicalizing($paths);
-});
-
-test('the design spec in docs/design/ is protected, like DESIGN.md', function () {
-    $repo = finishCheckRepo();
-    $paths = ['docs/design/foundations.md', 'docs/design/components.md', 'docs/design/patterns/list.md'];
-
-    foreach ($paths as $path) {
-        finishCheckWrite($repo, $path, "changed\n");
-    }
-
-    preg_match('/You changed (.*) \(protected files/', finishCheckRun($repo, 'stop'), $protected);
-
-    expect(explode(', ', $protected[1] ?? ''))->toEqualCanonicalizing($paths);
-});
-
-test('a completed plan without check results, review rounds and outcome is sent back', function () {
-    $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan('- 10:00 M1 done', ''));
-
-    expect(finishCheckRun($repo, 'stop'))->toContain('no composer check result in Progress, no review round in Progress, an empty Outcomes & Retrospective');
-
-    finishCheckWrite($repo, 'docs/exec-plans/completed/send-quotes.md', finishCheckPlan("- 10:00 M1 done, composer check passed\n- 10:30 review round 1: no P0/P1", 'Quotes can be sent; nothing is left.'));
-
-    expect(finishCheckRun($repo, 'stop'))->toContain('Run composer check');
-    finishCheckPass($repo);
+    finishCheckWrite($repo, 'docs/exec-plans/active/send-quotes.md', finishCheckPlan(approved: '- Dependencies: brick/math in composer.json (decision 1), vitest in package-lock.json (decision 1)'));
+    finishCheckSay($repo, '开始');
 
     expect(finishCheckRun($repo, 'stop'))->toBe('');
 });
 
-test('the same reason is sent back at most three times, so a stop never loops', function () {
+test('the template\'s own files are protected, and a project\'s own files next to them are not', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
+    $template = ['DESIGN.md', '.npmrc', 'artisan', '.gitignore', 'tests/bootstrap.php', 'tests/Pest.php', 'tests/TestCase.php', 'tests/js/setup.ts', 'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/tasks/README.md', 'docs/design/foundations.md', 'docs/design/patterns/list.md', 'tests/Support/TestsRowLocks.php', 'scripts/worktree-up', '.claude/agents/reviewer-opus.md', '.github/workflows/tests.yml'];
+    $project = ['docs/design/patterns/quote-board.md', 'tests/Support/QuoteFactories.php', 'scripts/deploy', '.claude/agents/quote-writer.md', '.github/workflows/deploy.yml', 'docs/rules/quotes.md'];
 
-    $reasons = array_map(fn () => finishCheckRun($repo, 'stop'), range(1, 4));
+    foreach ([...$template, ...$project] as $path) {
+        finishCheckWrite($repo, $path, "changed\n");
+    }
+
+    expect(finishCheckReverts(finishCheckRun($repo, 'stop')))->toEqualCanonicalizing($template);
+});
+
+test('the protected list names only files the template has', function () {
+    $root = dirname(__DIR__, 3);
+    $listed = json_decode((new Process(['php', "{$root}/scripts/hooks/finish-check.php", 'protected'], $root))->mustRun()->getOutput(), true);
+
+    expect($listed)->toBeArray()->not->toBeEmpty()
+        ->and(array_values(array_filter($listed, fn (string $path): bool => ! is_file("{$root}/{$path}"))))->toBe([]);
+});
+
+test('the same reminder is sent back at most three times in a conversation, also when the code changes in between', function () {
+    $repo = finishCheckRepo();
+
+    $reasons = array_map(function (int $stop) use ($repo): string {
+        finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = {$stop};\n");
+
+        return finishCheckRun($repo, 'stop');
+    }, range(1, 4));
 
     expect(array_map(fn (string $reason): bool => $reason !== '', $reasons))->toBe([true, true, true, false]);
 });
 
-test('a step the AI stopped without is told to the user and to the next conversation, once', function () {
+test('each reminder is one line', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);
+    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
+
+    $lines = explode("\n", finishCheckRun($repo, 'stop'));
+
+    expect($lines)->toHaveCount(4)
+        ->and($lines[0])->toBe('Before you stop:')
+        ->and(array_slice($lines, 1))->each->toStartWith('- ');
+});
+
+test('a step the AI stopped without is told to the user once per conversation, and the next conversation starts silent', function () {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
 
@@ -344,18 +394,17 @@ test('a step the AI stopped without is told to the user and to the next conversa
     }
 
     expect(json_decode(finishCheckOutput($repo, 'stop'), true))->toBe([
-        'systemMessage' => 'The finish check sent these steps back 3 times and let the AI stop without them: pass composer check. The next conversation is told about them.',
-    ]);
+        'systemMessage' => 'The finish check let the AI stop without: pass composer check.',
+    ])->and(finishCheckOutput($repo, 'stop'))->toBe('');
 
-    expect(finishCheckOutput($repo, 'start', 'next'))->toStartWith("The previous conversation stopped with these steps missing (docs/golden-principles.md, principle 9):\n- The code changed since the last passing composer check.")
-        ->and(finishCheckOutput($repo, 'start', 'after-next'))->toBe('');
+    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
 
-    // A step done later in the same conversation is not passed on.
-    finishCheckRun($repo, 'stop');
-    finishCheckPass($repo);
+    foreach (range(1, 3) as $stop) {
+        finishCheckRun($repo, 'stop');
+    }
 
     expect(finishCheckOutput($repo, 'stop'))->toBe('')
-        ->and(finishCheckOutput($repo, 'start', 'last'))->toBe('');
+        ->and(finishCheckOutput($repo, 'start', 'next'))->toBe('');
 });
 
 test('a stop that sends one step back and lets another go does both', function () {
@@ -366,14 +415,24 @@ test('a stop that sends one step back and lets another go does both', function (
         finishCheckRun($repo, 'stop');
     }
 
-    finishCheckWrite($repo, 'docs/exec-plans/tech-debt.md', "# Tech debt\n\n| Added | Where | What | Why deferred |\n| --- | --- | --- | --- |\n");
+    finishCheckWrite($repo, 'docs/workflow.md', "changed\n");
     $output = json_decode(finishCheckOutput($repo, 'stop'), true);
 
     expect($output['decision'])->toBe('block')
-        ->and($output['reason'])->toContain('docs/QUALITY.md did not change')->not->toContain('Run composer check')
-        ->and($output['systemMessage'])->toContain('without them: pass composer check.');
+        ->and(finishCheckReverts($output['reason']))->toBe(['docs/workflow.md'])
+        ->and($output['reason'])->not->toContain('Run composer check')
+        ->and($output['systemMessage'])->toBe('The finish check let the AI stop without: pass composer check.');
+});
 
-    expect(finishCheckOutput($repo, 'start', 'next'))->toContain('Run composer check')->not->toContain('docs/QUALITY.md');
+test('the start of a conversation says nothing', function () {
+    $repo = finishCheckRepo();
+    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
+
+    foreach (range(1, 4) as $stop) {
+        finishCheckRun($repo, 'stop');
+    }
+
+    expect(finishCheckOutput($repo, 'start', 'next'))->toBe('');
 });
 
 test('a stop without a start record tells the user and counts changes from there', function () {
@@ -387,6 +446,13 @@ test('a stop without a start record tells the user and counts changes from there
     finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE."\$e = 5;\n");
 
     expect(finishCheckRun($repo, 'stop', 'unknown'))->toContain('there is no plan');
+
+    // That was the one message of this conversation.
+    foreach (range(1, 3) as $stop) {
+        finishCheckRun($repo, 'stop', 'unknown');
+    }
+
+    expect(finishCheckOutput($repo, 'stop', 'unknown'))->toBe('');
 });
 
 test('an error inside the finish check is told to the user and lets the AI stop', function () {
@@ -411,7 +477,7 @@ test('Claude Code runs the finish check, and a missing or broken script still te
 
     $run = function (string $command, string $dir): string {
         $process = Process::fromShellCommandline($command, $dir, ['CLAUDE_PROJECT_DIR' => $dir]);
-        $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $dir, 'last_assistant_message' => 'Done.']) ?: '');
+        $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $dir, 'prompt' => '开始', 'last_assistant_message' => 'Done.']) ?: '');
         $process->mustRun();
 
         return $process->getOutput();
@@ -422,13 +488,20 @@ test('Claude Code runs the finish check, and a missing or broken script still te
 
     $hooks = json_decode((string) file_get_contents("{$root}/.claude/settings.json"), true)['hooks'];
 
-    foreach (['SessionStart', 'Stop'] as $event) {
+    foreach (['SessionStart' => 'The finish check could not run.', 'UserPromptSubmit' => 'The approval of the plan could not be saved.', 'Stop' => 'The finish check could not run.'] as $event => $failure) {
         $command = $hooks[$event][0]['hooks'][0]['command'];
 
         expect($run($command, $repo))->toBe('', $event)
-            ->and($run($command, $missing))->toBe("{\"systemMessage\":\"The finish check could not run.\"}\n", $event)
-            ->and($run($command, $broken))->toBe("{\"systemMessage\":\"The finish check could not run.\"}\n", $event);
+            ->and($run($command, $missing))->toBe("{\"systemMessage\":\"{$failure}\"}\n", $event)
+            ->and($run($command, $broken))->toBe("{\"systemMessage\":\"{$failure}\"}\n", $event);
     }
+});
+
+test('the session has no question tool and no workflows, and its subagents run in the foreground', function () {
+    $settings = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/.claude/settings.json'), true);
+
+    expect($settings['permissions']['deny'] ?? [])->toContain('AskUserQuestion')->toContain('Workflow')
+        ->and($settings['env']['CLAUDE_CODE_DISABLE_BACKGROUND_TASKS'] ?? null)->toBe('1');
 });
 
 test('composer check records a pass only for the code it started on', function () {
@@ -467,9 +540,11 @@ test('composer check records a pass only when its tests ran to their end', funct
 
 test('a plan with a non-English name is found and checked', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/exec-plans/completed/发送报价单.md', finishCheckPlan('- 10:00 M1 done', ''));
+    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);
+    finishCheckWrite($repo, 'docs/exec-plans/active/发送报价单.md', finishCheckPlan(purpose: ''));
+    finishCheckPass($repo);
 
-    expect(finishCheckRun($repo, 'stop'))->toContain('docs/exec-plans/completed/发送报价单.md is complete but has');
+    expect(finishCheckRun($repo, 'stop'))->toContain('docs/exec-plans/active/发送报价单.md is not filled in (empty: Purpose)');
 });
 
 test('a file already changed when the conversation started counts once it changes again', function () {

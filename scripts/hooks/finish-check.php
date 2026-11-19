@@ -1,59 +1,149 @@
 <?php
 
 /*
-| The finish check: principle 9 in docs/golden-principles.md.
+| The finish check (docs/workflow.md).
 |
-| Claude Code (.claude/settings.json) runs this script when a conversation
-| starts and each time the AI is about to stop; composer check runs it first
-| and last:
+| Claude Code (.claude/settings.json) runs this script as hooks; composer check
+| runs it first and last:
 |
-|   php scripts/hooks/finish-check.php start      remember where this conversation started
-|   php scripts/hooks/finish-check.php stop       compare with the start; send back what is missing
+|   php scripts/hooks/finish-check.php start      SessionStart: remember where this conversation starts; says nothing
+|   php scripts/hooks/finish-check.php approve    UserPromptSubmit: the user's "开始" snapshots the active plans
+|   php scripts/hooks/finish-check.php stop       Stop: the four checks; send back what is missing
+|   php scripts/hooks/finish-check.php reviewed   SubagentStop of a reviewer: write its ledger line
 |   php scripts/hooks/finish-check.php checking   composer check starts: remember the code it checks
 |   php scripts/hooks/finish-check.php checked    composer check passed: record that code as checked
-|   milestone-checking / milestone-checked       separate partial validation, never a full pass
-|   reviewing    a reviewer subagent started (SubagentStart): remember the untracked files
-|   handback     a reviewer handed its report back (PostToolUse, SubagentHandback): keep it
-|   reviewed     a reviewer subagent stopped (SubagentStop): write its ledger line
-|   stopped      the AI stopped a subagent (PostToolUse, TaskStop): drop its start record
+|   milestone-checking / milestone-checked       the same for composer check:milestone, a partial pass
 |   review <plan>  read-only: print each lane of the plan as done or not done
-|   lanes        print the review lanes and the places that touch them, as JSON
+|   lanes          print the review lanes and the places that touch them, as JSON
+|   protected      print the protected files, as JSON
 |
-| The review ledger: each run of a reviewer subagent (.claude/agents/reviewer-*.md)
-| writes one line to the review ledger, review-ledger.jsonl in the state folder:
-| the lane, round and P0 and P1 counts from the result line of
-| docs/prompts/review.md, the reviewer, its model, the HEAD commit and whether all code was committed. There is no review
-| before the final review: a finished plan needs, for each lane, a latest round
-| with a clean run of each of the two models, with no code change since that
-| touches the lane, however many rounds that takes (docs/workflow.md, step 4).
+| The four checks at a stop, on the files this conversation changed:
+|
+| 1. Changed code has a plan: an active plan changed in this conversation or
+|    approved (a snapshot), with Purpose, Agreed decisions and Milestones filled
+|    in. A one-line change may skip it.
+| 2. Changed code passed the checks on this code: a composer check:milestone pass
+|    while the plan has milestones left, a full composer check at the end.
+| 3. A finished plan has every lane it touches done (the review ledger, below).
+| 4. A changed protected file is named in "Approved changes" of the snapshot.
+|
+| Each reminder is one line and goes back at most MAX_BLOCKS times per
+| conversation; a code change does not reset its count. After that the AI may
+| stop, and the user gets one message, at most one per conversation.
+|
+| Final acceptance. A plan is finished in this conversation when every milestone
+| of an active plan is ticked, or when it moved from active/ to completed/ in this
+| conversation. A plan that came into completed/ any other way (a sync from the
+| template, an earlier conversation's archive) is history. A finished plan needs a
+| full pass on the current code, also when this conversation changed only Markdown.
+|
+| Checks share one lock per worktree (scripts/check-run.php), held until the
+| runner and its live descendants exit; a second, overlapping check says a check
+| is already running and cannot replace that run's state. A new attempt revokes
+| the passes before it, and only that attempt, finishing with its own
+| end-of-suite proof (tests/Structure/RunFinishedTest.php), records a new pass.
+| An interrupted run, or a pass recorded the old way (a fingerprint only), needs
+| a new check. Use the Composer entry points, not the checking / checked modes.
+|
+| The approval snapshot. When the user's message, without spaces and punctuation
+| and in lower case, is one of APPROVAL_WORDS, every plan in
+| docs/exec-plans/active/ is copied to approved/<plan file name> in the state
+| folder, with the commit it was taken at in approved/<plan file name>.commit. A
+| new "开始" takes a new one. The checks read "Approved changes" and the walk list
+| from the snapshot, so what the AI writes into the plan afterwards does not count.
+|
+| The review ledger. Each run of a reviewer subagent (.claude/agents/reviewer-*.md)
+| writes one line to review-ledger.jsonl in the state folder: the lane, round and
+| P0 and P1 counts from the result line of docs/prompts/review.md, the reviewer,
+| its model, the HEAD commit and whether all code was committed. The reviewers run
+| in the foreground (CLAUDE_CODE_DISABLE_BACKGROUND_TASKS in .claude/settings.json),
+| so nothing changes the code while they read it. A finished plan needs, for each
+| lane, a latest round with a clean run of each of the two models, with no code
+| change since that touches the lane, however many rounds that takes.
 |
 | A conversation that changed no file is never stopped. The state lives in
 | .git/ezdev/ (git rev-parse --git-path ezdev), outside the repository's files.
 |
-| Both AI tools read stdout: nothing lets the AI stop, one JSON object sends it
-| back or tells the user, and plain text at the start is added to the AI's
-| context. Anything else there would break that, so warnings go to stderr and
-| every error ends as a message to the user.
+| Claude Code reads stdout: nothing lets the AI stop, one JSON object sends it
+| back or tells the user. Anything else there would break that, so warnings go
+| to stderr and every error ends as a message to the user.
 */
 
-// AGENTS.md "Red lines": the user approves a change to these.
-const PROTECTED_PATHS = [
-    'AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'DESIGN.md', 'docs/golden-principles.md', 'docs/rules/', 'docs/design/', 'docs/prompts/',
-    'docs/workflow.md', 'docs/PLANS.md', 'docs/reference/',
-    'phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'pint.json', 'phpunit.xml', '.npmrc', 'artisan', '.gitignore',
-    'lint/', 'tests/Structure/', 'tests/Support/', 'tests/Unit/Hooks/', 'scripts/',
-    'tests/bootstrap.php', 'tests/Pest.php', 'tests/TestCase.php', 'tests/js/setup.ts',
-    '.claude/', '.github/',
-    'composer.json', 'composer.lock', 'package.json', 'package-lock.json',
+// AGENTS.md "Red lines": the template's own files, path by path. A file a project
+// adds next to them (a helper in tests/Support/ or scripts/, a pattern of its own)
+// is not protected.
+const PROTECTED_FILES = [
+    '' => ['AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'DESIGN.md', 'phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'pint.json', 'phpunit.xml', '.npmrc', '.gitignore', 'artisan'],
+    'docs/' => ['golden-principles.md', 'workflow.md', 'PLANS.md'],
+    'docs/rules/' => ['actions.md', 'controllers.md', 'form-requests.md', 'frontend.md', 'models.md', 'tests.md', 'translations.md', 'visual-design.md'],
+    'docs/design/' => ['components.md', 'foundations.md'],
+    'docs/design/patterns/' => [
+        'approval.md', 'auth.md', 'bulk-actions.md', 'calendar.md', 'checkout.md', 'contact.md', 'customer-area.md', 'dashboard.md', 'detail.md',
+        'error-page.md', 'feed.md', 'form.md', 'help.md', 'import-export.md', 'kanban.md', 'landing.md', 'list-detail.md', 'list.md', 'pricing.md',
+        'print.md', 'product.md', 'report.md', 'search-results.md', 'settings.md', 'states.md', 'wizard.md',
+    ],
+    'docs/prompts/' => ['cleanup.md', 'review.md', 'upgrade.md'],
+    'docs/reference/tasks/' => ['README.md'],
+    'docs/reference/tasks/app/Actions/Tasks/' => ['CompleteOverdueTasks.php', 'CompleteTask.php', 'CompleteTasks.php', 'CreateTask.php', 'DeleteTask.php', 'DeleteTasks.php', 'ImportTasks.php', 'UpdateTask.php'],
+    'docs/reference/tasks/app/Concerns/' => ['ReadsTaskFilters.php', 'TaskValidationRules.php'],
+    'docs/reference/tasks/app/Enums/' => ['TaskSort.php', 'TaskStatus.php'],
+    'docs/reference/tasks/app/Http/Controllers/' => [
+        'BulkTaskCompletionController.php', 'BulkTaskDeletionController.php', 'OverdueTaskCompletionController.php', 'TaskCompletionController.php', 'TaskController.php',
+        'TaskExportController.php', 'TaskImportController.php', 'TaskImportTemplateController.php', 'TaskPdfController.php', 'TaskPrintController.php',
+    ],
+    'docs/reference/tasks/app/Http/Requests/Tasks/' => ['BulkTaskRequest.php', 'ImportTaskRequest.php', 'IndexTaskRequest.php', 'StoreTaskRequest.php', 'UpdateTaskRequest.php'],
+    'docs/reference/tasks/app/Http/Resources/' => ['TaskResource.php'],
+    'docs/reference/tasks/app/Models/' => ['Task.php'],
+    'docs/reference/tasks/app/Policies/' => ['TaskPolicy.php'],
+    'docs/reference/tasks/app/Support/' => ['TaskCsv.php'],
+    'docs/reference/tasks/database/factories/' => ['TaskFactory.php'],
+    'docs/reference/tasks/database/migrations/' => ['2026_10_24_000000_create_tasks_table.php'],
+    'docs/reference/tasks/resources/js/components/tasks/' => ['task-actions.tsx', 'task-bulk-actions.tsx', 'task-fields.tsx', 'task-form-dialog.tsx', 'task-import-dialog.tsx', 'task-table.tsx'],
+    'docs/reference/tasks/resources/js/pages/tasks/' => ['index.tsx', 'print.tsx', 'show.tsx'],
+    'docs/reference/tasks/resources/js/types/' => ['task.ts'],
+    'docs/reference/tasks/resources/views/tasks/' => ['pdf.blade.php'],
+    'docs/reference/tasks/routes/' => ['tasks.php'],
+    'docs/reference/tasks/tests/Feature/Tasks/' => [
+        'CompleteOverdueTasksTest.php', 'CompleteTaskTest.php', 'CompleteTasksTest.php', 'CreateTaskTest.php', 'DeleteTaskTest.php', 'DeleteTasksTest.php',
+        'ImportTasksTest.php', 'TaskBulkActionsTest.php', 'TaskButtonsTest.php', 'TaskControllerTest.php', 'TaskExportTest.php', 'TaskImportTest.php',
+        'TaskListQueryTest.php', 'TaskPrintTest.php', 'TaskRulesTest.php', 'UpdateTaskTest.php',
+    ],
+    'lint/oxlint/' => ['ezdev.js'],
+    'lint/phpstan/' => ['DisallowedTypeResolver.php'],
+    'tests/' => ['bootstrap.php', 'Pest.php', 'TestCase.php'],
+    'tests/js/' => ['setup.ts'],
+    'tests/Structure/' => ['CheckSettings.php', 'CodeTest.php', 'ConfigTest.php', 'DesignDocChecks.php', 'DesignDocsTest.php', 'FoldersTest.php', 'PlacementChecks.php', 'ProjectFiles.php', 'RunFinishedTest.php'],
+    'tests/Support/' => ['MilestoneWorkspace.php', 'TestsRowLocks.php', 'VirtualPasskey.php'],
+    'tests/Unit/Hooks/' => ['CheckRunTest.php', 'FinishCheckTest.php', 'MilestoneCheckTest.php', 'PlanAcceptanceTest.php', 'PlaywrightMcpTest.php', 'ReviewLedgerTest.php', 'ReviewerCommandsTest.php', 'ScreenRoundTest.php'],
+    'scripts/' => ['check-installer', 'check-milestone.php', 'check-process.php', 'check-reference', 'check-run.php', 'check.php', 'playwright-mcp', 'screen-round', 'screen-round.php', 'worktree-up'],
+    'scripts/hooks/' => ['finish-check.php', 'reviewer-commands.php'],
+    '.claude/' => ['settings.json'],
+    '.claude/agents/' => ['explorer.md', 'reviewer-haiku.md', 'reviewer-opus.md'],
+    '.claude/skills/wayfinder-development/' => ['SKILL.md'],
+    '.github/' => ['dependabot.yml'],
+    '.github/workflows/' => ['tests.yml'],
 ];
 
-// A lock file is approved together with its manifest.
+// The manifests are protected in their dependency sections only.
+const DEPENDENCY_SECTIONS = [
+    'composer.json' => ['require', 'require-dev'],
+    'package.json' => ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies', 'overrides'],
+];
+
+// A lock file holds only dependencies; it is approved together with its manifest.
 const LOCK_FILES = ['composer.lock' => 'composer.json', 'package-lock.json' => 'package.json'];
+
+// What the user says to approve a plan, without spaces and punctuation, in lower case.
+const APPROVAL_WORDS = ['开始', '开始吧', '好开始', '好开始吧', '好的开始', 'ok开始', 'start'];
 
 const MAX_BLOCKS = 3;
 
 // Where docs/PLANS.md puts plans.
 const PLAN_PATH = '#^docs/exec-plans/(active|completed)/[^/]+\.md$#';
+
+const ACTIVE = 'docs/exec-plans/active/';
+
+const COMPLETED = 'docs/exec-plans/completed/';
 
 // Without these a plan says nothing the code could follow.
 const PLAN_ESSENTIALS = ['Purpose', 'Agreed decisions', 'Milestones'];
@@ -82,10 +172,9 @@ const REFERENCE_FEATURE = 'docs/reference/tasks/';
 const SCREEN_LANES = ['look', 'behaviour'];
 
 // The last line of a reviewer's answer (docs/prompts/review.md). The rounds of a
-// plan are numbered 1, 2, 3. `user` counts the findings marked `(for the user)`
-// (docs/workflow.md, step 3); `unwalked`, in lane `behaviour` only, the items of
-// the walk it did not walk (docs/workflow.md, step 4).
-const REVIEW_RESULT = '/^`?RESULT lane=(\w+) round=(\d+) P0=(\d+) P1=(\d+)(?: user=(\d+))?(?: unwalked=(\d+))?`?$/';
+// plan are numbered 1, 2, 3; `unwalked`, in lane `behaviour` only, counts the
+// items of the walk it did not walk.
+const REVIEW_RESULT = '/^`?RESULT lane=(\w+) round=(\d+) P0=(\d+) P1=(\d+)(?: unwalked=(\d+))?`?$/';
 
 // The lane whose runs walk the plan's flows and report each item of the walk.
 const WALK_LANE = 'behaviour';
@@ -98,23 +187,13 @@ const WALKED_ITEM = '/^\W*(W\d+)\s+walked\b/mi';
 
 const REVIEW_LEDGER = 'review-ledger.jsonl';
 
-// What a reviewer run leaves for its SubagentStop: the untracked files at its start
-// and the report it handed back. One file per run, named after the subagent's id.
-const REVIEW_RUN = 'review-run-';
-
-// A reviewer run's start record older than this no longer counts as a run still
-// going: a run that ended without its SubagentStop must not free every stop after it
-// (docs/workflow.md, step 4). A run that has reported nothing by then is stopped
-// and started again.
-const REVIEW_RUN_MAX_SECONDS = 30 * 60;
-
 // The plan a reviewer's request names (docs/prompts/review.md): `Plan: <path>`.
 const REQUEST_PLAN = '#\bPlan:\s*`?(?:\S*/)?([^/\s`]+\.md)\b#';
 
 const JSON_OUTPUT = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE;
 
 // The modes Claude Code runs as hooks; they read the hook's JSON on stdin.
-const HOOK_MODES = ['start', 'stop', 'reviewing', 'handback', 'reviewed', 'stopped'];
+const HOOK_MODES = ['start', 'approve', 'stop', 'reviewed'];
 
 require_once __DIR__.'/../check-run.php';
 
@@ -157,9 +236,13 @@ function finishCheck(string $mode, string $argument = ''): string
         chdir($input['cwd']);
     }
 
-    // The lanes are fixed: printing them needs no repository.
+    // The lanes and the protected files are fixed: printing them needs no repository.
     if ($mode === 'lanes') {
         return json_encode(REVIEW_LANES, JSON_OUTPUT | JSON_THROW_ON_ERROR);
+    }
+
+    if ($mode === 'protected') {
+        return json_encode(protectedFiles(), JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
 
     $top = git(['rev-parse', '--show-toplevel']);
@@ -177,27 +260,23 @@ function finishCheck(string $mode, string $argument = ''): string
     }
 
     $session = is_string($input['session_id'] ?? null) ? $input['session_id'] : 'default';
-    $lastMessage = is_string($input['last_assistant_message'] ?? null) ? $input['last_assistant_message'] : '';
 
     return match ($mode) {
         'start' => start($stateDir, $session),
-        'stop' => stop($stateDir, $session, $lastMessage),
+        'approve' => approve($stateDir, is_string($input['prompt'] ?? null) ? $input['prompt'] : ''),
+        'stop' => stop($stateDir, $session),
         'checking' => checking($stateDir),
         'checked' => checked($stateDir),
         'milestone-checking' => checking($stateDir, true),
         'milestone-checked' => checked($stateDir, true),
-        'reviewing' => reviewing($stateDir, $session, $input),
-        'handback' => handback($stateDir, $input),
         'reviewed' => reviewed($stateDir, $session, $input),
-        'stopped' => stopped($stateDir, $input),
         'review' => reviewStatus($stateDir, $argument),
         default => '',
     };
 }
 
 /**
- * A conversation starts: record its start once, and pass on the steps an earlier
- * conversation stopped without.
+ * A conversation starts: record its start once. It says nothing.
  */
 function start(string $stateDir, string $session): string
 {
@@ -207,75 +286,100 @@ function start(string $stateDir, string $session): string
         writeFile($file, json_encode(newSession(), JSON_THROW_ON_ERROR));
     }
 
-    return takeOpenSteps($stateDir);
+    return '';
 }
 
 /**
- * The AI is about to stop: send back what is missing. Each reason goes back at most
- * MAX_BLOCKS times, so a stop never loops forever; after that the user and the next
- * conversation are told about it instead.
+ * The user sent a message: when it is the user's "开始", snapshot every active
+ * plan with the commit it was taken at. A new "开始" replaces the snapshot.
  */
-function stop(string $stateDir, string $session, string $lastMessage): string
+function approve(string $stateDir, string $prompt): string
+{
+    $word = mb_strtolower(preg_replace('/[\s\p{P}\p{S}]+/u', '', $prompt) ?? '');
+
+    if (! in_array($word, APPROVAL_WORDS, true)) {
+        return '';
+    }
+
+    $dir = "{$stateDir}/approved";
+
+    if (! is_dir($dir) && ! mkdir($dir, 0777, true)) {
+        throw new RuntimeException("cannot create {$dir}");
+    }
+
+    $head = git(['rev-parse', 'HEAD']) ?? '';
+
+    foreach (glob(ACTIVE.'*.md') ?: [] as $plan) {
+        writeFile("{$dir}/".basename($plan), (string) file_get_contents($plan));
+        writeFile("{$dir}/".basename($plan).'.commit', "{$head}\n");
+    }
+
+    return '';
+}
+
+/**
+ * The plan as the user approved it, or null when there is no snapshot.
+ */
+function snapshot(string $stateDir, string $name): ?string
+{
+    $file = "{$stateDir}/approved/{$name}";
+
+    return is_file($file) ? (string) file_get_contents($file) : null;
+}
+
+/**
+ * The AI is about to stop: send back what is missing. Each reminder goes back at
+ * most MAX_BLOCKS times per conversation, so a stop never loops forever; after
+ * that the AI stops, and the user is told once per conversation.
+ */
+function stop(string $stateDir, string $session): string
 {
     $file = sessionFile($stateDir, $session);
     $state = readSession($file);
 
     if ($state === null) {
-        writeFile($file, json_encode(newSession(), JSON_THROW_ON_ERROR));
-
         // Changes made before this point cannot be told apart from the user's own, so they do not count.
+        writeFile($file, json_encode([...newSession(), 'told' => true], JSON_THROW_ON_ERROR));
+
         return json_encode(['systemMessage' => 'The finish check had no start record for this conversation, so it counts changes from now on.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
 
+    // The active plans each stop sees, so that a plan moved to completed/ later is
+    // known to have been active in this conversation.
+    $state['seen'] = array_values(array_unique([...(is_array($state['seen'] ?? null) ? $state['seen'] : []), ...activePlanNames()]));
     $send = [];
-    $skipped = [];
     $released = [];
-    $waits = [];
-    $missing = missingSteps($state, $stateDir, $lastMessage, $waits);
-    $running = runningReviews($stateDir, sha1($session));
 
-    if ($running > 0) {
-        $waits = [$running.' reviewer run'.($running === 1 ? '' : 's').' of this conversation that '.($running === 1 ? 'is' : 'are').' still running'];
-    }
-
-    // Waiting for something the check can see (docs/workflow.md, step 3): the AI
-    // stops, no send-back is counted, and the steps stay open for the next stop.
-    if ($missing !== [] && $waits !== []) {
-        writeFile($file, json_encode($state, JSON_THROW_ON_ERROR));
-        recordOpenSteps($stateDir, sha1($session), array_column($missing, 1));
-
-        return json_encode(['systemMessage' => 'The finish check let the AI stop without sending it back: the session waits for '.implode(' and ', $waits).'. Still open: '.implode('; ', array_column($missing, 0)).'. The next stop is checked again.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
-    }
-
-    foreach ($missing as $key => [$step, $reason]) {
+    foreach (missingSteps($state, $stateDir) as $key => [$step, $reason]) {
         $state['blocks'][$key] = ($state['blocks'][$key] ?? 0) + 1;
 
         if ($state['blocks'][$key] <= MAX_BLOCKS) {
             $send[] = $reason;
         } else {
-            $skipped[] = $step;
-            $released[] = $reason;
+            $released[] = $step;
         }
     }
 
-    writeFile($file, json_encode($state, JSON_THROW_ON_ERROR));
-    recordOpenSteps($stateDir, sha1($session), $released);
+    $tell = $released !== [] && ($state['told'] ?? false) !== true;
 
-    return stopOutput($send, $skipped);
+    if ($tell) {
+        $state['told'] = true;
+    }
+
+    writeFile($file, json_encode($state, JSON_THROW_ON_ERROR));
+
+    return stopOutput($send, $tell ? $released : []);
 }
 
 /**
- * The steps missing at this stop, each under a key that stays the same while its
- * cause does (MAX_BLOCKS counts per key): [short step for the user, reason for the AI].
- *
- * $waits gets what the session waits for when every review step left is the
- * user's answer to findings marked for the user (docs/workflow.md, step 3).
+ * The steps missing at this stop, each under a key that stays the same for the
+ * whole conversation (MAX_BLOCKS counts per key): [short step for the user,
+ * one-line reason for the AI].
  *
  * @param  array<string, mixed>  $state
- * @param  list<string>  $waits
  * @return array<string, array{string, string}>
  */
-function missingSteps(array $state, string $stateDir, string $lastMessage, array &$waits = []): array
+function missingSteps(array $state, string $stateDir): array
 {
     $changed = changedInConversation($state);
 
@@ -285,99 +389,192 @@ function missingSteps(array $state, string $stateDir, string $lastMessage, array
 
     $missing = [];
     $code = array_values(array_filter($changed, 'isCodePath'));
-    // Only a plan written or updated in this conversation belongs to its work: one left over in active/ does not.
-    $plans = array_values(array_filter($changed, fn (string $path): bool => preg_match(PLAN_PATH, $path) === 1 && is_file($path)));
+    $plans = conversationPlans($state, $stateDir, $changed);
+    $final = array_values(array_filter($plans, fn (string $plan): bool => ! str_starts_with($plan, ACTIVE) || allMilestonesTicked((string) file_get_contents($plan))));
     $fingerprint = fingerprint();
-    $checked = CheckRun::passed($stateDir, $fingerprint);
-    $finalPlans = finalPlanPaths($plans, $state, $stateDir, $checked);
 
-    // 1. Code needs a plan (a one-line change with no open decision may skip it).
-    if ($code !== [] && $plans === [] && ! isOneLineChange($state['base'], $code)) {
-        $missing['plan:'.$fingerprint] = ['write the plan', 'You changed code ('.summary($code).') but there is no plan in docs/exec-plans/active/ that changed in this conversation. Write the plan (docs/workflow.md, step 2) and wait for the user\'s "start"; while you work on a plan, tick its milestones and add Progress lines. A request to fix tech debt needs one too.'];
+    // 1. Changed code has a plan (a one-line change with no open decision may skip it).
+    $filled = array_filter($plans, fn (string $plan): bool => emptySections((string) file_get_contents($plan)) === []);
+
+    if ($code !== [] && $filled === [] && ! isOneLineChange($state['base'], $code)) {
+        $empty = array_map(fn (string $plan): string => $plan.' is not filled in (empty: '.implode(', ', emptySections((string) file_get_contents($plan))).')', $plans);
+        $missing['plan'] = ['write the plan', $plans === []
+            ? 'You changed code ('.summary($code).') but there is no plan in docs/exec-plans/active/ for it: write the plan (docs/PLANS.md) and wait for the user\'s "开始".'
+            : implode('; ', $empty).': fill in what the user gets, every agreed decision and the milestones (docs/PLANS.md).'];
     }
 
-    // 2. Each plan of this conversation is filled in, finished when its work is, and complete once moved.
-    foreach ($plans as $plan) {
-        $missing = [...$missing, ...planSteps($plan, $checked)];
-    }
+    // 2. Changed code passed the checks on this code; a finished plan needs a full pass.
+    if (($code !== [] || $final !== []) && ! CheckRun::passed($stateDir, $fingerprint)) {
+        $intermediate = $final === [] && count($plans) === 1 && isIntermediatePlan($plans[0]);
 
-    // 3. A fixed tech-debt line updates docs/QUALITY.md.
-    $removed = array_values(array_diff($state['debt'] ?? [], debtRows((string) @file_get_contents('docs/exec-plans/tech-debt.md'))));
-
-    if ($removed !== [] && ! in_array('docs/QUALITY.md', $changed, true)) {
-        $missing['quality:'.sha1(implode("\n", $removed))] = ['update docs/QUALITY.md', 'You removed '.count($removed).' line(s) from docs/exec-plans/tech-debt.md but docs/QUALITY.md did not change. Update the grade and notes of that domain.'];
-    }
-
-    // 4. A protected file or dependency needs the user's approval, added to a plan's Decision
-    // Log in this conversation: a line from an earlier conversation approved an earlier change.
-    $approvals = newDecisions($state, $plans);
-    $unapproved = array_values(array_filter(
-        $changed,
-        fn (string $path): bool => isProtected($path) && array_filter($approvals, fn (string $line): bool => str_contains($line, LOCK_FILES[$path] ?? $path)) === [],
-    ));
-
-    // Stopping to ask the user about exactly these files is the step itself.
-    if ($unapproved !== [] && ! isAskingAbout($lastMessage, $unapproved)) {
-        $missing['protected:'.implode(',', $unapproved)] = ['get your approval for '.implode(', ', $unapproved), 'You changed '.implode(', ', $unapproved).' (protected files or dependencies, AGENTS.md "Red lines"). Ask the user first, then add their approval to the plan\'s Decision Log as a new line naming each file. Without approval, undo the change.'];
-    }
-
-    // 5. Only an unfinished active plan may use a fresh, separate milestone pass.
-    if (($code !== [] || $finalPlans !== []) && ! $checked) {
-        $intermediate = $finalPlans === [] && count($plans) === 1 && isIntermediatePlan($plans[0]);
-        $milestoneChecked = CheckRun::passed($stateDir, $fingerprint, true);
-
-        if ($intermediate && ! $milestoneChecked) {
-            $missing['milestone:'.$fingerprint] = ['pass milestone checks', 'Run composer check:milestone -- <affected test paths> for full static checks and affected tests, and record the scope and result in Progress. Run composer check now if shared infrastructure changed or the affected scope cannot be bounded.'];
-        } elseif (! $intermediate) {
-            $reason = $finalPlans === [] ? 'The code changed since the last passing composer check.' : 'Final acceptance of '.summary($finalPlans).' requires a full pass on the current code, even when this conversation only changed the plan.';
-            $missing['check:'.$fingerprint] = ['pass composer check', $reason.' Run composer check and fix every failure.'];
+        if (! $intermediate) {
+            $missing['check'] = ['pass composer check', ($final === [] ? 'The code changed since the last passing composer check.' : summary($final).' is finished, so the current code needs a full pass.').' Run composer check and fix every failure.'];
+        } elseif (! CheckRun::passed($stateDir, $fingerprint, true)) {
+            $missing['check'] = ['pass composer check:milestone', 'The code changed since the last passing milestone check. Run composer check:milestone -- <affected test paths> and fix every failure.'];
         }
     }
 
-    // 6. Reviews (docs/workflow.md, step 4), where the reviewer subagents are defined:
-    // the final review only.
+    // 3. A finished plan has every lane it touches done, where the reviewer subagents are defined.
     if (reviewerModels() !== []) {
         $ledger = readLedger($stateDir);
-        $forUser = [];
-        $actionable = false;
 
-        foreach ($finalPlans as $plan) {
-            [$reason, $userLanes] = finalReview($plan, touchedLanes(planChanges($plan, $changed)), $ledger);
+        foreach ($final as $plan) {
+            $reason = finalReview($plan, touchedLanes(planChanges($plan, $changed)), $ledger);
 
             if ($reason !== null) {
-                // The plan moves last, when every lane is done (docs/workflow.md, step 5).
-                unset($missing["finish:{$plan}"]);
-                $missing['final-review:'.$plan.':'.sha1($reason)] = ['finish the review rounds of '.$plan, $reason];
-                if ($userLanes === []) {
-                    $actionable = true;
-                } else {
-                    $forUser[] = $plan.' ('.implode(', ', $userLanes).')';
-                }
+                $missing['review:'.basename($plan)] = ['finish the review rounds of '.$plan, $reason];
             }
         }
+    }
 
-        if ($forUser !== [] && ! $actionable) {
-            $waits[] = "the user's answer to the findings marked for the user in ".implode(' and ', $forUser);
-        }
+    // 4. A changed protected file is in "Approved changes" of the snapshot.
+    $approved = implode("\n", array_map(fn (string $plan): string => sections(snapshot($stateDir, basename($plan)) ?? '')['Approved changes'] ?? '', $plans));
+    $unapproved = array_values(array_filter($changed, fn (string $path): bool => isProtectedChange($path, $state['base']) && ! isApproved($path, $approved)));
+
+    if ($unapproved !== []) {
+        $missing['protected'] = ['revert '.implode(', ', $unapproved), 'Revert '.implode(', ', $unapproved).': protected (AGENTS.md "Red lines") and not in "Approved changes" of the plan as the user approved it; name them in the report.'];
     }
 
     return $missing;
 }
 
 /**
- * The final review of one finished plan (docs/workflow.md, step 4). A lane is done when its latest round
- * holds a clean run of each of the two reviewer models, on committed code, and no
- * code in the lane's places changed since; docs/ and *.md void nothing. There is
- * no cap on rounds: the reason names how many rounds each open lane has had.
- * Returns the reason that sends the AI back, or null; and, when the next step of
- * every lane that can move is the user's answer (its latest round holds only
- * findings marked for the user, docs/workflow.md step 3), those lanes, else [].
+ * The plans of this conversation: every active plan changed in it or approved
+ * (a snapshot), and every plan that moved from active/ to completed/ in it.
+ * A plan that came into completed/ any other way is history.
+ *
+ * @param  array<string, mixed>  $state
+ * @param  list<string>  $changed
+ * @return list<string>
+ */
+function conversationPlans(array $state, string $stateDir, array $changed): array
+{
+    $plans = [];
+
+    foreach (glob(ACTIVE.'*.md') ?: [] as $plan) {
+        if (in_array($plan, $changed, true) || snapshot($stateDir, basename($plan)) !== null) {
+            $plans[] = $plan;
+        }
+    }
+
+    foreach (glob(COMPLETED.'*.md') ?: [] as $plan) {
+        if (in_array($plan, $changed, true) && movedInConversation(basename($plan), $state)) {
+            $plans[] = $plan;
+        }
+    }
+
+    return $plans;
+}
+
+/**
+ * Whether the plan moved from active/ to completed/ in this conversation: it was
+ * not in completed/ when the conversation started, is not in active/ now, and was
+ * in active/ at the start, at an earlier stop or in a commit since the start.
+ *
+ * @param  array<string, mixed>  $state
+ */
+function movedInConversation(string $name, array $state): bool
+{
+    if (is_file(ACTIVE.$name)) {
+        return false;
+    }
+
+    $completedAtStart = isset($state['completedPlans'])
+        ? in_array(COMPLETED.$name, $state['completedPlans'], true)
+        : git(['cat-file', '-e', "{$state['base']}:".COMPLETED.$name]) !== null;
+
+    if ($completedAtStart) {
+        return false;
+    }
+
+    // A start record written before 1.4.0 has no list of active plans.
+    $activeAtStart = $state['active'] ?? [
+        ...array_map('basename', array_filter(array_keys($state['dirty']), fn (string $path): bool => str_starts_with($path, ACTIVE))),
+        ...array_map('basename', array_filter(explode("\n", git(['ls-tree', '--name-only', $state['base'], ACTIVE]) ?? ''))),
+    ];
+
+    return in_array($name, [...$activeAtStart, ...($state['seen'] ?? [])], true)
+        || (git(['log', '--format=%H', "{$state['base']}..HEAD", '--', ACTIVE.$name]) ?? '') !== '';
+}
+
+/**
+ * The names of the plans in docs/exec-plans/active/.
+ *
+ * @return list<string>
+ */
+function activePlanNames(): array
+{
+    return array_map('basename', glob(ACTIVE.'*.md') ?: []);
+}
+
+/**
+ * The template's own protected files, path by path.
+ *
+ * @return list<string>
+ */
+function protectedFiles(): array
+{
+    $files = [];
+
+    foreach (PROTECTED_FILES as $folder => $names) {
+        foreach ($names as $name) {
+            $files[] = $folder.$name;
+        }
+    }
+
+    return $files;
+}
+
+/**
+ * Whether the change to $path is protected: one of the template's own files, a
+ * lock file, or a manifest whose dependency sections changed since $base.
+ */
+function isProtectedChange(string $path, string $base): bool
+{
+    if (isset(DEPENDENCY_SECTIONS[$path])) {
+        $sections = fn (?string $json): array => array_intersect_key(is_array($decoded = json_decode((string) $json, true)) ? $decoded : [], array_flip(DEPENDENCY_SECTIONS[$path]));
+
+        return $sections(git(['show', "{$base}:{$path}"])) != $sections(is_file($path) ? (string) file_get_contents($path) : null);
+    }
+
+    return isset(LOCK_FILES[$path]) || in_array($path, protectedFiles(), true);
+}
+
+/**
+ * Whether "Approved changes" names the file, or a folder above it, as a whole
+ * path: `tests/` inside `tests/Unit/Hooks/` names nothing. A lock file and its
+ * manifest are approved together.
+ */
+function isApproved(string $path, string $approved): bool
+{
+    $manifest = LOCK_FILES[$path] ?? $path;
+    $names = [$path, $manifest, array_search($manifest, LOCK_FILES, true) ?: $manifest];
+    $parts = explode('/', $path);
+
+    for ($i = 1; $i < count($parts); $i++) {
+        $names[] = implode('/', array_slice($parts, 0, $i)).'/';
+    }
+
+    foreach (array_unique($names) as $name) {
+        if (preg_match('#(?<![\w./-])'.preg_quote($name, '#').'(?![\w-]|\.\w)#u', $approved) === 1) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Why the final review of a finished plan is not done (docs/workflow.md, step 4),
+ * or null when it is. A lane is done when its latest round holds a clean run of
+ * each of the two reviewer models, on committed code, and no code in the lane's
+ * places changed since; docs/ and *.md void nothing. There is no cap on rounds:
+ * the reason names how many rounds each open lane has had.
  *
  * @param  list<string>  $lanes
  * @param  list<array<string, mixed>>  $ledger
- * @return array{?string, list<string>}
  */
-function finalReview(string $plan, array $lanes, array $ledger): array
+function finalReview(string $plan, array $lanes, array $ledger): ?string
 {
     $runs = finalRuns($ledger, $plan);
     $open = [];
@@ -394,39 +591,23 @@ function finalReview(string $plan, array $lanes, array $ledger): array
     }
 
     if ($open === []) {
-        return [null, []];
+        return null;
     }
 
     $othersOpen = array_diff_key($open, array_flip(SCREEN_LANES)) !== [];
-    $userLanes = [];
-
-    foreach (array_keys($open) as $lane) {
-        $laneRuns = array_values(array_filter($runs, fn (array $run): bool => $run['lane'] === $lane));
-
-        // A screen lane with no round waits for the other lanes, not for the AI.
-        if ($laneRuns === [] && in_array($lane, SCREEN_LANES, true) && $othersOpen) {
-            continue;
-        }
-
-        if (! onlyForUser($laneRuns)) {
-            $userLanes = [];
-            break;
-        }
-
-        $userLanes[] = $lane;
-    }
     $list = implode('; ', array_map(
         fn (string $lane, ?string $problem): string => $lane.' ('.($problem ?? (in_array($lane, SCREEN_LANES, true) && $othersOpen ? 'starts when the other lanes are done' : 'no round yet')).')',
         array_keys($open),
         $open,
     ));
 
-    return ['Before '.$plan.' is finished, each lane it touches needs a round in which reviewer-opus and reviewer-haiku both report no P0 and no P1, on committed code that has not changed since in the lane\'s places; a later round replaces an earlier one (docs/workflow.md, step 4). Not yet: '.$list.'. Rounds so far: '.implode(', ', $rounds).'. Fix the findings, then run the next round: for each lane not done, both reviewers at the same time on the same commit, with the same round number, and look and behaviour last, when the other lanes are done (docs/prompts/review.md). '.(str_starts_with($plan, 'docs/exec-plans/active/') ? 'Move the plan to completed/ only when `php scripts/hooks/finish-check.php review '.$plan.'` prints every lane as done.' : 'The plan stays unfinished until `php scripts/hooks/finish-check.php review '.$plan.'` prints every lane as done.'), $userLanes];
+    return 'Before '.$plan.' is finished, each lane it touches needs a round in which reviewer-opus and reviewer-haiku both report no P0 and no P1, on committed code that has not changed since in the lane\'s places. Not yet: '.$list.'. Rounds so far: '.implode(', ', $rounds).'. Fix the findings and run the next round (docs/workflow.md, step 4). '
+        .(str_starts_with($plan, ACTIVE) ? 'Move the plan to completed/ only when `php scripts/hooks/finish-check.php review '.$plan.'` prints every lane as done.' : 'The plan stays unfinished until `php scripts/hooks/finish-check.php review '.$plan.'` prints every lane as done.');
 }
 
 /**
  * The ledger lines of the plan's rounds. An old line of a milestone round counts
- * for no lane: there is no review between milestones (docs/workflow.md, step 4).
+ * for no lane: there is no review between milestones.
  *
  * @param  list<array<string, mixed>>  $ledger
  * @return list<array<string, mixed>>
@@ -434,24 +615,6 @@ function finalReview(string $plan, array $lanes, array $ledger): array
 function finalRuns(array $ledger, string $plan): array
 {
     return array_values(array_filter($ledger, fn (array $run): bool => $run['lane'] !== null && ($run['milestone'] ?? false) !== true && in_array(basename($plan), $run['plans'], true)));
-}
-
-/**
- * Whether the latest round of a lane has findings, and the reviewer marked every
- * one of them for the user (docs/prompts/review.md, step 9).
- *
- * @param  list<array<string, mixed>>  $runs
- */
-function onlyForUser(array $runs): bool
-{
-    if ($runs === []) {
-        return false;
-    }
-
-    $round = max(array_column($runs, 'round'));
-    $findings = array_filter($runs, fn (array $run): bool => $run['round'] === $round && $run['p0'] + $run['p1'] > 0);
-
-    return $findings !== [] && array_filter($findings, fn (array $run): bool => ($run['user'] ?? 0) < $run['p0'] + $run['p1']) === [];
 }
 
 /**
@@ -481,43 +644,6 @@ function reviewStatus(string $stateDir, string $plan): string
     $lines[] = $done ? 'Every lane is done: the plan may move to docs/exec-plans/completed/.' : 'Do not move the plan yet: run the next round for the lanes not done (docs/workflow.md, step 4).';
 
     return implode("\n", $lines)."\n";
-}
-
-/**
- * The AI stopped a subagent with TaskStop: no SubagentStop runs for it
- * (docs/workflow.md, step 4), so its start record goes now and the next stop is checked
- * in full. A run stopped this way wrote no ledger line: it counts as not run.
- *
- * @param  array<string, mixed>  $input
- */
-function stopped(string $stateDir, array $input): string
-{
-    $task = is_array($input['tool_input'] ?? null) ? ($input['tool_input']['task_id'] ?? null) : null;
-
-    if (($input['tool_name'] ?? null) === 'TaskStop' && is_string($task) && $task !== '') {
-        @unlink(reviewRunFile($stateDir, $task));
-    }
-
-    return '';
-}
-
-/**
- * The reviewer runs of this conversation that started and have not stopped yet
- * (a start record of reviewing() that reviewed() has not removed).
- */
-function runningReviews(string $stateDir, string $sessionKey): int
-{
-    $running = 0;
-
-    foreach (glob("{$stateDir}/".REVIEW_RUN.'*.json') ?: [] as $file) {
-        $run = json_decode((string) @file_get_contents($file), true);
-
-        if (is_array($run) && ($run['session'] ?? null) === $sessionKey && is_numeric($run['started'] ?? null) && microtime(true) - (float) $run['started'] < REVIEW_RUN_MAX_SECONDS) {
-            $running++;
-        }
-    }
-
-    return $running;
 }
 
 /**
@@ -553,55 +679,12 @@ function laneProblem(string $lane, array $runs): string|false|null
 }
 
 /**
- * A reviewer subagent started: remember the untracked files that were already
- * there, so that only what the run itself saves is held against it, and whether
- * the code was all committed (docs/workflow.md, step 4).
- *
- * @param  array<string, mixed>  $input
- */
-function reviewing(string $stateDir, string $session, array $input): string
-{
-    $agent = reviewerRun($input);
-
-    if ($agent !== null) {
-        writeReviewRun($stateDir, $agent, [
-            // Which conversation waits for this run, and since when (docs/workflow.md, step 3).
-            'session' => sha1($session),
-            'started' => microtime(true),
-            'untracked' => untrackedFiles(),
-            'clean' => array_filter(changedSince(null), 'isCodePath') === [],
-        ]);
-    }
-
-    return '';
-}
-
-/**
- * A reviewer handed its report back with the SubagentHandback tool. The report is
- * the tool's input; the subagent's last message then holds only closing text, and
- * its transcript may not be written yet when it stops.
- *
- * @param  array<string, mixed>  $input
- */
-function handback(string $stateDir, array $input): string
-{
-    $agent = reviewerRun($input);
-    $message = is_array($input['tool_input'] ?? null) ? ($input['tool_input']['message'] ?? null) : null;
-
-    if ($agent !== null && ($input['tool_name'] ?? null) === 'SubagentHandback' && is_string($message)) {
-        writeReviewRun($stateDir, $agent, [...readReviewRun($stateDir, $agent), 'handback' => $message]);
-    }
-
-    return '';
-}
-
-/**
- * A reviewer subagent stopped: write its ledger line, once per run. The result line
- * is read from the last message, else from the report the run handed back. A
- * reviewer that left it out is sent back once to add it; a run without one counts
- * as not run. The untracked files that appeared during the run are its leftovers
- * (docs/workflow.md, step 4): they void nothing, and the reviewer is sent back once
- * to delete them; files that were there before it started are never named.
+ * A reviewer subagent stopped: write its ledger line. The result line is read
+ * from its last message, else from the report it handed back with the
+ * SubagentHandback tool (a subagent that ran in the background). A reviewer that
+ * left it out is sent back once to add it; a run without one counts as not run.
+ * The code counts as committed when no code was left uncommitted at its end: the
+ * builder waits for its reviewers, so nothing changed the code during the run.
  *
  * @param  array<string, mixed>  $input
  */
@@ -614,120 +697,54 @@ function reviewed(string $stateDir, string $session, array $input): string
         return '';
     }
 
-    $id = reviewerRun($input);
-    $run = $id === null ? [] : readReviewRun($stateDir, $id);
     $again = ($input['stop_hook_active'] ?? false) === true;
+    $transcript = $input['agent_transcript_path'] ?? null;
     $report = is_string($input['last_assistant_message'] ?? null) ? $input['last_assistant_message'] : '';
     $result = reviewResult($report);
 
     if ($result === null) {
-        $report = is_string($run['handback'] ?? null) ? $run['handback'] : '';
+        $report = handedBack($transcript) ?? '';
         $result = reviewResult($report);
     }
 
     if ($result === null && ! $again) {
-        return json_encode(['decision' => 'block', 'reason' => 'End your answer with the result line of docs/prompts/review.md as its last line: RESULT lane=<lane> round=<n> P0=<count> P1=<count> user=<count>, with one of the lanes '.implode(', ', array_keys(REVIEW_LANES)).', and in lane '.WALK_LANE.' unwalked=<count> after it. Without it this run counts as not run.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
+        return json_encode(['decision' => 'block', 'reason' => 'End your answer with the result line of docs/prompts/review.md as its last line: RESULT lane=<lane> round=<n> P0=<count> P1=<count>, with one of the lanes '.implode(', ', array_keys(REVIEW_LANES)).', and in lane '.WALK_LANE.' unwalked=<count> after it. Without it this run counts as not run.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
 
     if (($result['lane'] ?? null) === WALK_LANE && $result['unwalked'] === null && ! $again) {
-        return json_encode(['decision' => 'block', 'reason' => 'In lane '.WALK_LANE.' the result line ends with the number of items of the walk you did not walk: RESULT lane='.WALK_LANE.' round=<n> P0=<count> P1=<count> user=<count> unwalked=<count>. Above it, one line per item: "W1 walked", or "W1 not walked: <reason>" (docs/prompts/review.md, step 7). Add them; a run with an item not walked counts as not run.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
+        return json_encode(['decision' => 'block', 'reason' => 'In lane '.WALK_LANE.' the result line ends with the number of items of the walk you did not walk: RESULT lane='.WALK_LANE.' round=<n> P0=<count> P1=<count> unwalked=<count>. Above it, one line per item: "W1 walked", or "W1 not walked: <reason>" (docs/prompts/review.md). Add them; a run with an item not walked counts as not run.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
 
-    $plans = requestPlans($input['agent_transcript_path'] ?? null) ?? array_map('basename', glob('docs/exec-plans/active/*.md') ?: []);
+    $plans = requestPlans($transcript) ?? activePlanNames();
+    $line = [
+        'time' => microtime(true),
+        'session' => sha1($session),
+        'reviewer' => $agent,
+        'model' => transcriptModel($transcript) ?? $reviewers[$agent],
+        'lane' => $result['lane'] ?? null,
+        'round' => $result['round'] ?? 0,
+        'p0' => $result['p0'] ?? 0,
+        'p1' => $result['p1'] ?? 0,
+        ...(($result['lane'] ?? null) === WALK_LANE ? ['unwalked' => unwalkedItems($stateDir, $result['unwalked'], $report, $plans)] : []),
+        'head' => git(['rev-parse', 'HEAD']) ?? '',
+        'committed' => array_filter(changedSince(null), 'isCodePath') === [],
+        'fingerprint' => fingerprint(),
+        // The plan the request names, also one already in completed/; without a
+        // readable request, the plans in active/ (docs/workflow.md, step 5).
+        'plans' => $plans,
+    ];
 
-    // Without a start record nothing tells the reviewer's files from the user's own.
-    $saved = is_array($run['untracked'] ?? null) ? array_values(array_diff(untrackedFiles(), $run['untracked'])) : [];
-
-    if (($run['recorded'] ?? false) !== true) {
-        $line = [
-            'time' => microtime(true),
-            'session' => sha1($session),
-            'reviewer' => $agent,
-            'model' => transcriptModel($input['agent_transcript_path'] ?? null) ?? $reviewers[$agent],
-            'lane' => $result['lane'] ?? null,
-            'round' => $result['round'] ?? 0,
-            'p0' => $result['p0'] ?? 0,
-            'p1' => $result['p1'] ?? 0,
-            'user' => $result['user'] ?? 0,
-            ...(($result['lane'] ?? null) === WALK_LANE ? ['unwalked' => unwalkedItems($result['unwalked'], $report, $plans)] : []),
-            'head' => git(['rev-parse', 'HEAD']) ?? '',
-            // The commit is what was reviewed only when no code was left uncommitted,
-            // at the run's start and at its end; the files this run saved are its
-            // leftovers, not code it reviewed.
-            'committed' => ($run['clean'] ?? true) === true && array_filter(array_diff(changedSince(null), $saved), 'isCodePath') === [],
-            'fingerprint' => fingerprint(),
-            // The plan the request names, also one already in completed/; without a
-            // readable request, the plans in active/ (docs/workflow.md, step 5).
-            'plans' => $plans,
-        ];
-
-        if (@file_put_contents("{$stateDir}/".REVIEW_LEDGER, json_encode($line, JSON_OUTPUT | JSON_THROW_ON_ERROR)."\n", FILE_APPEND | LOCK_EX) === false) {
-            throw new RuntimeException('cannot write the review ledger');
-        }
-    }
-
-    if ($saved !== [] && ! $again && $id !== null) {
-        writeReviewRun($stateDir, $id, [...$run, 'recorded' => true]);
-
-        return json_encode(['decision' => 'block', 'reason' => 'Delete the files you saved during this review: '.implode(', ', $saved).'. Take screenshots without a filename (docs/prompts/review.md, step 7), and delete nothing else. Then stop again; your review is already recorded.'], JSON_OUTPUT | JSON_THROW_ON_ERROR);
-    }
-
-    if ($id !== null) {
-        @unlink(reviewRunFile($stateDir, $id));
+    if (@file_put_contents("{$stateDir}/".REVIEW_LEDGER, json_encode($line, JSON_OUTPUT | JSON_THROW_ON_ERROR)."\n", FILE_APPEND | LOCK_EX) === false) {
+        throw new RuntimeException('cannot write the review ledger');
     }
 
     return '';
 }
 
 /**
- * The subagent id of a reviewer run, or null when the hook is not for a reviewer.
- *
- * @param  array<string, mixed>  $input
- */
-function reviewerRun(array $input): ?string
-{
-    $agent = $input['agent_id'] ?? null;
-
-    return is_string($input['agent_type'] ?? null) && isset(reviewerModels()[$input['agent_type']]) && is_string($agent) && $agent !== '' ? $agent : null;
-}
-
-function reviewRunFile(string $stateDir, string $agent): string
-{
-    return "{$stateDir}/".REVIEW_RUN.sha1($agent).'.json';
-}
-
-/**
- * @return array<string, mixed>
- */
-function readReviewRun(string $stateDir, string $agent): array
-{
-    $run = json_decode((string) @file_get_contents(reviewRunFile($stateDir, $agent)), true);
-
-    return is_array($run) ? $run : [];
-}
-
-/**
- * @param  array<string, mixed>  $run
- */
-function writeReviewRun(string $stateDir, string $agent, array $run): void
-{
-    writeFile(reviewRunFile($stateDir, $agent), json_encode($run, JSON_OUTPUT | JSON_THROW_ON_ERROR));
-}
-
-/**
- * The untracked files git does not ignore.
- *
- * @return list<string>
- */
-function untrackedFiles(): array
-{
-    return array_values(array_filter(explode("\n", git(['ls-files', '--others', '--exclude-standard']) ?? '')));
-}
-
-/**
  * The lane, round and counts of a reviewer's last line, or null when it has none.
  *
- * @return array{lane: string, round: int, p0: int, p1: int, user: int, unwalked: ?int}|null
+ * @return array{lane: string, round: int, p0: int, p1: int, unwalked: ?int}|null
  */
 function reviewResult(string $message): ?array
 {
@@ -737,25 +754,45 @@ function reviewResult(string $message): ?array
         return null;
     }
 
-    return ['lane' => $match[1], 'round' => (int) $match[2], 'p0' => (int) $match[3], 'p1' => (int) $match[4], 'user' => min((int) ($match[5] ?? 0), (int) $match[3] + (int) $match[4]), 'unwalked' => ($match[6] ?? '') === '' ? null : (int) $match[6]];
+    return ['lane' => $match[1], 'round' => (int) $match[2], 'p0' => (int) $match[3], 'p1' => (int) $match[4], 'unwalked' => ($match[5] ?? '') === '' ? null : (int) $match[5]];
+}
+
+/**
+ * The report the subagent handed back last with the SubagentHandback tool, from
+ * its transcript, or null.
+ */
+function handedBack(mixed $path): ?string
+{
+    $report = null;
+
+    foreach (transcriptEntries($path) as $entry) {
+        foreach (is_array($entry['message']['content'] ?? null) ? $entry['message']['content'] : [] as $block) {
+            if (is_array($block) && ($block['type'] ?? null) === 'tool_use' && ($block['name'] ?? null) === 'SubagentHandback' && is_string($block['input']['message'] ?? null)) {
+                $report = $block['input']['message'];
+            }
+        }
+    }
+
+    return $report;
 }
 
 /**
  * How many items a behaviour run did not walk (docs/workflow.md, step 4): the
- * count of its result line, or more when the plan has a walk list and the report
- * has no `W<k> walked` line for an item of it. Without a count and without a list,
- * nothing shows that the walk was complete, so it counts as one item not walked.
+ * count of its result line, or more when the plan as approved has a walk list
+ * and the report has no `W<k> walked` line for an item of it. Without a count and
+ * without a list, nothing shows that the walk was complete, so it counts as one
+ * item not walked.
  *
  * @param  list<string>  $plans
  */
-function unwalkedItems(?int $declared, string $report, array $plans): int
+function unwalkedItems(string $stateDir, ?int $declared, string $report, array $plans): int
 {
     $items = [];
 
     foreach ($plans as $name) {
-        foreach (["docs/exec-plans/active/{$name}", "docs/exec-plans/completed/{$name}"] as $path) {
-            if ($items === [] && is_file($path)) {
-                preg_match_all(WALK_ITEM, sections((string) file_get_contents($path))['Validation'] ?? '', $match);
+        foreach ([snapshot($stateDir, $name), @file_get_contents(ACTIVE.$name), @file_get_contents(COMPLETED.$name)] as $plan) {
+            if ($items === [] && is_string($plan)) {
+                preg_match_all(WALK_ITEM, sections($plan)['Validation'] ?? '', $match);
                 $items = array_values(array_unique($match[1]));
             }
         }
@@ -788,6 +825,20 @@ function reviewerModels(): array
 }
 
 /**
+ * The entries of a subagent's transcript, one JSON object per line.
+ *
+ * @return list<array<string, mixed>>
+ */
+function transcriptEntries(mixed $path): array
+{
+    if (! is_string($path) || ! is_file($path)) {
+        return [];
+    }
+
+    return array_values(array_filter(array_map(fn (string $line): mixed => json_decode($line, true), explode("\n", (string) file_get_contents($path))), 'is_array'));
+}
+
+/**
  * The plan named by the request that started a subagent: the first message of its
  * transcript, by file name (docs/workflow.md, step 5); null when it names none.
  *
@@ -795,27 +846,18 @@ function reviewerModels(): array
  */
 function requestPlans(mixed $path): ?array
 {
-    $handle = is_string($path) && is_file($path) ? @fopen($path, 'r') : false;
-
-    if ($handle === false) {
-        return null;
-    }
-
-    $request = null;
-
-    while ($request === null && ($line = fgets($handle)) !== false) {
-        $entry = json_decode($line, true);
-        $message = is_array($entry) && is_array($entry['message'] ?? null) ? $entry['message'] : [];
+    foreach (transcriptEntries($path) as $entry) {
+        $message = is_array($entry['message'] ?? null) ? $entry['message'] : [];
 
         if (($message['role'] ?? null) === 'user') {
             $content = $message['content'] ?? '';
             $request = is_string($content) ? $content : implode("\n", array_map(fn (mixed $block): string => is_array($block) && is_string($block['text'] ?? null) ? $block['text'] : '', is_array($content) ? $content : []));
+
+            return preg_match(REQUEST_PLAN, $request, $match) === 1 ? [$match[1]] : null;
         }
     }
 
-    fclose($handle);
-
-    return $request !== null && preg_match(REQUEST_PLAN, $request, $match) === 1 ? [$match[1]] : null;
+    return null;
 }
 
 /**
@@ -824,15 +866,10 @@ function requestPlans(mixed $path): ?array
  */
 function transcriptModel(mixed $path): ?string
 {
-    if (! is_string($path) || ! is_file($path)) {
-        return null;
-    }
-
     $model = null;
 
-    foreach (explode("\n", (string) file_get_contents($path)) as $line) {
-        $entry = json_decode($line, true);
-        $message = is_array($entry) && is_array($entry['message'] ?? null) ? $entry['message'] : [];
+    foreach (transcriptEntries($path) as $entry) {
+        $message = is_array($entry['message'] ?? null) ? $entry['message'] : [];
 
         if (($message['role'] ?? null) === 'assistant' && is_string($message['model'] ?? null) && str_starts_with($message['model'], 'claude-')) {
             $model = $message['model'];
@@ -845,9 +882,9 @@ function transcriptModel(mixed $path): ?string
 /**
  * The ledger's lines, oldest first; a line that is not a ledger line is left out.
  * An older line may carry `milestone` (a milestone round, which docs/workflow.md
- * step 4 no longer has).
+ * no longer has) or `user` (findings marked for the user, which it no longer has).
  *
- * @return list<array{session: string, reviewer: string, model: string, lane: ?string, round: int, milestone?: bool, p0: int, p1: int, user?: int, unwalked?: int, head: string, committed: bool, fingerprint: string, plans: list<string>}>
+ * @return list<array{session: string, reviewer: string, model: string, lane: ?string, round: int, milestone?: bool, p0: int, p1: int, unwalked?: int, head: string, committed: bool, fingerprint: string, plans: list<string>}>
  */
 function readLedger(string $stateDir): array
 {
@@ -919,7 +956,7 @@ function touchedLanes(array $paths): array
 function planChanges(string $plan, array $changed): array
 {
     $name = basename($plan);
-    $added = array_filter(explode("\n", git(['log', '--format=%H', '--diff-filter=A', '--', "docs/exec-plans/active/{$name}", "docs/exec-plans/completed/{$name}"]) ?? ''));
+    $added = array_filter(explode("\n", git(['log', '--format=%H', '--diff-filter=A', '--', ACTIVE.$name, COMPLETED.$name]) ?? ''));
 
     if ($added === []) {
         return $changed;
@@ -932,142 +969,24 @@ function planChanges(string $plan, array $changed): array
 }
 
 /**
- * Closing work needs real full validation across sessions. Remember a refused
- * archive so the next session cannot mistake it for an accepted historical plan.
+ * What Claude Code reads on stdout when the AI is about to stop; nothing lets it stop.
  *
- * @param  list<string>  $plans
- * @param  array<string, mixed>  $state
- * @return list<string>
+ * @param  list<string>  $send  reasons that send the AI back, one line each
+ * @param  list<string>  $released  steps the AI stops without, for the user
  */
-function finalPlanPaths(array $plans, array $state, string $stateDir, bool $checked): array
-{
-    $file = "{$stateDir}/pending-plans.json";
-    $pending = $before = readJson($file);
-    $final = [];
-    foreach ($plans as $plan) {
-        $name = basename($plan);
-        $active = str_starts_with($plan, 'docs/exec-plans/active/');
-        $historical = isset($state['completedPlans'])
-            ? in_array($plan, $state['completedPlans'], true)
-            : (array_key_exists($plan, $state['dirty']) || git(['cat-file', '-e', "{$state['base']}:{$plan}"]) !== null);
-        $finishing = $active ? allMilestonesTicked((string) file_get_contents($plan)) : (! $historical || isset($pending[$name]));
-        if ($finishing) {
-            $final[] = $plan;
-        }
-        if ($finishing && ! $checked) {
-            $pending[$name] = true;
-        } elseif ($checked || $active) {
-            unset($pending[$name]);
-        }
-    }
-    if ($pending !== $before) {
-        CheckRun::write($file, $pending);
-    }
-
-    return $final;
-}
-
-/**
- * What one plan of this conversation is missing.
- *
- * @return array<string, array{string, string}>
- */
-function planSteps(string $plan, bool $checked): array
-{
-    $markdown = (string) file_get_contents($plan);
-    $steps = [];
-    $empty = emptySections($markdown);
-
-    // Code follows what the plan agreed, so a plan that still holds the template agrees nothing.
-    if ($empty !== []) {
-        $steps["empty:{$plan}"] = ["fill in {$plan}", "{$plan} is not filled in (empty: ".implode(', ', $empty).'). Fill the plan in (docs/workflow.md, step 2, and docs/PLANS.md): what the user gets, every answer from the grilling, the milestones.'];
-    }
-
-    // Every milestone done and checked: what is left is the review and the report.
-    if (str_starts_with($plan, 'docs/exec-plans/active/') && $checked && allMilestonesTicked($markdown)) {
-        $steps["finish:{$plan}"] = ["finish {$plan} and move it to completed/", "Every milestone in {$plan} is ticked and composer check passed. Fill in Outcomes & Retrospective and move the plan to docs/exec-plans/completed/ (docs/workflow.md, steps 4 and 5: the review rounds come first)."];
-    }
-
-    // A completed plan records the check results, the review rounds and the outcome.
-    $missing = str_starts_with($plan, 'docs/exec-plans/completed/') ? missingRecords($markdown) : [];
-
-    if ($missing !== []) {
-        $steps["completed:{$plan}"] = ["complete the records in {$plan}", "{$plan} is complete but has ".implode(', ', $missing).'. Fill them in (docs/workflow.md, steps 3 to 5).'];
-    }
-
-    return $steps;
-}
-
-/**
- * What the AI tool reads on stdout when the AI is about to stop; nothing lets it stop.
- *
- * @param  list<string>  $send  reasons that send the AI back
- * @param  list<string>  $skipped  steps the AI stops without, for the user
- */
-function stopOutput(array $send, array $skipped): string
+function stopOutput(array $send, array $released): string
 {
     $output = [];
 
     if ($send !== []) {
-        $lines = array_map(fn (string $reason, int $i): string => ($i + 1).'. '.$reason, $send, array_keys($send));
-        $output = ['decision' => 'block', 'reason' => "Before you stop (docs/golden-principles.md, principle 9):\n".implode("\n", $lines)];
+        $output = ['decision' => 'block', 'reason' => "Before you stop:\n".implode("\n", array_map(fn (string $reason): string => "- {$reason}", $send))];
     }
 
-    if ($skipped !== []) {
-        $output['systemMessage'] = 'The finish check sent these steps back '.MAX_BLOCKS.' times and let the AI stop without them: '.implode('; ', $skipped).'. The next conversation is told about them.';
+    if ($released !== []) {
+        $output['systemMessage'] = 'The finish check let the AI stop without: '.implode('; ', $released).'.';
     }
 
     return $output === [] ? '' : json_encode($output, JSON_OUTPUT | JSON_THROW_ON_ERROR);
-}
-
-/**
- * Keeps the steps this conversation stops without in open.json, shared by every
- * conversation in this worktree, until the next one starts. A step done later in
- * the same conversation drops out at its next stop.
- *
- * @param  list<string>  $reasons
- */
-function recordOpenSteps(string $stateDir, string $sessionKey, array $reasons): void
-{
-    $file = "{$stateDir}/open.json";
-    $open = readJson($file);
-
-    if ($reasons === [] && ! isset($open[$sessionKey])) {
-        return;
-    }
-
-    unset($open[$sessionKey]);
-
-    if ($reasons !== []) {
-        $open[$sessionKey] = $reasons;
-    }
-
-    writeFile($file, json_encode($open, JSON_THROW_ON_ERROR));
-}
-
-/**
- * The steps earlier conversations stopped without, as context for the AI, once.
- */
-function takeOpenSteps(string $stateDir): string
-{
-    $file = "{$stateDir}/open.json";
-    $reasons = [];
-
-    foreach (readJson($file) as $sessionReasons) {
-        $reasons = [...$reasons, ...array_filter(is_array($sessionReasons) ? $sessionReasons : [], 'is_string')];
-    }
-
-    if (is_file($file) && ! unlink($file)) {
-        throw new RuntimeException("cannot remove {$file}");
-    }
-
-    if ($reasons === []) {
-        return '';
-    }
-
-    $lines = array_map(fn (string $reason): string => "- {$reason}", array_values(array_unique($reasons)));
-
-    return "The previous conversation stopped with these steps missing (docs/golden-principles.md, principle 9):\n".implode("\n", $lines)."\nTell the user about them before you start on anything else.\n";
 }
 
 /**
@@ -1133,36 +1052,31 @@ function readSession(string $file): ?array
     $state = readJson($file);
     $base = $state['base'] ?? null;
 
-    return is_string($base) && $base !== '' && git(['cat-file', '-e', "{$base}^{commit}"]) !== null ? $state : null;
+    return is_string($base) && $base !== '' && git(['cat-file', '-e', "{$base}^{commit}"]) !== null && is_array($state['dirty'] ?? null) ? $state : null;
 }
 
 /**
  * Where a conversation starts: the commit, the files already changed (with their
- * content), the Decision Logs of plans not yet committed, and the tech-debt lines.
+ * content), and the plans in active/ and completed/.
  *
  * @return array<string, mixed>
  */
 function newSession(): array
 {
     $dirty = [];
-    $logs = [];
 
     foreach (changedSince(null) as $path) {
         $dirty[$path] = contentHash($path);
-
-        // The start commit does not have these lines yet, so they are remembered here.
-        if (preg_match(PLAN_PATH, $path) === 1 && is_file($path)) {
-            $logs[$path] = decisionLines((string) file_get_contents($path));
-        }
     }
 
     return [
         'base' => git(['rev-parse', 'HEAD']) ?? '',
         'dirty' => $dirty,
-        'logs' => $logs,
-        'completedPlans' => glob('docs/exec-plans/completed/*.md') ?: [],
-        'debt' => debtRows((string) @file_get_contents('docs/exec-plans/tech-debt.md')),
+        'active' => activePlanNames(),
+        'completedPlans' => glob(COMPLETED.'*.md') ?: [],
+        'seen' => [],
         'blocks' => [],
+        'told' => false,
     ];
 }
 
@@ -1257,76 +1171,6 @@ function isOneLineChange(string $base, array $code): bool
 }
 
 /**
- * @return list<string>
- */
-function debtRows(string $markdown): array
-{
-    return array_values(array_filter(array_map('trim', explode("\n", $markdown)), fn (string $line): bool => preg_match('/^\|\s*20\d\d-/', $line) === 1));
-}
-
-function isProtected(string $path): bool
-{
-    foreach (PROTECTED_PATHS as $protected) {
-        if ($path === $protected || (str_ends_with($protected, '/') && str_starts_with($path, $protected))) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- * Decision Log lines written in this conversation: lines the plan did not have at
- * the start, in active/ or completed/ (moving a plan makes none of its lines new).
- *
- * @param  array<string, mixed>  $state
- * @param  list<string>  $plans
- * @return list<string>
- */
-function newDecisions(array $state, array $plans): array
-{
-    $new = [];
-
-    foreach ($plans as $plan) {
-        $name = substr($plan, (int) strrpos($plan, '/') + 1);
-        $before = [];
-
-        foreach (["docs/exec-plans/active/{$name}", "docs/exec-plans/completed/{$name}"] as $path) {
-            // A plan not yet committed at the start was remembered then; otherwise the start commit has it.
-            $before = [...$before, ...($state['logs'][$path] ?? decisionLines((string) git(['show', "{$state['base']}:{$path}"])))];
-        }
-
-        $new = [...$new, ...array_diff(decisionLines((string) file_get_contents($plan)), $before)];
-    }
-
-    return $new;
-}
-
-/**
- * @return list<string>
- */
-function decisionLines(string $plan): array
-{
-    return array_values(array_filter(array_map('trim', explode("\n", sections($plan)['Decision Log'] ?? '')), fn (string $line): bool => $line !== ''));
-}
-
-/**
- * Whether the AI stops to ask the user about these files: its message ends with a
- * question and names each of them. A question asked earlier in a longer message
- * does not wait for the answer.
- *
- * @param  list<string>  $paths
- */
-function isAskingAbout(string $message, array $paths): bool
-{
-    $lines = array_values(array_filter(array_map('trim', explode("\n", $message)), fn (string $line): bool => $line !== ''));
-    $last = $lines === [] ? '' : $lines[count($lines) - 1];
-
-    return (str_ends_with($last, '?') || str_ends_with($last, '？'))
-        && array_filter($paths, fn (string $path): bool => ! str_contains($message, $path)) === [];
-}
-
-/**
  * The PLAN_ESSENTIALS sections that hold nothing but the template of docs/PLANS.md
  * or its <placeholders>.
  *
@@ -1369,36 +1213,9 @@ function isIntermediatePlan(string $path): bool
     $plan = (string) file_get_contents($path);
     $milestones = sections($plan)['Milestones'] ?? '';
 
-    return str_starts_with($path, 'docs/exec-plans/active/') && emptySections($plan) === []
+    return str_starts_with($path, ACTIVE) && emptySections($plan) === []
         && preg_match('/^\s*[-*+]\s+\[[xX]\]/m', $milestones) === 1
         && preg_match('/^\s*[-*+]\s+\[ \]/m', $milestones) === 1;
-}
-
-/**
- * What a completed plan is missing.
- *
- * @return list<string>
- */
-function missingRecords(string $plan): array
-{
-    $sections = sections($plan);
-
-    $progress = $sections['Progress'] ?? '';
-    $missing = [];
-
-    if (preg_match('/\bcomposer check(?![:\w-])/i', $progress) !== 1) {
-        $missing[] = 'no composer check result in Progress';
-    }
-
-    if (stripos($progress, 'review') === false) {
-        $missing[] = 'no review round in Progress';
-    }
-
-    if (mb_strlen(preg_replace('/<[^>]*>/', '', $sections['Outcomes & Retrospective'] ?? '') ?? '') < 20) {
-        $missing[] = 'an empty Outcomes & Retrospective';
-    }
-
-    return $missing;
 }
 
 /**

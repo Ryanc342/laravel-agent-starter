@@ -76,7 +76,7 @@ function ledgerStop(string $repo, string $session = 'conversation'): string
 /**
  * A reviewer subagent stops after one run; its transcript names the model that answered.
  */
-function ledgerReview(string $repo, string $reviewer, string $lane, int|string $round, int $p0 = 0, int $p1 = 0, string $session = 'conversation', int $user = 0): string
+function ledgerReview(string $repo, string $reviewer, string $lane, int|string $round, int $p0 = 0, int $p1 = 0, string $session = 'conversation'): string
 {
     $model = $reviewer === 'reviewer-opus' ? 'claude-opus-5-5' : 'claude-haiku-5-5';
     $transcript = "{$repo}/../".basename($repo)."-{$reviewer}-{$round}.jsonl";
@@ -88,28 +88,12 @@ function ledgerReview(string $repo, string $reviewer, string $lane, int|string $
         'hook_event_name' => 'SubagentStop',
         'agent_type' => $reviewer,
         'agent_transcript_path' => $transcript,
-        'last_assistant_message' => "[P1] app/x.php:1 a finding\n\nRESULT lane={$lane} round={$round} P0={$p0} P1={$p1}".($user > 0 || $lane === 'behaviour' ? " user={$user}" : '').($lane === 'behaviour' ? ' unwalked=0' : ''),
+        'last_assistant_message' => "[P1] app/x.php:1 a finding\n\nRESULT lane={$lane} round={$round} P0={$p0} P1={$p1}".($lane === 'behaviour' ? ' unwalked=0' : ''),
     ]);
 }
 
 /**
- * A reviewer subagent starts (SubagentStart).
- */
-function ledgerStart(string $repo, string $reviewer, string $agent): string
-{
-    return ledgerHook($repo, 'reviewing', ['hook_event_name' => 'SubagentStart', 'agent_type' => $reviewer, 'agent_id' => $agent]);
-}
-
-/**
- * A reviewer subagent hands its report back with the SubagentHandback tool (PostToolUse).
- */
-function ledgerHandback(string $repo, string $reviewer, string $agent, string $message): string
-{
-    return ledgerHook($repo, 'handback', ['hook_event_name' => 'PostToolUse', 'agent_type' => $reviewer, 'agent_id' => $agent, 'tool_name' => 'SubagentHandback', 'tool_input' => ['message' => $message]]);
-}
-
-/**
- * The reviewer subagent stops (SubagentStop); after a handback its last message holds only closing text.
+ * The reviewer subagent stops (SubagentStop).
  *
  * @param  array<string, mixed>  $input
  */
@@ -210,94 +194,28 @@ test('a reviewer that leaves out the result line is sent back once, then its run
         ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'model' => 'haiku', 'lane' => null]);
 });
 
-test('a report handed back with SubagentHandback writes the ledger line', function () {
+test('a report handed back with the SubagentHandback tool is read from the transcript', function () {
     $repo = ledgerRepo();
-    ledgerStart($repo, 'reviewer-haiku', 'a1');
+    $transcript = "{$repo}/../".basename($repo).'-handback.jsonl';
+    file_put_contents($transcript, implode("\n", [
+        json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'tool_use', 'name' => 'SubagentHandback', 'input' => ['message' => "[P1] app/x.php:1 a finding\n\nRESULT lane=input round=2 P0=0 P1=1"]]]]]),
+        json_encode(['type' => 'assistant', 'message' => ['model' => 'claude-haiku-5-5', 'role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'Handed back.']]]]),
+    ])."\n");
+    register_shutdown_function(fn () => @unlink($transcript));
 
-    expect(ledgerHandback($repo, 'reviewer-haiku', 'a1', "[P1] app/x.php:1 a finding\n\nRESULT lane=input round=2 P0=0 P1=1"))->toBe('')
-        ->and(ledgerStopped($repo, 'reviewer-haiku', 'a1'))->toBe('')
+    expect(ledgerStopped($repo, 'reviewer-haiku', 'a1', ['agent_transcript_path' => $transcript, 'last_assistant_message' => 'Handed back.']))->toBe('')
         ->and(ledgerLines($repo))->toHaveCount(1)
         ->and(ledgerLines($repo)[0])->toMatchArray(['reviewer' => 'reviewer-haiku', 'lane' => 'input', 'round' => 2, 'p0' => 0, 'p1' => 1, 'committed' => true]);
 });
 
-test('only the handback of the same reviewer run counts', function () {
-    $repo = ledgerRepo();
-    ledgerHandback($repo, 'reviewer-opus', 'a1', 'RESULT lane=input round=1 P0=0 P1=0');
-    ledgerHandback($repo, 'explorer', 'a2', 'RESULT lane=input round=1 P0=0 P1=0');
-
-    expect(json_decode(ledgerStopped($repo, 'reviewer-opus', 'a2'), true)['reason'] ?? '')->toContain('RESULT lane=<lane> round=<n> P0=<count> P1=<count>')
-        ->and(ledgerLines($repo))->toBe([]);
-});
-
-test('a reviewer that saved files during its run is sent back once to delete them, and only those', function () {
-    $repo = ledgerRepo();
-    ledgerWrite($repo, 'mine.png', 'png');
-    ledgerStart($repo, 'reviewer-haiku', 'a1');
-    ledgerWrite($repo, 'tasks-index-desktop.png', 'png');
-    ledgerWrite($repo, 'notes.txt', 'text');
-    ledgerHandback($repo, 'reviewer-haiku', 'a1', 'RESULT lane=look round=2 P0=0 P1=0');
-
-    $reason = json_decode(ledgerStopped($repo, 'reviewer-haiku', 'a1'), true)['reason'] ?? '';
-
-    expect($reason)->toContain('tasks-index-desktop.png')->toContain('notes.txt')->not->toContain('mine.png')
-        ->and(ledgerLines($repo))->toHaveCount(1)
-        ->and(ledgerLines($repo)[0])->toMatchArray(['lane' => 'look', 'round' => 2]);
-
-    expect(ledgerStopped($repo, 'reviewer-haiku', 'a1', ['stop_hook_active' => true]))->toBe('')
-        ->and(ledgerLines($repo))->toHaveCount(1);
-});
-
-test('a run that leaves a new untracked file in a clean tree is recorded as committed code', function () {
+test('code left uncommitted when the reviewer stops is recorded as uncommitted', function (string $path) {
     $repo = ledgerFinishedPlan();
-    ledgerStart($repo, 'reviewer-haiku', 'a1');
-    ledgerWrite($repo, 'style-snapshot.yml', 'snapshot');
-    ledgerHandback($repo, 'reviewer-haiku', 'a1', 'RESULT lane=behaviour round=2 P0=0 P1=0 user=0 unwalked=0');
+    ledgerWrite($repo, $path, LEDGER_CODE."\$d = 4;\n");
 
-    $reason = json_decode(ledgerStopped($repo, 'reviewer-haiku', 'a1'), true)['reason'] ?? '';
-
-    expect($reason)->toContain('style-snapshot.yml')
-        ->and(ledgerLines($repo)[0])->toMatchArray(['lane' => 'behaviour', 'committed' => true]);
-});
-
-test('a tracked change during the run, or a file untracked before it, is recorded as uncommitted code and never named to the reviewer', function (bool $before) {
-    $repo = ledgerFinishedPlan();
-
-    if ($before) {
-        ledgerWrite($repo, 'app/Actions/Quotes/RejectQuote.php', LEDGER_CODE);
-    }
-
-    ledgerStart($repo, 'reviewer-opus', 'a1');
-
-    if (! $before) {
-        ledgerWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', LEDGER_CODE."\$d = 4;\n");
-    }
-
-    ledgerHandback($repo, 'reviewer-opus', 'a1', 'RESULT lane=business round=1 P0=0 P1=0');
-
-    expect(ledgerStopped($repo, 'reviewer-opus', 'a1'))->toBe('')
+    expect(ledgerStopped($repo, 'reviewer-opus', 'a1', ['last_assistant_message' => 'RESULT lane=business round=1 P0=0 P1=0']))->toBe('')
         ->and(ledgerLines($repo)[0])->toMatchArray(['lane' => 'business', 'committed' => false])
-        ->and(is_file("{$repo}/app/Actions/Quotes/".($before ? 'RejectQuote.php' : 'AcceptQuote.php')))->toBeTrue();
-})->with(['a file untracked before the run' => [true], 'a tracked change during the run' => [false]]);
-
-test('code uncommitted at the run\'s start voids the round, even when it is committed before the run stops', function (string $path) {
-    $repo = ledgerFinishedPlan();
-    ledgerWrite($repo, $path, LEDGER_CODE."\$e = 5;\n");
-    ledgerStart($repo, 'reviewer-opus', 'a1');
-    ledgerCommit($repo);
-    ledgerHandback($repo, 'reviewer-opus', 'a1', 'RESULT lane=business round=1 P0=0 P1=0');
-
-    expect(ledgerStopped($repo, 'reviewer-opus', 'a1'))->toBe('')
-        ->and(ledgerLines($repo)[0])->toMatchArray(['lane' => 'business', 'committed' => false]);
+        ->and(is_file("{$repo}/{$path}"))->toBeTrue();
 })->with(['a tracked change' => ['app/Actions/Quotes/AcceptQuote.php'], 'a new code file' => ['app/Actions/Quotes/RejectQuote.php']]);
-
-test('without a start record of the run no image is held against the reviewer', function () {
-    $repo = ledgerRepo();
-    ledgerWrite($repo, 'mine.png', 'png');
-    ledgerHandback($repo, 'reviewer-opus', 'a1', 'RESULT lane=look round=1 P0=0 P1=0');
-
-    expect(ledgerStopped($repo, 'reviewer-opus', 'a1'))->toBe('')
-        ->and(ledgerLines($repo))->toHaveCount(1);
-});
 
 test('the model is the one that answered, not one named elsewhere in the transcript', function () {
     $repo = ledgerRepo();
@@ -386,8 +304,7 @@ test('a commit that changes only docs after the round keeps it', function () {
     ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', ledgerPlan("- [x] M1 Actions\n- [x] M2 Pages")."\n- review round 1: 0 P0, 0 P1\n");
     ledgerCommit($repo);
 
-    expect(ledgerStop($repo))->toContain('Every milestone in docs/exec-plans/active/send-quotes.md is ticked')
-        ->not->toContain('needs a round in which')
+    expect(ledgerStop($repo))->toBe('')
         ->and(ledgerLines($repo)[0]['committed'])->toBeTrue();
 });
 
@@ -406,8 +323,7 @@ test('one round with a clean run of each model on the current code finishes the 
     ledgerCleanRounds($repo, ['input', 'tests'], 1);
     ledgerCleanRounds($repo, ['business', 'behaviour'], 2);
 
-    expect(ledgerStop($repo))->toContain('Every milestone in docs/exec-plans/active/send-quotes.md is ticked and composer check passed')
-        ->not->toContain('needs a round in which');
+    expect(ledgerStop($repo))->toBe('');
 });
 
 test('a lane not done after its fourth round, or its fifth, still sends the AI back and names its number of rounds', function () {
@@ -474,7 +390,7 @@ function ledgerWalk(string $repo, string $reviewer, int $round, array $walked, s
         'agent_type' => $reviewer,
         'stop_hook_active' => $again,
         'agent_transcript_path' => ledgerTranscript($repo, $reviewer, "walk-{$round}-".count(ledgerLines($repo))),
-        'last_assistant_message' => implode("\n", $lines)."\n\nRESULT lane=behaviour round={$round} P0={$p0} P1=0 user=0{$field}",
+        'last_assistant_message' => implode("\n", $lines)."\n\nRESULT lane=behaviour round={$round} P0={$p0} P1=0{$field}",
     ]);
 }
 
@@ -577,7 +493,7 @@ test('the walk list of a plan already in completed/ counts the items a report le
     mkdir("{$repo}/docs/exec-plans/completed");
     (new Process(['git', 'mv', 'docs/exec-plans/active/send-quotes.md', 'docs/exec-plans/completed/send-quotes.md'], $repo))->mustRun();
     ledgerCommit($repo);
-    ledgerRequestedReview($repo, 'reviewer-haiku', 'h1', 'Lane: behaviour. Round: 1. App: http://localhost:8101. Plan: docs/exec-plans/completed/send-quotes.md.', "W1 walked\n\nRESULT lane=behaviour round=1 P0=0 P1=0 user=0 unwalked=0");
+    ledgerRequestedReview($repo, 'reviewer-haiku', 'h1', 'Lane: behaviour. Round: 1. App: http://localhost:8101. Plan: docs/exec-plans/completed/send-quotes.md.', "W1 walked\n\nRESULT lane=behaviour round=1 P0=0 P1=0 unwalked=0");
 
     expect(ledgerLastLine($repo))->toMatchArray(['lane' => 'behaviour', 'unwalked' => 1, 'plans' => ['send-quotes.md']]);
 });
@@ -588,7 +504,7 @@ test('a "not walked" line does not count as walked', function () {
         'hook_event_name' => 'SubagentStop',
         'agent_type' => 'reviewer-haiku',
         'agent_transcript_path' => ledgerTranscript($repo, 'reviewer-haiku', 'not-walked'),
-        'last_assistant_message' => "W1 walked\nW2 not walked: the approver could not log in\n\nRESULT lane=behaviour round=1 P0=0 P1=0 user=0 unwalked=0",
+        'last_assistant_message' => "W1 walked\nW2 not walked: the approver could not log in\n\nRESULT lane=behaviour round=1 P0=0 P1=0 unwalked=0",
     ]);
 
     expect(ledgerLastLine($repo))->toMatchArray(['lane' => 'behaviour', 'unwalked' => 1]);
@@ -706,12 +622,10 @@ test('the two reviewers run on two different Claude models, and Claude Code writ
 
     $hooks = json_decode((string) file_get_contents("{$root}/.claude/settings.json"), true)['hooks'];
 
+    // The reviewers run in the foreground, so their SubagentStop is all the ledger needs.
     expect($models)->toBe(['reviewer-haiku' => 'haiku', 'reviewer-opus' => 'opus'])
-        ->and($hooks['SubagentStart'][0]['hooks'][0]['command'] ?? '')->toContain('scripts/hooks/finish-check.php" reviewing')
-        ->and($hooks['PostToolUse'][0]['matcher'] ?? '')->toBe('SubagentHandback')
-        ->and($hooks['PostToolUse'][0]['hooks'][0]['command'] ?? '')->toContain('scripts/hooks/finish-check.php" handback')
-        ->and($hooks['PostToolUse'][1]['matcher'] ?? '')->toBe('TaskStop')
-        ->and($hooks['PostToolUse'][1]['hooks'][0]['command'] ?? '')->toContain('scripts/hooks/finish-check.php" stopped')
+        ->and($hooks)->not->toHaveKey('SubagentStart')
+        ->and($hooks)->not->toHaveKey('PostToolUse')
         ->and($hooks['SubagentStop'][0]['hooks'][0]['command'] ?? '')->toContain('scripts/hooks/finish-check.php" reviewed');
 });
 
@@ -740,71 +654,6 @@ function ledgerStopOutput(string $repo, string $message = 'Done.'): array
 {
     return json_decode(ledgerHook($repo, 'stop', ['last_assistant_message' => $message]), true) ?? [];
 }
-
-test('a stop while a reviewer run of this conversation has no stop record lets the AI stop, tells the user, and counts no send-back', function () {
-    $repo = ledgerFinishedPlan();
-    ledgerStart($repo, 'reviewer-opus', 'a1');
-
-    foreach (range(1, 4) as $stop) {
-        $output = ledgerStopOutput($repo);
-
-        expect($output)->not->toHaveKey('decision')
-            ->and($output['systemMessage'])->toContain('1 reviewer run of this conversation')->toContain('finish the review rounds of docs/exec-plans/active/send-quotes.md');
-    }
-
-    ledgerHandback($repo, 'reviewer-opus', 'a1', 'RESULT lane=business round=1 P0=0 P1=0');
-    ledgerStopped($repo, 'reviewer-opus', 'a1');
-
-    foreach (range(1, 3) as $stop) {
-        expect(ledgerStopOutput($repo))->toHaveKey('decision', 'block');
-    }
-});
-
-test('a reviewer run of another conversation, or a start record hours old, does not let the AI stop', function (bool $old) {
-    $repo = ledgerFinishedPlan();
-
-    if ($old) {
-        ledgerStart($repo, 'reviewer-opus', 'a1');
-        $file = "{$repo}/.git/ezdev/review-run-".sha1('a1').'.json';
-        file_put_contents($file, json_encode([...json_decode((string) file_get_contents($file), true), 'started' => microtime(true) - 3 * 3600]));
-    } else {
-        ledgerHook($repo, 'reviewing', ['session_id' => 'another', 'hook_event_name' => 'SubagentStart', 'agent_type' => 'reviewer-opus', 'agent_id' => 'a1']);
-    }
-
-    expect(ledgerStopOutput($repo))->toHaveKey('decision', 'block');
-})->with(['hours old' => [true], 'another conversation' => [false]]);
-
-test('a start record older than 30 minutes does not let a stop through, and a younger one does', function (int $minutes, bool $through) {
-    $repo = ledgerFinishedPlan();
-    ledgerStart($repo, 'reviewer-opus', 'a1');
-    $file = "{$repo}/.git/ezdev/review-run-".sha1('a1').'.json';
-    file_put_contents($file, json_encode([...json_decode((string) file_get_contents($file), true), 'started' => microtime(true) - $minutes * 60]));
-
-    $output = ledgerStopOutput($repo);
-
-    if ($through) {
-        expect($output)->not->toHaveKey('decision')
-            ->and($output['systemMessage'])->toContain('1 reviewer run of this conversation');
-    } else {
-        expect($output)->toHaveKey('decision', 'block');
-    }
-})->with(['31 minutes old' => [31, false], '29 minutes old' => [29, true]]);
-
-test('a reviewer run the builder stops with TaskStop leaves no start record, and the stop after it is checked in full', function () {
-    $repo = ledgerFinishedPlan();
-    ledgerStart($repo, 'reviewer-haiku', 'a1');
-    ledgerStart($repo, 'reviewer-opus', 'a2');
-
-    expect(ledgerHook($repo, 'stopped', ['hook_event_name' => 'PostToolUse', 'tool_name' => 'TaskStop', 'tool_input' => ['task_id' => 'a1'], 'tool_response' => ['task_id' => 'a1', 'task_type' => 'local_agent']]))->toBe('')
-        ->and(is_file("{$repo}/.git/ezdev/review-run-".sha1('a1').'.json'))->toBeFalse()
-        ->and(is_file("{$repo}/.git/ezdev/review-run-".sha1('a2').'.json'))->toBeTrue()
-        ->and(ledgerLines($repo))->toBe([]);
-
-    ledgerHandback($repo, 'reviewer-opus', 'a2', 'RESULT lane=business round=1 P0=0 P1=0');
-    ledgerStopped($repo, 'reviewer-opus', 'a2');
-
-    expect(ledgerStopOutput($repo))->toHaveKey('decision', 'block');
-});
 
 /**
  * A reviewer run whose transcript starts with the builder's request, as Claude Code writes it.
@@ -849,7 +698,7 @@ test('rounds run after the plan was moved to completed/ count for that plan', fu
 
     foreach (['reviewer-opus' => 'o', 'reviewer-haiku' => 'h'] as $reviewer => $id) {
         foreach (['business', 'input', 'tests', 'behaviour'] as $lane) {
-            ledgerRequestedReview($repo, $reviewer, "{$id}-{$lane}", "Lane: {$lane}. Round: 1. Plan: docs/exec-plans/completed/send-quotes.md.", "RESULT lane={$lane} round=1 P0=0 P1=0".($lane === 'behaviour' ? ' user=0 unwalked=0' : ''));
+            ledgerRequestedReview($repo, $reviewer, "{$id}-{$lane}", "Lane: {$lane}. Round: 1. Plan: docs/exec-plans/completed/send-quotes.md.", "RESULT lane={$lane} round=1 P0=0 P1=0".($lane === 'behaviour' ? ' unwalked=0' : ''));
         }
     }
 
@@ -869,7 +718,7 @@ test('the review of a plan already in completed/ does not ask to move it', funct
         ->not->toContain('Move the plan to completed/');
 });
 
-test('the finish check asks for the move only when every lane is done', function () {
+test('the finish check lets a plan move only when every lane is done', function () {
     $repo = ledgerFinishedPlan();
     ledgerCleanRounds($repo, ['business', 'input', 'tests']);
 
@@ -878,8 +727,7 @@ test('the finish check asks for the move only when every lane is done', function
 
     ledgerCleanRounds($repo, ['behaviour']);
 
-    expect(ledgerStop($repo))->toContain('Fill in Outcomes & Retrospective and move the plan to docs/exec-plans/completed/')
-        ->not->toContain('needs a round in which');
+    expect(ledgerStop($repo))->toBe('');
 });
 
 test('the read-only mode exits 2 and prints no lane when it cannot read the plan', function (string $path) {
@@ -915,48 +763,14 @@ test('the read-only mode prints each lane of a plan as done or not done and chan
         ->and($process->getOutput())->toContain("tests: done\nbehaviour: done\nEvery lane is done");
 });
 
-test('a stop while every open lane holds only findings for the user lets the AI stop without a send-back', function () {
-    $repo = ledgerFinishedPlan();
-    ledgerCleanRounds($repo, ['input', 'tests']);
-    ledgerReview($repo, 'reviewer-opus', 'business', 1, p1: 1, user: 1);
-    ledgerReview($repo, 'reviewer-haiku', 'business', 1, p0: 1, p1: 1, user: 2);
-
-    foreach (range(1, 4) as $stop) {
-        $output = ledgerStopOutput($repo);
-
-        expect($output)->not->toHaveKey('decision')
-            ->and($output['systemMessage'])->toContain("the user's answer")->toContain('business')->toContain('finish the review rounds of docs/exec-plans/active/send-quotes.md');
-    }
-});
-
-test('one finding not for the user sends the AI back as before, whatever its last message says', function (string $message) {
-    $repo = ledgerFinishedPlan();
-    ledgerCleanRounds($repo, ['input', 'tests']);
-    ledgerReview($repo, 'reviewer-opus', 'business', 1, p1: 1, user: 1);
-    ledgerReview($repo, 'reviewer-haiku', 'business', 1, p1: 2, user: 1);
-
-    expect(ledgerStopOutput($repo, $message))->toHaveKey('decision', 'block');
-})->with([
-    'a plain stop' => ['Done.'],
-    'the AI says it waits' => ["I am waiting for the user's answer and for the reviewers, which are still running.\nShall I go on?"],
-]);
-
-test('a lane with no round keeps the send-back even beside findings for the user', function () {
-    $repo = ledgerFinishedPlan();
-    ledgerReview($repo, 'reviewer-opus', 'business', 1, p1: 1, user: 1);
-
-    expect(ledgerStopOutput($repo))->toHaveKey('decision', 'block');
-});
-
-test('a stop that waits for nothing keeps the three send-backs', function () {
+test('a stop that says it waits for the reviewers or the user keeps the three send-backs', function () {
     $repo = ledgerFinishedPlan();
 
     foreach (range(1, 3) as $stop) {
-        expect(ledgerStopOutput($repo, 'I wait for the reviewers.'))->toHaveKey('decision', 'block');
+        expect(ledgerStopOutput($repo, "I wait for the reviewers and for the user's answer."))->toHaveKey('decision', 'block');
     }
 
-    expect(ledgerStopOutput($repo))->not->toHaveKey('decision')
-        ->and(ledgerStopOutput($repo)['systemMessage'] ?? '')->toContain('sent these steps back 3 times');
+    expect(ledgerStopOutput($repo))->toBe(['systemMessage' => 'The finish check let the AI stop without: finish the review rounds of docs/exec-plans/active/send-quotes.md.']);
 });
 
 test('a change to the reference feature touches the lanes its path inside the feature would touch, and its Markdown none', function (string $path, array $lanes) {
@@ -983,3 +797,29 @@ test('a change to the reference feature touches the lanes its path inside the fe
     'another file in docs/' => ['docs/workflow.md', []],
     'Markdown inside the feature\'s app folder' => ['docs/reference/tasks/app/notes.md', []],
 ]);
+
+test('a plan a sync brings into completed/ asks for no review round', function () {
+    $repo = ledgerRepo();
+    ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', ledgerPlan("- [x] M1 Actions\n- [ ] M2 Pages"));
+    ledgerCommit($repo);
+    ledgerHook($repo, 'start', ['session_id' => 'sync']);
+
+    // The template's own finished plan and code arrive together.
+    ledgerWrite($repo, 'docs/exec-plans/completed/from-the-template.md', ledgerPlan('- [x] M1 Template work'));
+    ledgerWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', LEDGER_CODE);
+    ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', ledgerPlan("- [x] M1 Actions\n- [ ] M2 Pages")."\n- the template synced\n");
+    ledgerPass($repo);
+
+    expect(ledgerStop($repo, 'sync'))->toBe('');
+});
+
+test('the walk list is read from the plan as approved, not as the AI changed it afterwards', function () {
+    $repo = ledgerWalkPlan();
+    ledgerHook($repo, 'approve', ['hook_event_name' => 'UserPromptSubmit', 'prompt' => '开始']);
+    $plan = (string) file_get_contents("{$repo}/docs/exec-plans/active/send-quotes.md");
+    ledgerWrite($repo, 'docs/exec-plans/active/send-quotes.md', str_replace("- W2 approver: approve it, from the list to the approved page\n", '', $plan));
+    ledgerCommit($repo);
+    ledgerWalk($repo, 'reviewer-haiku', 1, ['W1'], '0');
+
+    expect(ledgerLastLine($repo))->toMatchArray(['lane' => 'behaviour', 'unwalked' => 1]);
+});

@@ -4,13 +4,17 @@
         "playwright",
         "playwright-review"
     ],
+    "env": {
+        "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1"
+    },
     "permissions": {
         "allow": [
             "Bash(scripts/screen-round)",
             "Bash(php scripts/screen-round)",
             "Bash(scripts/screen-round --reference)",
             "Bash(php scripts/screen-round --reference)"
-        ]
+        ],
+        "deny": ["AskUserQuestion", "Workflow"]
     },
     "hooks": {
         "SessionStart": [
@@ -19,6 +23,17 @@
                     {
                         "type": "command",
                         "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" start || echo '{\"systemMessage\":\"The finish check could not run.\"}'"
+                    }
+                ]
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" approve || echo '{\"systemMessage\":\"The approval of the plan could not be saved.\"}'",
+                        "timeout": 30
                     }
                 ]
             }
@@ -34,17 +49,6 @@
                 ]
             }
         ],
-        "SubagentStart": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" reviewing || true",
-                        "timeout": 60
-                    }
-                ]
-            }
-        ],
         "PreToolUse": [
             {
                 "matcher": "Bash",
@@ -53,28 +57,6 @@
                         "type": "command",
                         "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/reviewer-commands.php\"",
                         "timeout": 30
-                    }
-                ]
-            }
-        ],
-        "PostToolUse": [
-            {
-                "matcher": "SubagentHandback",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" handback || echo '{\"systemMessage\":\"The review ledger could not keep the report of this reviewer.\"}'",
-                        "timeout": 60
-                    }
-                ]
-            },
-            {
-                "matcher": "TaskStop",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "php -d display_errors=stderr -d display_startup_errors=0 \"$CLAUDE_PROJECT_DIR/scripts/hooks/finish-check.php\" stopped || true",
-                        "timeout": 60
                     }
                 ]
             }

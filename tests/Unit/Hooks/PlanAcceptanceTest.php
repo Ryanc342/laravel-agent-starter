@@ -65,7 +65,7 @@ test('a full pass carries across conversations only while the code stays unchang
     }
 })->with(['unchanged' => [false], 'changed earlier' => [true]]);
 
-test('an unvalidated archive remains pending in the next conversation', function () {
+test('an archive of an earlier conversation is history in the next one', function () {
     $repo = milestoneWorkspace();
     expect(milestoneRun($repo)->getExitCode())->toBe(0);
     acceptancePlan($repo);
@@ -74,8 +74,19 @@ test('an unvalidated archive remains pending in the next conversation', function
     acceptanceSession($repo, 'start');
     file_put_contents("{$repo}/docs/exec-plans/completed/quotes.md", "\nRecord updated.\n", FILE_APPEND);
 
-    expect(acceptanceSession($repo, 'stop'))->toContain('Run composer check');
-    expect(milestoneFullRun($repo)->getExitCode())->toBe(0)
+    expect(acceptanceSession($repo, 'stop'))->toBe('');
+});
+
+test('a plan a sync brings into completed/ is history, not a plan finished in this conversation', function () {
+    $repo = milestoneWorkspace();
+    acceptanceCommit($repo);
+    acceptanceSession($repo, 'start');
+    mkdir("{$repo}/docs/exec-plans/completed");
+    file_put_contents("{$repo}/docs/exec-plans/completed/from-the-template.md", "# From the template\n\n## Purpose\nA plan of the template.\n\n## Agreed decisions\n1. Kept.\n\n## Milestones\n- [x] M1 Done\n\n## Progress\n\n## Decision Log\n\n## Outcomes & Retrospective\nDone in the template.\n");
+    file_put_contents("{$repo}/docs/exec-plans/active/quotes.md", "\nProgress note.\n", FILE_APPEND);
+    file_put_contents("{$repo}/app/quote.php", "<?php\n\$synced = true;\n");
+
+    expect(milestoneRun($repo)->getExitCode())->toBe(0)
         ->and(acceptanceSession($repo, 'stop'))->toBe('');
 });
 
@@ -85,7 +96,7 @@ test('a real full pass can finish an active plan in a later conversation', funct
     acceptanceSession($repo, 'start');
     acceptancePlan($repo, archived: false, result: 'passed');
 
-    expect(acceptanceSession($repo, 'stop'))->toContain('move the plan to docs/exec-plans/completed/')->not->toContain('Run composer check');
+    expect(acceptanceSession($repo, 'stop'))->toBe('');
 });
 
 test('ordinary document work and historical record updates are not new delivery', function (string $change) {

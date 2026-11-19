@@ -75,9 +75,9 @@ test('a partial pass cannot replace final validation without an incomplete valid
 
 test('partial validation preserves protected-file approval requirements', function () {
     $repo = milestoneWorkspace();
-    file_put_contents("{$repo}/composer.json", '{}');
+    file_put_contents("{$repo}/composer.json", '{"require": {"laravel/framework": "^13.0"}}');
     expect(milestoneRun($repo)->getExitCode())->toBe(0)
-        ->and(milestoneHook($repo, 'stop'))->toContain('You changed composer.json');
+        ->and(milestoneHook($repo, 'stop'))->toContain('Revert composer.json');
 });
 
 test('a milestone result in an archived plan is not a recorded full check result', function () {
@@ -86,7 +86,7 @@ test('a milestone result in an archived plan is not a recorded full check result
     $path = "{$repo}/docs/exec-plans/completed/quotes.md";
     file_put_contents($path, str_replace('M1 affected tests passed.', 'composer check:milestone passed; review round 1: 0 P0, 0 P1.', file_get_contents($path)));
 
-    expect(milestoneHook($repo, 'stop'))->toContain('no composer check result in Progress');
+    expect(milestoneHook($repo, 'stop'))->toContain('Run composer check')->not->toContain('Run composer check:milestone');
 });
 
 test('a frontend-only milestone runs no backend suite', function () {
