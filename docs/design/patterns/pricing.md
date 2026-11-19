@@ -5,7 +5,7 @@ Use for a page that sets plans side by side so a visitor can choose one.
 ## Layout, top to bottom
 
 1. The public layout (landing.md).
-2. The page title in the display size, and the billing choice: a `ToggleGroup` with "Monthly" and "Yearly". The choice lives in the URL (`?billing=yearly`; monthly is the default and has no query), so a link shares it.
+2. The page title, which `PricingPlans` draws in the display size (the one page title that is not a `Heading`), and the billing choice: a `ToggleGroup` with "Monthly" and "Yearly". The choice lives in the URL (`?billing=yearly`; monthly is the default and has no query), so a link shares it.
 3. `PricingPlans` (`components/shared`): the plan cards side by side, equal width. Each card holds the plan's name (`Heading` small), its price in the display size (foundations.md) with the period beside it ("/ month"), a list of features with a check icon each, and one `Button`. The recommended plan has a `primary` border and a "Recommended" `Badge`, and its button is `default`; the others are `outline`. Only one plan is recommended.
 4. A link to the help page (`TextLink`, "Questions about plans?") under the cards.
 

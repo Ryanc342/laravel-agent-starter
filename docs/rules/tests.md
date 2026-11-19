@@ -14,7 +14,7 @@ Write tests with Pest. Follow `docs/reference/tasks/tests/Feature/Tasks/` as the
 
 Tests run on MySQL, like the app, in a database of their own: the app's database name plus `_test`, created on the first run (tests/bootstrap.php). So a row lock can be tested too (Row locks, below). MySQL must be running for `composer check`.
 
-The reviewers check that every Action has its test file and every Resource with `can.*` has its buttons test (lane `tests`). `lint/`, `tests/Structure/` and `tests/Support/` belong to the template. Do not edit them without the user's approval.
+The reviewers check that every Action has its test file and every Resource with `can.*` has its buttons test (lane `tests`). `lint/`, `tests/Structure/` and `tests/Support/` belong to the template, and their files are protected (AGENTS.md, "Red lines").
 
 ## Which tests run when
 
@@ -53,4 +53,4 @@ Test each `lockForUpdate()` by playing a second user who saves at the same momen
 
 ## When a test fails
 
-Fix the code, not the test. Change an expected result only when the user changed the requirement or the assertion is clearly wrong, and say why. Never delete or skip a test without the user's approval.
+Fix the code, not the test. When an existing assertion may change or go: AGENTS.md, "Red lines".

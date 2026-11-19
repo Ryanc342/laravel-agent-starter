@@ -9,8 +9,6 @@ use Laravel\Fortify\Features;
 uses(RefreshDatabase::class);
 
 test('security page is displayed', function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
     Features::twoFactorAuthentication([
         'confirm' => true,
         'confirmPassword' => true,
@@ -34,8 +32,6 @@ test('security page is displayed', function () {
 });
 
 test('security page requires password confirmation when enabled', function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
     $user = User::factory()->create();
 
     Features::twoFactorAuthentication([
@@ -50,8 +46,6 @@ test('security page requires password confirmation when enabled', function () {
 });
 
 test('security page renders without two factor when feature is disabled', function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
     config(['fortify.features' => []]);
 
     $user = User::factory()->create();

@@ -8,10 +8,6 @@ use PragmaRX\Google2FA\Google2FA;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-});
-
 test('two factor challenge redirects to login when not authenticated', function () {
     $response = $this->get(route('two-factor.login'));
 

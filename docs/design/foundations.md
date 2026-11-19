@@ -30,7 +30,7 @@ Read when a task needs colour, type, language, space, shape, motion, wording or 
 
 | Role | Use |
 | --- | --- |
-| Page title | `<Heading>`: one per page and the largest text in the app |
+| Page title | `<Heading>`: one per page and the largest text on it, apart from the display text of `Hero` and `PricingPlans` (Display, below) |
 | Section title | `<Heading variant="small">` |
 | Body | the text size of `components/ui` and of the sample you copy |
 | Secondary text | the body size in `text-muted-foreground`; a caption is one step smaller |

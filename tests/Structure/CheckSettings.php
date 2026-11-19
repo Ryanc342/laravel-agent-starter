@@ -76,7 +76,6 @@ final class CheckSettings
 
         $files = ProjectFiles::code(['app', 'bootstrap', 'config', 'database', 'routes', 'resources/js', 'tests', 'lint', 'scripts'], [
             'tests/Structure',
-            'tests/TestCase.php',
             'resources/js/actions',
             'resources/js/routes',
             'resources/js/wayfinder',
@@ -90,13 +89,6 @@ final class CheckSettings
                     $found[] = "{$path}:".($number + 1).": {$match[0]}";
                 }
             }
-        }
-
-        // tests/TestCase.php skips the tests of a Fortify feature that is turned off, and nothing else.
-        $testCase = ProjectFiles::read('tests/TestCase.php');
-
-        if (preg_match($silencers, $testCase) === 1 || preg_match_all($skips, $testCase) !== 1 || substr_count($testCase, 'markTestSkipped(') !== 1) {
-            $found[] = 'tests/TestCase.php: only skipUnlessFortifyHas() may skip a test';
         }
 
         if (preg_match('/^\s*(ignoreErrors|excludePaths|baseline)\s*:|phpstan-baseline/m', ProjectFiles::read('phpstan.neon')) === 1) {

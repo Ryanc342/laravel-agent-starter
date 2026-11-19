@@ -8,7 +8,7 @@
 
 - **AI 有文档可依循。** `AGENTS.md` 是入口，`docs/` 记录工作流程、执行计划、分层规则和完整参考功能。
 - **业务规则只有一个归属。** 按 React、HTTP、Actions / Policies、Models、Enums 分层，上层调用下层。认证、设置和通知功能也遵守这些规则。
-- **机器检查骨架，两个 AI 审查者检查其余规则。** 机器只检查 18 条规则：分层（PHPStan，`phpstan.neon` 中的分层规则）、组件边界、循环导入和不在导入时调用 `t()`（oxlint，Ezdev 规则在 `lint/oxlint/`）、`app/` 的目录、页面和组件的位置、没有检查被关闭或放宽，以及设计规范的索引和取值（结构测试）。`composer check` 统一执行全部检查。其余 106 条规则分为六个审查通道，需要阅读代码，由两个使用不同模型的审查子代理 `reviewer-opus` 和 `reviewer-haiku` 审查每次改动。AI 准备结束时，结束检查会退回遗漏的流程步骤，包括审查轮次。
+- **机器检查骨架，两个 AI 审查者检查其余规则。** 机器只检查骨架：分层（PHPStan，`phpstan.neon` 中的分层规则）、组件边界、循环导入和不在导入时调用 `t()`（oxlint，Ezdev 规则在 `lint/oxlint/`）、`app/` 的目录、页面和组件的位置、没有检查被关闭或放宽，以及设计规范的索引和取值（结构测试）。`composer check` 统一执行全部检查。其余规则需要阅读代码，由两个使用不同模型的审查子代理 `reviewer-opus` 和 `reviewer-haiku` 按审查通道逐个审查每次改动。AI 准备结束时，结束检查会退回遗漏的流程步骤，包括审查轮次。
 
 模板保留注册、邮箱验证、双因素认证、通行密钥、密码确认等认证功能，并内置应用内通知。内部的 Ezdev 名称用于标识模板的架构检查规则。
 
@@ -96,13 +96,13 @@ AI 准备结束时，结束检查 `scripts/hooks/finish-check.php` 会把缺少�
 | [docs/design/](docs/design/) | 设计基础、组件选择和二十六种页面模式（列表、详情、表单、空 / 错误 / 加载状态、仪表盘、设置、消息流、登录注册、错误页、批量操作、导入导出、打印、搜索结果、向导、审批、列表加详情、报表、日历、看板，以及面向客户的页面：首页 / 落地页、价格、产品、客户中心、结账、帮助 / 常见问题和联系表单）；开发时打开 `/style` 查看全部演示 |
 | [docs/workflow.md](docs/workflow.md) | 提问、计划、实现、验证和审查流程 |
 | [docs/PLANS.md](docs/PLANS.md) | 执行计划格式 |
-| [docs/golden-principles.md](docs/golden-principles.md) | 十项原则、每条规则由谁检查，以及六个审查通道 |
+| [docs/golden-principles.md](docs/golden-principles.md) | 各项原则、每条规则由谁检查，以及审查通道 |
 | [docs/prompts/review.md](docs/prompts/review.md) | 每次审查运行读什么、如何报告 |
 | [docs/QUALITY.md](docs/QUALITY.md) | 各领域的质量记录 |
 | [docs/reference/tasks/](docs/reference/tasks/) | 可参考的完整功能结构 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本记录 |
 
-修改规则或工具需要用户批准，之后还需运行 `composer check:reference`。18 条机器检查是骨架，其余规则都是 `docs/golden-principles.md` 里的 `[review]` 规则，留给审查者；每周清理（`docs/prompts/cleanup.md`）按通道逐条检查 `[review]` 规则，列出 18 条机器检查的缺口和可以合并或删除的规则，由你决定，检查只会变得更严格。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
+AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；哪些要变成规则由你决定，并另写计划。修改规则或工具需要在计划的“Approved changes”里列出并经你批准，之后还需运行 `composer check:reference`。机器检查是骨架，其余规则都是 `docs/golden-principles.md` 里的 `[review]` 规则，留给审查者；每周清理（`docs/prompts/cleanup.md`）按通道逐条检查 `[review]` 规则，列出机器检查的缺口和可以合并或删除的规则，由你决定，检查只会变得更严格。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)，安全问题请通过 [SECURITY.md](SECURITY.md) 中的私密渠道反馈。
 
 ## 多语言
 

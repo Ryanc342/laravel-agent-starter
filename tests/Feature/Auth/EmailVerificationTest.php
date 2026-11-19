@@ -5,13 +5,8 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
-use Laravel\Fortify\Features;
 
 uses(RefreshDatabase::class);
-
-beforeEach(function () {
-    $this->skipUnlessFortifyHas(Features::emailVerification());
-});
 
 test('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->create();

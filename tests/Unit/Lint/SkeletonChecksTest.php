@@ -286,7 +286,6 @@ test('the structure checks reject a symlink', function () {
 
 test('the structure checks reject a silenced check', function (string $path, string $content) {
     $root = skeletonFixture([$path => $content]);
-    skeletonCopy($root, ['tests/TestCase.php']);
 
     expect(implode("\n", ProjectFiles::at($root, fn () => CheckSettings::noSilencers())))->toContain($path);
 })->with([
@@ -295,6 +294,7 @@ test('the structure checks reject a silenced check', function (string $path, str
     'a TypeScript ignore' => ['resources/js/lib/loose.ts', '// @ts-'."ignore\nexport {};\n"],
     'a skipped Pest test' => ['tests/Feature/QuietTest.php', "<?php\n\ntest('x', function () {})->"."skip();\n"],
     'a skipped Vitest test' => ['tests/js/quiet.test.ts', 'test.'."skip('x', () => {});\n"],
+    'a skip in the base test case' => ['tests/TestCase.php', "<?php\n\nnamespace Tests;\n\nabstract class TestCase\n{\n    protected function quiet(): void\n    {\n        \$this->markTest"."Skipped('off');\n    }\n}\n"],
     'a PHPStan baseline' => ['phpstan.neon', "parameters:\n    ignore"."Errors:\n        - '#x#'\n"],
 ]);
 
