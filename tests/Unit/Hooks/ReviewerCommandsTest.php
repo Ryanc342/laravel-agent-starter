@@ -189,6 +189,8 @@ test('a reviewer is refused every command that could write, with the reason and 
     'find that runs a program' => ['find . -name x -exec rm {} ;'],
     'find that writes its list' => ['find . -fprint list'],
     'ripgrep with a preprocessor' => ['rg --pre rm x'],
+    'ripgrep starting a program for its link host' => ['rg --hostname-bin=pwd --hyperlink-format=default -n x AGENTS.md'],
+    'the same, shortened' => ['rg --hostname=pwd x'],
     'a download' => ['curl https://example.com'],
     'git fetch' => ['git fetch origin'],
     'git push' => ['git push'],

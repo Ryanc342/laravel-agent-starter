@@ -215,7 +215,7 @@ function screenRoundFreeSeatPort(): int
  *
  * @return array{string, int}
  */
-function screenRoundReferenceProject(): array
+function screenRoundReferenceProject(array $override = []): array
 {
     $port = screenRoundFreeSeatPort();
     $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:{$port}\nSERVER_PORT={$port}\nDB_CONNECTION=sqlite\n");
@@ -234,6 +234,7 @@ function screenRoundReferenceProject(): array
         'docs/reference/tasks/README.md' => "# Reference feature\n",
         'docs/reference/tasks/routes/tasks.php' => "<?php\n",
         'docs/reference/tasks/app/Models/Task.php' => "<?php\n",
+        ...$override,
     ];
 
     foreach ($files as $path => $content) {
@@ -294,6 +295,7 @@ test('with --reference both seats are copies with the reference feature, and the
             ->and(is_file("{$dir}/README.md"))->toBeFalse($copy)
             ->and((string) file_get_contents("{$dir}/routes/web.php"))->toContain("require __DIR__.'/tasks.php';")
             ->and($calls)->toContain("{$dir} artisan migrate:fresh --seed")
+            ->and($calls)->toContain("{$dir} npm run build")
             ->and($calls)->toContain("{$dir} composer dump-autoload");
     }
 
@@ -344,6 +346,19 @@ test('without --reference both seats are copies too, the project is not touched,
             ->and(is_file("{$dir}/".SCREEN_ROUND_REFERENCE_MARK))->toBeFalse($copy)
             ->and((string) file_get_contents("{$dir}/routes/web.php"))->toBe("<?php\n");
     }
+});
+
+test('a copy whose app does not answer stops the round and names its log', function () {
+    [$repo] = screenRoundReferenceProject(['public/index.php' => "<?php\necho 'Not ready';\n"]);
+
+    $process = screenRoundRunIn($repo);
+    $output = $process->getOutput().$process->getErrorOutput();
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($output)->toContain('Screen round NOT ready.')
+        ->and($output)->toContain('does not answer: read '.dirname(realpath($repo)).'/project-review-opus/'.SCREEN_ROUND_LOG)
+        ->and($output)->toContain('No screen run starts before scripts/screen-round has passed.')
+        ->and($output)->not->toContain('Seat 1');
 });
 
 test('an argument other than --reference changes nothing', function () {

@@ -41,7 +41,8 @@ const READERS = [
     'head' => [[], []],
     'tail' => [[], []],
     'grep' => [[], []],
-    'rg' => [['pre', 'pre-glob'], []],
+    // --pre runs a program on each file, --hostname-bin one for the host of its links.
+    'rg' => [['pre', 'pre-glob', 'hostname-bin'], []],
     'wc' => [[], []],
     'sort' => [['output', 'compress-program'], ['o']],
     'uniq' => [[], []],
@@ -70,7 +71,7 @@ const FIND_WRITES = ['-delete', '-exec', '-execdir', '-ok', '-okdir', '-fprint',
 // /pattern/) followed by `p`.
 const SED_PRINT = '#^(?:(?:\d+|\$|/(?:[^/\\\\]|\\\\.)*/)(?:,(?:\d+|\$|/(?:[^/\\\\]|\\\\.)*/))?)?p$#';
 
-const REASON = 'Reviewers only read. Bash runs only commands that read: git commands that read (git diff, show, log, status, ls-files, ls-tree, rev-parse, rev-list, merge-base, cat-file, grep, blame, describe, shortlog, worktree list, also after git -C <folder>), cd <folder>, and cat, head, tail, grep, rg, find, ls, wc, sort, uniq, cut, tr, diff, jq, echo and sed -n \'<address>p\', alone, joined with && or ; or piped. No redirection, substitution, variable, glob outside quotes, tee, xargs or awk, no option that writes or starts a program (find -delete or -exec, rg --pre, sort -o, git --output), no network. Read files with the Read tool and search them with Read, Grep and Glob.';
+const REASON = 'Reviewers only read. Bash runs only commands that read: git commands that read (git diff, show, log, status, ls-files, ls-tree, rev-parse, rev-list, merge-base, cat-file, grep, blame, describe, shortlog, worktree list, also after git -C <folder>), cd <folder>, and cat, head, tail, grep, rg, find, ls, wc, sort, uniq, cut, tr, diff, jq, echo and sed -n \'<address>p\', alone, joined with && or ; or piped. No redirection, substitution, variable, glob outside quotes, tee, xargs or awk, no option that writes or starts a program (find -delete or -exec, rg --pre or --hostname-bin, sort -o, git --output), no network. Read files with the Read tool and search them with Read, Grep and Glob.';
 
 $input = json_decode((string) stream_get_contents(STDIN), true);
 $input = is_array($input) ? $input : [];
