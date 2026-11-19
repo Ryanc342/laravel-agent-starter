@@ -176,6 +176,8 @@ New on 2026-11-20, after M9's first review round (decisions 60 and 61)
 
 - 2026-11-20 M9 full `composer check` (615 tests) and `composer check:reference` (794 tests) passed on 75984f89. Review round on 75984f89 (business 4, input 4, frontend 2, tests 13): business, input and tests done, recorded from the hand-backs; frontend 1 P1 (components/ui's rule had lost "imports no app code" for "no domain code"), fixed with the tick-list sentence the move had dropped.
 
+- 2026-11-20 Review round on 18d4f913: frontend 3 clean, frontend done. Screen rounds on the copies at 18d4f913: behaviour 1 and look 2 clean in both seats; every lane done. M9 left: the small trial in a scratch worktree (it needs Ryan's own "开始" there), then stop for "发布".
+
 ## Surprises & Discoveries
 - M1 (a): with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` in the env of .claude/settings.json, three subagents started in one message ran together and all three tool results held their answers before the session went on. Without it, each tool result said "Async agent launched" and the answers came later as notifications.
 - M1 (b): a full `composer check` ran as one foreground Bash call in 236 s (679 Pest tests, 208 s) and ended with exit 0. It needs a Bash timeout above the default two minutes; the call passed 600000 ms, the maximum.
