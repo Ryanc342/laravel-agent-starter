@@ -143,11 +143,25 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - 2026-11-20 Review round 11, backend: 4 findings, all level 1 (both: a Stop input without `session_id` shared one told file; opus: a broken transcript line or time moved the start later, and the round and milestone helpers ignored failed writes). Fixed, with a test that failed first; the stricter transcript reading was tried on this conversation's own transcript (2906 lines, none refused); the first milestone check failed on Pint formatting, which a pipe hid before that commit; fixed in the next commit, then passed; commit 74d03ca0.
 - 2026-11-20 Review round 12, backend: 4 findings, all level 1 (opus: a transcript path that names no file, a transcript with no time stamp or a failed line read counted as "no transcript"; haiku: unchecked mkdir, write and unlink calls in the copy check's test, the hook test and the milestone test). Fixed: only a transcript Claude Code does not name means "none", the rest stops the check (test failed first); template/phpunit.xml fails on any PHP warning (`failOnWarning`), which closes the unchecked fixture writes of the template tests as a whole, and the named calls throw; the older fixture helpers of SkeletonChecksTest too; full `composer check` passed; commit 8103722e.
 - 2026-11-20 Review round 13, backend: both reviewers 0 findings; lane backend done. The older unchecked fixture writes of the milestone tests went to tech-debt.md.
+- 2026-11-20 Screen round 1 on the copy at a193133: reviewer-opus walked W1 (no step failed), the sidebar matches both accepted previews, 0 findings; reviewer-haiku 0 findings from the code; lane screens done, every lane done. `composer check:reference` passed again on the final code. The trial's worktree is ready at ../laravel-agent-starter-trial-160 (branch trial-160); the trial itself runs in its own conversation with Ryan as the user, so M10 waits on it.
 
 ## Surprises & Discoveries
 - 2026-11-20 M6 rewrote each of the eight rule files it touched as a whole, so every other rule of those files is already in the new format with its decision-27 level; M7 is left with fixes.md and the check of decisions 27 and 28. Splits by decision 24 (levels kept unless a part is clearly level 1): controllers (Policy for list/create/bulk, app/Http folders, route binding, fixed before wildcard path: level 1), actions (lock in the writing transaction / lock written once), tests (lock test), visual-design (feed rule merged with the notification list; URL state; submit disabled while sending, readable text, import and export: level 1; report range in the URL).
+- 2026-11-20 The backend review took 13 rounds: from round 3 on, the reviewers found the same kind of break (a failed git call, read or write in the finish check and its tests taken as an empty answer) one place per round. Round 8 swept the reads and round 12 the fixture writes (`failOnWarning` in template/phpunit.xml); after that the rounds came back clean. Sweeping the whole kind at its first finding would have saved rounds.
+- 2026-11-20 This conversation read the agent files at its start, before M2 changed them: here reviewer-haiku still had its old description and browser tools, so in the screen round it reported `unwalked=1` (the count is reviewer-opus's only). A new conversation reads the new files.
+- 2026-11-20 A Pint failure was hidden once by `| tail -1` before a commit (round 11); the next commit fixed the formatting and the Progress line says so.
 
 ## Decision Log
 
 ## Outcomes & Retrospective
-Rule gaps:
+Rule gaps (for the template):
+- scripts/ (the finish check, check.php, check-milestone.php, screen-round.php) and template/ are in no review lane; only fixes.md reaches them, through a change to tests/.
+- docs/reference/pages/ (the sample copies) is in no review lane, and the finish check does not count a change there as code; only the template's copy check guards it.
+- The copied-block rule lives in app.md and covers app/, database/ and routes/ only: the write and repository helpers of the hook tests are copied between tests/ and template/tests/.
+- tests.md: its folder rule does not say whether template/tests is covered; "helpers go in tests/Support" and the Style section's helper functions in test files read differently; "tests/Structure belongs to the template" reads against decision 14, which keeps it in projects.
+- Decision 4's check files do not include template/phpunit.xml or template/tests/.
+- `ResponsiveDialog`'s `wide` size has no live use and no /style demo, so no screen round can look at it; only Vitest checks its `data-size`.
+- A file deleted before the conversation, and not committed, counts as changed in it (a deletion has no file time).
+- golden-principles says a rule carries no code; form-requests.md's "Not a break" holds an inline `Rule::unique(...)`.
+
+Decisions that differ from a rule: none.
