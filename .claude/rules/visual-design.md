@@ -63,7 +63,7 @@ Read DESIGN.md first. Its index names the files for your task: foundations.md fo
 - `[review:behaviour]` A date field is the shared `DatePicker` (components/shared/date-picker.tsx), which reads and writes `YYYY-MM-DD`: no `type="date"` on `input` or `Input`.
 - `[review:behaviour]` A chart is the chart block with `chart-1` for one series and `chart-1` to `chart-5` in order with a legend for several, never a hex or status colour; the range of a report and the selected tab live in the URL.
 - `[review:behaviour]` Ticking rows shows the floating `BulkActionBar` with the count and the actions, "Select all N results" covers the list's own search and filters; an import returns every row error, which the validation toasts show (five plus "And N more errors"), and imports nothing when a row is wrong; an export is the list as the user sees it (patterns/bulk-actions.md, patterns/import-export.md).
-- `[review:behaviour]` A customer page ships no invented reviews, customer logos, user numbers or stock photos: it shows only what the project supplies, and a picture block stays a neutral placeholder.
+- `[review:behaviour]` A public page (the landing page and the customer pages) ships no invented reviews, customer logos, user numbers or stock photos: it shows only what the project supplies, and a picture block stays a neutral placeholder.
 
 ## Text and translations
 

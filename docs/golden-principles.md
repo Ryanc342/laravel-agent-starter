@@ -1,6 +1,6 @@
 # Golden principles
 
-The principles of this template, the review lanes, and how a rule is written and found. The rules themselves are in .claude/rules/, each written once, in the file of the folders it is about; Claude Code loads a file when the AI reads a file its `paths:` match. Process rules are in AGENTS.md ("Red lines") and docs/workflow.md. Details and examples are in ARCHITECTURE.md.
+The principles of this template, the review lanes, and how a rule is written and found. The rules themselves are in .claude/rules/, each written once, in the file of the folders it is about; Claude Code loads a file when the AI reads a file its `paths:` match, and a file without `paths:` (fixes.md) in every session. Process rules are in AGENTS.md ("Red lines") and docs/workflow.md. Details and examples are in ARCHITECTURE.md.
 
 ## How a rule is written
 

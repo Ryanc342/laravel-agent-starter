@@ -2,6 +2,7 @@
 paths:
   - "resources/js/**"
   - "app/Http/Resources/**"
+  - "app/Http/Requests/**"
   - "app/Http/Middleware/HandleInertiaRequests.php"
 ---
 
@@ -56,7 +57,7 @@ Sort, filter and search of a list are read by the list's FormRequest from the qu
 
 ## Files and boundaries
 
-- `[Structure]` Pages live in `resources/js/pages/{domain}/` (`{page}.tsx` matches `Inertia::render('{domain}/{page}')`); the components root holds only the starter kit's layout and general components (app-shell, heading, input-error), so new components go in `components/{domain}/` or `components/shared/`; components/ui is shadcn's code and imports no app code.
+- `[Structure]` Pages live in `resources/js/pages/{domain}/` (`{page}.tsx` matches `Inertia::render('{domain}/{page}')`); the components root holds only the starter kit's layout and general components (app-shell, heading, input-error), so new components go in `components/{domain}/` or `components/shared/`; components/ui is shadcn's code: it never imports the app's other components, pages, actions, routes or Wayfinder (the shared helpers, such as `@/lib/utils` and `@/lib/i18n`, are allowed).
 - `[oxlint]` Domain components never import another domain's components; components/shared never imports domain components; nothing imports a page; no circular imports (`ezdev/component-boundaries`, `import/no-cycle`).
 - `[review:frontend]` No UI library besides components/ui (shadcn): importing another UI library in React code (antd, bootstrap, react-bootstrap, primereact, semantic-ui-react, flowbite, `@headlessui/react`, `@mui`, `@chakra-ui`, `@mantine`, `@nextui-org`, `@heroui`, `@ant-design` and the like) is rejected.
 - `[review:frontend]` No UI library that comes in through CSS only: resources/css `@import`s and `@plugin`s only tailwindcss and tw-animate-css, and no dependency section of package.json has a CSS UI kit (daisyui, bootstrap, bulma, flowbite, preline and the like).
