@@ -373,6 +373,23 @@ test('the same reminder is sent back at most three times in a conversation, also
     expect(array_map(fn (string $reason): bool => $reason !== '', $reasons))->toBe([true, true, true, false]);
 });
 
+test('a reminder whose text changes at every stop is still sent back at most three times', function (string $kind) {
+    $repo = finishCheckRepo();
+    $files = $kind === 'protected'
+        ? ['docs/workflow.md', 'docs/PLANS.md', 'AGENTS.md', 'DESIGN.md']
+        : ['app/Actions/Quotes/SendQuote.php', 'app/Actions/Quotes/AcceptQuote.php', 'app/Actions/Quotes/RejectQuote.php', 'app/Actions/Quotes/CopyQuote.php'];
+
+    $reasons = array_map(function (string $file) use ($repo, $kind): string {
+        finishCheckWrite($repo, $file, $kind === 'protected' ? "changed\n" : FINISH_CHECK_NEW_CODE);
+        finishCheckPass($repo);
+
+        return finishCheckRun($repo, 'stop');
+    }, $files);
+
+    expect(array_unique(array_slice($reasons, 0, 3)))->toHaveCount(3)
+        ->and(array_map(fn (string $reason): bool => $reason !== '', $reasons))->toBe([true, true, true, false]);
+})->with(['protected', 'plan']);
+
 test('each reminder is one line', function () {
     $repo = finishCheckRepo();
     finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', FINISH_CHECK_NEW_CODE);

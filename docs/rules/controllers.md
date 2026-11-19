@@ -52,7 +52,7 @@ return Inertia::render('tasks/index', [
 
 A list page is paginated, never with `take()`. Every list page reads `per_page` through the FormRequest for its query string with `ReadsPerPage` (10, 20, 50 or 100; anything else counts as 20), shows the rows-per-page choice, and the page links keep it (`withQueryString()`). The page renders `<Pagination collection={tasks} />` from `components/shared`. A short list inside another page (the user's passkeys on the security page) is not a list page. Form choices below are not a list page: a select gets the whole list with `get()`.
 
-Load what the Resource reads in the same query: relations with `with()` (`Task::query()->with('project')`), a number of related rows with `withCount()`. A Resource or a loop never runs a query of its own for each row (N+1). A job or a command that walks a large table reads it in pieces, with `chunkById()` or `lazyById()`.
+Load the relations and counts the Resource reads in the same query, so no row loads them again (N+1): relations with `with()` (`Task::query()->with('project')`), a number of related rows with `withCount()`. The owner calls behind a row's flags and `can.*` stay as they are, a few small queries per row (docs/rules/frontend.md). A command that walks a large table reads it in pieces, with `chunkById()` or `lazyById()`.
 
 Conditions are written only in model scopes: no `where…` or `orWhere…` outside app/Models (`whereKey()` is allowed). If a list needs a new condition, add a scope first.
 
