@@ -8,6 +8,7 @@ Questions only before the plan: after the user's "开始" the AI asks nothing, t
 
 ### Added
 
+- `copier.yml`: a project takes a template release with Copier (`copier update --defaults --vcs-ref=<tag>`), which merges the template's changes between two releases and keeps the project's own; the conflicts become plan questions (`docs/prompts/upgrade.md`, "Projects made from this template"). A sync takes the whole release; picking changes from CHANGELOG.md goes. Both READMEs say how to install Copier.
 - The approval snapshot: a `UserPromptSubmit` hook (`finish-check.php approve`, `.claude/settings.json`) keeps a copy of the plan and its commit when the user says "开始" (also `开始吧`, `好开始`, `好的开始`, `ok开始` or `start`, with any spaces and punctuation). Protected changes are measured against the snapshot's "Approved changes", and the reviewers read the plan as approved.
 - "Approved changes" in the plan format (`docs/PLANS.md`): the protected files, the dependencies and the existing test assertions the plan changes, each with its decision. A requirement change after the plan goes into the Decision Log with a new "开始".
 - A plan that syncs the template into a project names `Template: <commit>`; a file that is as it is in that commit is not reviewed (`docs/prompts/upgrade.md`, `docs/prompts/review.md` step 3).

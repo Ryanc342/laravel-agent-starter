@@ -77,7 +77,7 @@
 // adds next to them (a helper in tests/Support/ or scripts/, a pattern of its own)
 // is not protected.
 const PROTECTED_FILES = [
-    '' => ['AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'DESIGN.md', 'phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'pint.json', 'phpunit.xml', '.npmrc', '.gitignore', 'artisan'],
+    '' => ['AGENTS.md', 'CLAUDE.md', 'ARCHITECTURE.md', 'DESIGN.md', 'phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'pint.json', 'phpunit.xml', '.npmrc', '.gitignore', 'artisan', 'copier.yml'],
     'docs/' => ['golden-principles.md', 'workflow.md', 'PLANS.md'],
     'docs/design/' => ['components.md', 'foundations.md'],
     'docs/design/patterns/' => [

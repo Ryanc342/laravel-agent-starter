@@ -56,7 +56,7 @@ export DB_PASSWORD='your-password'
 
 ### 维护这个模板
 
-公开 Composer 包为 [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter)，稳定 Git 标签标识发布版本。官方安装器的短命令默认使用模板主分支的最新版；模板更新不会改动已经创建的项目。需要固定稳定快照时，改用 `--using=ryanc342/laravel-agent-starter:v1.0.0` 即可。
+公开 Composer 包为 [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter)，稳定 Git 标签标识发布版本。官方安装器的短命令默认使用模板主分支的最新版；模板更新不会改动已经创建的项目；项目用 Copier 接收新的模板版本（见“接收新的模板版本”）。需要固定稳定快照时，改用 `--using=ryanc342/laravel-agent-starter:v1.0.0` 即可。
 
 维护模板源码时，克隆本仓库，在 MySQL 运行的情况下执行 `composer setup`。`composer check` 检查源码，`composer check:reference` 同时检查参考功能。本仓库的 CI 还会通过 `scripts/check-installer`，使用真实 Laravel 安装器创建两个临时项目，验证 MySQL 隔离、开发服务器和完整检查；派生项目仓库运行常规检查。
 
@@ -112,6 +112,10 @@ AI 的报告会列出规则没有覆盖的情况和与规则不同的决定；�
 ## 部署
 
 需要生成 PDF 的服务器，PHP 的 `memory_limit` 至少要 256M。PDF 视图用 Noto Sans SC（`resources/fonts/`，每个字重约 10.6 MB，SIL 开源字体许可）绘制所有文字，所以中文能正常打印；DOMPDF 要读完整字体才能裁出 PDF 用到的字，一次渲染的峰值约 120 到 130 MB，超过 PHP 默认的 128M。`phpunit.xml` 已为测试设为 256M。DOMPDF 把字体文件和字体度量放在 `storage/fonts`，该目录必须可写。
+
+## 接收新的模板版本
+
+项目用 [Copier](https://copier.readthedocs.io) 接收模板的新版本：它把两个版本之间的模板改动合并进项目，并保留项目自己的改动。先安装一次：`pipx install copier`（或 `uv tool install copier`、`brew install copier`），需要 Python 3.9 或更新版本和 Git。然后让 AI 把模板同步到某个版本（如 `v1.4.0`）：它按 `docs/prompts/upgrade.md` 的“Projects made from this template”执行，把每个冲突作为计划里的问题问你，你说“开始”后再按回答解决冲突，运行 `composer check` 并完成审查。
 
 ## 来源与许可
 

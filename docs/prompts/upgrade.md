@@ -36,4 +36,9 @@ The starter kit code was copied into this project and rewritten to the v2 rules,
 
 ## Projects made from this template
 
-A project made from the template is not linked to it. To bring template changes (rules, checks, docs) into a project, fetch the template's release into it (`git fetch https://github.com/ryanc342/laravel-agent-starter.git <tag>`; `git rev-parse FETCH_HEAD` prints its commit), read its CHANGELOG.md, list the changes for the user and write the picks into a plan. Its "Approved changes" starts with `Template: <commit>` and names every protected file the picks change. After the user's "开始", copy the files, run the project's `composer check` and review as for any plan: a file that is as it is in the template's commit is not reviewed (docs/prompts/review.md, step 3).
+A project takes template releases with Copier (`copier.yml` has no questions, so every file comes as it is), one whole release at a time, on a sync branch with nothing uncommitted.
+
+1. The project's first sync adds `.copier-answers.yml` with `_src_path: https://github.com/ryanc342/laravel-agent-starter.git` and `_commit: <the template release the project is on>`, and commits it.
+2. At plan time, run `copier update --defaults --vcs-ref=<tag>`. It merges the template's changes between the two releases into the project and keeps the project's own changes. Then set `_commit` in `.copier-answers.yml` to `<tag>` (Copier does not change it, because the template has no answers file of its own).
+3. Write the plan. Its "Approved changes" starts with `Template: <commit>` (`git rev-parse <tag>^{commit}` in the template, or `git ls-remote` on `_src_path`) and names every protected file the release changes. Each conflict Copier left (a file with `<<<<<<< before updating`) is a plan question: keep the project's lines, take the template's, or combine them.
+4. After the user's "开始", resolve the conflicts as answered, then run `composer check` and the final review as for any plan: a file that is as it is in the template's commit is not reviewed (docs/prompts/review.md, step 3).

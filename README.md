@@ -57,7 +57,7 @@ The account needs permission to create the project's databases. Keep `.env` loca
 
 ### Maintaining this starter kit
 
-The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases. The short command follows the template’s main branch, as selected by Laravel Installer; updating the template does not change projects you already created. To pin a stable snapshot, use `--using=ryanc342/laravel-agent-starter:v1.0.0` instead.
+The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases. The short command follows the template’s main branch, as selected by Laravel Installer; updating the template does not change projects you already created: a project takes a new template release with Copier (below). To pin a stable snapshot, use `--using=ryanc342/laravel-agent-starter:v1.0.0` instead.
 
 To work on the template itself, clone this repository and run `composer setup` with MySQL running. `composer check` verifies the source, and `composer check:reference` also verifies the reference feature. In this repository's CI, `scripts/check-installer` creates two disposable projects with the actual Laravel Installer and checks their MySQL isolation, development servers and complete checks. Derived project repositories run the regular checks.
 
@@ -132,6 +132,10 @@ A server that makes PDFs needs a PHP `memory_limit` of at least 256M. The PDF vi
 - Laravel 13, Inertia 3, React 19, Vite+, Pest, Larastan, Laravel Boost
 
 To pick up later starter kit or Laravel changes, run `docs/prompts/upgrade.md`. See `CHANGELOG.md` for versions.
+
+## Taking a new template release
+
+A project takes a template release with [Copier](https://copier.readthedocs.io), which merges the template's changes between two releases into the project and keeps the project's own changes. Install it once with `pipx install copier` (or `uv tool install copier`, or `brew install copier`); it needs Python 3.9 or later and Git. Then ask the AI to sync the template to a release (`v1.4.0`): it follows `docs/prompts/upgrade.md`, "Projects made from this template", asks about each conflict in the plan, and after your "开始" resolves them, runs `composer check` and the review.
 
 ## Contributing and security
 
