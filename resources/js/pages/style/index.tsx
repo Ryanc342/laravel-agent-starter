@@ -377,41 +377,52 @@ const invoiceForm: ExampleInvoiceForm = {
     lines: [
         {
             id: 1,
-            name: 'Website design',
-            unit: 800000,
-            total: 0,
+            description: 'Website design',
             quantity: '1',
+            unit: 800000,
+            total: 800000,
         },
         {
             id: 2,
-            name: 'Front-end development (days)',
-            unit: 120000,
-            total: 0,
+            description: 'Front-end development (days)',
             quantity: '12',
+            unit: 120000,
+            total: 1440000,
         },
         {
             id: 3,
-            name: 'Back-end development (days)',
-            unit: 130000,
-            total: 0,
+            description: 'Back-end development (days)',
             quantity: '10',
+            unit: 130000,
+            total: 1300000,
         },
         {
             id: 4,
-            name: 'Server (months)',
-            unit: 45000,
-            total: 0,
+            description: 'Server (months)',
             quantity: '3',
+            unit: 45000,
+            total: 135000,
         },
-        { id: 5, name: 'Domain renewal', unit: 12000, total: 0, quantity: '1' },
+        {
+            id: 5,
+            description: 'Domain renewal',
+            quantity: '1',
+            unit: 12000,
+            total: 12000,
+        },
         {
             id: 6,
-            name: 'Launch support (days)',
-            unit: 100000,
-            total: 0,
+            description: 'Launch support (days)',
             quantity: '2',
+            unit: 100000,
+            total: 200000,
         },
     ],
+    rows: [
+        { label: msg('Subtotal'), amount: 3887000 },
+        { label: msg('Tax (6%)'), amount: 233220 },
+    ],
+    total: { label: msg('Total'), amount: 4120220 },
 };
 
 const reportTiles = [
@@ -580,14 +591,17 @@ export default function Style() {
                     <FormDemo
                         task={tasks[1]}
                         requiredMessage={t('The title field is required.')}
-                        invoice={invoiceForm}
-                        price={(items) =>
-                            priceCart(items, {
-                                subtotal: t('Subtotal'),
-                                tax: t('Tax (6%)'),
-                                total: t('Total'),
-                            })
-                        }
+                        invoice={{
+                            ...invoiceForm,
+                            rows: invoiceForm.rows.map((row) => ({
+                                ...row,
+                                label: t(row.label),
+                            })),
+                            total: {
+                                ...invoiceForm.total,
+                                label: t(invoiceForm.total.label),
+                            },
+                        }}
                     />
                 </StyleSection>
 

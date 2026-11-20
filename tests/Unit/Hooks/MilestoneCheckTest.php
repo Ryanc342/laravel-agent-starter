@@ -44,19 +44,17 @@ PHP;
  */
 function milestoneStop(string $repo): string
 {
-    $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', 'stop'], $repo);
-    $process->setInput(json_encode(['session_id' => 'milestone', 'cwd' => $repo, 'transcript_path' => "{$repo}/runtime/transcript.jsonl"]) ?: '');
-    $process->mustRun();
+    $output = workspaceStop($repo, ['session_id' => 'milestone', 'cwd' => $repo, 'transcript_path' => "{$repo}/runtime/transcript.jsonl"]);
 
-    if ($process->getOutput() === '') {
+    if ($output === '') {
         return '';
     }
 
-    $answer = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+    $answer = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
 
     return is_array($answer) && ($answer['decision'] ?? null) === 'block' && is_string($answer['reason'] ?? null)
         ? $answer['reason']
-        : throw new RuntimeException("The Stop hook gave another answer: {$process->getOutput()}");
+        : throw new RuntimeException("The Stop hook gave another answer: {$output}");
 }
 
 /** @param list<string> $paths

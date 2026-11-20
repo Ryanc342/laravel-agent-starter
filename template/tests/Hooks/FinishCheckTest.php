@@ -40,26 +40,14 @@ function finishCheckTranscript(string $repo, int $start): void
  * Runs the Stop hook and returns its output as an array ([] when it prints nothing).
  *
  * @param  array<string, mixed>  $input
+ * @param  array<string, string>  $env
  * @return array<string, mixed>
  */
-function finishCheckStop(string $repo, array $input = []): array
+function finishCheckStop(string $repo, array $input = [], array $env = []): array
 {
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $repo);
-    $process->setInput(json_encode([...['session_id' => 'test', 'cwd' => $repo, 'stop_hook_active' => false, 'transcript_path' => "{$repo}/transcript.jsonl"], ...$input]) ?: '');
-    $process->mustRun();
+    $output = workspaceStop($repo, [...['session_id' => 'test', 'cwd' => $repo, 'stop_hook_active' => false, 'transcript_path' => "{$repo}/transcript.jsonl"], ...$input], $env);
 
-    return $process->getOutput() === '' ? [] : json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-}
-
-/**
- * Runs a mode of the finish check the way composer check does.
- */
-function finishCheckMode(string $repo, string ...$arguments): Process
-{
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', ...$arguments], $repo);
-    $process->run();
-
-    return $process;
+    return $output === '' ? [] : json_decode($output, true, flags: JSON_THROW_ON_ERROR);
 }
 
 /**
@@ -67,10 +55,10 @@ function finishCheckMode(string $repo, string ...$arguments): Process
  */
 function finishCheckPass(string $repo): void
 {
-    finishCheckMode($repo, 'revoke');
-    $fingerprint = trim(finishCheckMode($repo, 'fingerprint')->getOutput());
+    expect(workspaceFinishCheck($repo, ['revoke'])->getExitCode())->toBe(0);
+    $fingerprint = trim(workspaceFinishCheck($repo, ['fingerprint'])->getOutput());
 
-    expect(finishCheckMode($repo, 'passed', $fingerprint)->getExitCode())->toBe(0);
+    expect(workspaceFinishCheck($repo, ['passed', $fingerprint])->getExitCode())->toBe(0);
 }
 
 /**
@@ -81,14 +69,7 @@ function finishCheckPass(string $repo): void
  */
 function finishCheckStopWithGit(string $repo, string $command, string $fail): array
 {
-    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
-    workspaceWrite($repo, 'bin/git', "#!/bin/sh\nfor a in \"\$@\"; do [ \"\$a\" = {$command} ] && {$fail}; done\nexec {$real} \"\$@\"\n");
-    chmod("{$repo}/bin/git", 0755);
-
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $repo, ['PATH' => "{$repo}/bin:".getenv('PATH')]);
-    $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $repo, 'stop_hook_active' => false, 'transcript_path' => "{$repo}/transcript.jsonl"]) ?: '');
-
-    return json_decode($process->mustRun()->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+    return finishCheckStop($repo, [], ['PATH' => workspaceFakeGit($repo, "for a in \"\$@\"; do [ \"\$a\" = {$command} ] && {$fail}; done")]);
 }
 
 test('a conversation that changed no file may stop', function () {
@@ -197,8 +178,8 @@ test('the sample copies are code, their Markdown is not', function () {
 
 test('scripts/ and template/ touch lane backend, and the sample copies the lanes of the page they copy', function () {
     $repo = finishCheckRepo();
-    $lanes = json_decode(finishCheckMode($repo, 'lanes')->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-    $touched = fn (string $path) => json_decode(finishCheckMode($repo, 'lanes', $path)->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+    $lanes = json_decode(workspaceFinishCheck($repo, ['lanes'])->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+    $touched = fn (string $path) => json_decode(workspaceFinishCheck($repo, ['lanes', $path])->getOutput(), true, flags: JSON_THROW_ON_ERROR);
 
     expect($lanes['backend'])->toContain('scripts/', 'template/')
         ->and($touched('scripts/hooks/finish-check.php'))->toBe(['backend'])
@@ -234,10 +215,10 @@ test('a check file and code with no pass block and tell Ryan in the same answer'
 test('a pass is recorded only for the code the check started on', function () {
     $repo = finishCheckRepo();
     workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
-    $fingerprint = trim(finishCheckMode($repo, 'fingerprint')->getOutput());
+    $fingerprint = trim(workspaceFinishCheck($repo, ['fingerprint'])->getOutput());
     workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = false;\n");
 
-    $passed = finishCheckMode($repo, 'passed', $fingerprint);
+    $passed = workspaceFinishCheck($repo, ['passed', $fingerprint]);
 
     expect($passed->getExitCode())->toBe(1)
         ->and($passed->getErrorOutput())->toContain('the code changed while the check ran')
@@ -248,7 +229,7 @@ test('a check that starts forgets the last pass', function () {
     $repo = finishCheckRepo();
     workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
     finishCheckPass($repo);
-    finishCheckMode($repo, 'revoke');
+    workspaceFinishCheck($repo, ['revoke']);
 
     expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
 });
@@ -275,6 +256,22 @@ test('a git command that fails is told to Ryan, never read as no change', functi
     expect($output['systemMessage'])->toBe('The finish check failed: git log failed');
 });
 
+test('a temporary file the finish check cannot remove is told to Ryan, never left silently', function () {
+    $repo = finishCheckRepo();
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    $temp = workspaceFolder('finish-check-temp');
+    // A git that leaves the temporary folder read-only, so nothing in it can be removed.
+    $path = workspaceFakeGit($repo, 'chmod 555 "$TMPDIR"');
+
+    try {
+        $output = finishCheckStop($repo, [], ['PATH' => $path, 'TMPDIR' => $temp]);
+    } finally {
+        chmod($temp, 0755) ?: throw new RuntimeException('cannot make the temporary folder writable again');
+    }
+
+    expect($output['systemMessage'] ?? null)->toStartWith('The finish check failed: cannot remove the temporary file');
+});
+
 test('a git that refuses the repository is told to Ryan, never read as no repository', function () {
     $repo = finishCheckRepo();
     workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
@@ -288,14 +285,9 @@ test('outside a git repository the finish check says nothing in any language', f
     $dir = workspaceFolder('no-git-zh');
     workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
     // A git that answers in Chinese unless asked for English, as a translated git does.
-    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
-    workspaceWrite($dir, 'bin/git', "#!/bin/sh\n[ \"\$LC_ALL\" = C ] || { echo '致命错误：不是 git 仓库' >&2; exit 128; }\nexec {$real} \"\$@\"\n");
-    chmod("{$dir}/bin/git", 0755);
+    $path = workspaceFakeGit($dir, "[ \"\$LC_ALL\" = C ] || { echo '致命错误：不是 git 仓库' >&2; exit 128; }");
 
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $dir, ['PATH' => "{$dir}/bin:".getenv('PATH'), 'LANG' => 'zh_CN.UTF-8', 'LC_ALL' => 'zh_CN.UTF-8']);
-    $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $dir, 'stop_hook_active' => false]) ?: '');
-
-    expect($process->mustRun()->getOutput())->toBe('');
+    expect(finishCheckStop($dir, ['transcript_path' => null], ['PATH' => $path, 'LANG' => 'zh_CN.UTF-8', 'LC_ALL' => 'zh_CN.UTF-8']))->toBe([]);
 });
 
 test('a transcript or state file that cannot be read is told to Ryan, never read as none', function () {
@@ -314,10 +306,10 @@ test('a transcript or state file that cannot be read is told to Ryan, never read
 
 test('a Stop input that is not a JSON object, or a told file that holds no list, is told to Ryan', function () {
     $repo = finishCheckRepo();
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $repo);
-    $process->setInput('not json');
+    $process = workspaceFinishCheck($repo, ['stop'], input: 'not json');
 
-    expect(json_decode($process->mustRun()->getOutput(), true, flags: JSON_THROW_ON_ERROR)['systemMessage'])->toStartWith('The finish check failed: ');
+    expect($process->getExitCode())->toBe(0)
+        ->and(json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR)['systemMessage'])->toStartWith('The finish check failed: ');
 
     workspaceWrite($repo, 'phpstan.neon', "changed\n");
     workspaceWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '"phpstan.neon"');
@@ -400,5 +392,5 @@ test('outside a git repository the finish check says nothing', function () {
     workspaceWrite($dir, 'app/code.php', "<?php\n");
 
     expect(finishCheckStop($dir))->toBe([])
-        ->and(finishCheckMode($dir, 'fingerprint')->getOutput())->toBe('');
+        ->and(workspaceFinishCheck($dir, ['fingerprint'])->getOutput())->toBe('');
 });

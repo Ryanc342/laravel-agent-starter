@@ -190,7 +190,7 @@ test('a port that is taken gives the next free one', function () {
 });
 
 test('a copy\'s app starts in the background, keeps the server\'s pid, and a restart replaces it', function () {
-    $copy = sys_get_temp_dir().'/ezdev-screen-round-serve-'.bin2hex(random_bytes(6));
+    $copy = workspaceFolder('screen-round-serve');
     $server = "{$copy}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php";
 
     foreach (["{$copy}/storage/framework", "{$copy}/storage/logs"] as $dir) {
@@ -202,11 +202,10 @@ test('a copy\'s app starts in the background, keeps the server\'s pid, and a res
     workspaceWrite($copy, 'public/index.php', "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\n");
     $port = screenRoundFreeSeatPort();
     $pids = [];
-    register_shutdown_function(function () use (&$pids, $copy) {
+    register_shutdown_function(function () use (&$pids) {
         foreach ($pids as $pid) {
             @posix_kill($pid, SIGTERM);
         }
-        (new Process(['rm', '-rf', $copy]))->run();
     });
 
     foreach ([1, 2] as $start) {
@@ -225,17 +224,14 @@ test('a copy\'s app starts in the background, keeps the server\'s pid, and a res
 });
 
 test('an app that answers /up without Laravel\'s health page does not count as answering', function () {
-    $root = sys_get_temp_dir().'/ezdev-screen-round-probe-'.bin2hex(random_bytes(6));
+    $root = workspaceFolder('screen-round-probe');
     workspaceWrite($root, 'router.php', "<?php\necho \"<b>Fatal error</b>: Failed opening required 'index.php'\";\n");
     $socket = stream_socket_server('tcp://127.0.0.1:0');
     $port = (int) substr(strrchr((string) stream_socket_get_name($socket, false), ':') ?: ':0', 1);
     fclose($socket);
     $server = new Process([PHP_BINARY, '-S', "127.0.0.1:{$port}", "{$root}/router.php"], $root);
     $server->start();
-    register_shutdown_function(function () use ($server, $root) {
-        $server->stop();
-        (new Process(['rm', '-rf', $root]))->run();
-    });
+    register_shutdown_function(fn () => $server->stop());
 
     for ($i = 0; $i < 50 && @fsockopen('127.0.0.1', $port) === false; $i++) {
         usleep(100_000);

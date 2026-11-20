@@ -96,3 +96,50 @@ function workspaceCommit(string $repo, ?int $time = null): void
         (new Process(['git', ...$args], $repo, $date))->mustRun();
     }
 }
+
+/**
+ * Puts a git in front of the real one in $root/bin: it runs the shell lines
+ * $script first, then the real git. Returns the PATH that finds it first.
+ */
+function workspaceFakeGit(string $root, string $script): string
+{
+    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
+    workspaceWrite($root, 'bin/git', "#!/bin/sh\n{$script}\nexec {$real} \"\$@\"\n");
+    chmod("{$root}/bin/git", 0755) ?: throw new RuntimeException('cannot make bin/git runnable');
+
+    return "{$root}/bin:".getenv('PATH');
+}
+
+/**
+ * Runs scripts/hooks/finish-check.php in $repo, with $input on stdin when given,
+ * and returns the process after it ended.
+ *
+ * @param  list<string>  $arguments
+ * @param  array<string, string>  $env
+ */
+function workspaceFinishCheck(string $repo, array $arguments, array $env = [], ?string $input = null): Process
+{
+    $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', ...$arguments], $repo, $env === [] ? null : $env);
+
+    if ($input !== null) {
+        $process->setInput($input);
+    }
+
+    $process->run();
+
+    return $process;
+}
+
+/**
+ * Runs the Stop hook in $repo with $input as Claude Code sends it and returns
+ * what it printed; a hook that fails (not an answer) stops the test.
+ *
+ * @param  array<string, mixed>  $input
+ * @param  array<string, string>  $env
+ */
+function workspaceStop(string $repo, array $input, array $env = []): string
+{
+    $process = workspaceFinishCheck($repo, ['stop'], $env, json_encode($input, JSON_THROW_ON_ERROR));
+
+    return $process->getExitCode() === 0 ? $process->getOutput() : throw new RuntimeException("The Stop hook failed: {$process->getErrorOutput()}");
+}

@@ -551,7 +551,18 @@ function gitRun(array $args, array $env = [], bool $trim = true): array
 
         return [$exit, $trim ? trim($output) : $output, trim(readText($errors))];
     } finally {
-        unlink($errors);
+        removeTemporary($errors);
+    }
+}
+
+/**
+ * Removes a temporary file; one that cannot be removed stops the check, never
+ * stays behind without a word.
+ */
+function removeTemporary(string $path): void
+{
+    if (is_file($path) && ! unlink($path)) {
+        throw new RuntimeException("cannot remove the temporary file {$path}");
     }
 }
 
@@ -586,7 +597,7 @@ function fingerprint(): string
     }
 
     // git makes the index itself, so the empty file goes first.
-    unlink($index);
+    removeTemporary($index);
     $env = ['GIT_INDEX_FILE' => $index];
 
     try {
@@ -594,9 +605,7 @@ function fingerprint(): string
         mustGit(['add', '-A'], $env);
         $files = mustGit(['ls-files', '-s'], $env);
     } finally {
-        if (is_file($index)) {
-            unlink($index);
-        }
+        removeTemporary($index);
     }
 
     $code = array_filter(explode("\n", $files), fn (string $line): bool => isCodePath(explode("\t", $line, 2)[1] ?? ''));

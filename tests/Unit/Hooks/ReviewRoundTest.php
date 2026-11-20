@@ -31,17 +31,6 @@ function roundPlan(string $milestones): string
 }
 
 /**
- * Runs `finish-check.php round <plan>` and returns the process.
- */
-function roundRun(string $repo, string $plan): Process
-{
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'round', $plan], $repo);
-    $process->run();
-
-    return $process;
-}
-
-/**
  * The two files a round prints, by their label: ['Diff' => <path>, 'Plan' => <path>].
  *
  * @return array<string, string>
@@ -64,7 +53,7 @@ test('a round writes the plan\'s diff and a copy of the plan for the reviewers, 
     workspaceCommit($repo);
     workspaceWrite($repo, 'app/Actions/Quotes/RejectQuote.php', "<?php\n\n\$rejected = true;\n");
 
-    $process = roundRun($repo, 'docs/exec-plans/active/send-quotes.md');
+    $process = workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/send-quotes.md']);
     $files = roundFiles($process);
 
     expect($process->getExitCode())->toBe(0)
@@ -88,7 +77,7 @@ test('a plan not yet committed diffs against HEAD', function () {
     workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
     workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [ ] M1 Actions'));
 
-    $files = roundFiles(roundRun($repo, 'docs/exec-plans/active/send-quotes.md'));
+    $files = roundFiles(workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/send-quotes.md']));
 
     expect(file_get_contents("{$repo}/{$files['Diff']}"))->toContain('+$sent = true;')->toContain('+++ b/docs/exec-plans/active/send-quotes.md');
 });
@@ -107,7 +96,7 @@ test('a round leaves out of the diff the files that are as they are in the templ
     workspaceWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
     workspaceCommit($repo);
 
-    $diff = (string) file_get_contents($repo.'/'.roundFiles(roundRun($repo, 'docs/exec-plans/active/sync-template.md'))['Diff']);
+    $diff = (string) file_get_contents($repo.'/'.roundFiles(workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/sync-template.md']))['Diff']);
 
     expect($diff)->toContain('resources/js/pages/quotes/index.tsx')
         ->not->toContain('FromTemplate.php');
@@ -118,7 +107,7 @@ test('a round for a sync plan whose template commit is not in the repository fai
     workspaceWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: 0123456789abcdef0123456789abcdef01234567\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
     workspaceCommit($repo);
 
-    $process = roundRun($repo, 'docs/exec-plans/active/sync-template.md');
+    $process = workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/sync-template.md']);
 
     expect($process->getExitCode())->toBe(1)
         ->and($process->getErrorOutput())->toContain('0123456789abcdef0123456789abcdef01234567');
@@ -132,12 +121,9 @@ test('a round for a sync plan fails and says so when git refuses to read the tem
     workspaceWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
     workspaceCommit($repo);
     // A git that refuses to read objects of the template commit, the way a broken object store does.
-    $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
-    workspaceWrite($repo, 'bin/git', "#!/bin/sh\ncase \"\$*\" in *{$template}:*) echo 'fatal: bad object' >&2; exit 128;; esac\nexec {$real} \"\$@\"\n");
-    chmod("{$repo}/bin/git", 0755);
+    $path = workspaceFakeGit($repo, "case \"\$*\" in *{$template}:*) echo 'fatal: bad object' >&2; exit 128;; esac");
 
-    $process = new Process(['php', 'scripts/hooks/finish-check.php', 'round', 'docs/exec-plans/active/sync-template.md'], $repo, ['PATH' => "{$repo}/bin:".getenv('PATH')]);
-    $process->run();
+    $process = workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/sync-template.md'], ['PATH' => $path]);
 
     expect($process->getExitCode())->toBe(1)
         ->and($process->getErrorOutput())->toContain('fatal: bad object');
@@ -149,7 +135,7 @@ test('a round takes an empty new file into the diff', function () {
     workspaceCommit($repo);
     workspaceWrite($repo, 'app/Actions/Quotes/.gitkeep', '');
 
-    $process = roundRun($repo, 'docs/exec-plans/active/send-quotes.md');
+    $process = workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/send-quotes.md']);
 
     expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
         ->and(file_get_contents($repo.'/'.roundFiles($process)['Diff']))->toContain('app/Actions/Quotes/.gitkeep');
@@ -157,7 +143,7 @@ test('a round takes an empty new file into the diff', function () {
 
 test('a round for a plan that does not exist writes nothing and fails', function () {
     $repo = roundRepo();
-    $process = roundRun($repo, 'docs/exec-plans/active/missing.md');
+    $process = workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/missing.md']);
 
     expect($process->getExitCode())->toBe(1)
         ->and($process->getErrorOutput())->toContain('docs/exec-plans/active/missing.md')
@@ -174,7 +160,7 @@ test('the lanes of the finish check are the lanes of docs/golden-principles.md',
         $lanes[$key] = array_map('trim', explode(',', trim($places)));
     }
 
-    $hook = json_decode((new Process(['php', "{$root}/scripts/hooks/finish-check.php", 'lanes'], $root))->mustRun()->getOutput(), true);
+    $hook = json_decode(workspaceFinishCheck($root, ['lanes'])->getOutput(), true, flags: JSON_THROW_ON_ERROR);
 
     expect($lanes)->toBe($hook);
 });

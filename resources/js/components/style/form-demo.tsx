@@ -1,18 +1,24 @@
-import { useState } from 'react';
 import DatePicker from '@/components/shared/date-picker';
 import FormField from '@/components/shared/form-field';
-import LineItems, { type LineItem } from '@/components/shared/line-items';
 import OrderSummary from '@/components/shared/order-summary';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
     ResponsiveDialogClose,
     ResponsiveDialogFooter,
 } from '@/components/shared/responsive-dialog';
-import type { PricedCart } from '@/components/style/checkout-demo';
 import { Specimen } from '@/components/style/style-section';
 import type { ExampleTask } from '@/components/style/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { formatMoney, formatQuantity } from '@/lib/format';
 import { t } from '@/lib/i18n';
 
 /** The fields and buttons of a form dialog: fields in the body, buttons in the footer, main button first. */
@@ -59,31 +65,32 @@ function DemoForm({
     );
 }
 
+type SummaryRow = { label: string; amount: number };
+
+/** An invoice as the backend would send it: amounts in minor units, totals worked out. */
 export type ExampleInvoiceForm = {
     customer: string;
     date: string;
     due: string;
     note: string;
     currency: string;
-    lines: LineItem[];
+    lines: {
+        id: number;
+        description: string;
+        quantity: string;
+        unit: number;
+        total: number;
+    }[];
+    rows: SummaryRow[];
+    total: SummaryRow;
 };
 
 /**
  * A long form with lines, in the wide dialog: the invoice's fields, its lines
- * (the shared LineItems) and its totals. The server prices the lines; here
- * `price` stands in for its answer, as in the checkout demo.
+ * as a table and its totals. The totals come with the data, as from the
+ * backend: nothing is added up here.
  */
-function WideDemoForm({
-    invoice,
-    price,
-}: {
-    invoice: ExampleInvoiceForm;
-    price: (items: LineItem[]) => PricedCart;
-}) {
-    const [priced, setPriced] = useState<PricedCart>(() =>
-        price(invoice.lines),
-    );
-
+function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
     return (
         <form
             noValidate
@@ -106,32 +113,43 @@ function WideDemoForm({
                 <FormField label={t('Due date')} htmlFor="wide-demo-due">
                     <DatePicker id="wide-demo-due" defaultValue={invoice.due} />
                 </FormField>
-                <LineItems
-                    items={priced.items}
-                    currency={invoice.currency}
-                    field="lines"
-                    onQuantityChange={(id, quantity) =>
-                        setPriced(
-                            price(
-                                priced.items.map((item) =>
-                                    item.id === id
-                                        ? { ...item, quantity }
-                                        : item,
-                                ),
-                            ),
-                        )
-                    }
-                    onRemove={(id) =>
-                        setPriced(
-                            price(
-                                priced.items.filter((item) => item.id !== id),
-                            ),
-                        )
-                    }
-                />
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>{t('Description')}</TableHead>
+                            <TableHead className="text-right">
+                                {t('Qty')}
+                            </TableHead>
+                            <TableHead className="text-right">
+                                {t('Price')}
+                            </TableHead>
+                            <TableHead className="text-right">
+                                {t('Total')}
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {invoice.lines.map((line) => (
+                            <TableRow key={line.id}>
+                                <TableCell className="whitespace-normal">
+                                    {line.description}
+                                </TableCell>
+                                <TableCell className="text-right tabular-nums">
+                                    {formatQuantity(line.quantity)}
+                                </TableCell>
+                                <TableCell className="text-right tabular-nums">
+                                    {formatMoney(line.unit, invoice.currency)}
+                                </TableCell>
+                                <TableCell className="text-right tabular-nums">
+                                    {formatMoney(line.total, invoice.currency)}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
                 <OrderSummary
-                    rows={priced.rows}
-                    total={priced.total}
+                    rows={invoice.rows}
+                    total={invoice.total}
                     currency={invoice.currency}
                 />
                 <FormField label={t('Note')} htmlFor="wide-demo-note">
@@ -159,12 +177,10 @@ export default function FormDemo({
     task,
     requiredMessage,
     invoice,
-    price,
 }: {
     task: ExampleTask;
     requiredMessage: string;
     invoice: ExampleInvoiceForm;
-    price: (items: LineItem[]) => PricedCart;
 }) {
     return (
         <Specimen
@@ -204,7 +220,7 @@ export default function FormDemo({
                 }
                 title={t('New invoice')}
             >
-                <WideDemoForm invoice={invoice} price={price} />
+                <WideDemoForm invoice={invoice} />
             </ResponsiveDialog>
         </Specimen>
     );
