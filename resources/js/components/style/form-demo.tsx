@@ -1,6 +1,7 @@
+import { Plus, X } from 'lucide-react';
+import { useState } from 'react';
 import DatePicker from '@/components/shared/date-picker';
 import FormField from '@/components/shared/form-field';
-import OrderSummary from '@/components/shared/order-summary';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
     ResponsiveDialogClose,
@@ -11,14 +12,11 @@ import type { ExampleTask } from '@/components/style/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { formatMoney, formatQuantity } from '@/lib/format';
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { formatMoney } from '@/lib/format';
 import { t } from '@/lib/i18n';
 
 /** The fields and buttons of a form dialog: fields in the body, buttons in the footer, main button first. */
@@ -65,32 +63,55 @@ function DemoForm({
     );
 }
 
-type SummaryRow = { label: string; amount: number };
+type InvoiceLine = {
+    id: number;
+    description: string;
+    /** As typed in the quantity and unit price boxes. */
+    quantity: string;
+    unit: string;
+    /** The line's amount in minor units, as the backend sends it. */
+    total: number;
+};
 
-/** An invoice as the backend would send it: amounts in minor units, totals worked out. */
+/** An invoice as the backend would send it: amounts in minor units, the total worked out. */
 export type ExampleInvoiceForm = {
     customer: string;
     date: string;
     due: string;
     note: string;
     currency: string;
-    lines: {
-        id: number;
-        description: string;
-        quantity: string;
-        unit: number;
-        total: number;
-    }[];
-    rows: SummaryRow[];
-    total: SummaryRow;
+    lines: InvoiceLine[];
+    total: number;
 };
 
+/** A line of the form: as the backend sent it, or changed or added since, so its amount is not known until it is saved. */
+type FormLine = { key: number; line: InvoiceLine | null };
+
 /**
- * A long form with lines, in the wide dialog: the invoice's fields, its lines
- * as a table (on a phone without the unit price, so the line fits) and its totals. The totals come with the data, as from the
- * backend: nothing is added up here.
+ * A long form with lines, in the wide dialog: the invoice's fields, one row
+ * of inputs per line with a remove button, an "Add line" button and the
+ * total. The amounts come from the backend, worked out when the form is
+ * saved: nothing is added up here, so a line changed, added or removed since
+ * shows no amount, and then the total shows none either. On a phone each line
+ * stacks: the description and its remove button, then the numbers.
  */
 function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
+    const [lines, setLines] = useState<FormLine[]>(() =>
+        invoice.lines.map((line) => ({ key: line.id, line })),
+    );
+    const [nextKey, setNextKey] = useState(
+        () => Math.max(0, ...invoice.lines.map((line) => line.id)) + 1,
+    );
+    const changed =
+        lines.length !== invoice.lines.length ||
+        lines.some((row) => row.line === null);
+    const unknown = '—';
+
+    const forget = (key: number) =>
+        setLines((rows) =>
+            rows.map((row) => (row.key === key ? { ...row, line: null } : row)),
+        );
+
     return (
         <form
             noValidate
@@ -113,45 +134,141 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                 <FormField label={t('Due date')} htmlFor="wide-demo-due">
                     <DatePicker id="wide-demo-due" defaultValue={invoice.due} />
                 </FormField>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>{t('Description')}</TableHead>
-                            <TableHead className="text-right">
-                                {t('Qty')}
-                            </TableHead>
-                            <TableHead className="hidden text-right sm:table-cell">
-                                {t('Price')}
-                            </TableHead>
-                            <TableHead className="text-right">
-                                {t('Total')}
-                            </TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {invoice.lines.map((line) => (
-                            <TableRow key={line.id}>
-                                <TableCell className="whitespace-normal">
-                                    {line.description}
-                                </TableCell>
-                                <TableCell className="text-right tabular-nums">
-                                    {formatQuantity(line.quantity)}
-                                </TableCell>
-                                <TableCell className="hidden text-right tabular-nums sm:table-cell">
-                                    {formatMoney(line.unit, invoice.currency)}
-                                </TableCell>
-                                <TableCell className="text-right tabular-nums">
-                                    {formatMoney(line.total, invoice.currency)}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                <OrderSummary
-                    rows={invoice.rows}
-                    total={invoice.total}
-                    currency={invoice.currency}
-                />
+
+                <div className="flex flex-col gap-3">
+                    <p className="text-sm font-medium">{t('Lines')}</p>
+                    <div className="hidden grid-cols-12 gap-2 text-sm text-muted-foreground sm:grid">
+                        <span className="col-span-5">{t('Description')}</span>
+                        <span className="col-span-2 text-right">
+                            {t('Qty')}
+                        </span>
+                        <span className="col-span-2 text-right">
+                            {t('Price')}
+                        </span>
+                        <span className="col-span-2 text-right">
+                            {t('Amount')}
+                        </span>
+                    </div>
+                    {lines.map((row, index) => {
+                        const id = `wide-demo-line-${row.key}`;
+                        const number = index + 1;
+
+                        return (
+                            <div
+                                key={row.key}
+                                className="grid grid-cols-12 items-center gap-2 border-b pb-3 sm:border-0 sm:pb-0"
+                            >
+                                <FormField
+                                    hideLabel
+                                    label={t('Description of line :number', {
+                                        number,
+                                    })}
+                                    htmlFor={`${id}-description`}
+                                    className="col-span-10 sm:order-1 sm:col-span-5"
+                                >
+                                    <Input
+                                        id={`${id}-description`}
+                                        defaultValue={row.line?.description}
+                                        onChange={() => forget(row.key)}
+                                    />
+                                </FormField>
+                                <FormField
+                                    hideLabel
+                                    label={t('Quantity of line :number', {
+                                        number,
+                                    })}
+                                    htmlFor={`${id}-quantity`}
+                                    className="col-span-3 sm:order-2 sm:col-span-2"
+                                >
+                                    <Input
+                                        id={`${id}-quantity`}
+                                        inputMode="decimal"
+                                        className="text-right tabular-nums"
+                                        defaultValue={row.line?.quantity}
+                                        onChange={() => forget(row.key)}
+                                    />
+                                </FormField>
+                                <FormField
+                                    hideLabel
+                                    label={t('Unit price of line :number', {
+                                        number,
+                                    })}
+                                    htmlFor={`${id}-unit`}
+                                    className="col-span-5 sm:order-3 sm:col-span-2"
+                                >
+                                    <Input
+                                        id={`${id}-unit`}
+                                        inputMode="decimal"
+                                        className="text-right tabular-nums"
+                                        defaultValue={row.line?.unit}
+                                        onChange={() => forget(row.key)}
+                                    />
+                                </FormField>
+                                <p className="col-span-4 text-right text-sm tabular-nums sm:order-4 sm:col-span-2">
+                                    {row.line
+                                        ? formatMoney(
+                                              row.line.total,
+                                              invoice.currency,
+                                          )
+                                        : unknown}
+                                </p>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="col-span-2 col-start-11 row-start-1 justify-self-end sm:order-5 sm:col-span-1 sm:col-start-auto sm:row-start-auto"
+                                            aria-label={t(
+                                                'Remove line :number',
+                                                {
+                                                    number,
+                                                },
+                                            )}
+                                            onClick={() =>
+                                                setLines((rows) =>
+                                                    rows.filter(
+                                                        (other) =>
+                                                            other.key !==
+                                                            row.key,
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            <X />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {t('Remove line')}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                        );
+                    })}
+                    <div className="flex items-center justify-between gap-4 border-t pt-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setLines((rows) => [
+                                    ...rows,
+                                    { key: nextKey, line: null },
+                                ]);
+                                setNextKey((key) => key + 1);
+                            }}
+                        >
+                            <Plus />
+                            {t('Add line')}
+                        </Button>
+                        <p className="text-sm font-medium tabular-nums">
+                            {t('Total')}{' '}
+                            {changed
+                                ? unknown
+                                : formatMoney(invoice.total, invoice.currency)}
+                        </p>
+                    </div>
+                </div>
+
                 <FormField label={t('Note')} htmlFor="wide-demo-note">
                     <Input id="wide-demo-note" defaultValue={invoice.note} />
                 </FormField>

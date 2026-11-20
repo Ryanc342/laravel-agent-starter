@@ -4,7 +4,7 @@ Use for creating or editing something.
 
 ## Where a form lives
 
-- A record (create or edit) opens in a `ResponsiveDialog`, however long the form is. A long form scrolls inside the dialog; the title and the buttons stay in view. A form with a table of lines (an invoice with its lines) uses the `wide` dialog, its lines in a `Table` (components/ui; on a phone without the unit price, so a line fits) and its totals in `OrderSummary` (/style, Form, "Wide: an invoice with lines"); on a phone it is the same full-width sheet.
+- A record (create or edit) opens in a `ResponsiveDialog`, however long the form is. A long form scrolls inside the dialog; the title and the buttons stay in view. A form with a table of lines (an invoice with its lines) uses the `wide` dialog, one row of inputs per line with a remove button, an "Add line" button and the total the backend worked out (on a phone each line stacks) (/style, Form, "Wide: an invoice with lines"); on a phone it is the same full-width sheet.
 - A page whose purpose is the form is that page: sign-in (auth.md), settings (settings.md), contact (contact.md), checkout (checkout.md) and a wizard (wizard.md). Creating or editing a record that the user opened from a list is the dialog above.
 - Search and filters are not forms of this kind (list.md).
 

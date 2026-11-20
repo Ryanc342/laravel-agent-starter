@@ -379,50 +379,46 @@ const invoiceForm: ExampleInvoiceForm = {
             id: 1,
             description: 'Website design',
             quantity: '1',
-            unit: 800000,
+            unit: '8,000.00',
             total: 800000,
         },
         {
             id: 2,
             description: 'Front-end development (days)',
             quantity: '12',
-            unit: 120000,
+            unit: '1,200.00',
             total: 1440000,
         },
         {
             id: 3,
             description: 'Back-end development (days)',
             quantity: '10',
-            unit: 130000,
+            unit: '1,300.00',
             total: 1300000,
         },
         {
             id: 4,
             description: 'Server (months)',
             quantity: '3',
-            unit: 45000,
+            unit: '450.00',
             total: 135000,
         },
         {
             id: 5,
             description: 'Domain renewal',
             quantity: '1',
-            unit: 12000,
+            unit: '120.00',
             total: 12000,
         },
         {
             id: 6,
             description: 'Launch support (days)',
             quantity: '2',
-            unit: 100000,
+            unit: '1,000.00',
             total: 200000,
         },
     ],
-    rows: [
-        { label: msg('Subtotal'), amount: 3887000 },
-        { label: msg('Tax (6%)'), amount: 233220 },
-    ],
-    total: { label: msg('Total'), amount: 4120220 },
+    total: 3887000,
 };
 
 const reportTiles = [
@@ -591,17 +587,7 @@ export default function Style() {
                     <FormDemo
                         task={tasks[1]}
                         requiredMessage={t('The title field is required.')}
-                        invoice={{
-                            ...invoiceForm,
-                            rows: invoiceForm.rows.map((row) => ({
-                                ...row,
-                                label: t(row.label),
-                            })),
-                            total: {
-                                ...invoiceForm.total,
-                                label: t(invoiceForm.total.label),
-                            },
-                        }}
+                        invoice={invoiceForm}
                     />
                 </StyleSection>
 

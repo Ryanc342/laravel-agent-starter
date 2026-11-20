@@ -478,6 +478,11 @@
     "Invoice date": "开票日期",
     "Note": "备注",
     "Create invoice": "创建发票",
-    "Subtotal": "小计",
-    "Tax (6%)": "税额（6%）"
+    "Lines": "明细",
+    "Add line": "添加一行",
+    "Remove line": "删除这一行",
+    "Remove line :number": "删除第 :number 行",
+    "Description of line :number": "第 :number 行的描述",
+    "Quantity of line :number": "第 :number 行的数量",
+    "Unit price of line :number": "第 :number 行的单价"
 }
