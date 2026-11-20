@@ -559,14 +559,14 @@ function screenRoundLines(string $text): array
 }
 
 /**
- * Code is every file outside docs/ and *.md, and the reference feature's files
- * other than Markdown, as for the review rounds.
+ * Code is every file outside docs/ and *.md, and the files of the reference
+ * feature and of the sample copies other than Markdown, as for the review rounds.
  */
 function screenRoundIsCode(string $path): bool
 {
     $path = trim($path, ' "');
 
-    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, SCREEN_ROUND_REFERENCE.'/'));
+    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, SCREEN_ROUND_REFERENCE.'/') || str_starts_with($path, 'docs/reference/pages/'));
 }
 
 function screenRoundFail(string $message): int

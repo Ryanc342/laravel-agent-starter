@@ -12,6 +12,7 @@
 |   php scripts/hooks/finish-check.php revoke        a check starts: forget the last pass
 |   round <plan>   before a review round: write the plan's diff and a copy of the plan for the reviewers
 |   lanes          print the review lanes and the places that touch them, as JSON
+|   lanes <path>   print the lanes a change to <path> touches, as JSON
 |
 | The Stop hook checks one thing: this conversation changed code, and no
 | composer check or composer check:milestone passed on the code as it is now.
@@ -19,10 +20,12 @@
 | a send-back (stop_hook_active in the Stop input) the AI may stop, and Ryan
 | gets one line saying the code has no passing check.
 |
-| Code is every file outside docs/ and *.md, and the reference feature's files
-| other than Markdown. This conversation changed a file when a commit made since
+| Code is every file outside docs/ and *.md, and the files of the reference
+| feature and of the sample copies other than Markdown. This conversation changed a file when a commit made since
 | it started touches it, or when the file differs from HEAD and was written
-| since it started. The conversation starts at the first entry of its transcript.
+| since it started; a deleted file has no time of its own, so the nearest folder
+| above it that is still there must have been written since it started.
+| The conversation starts at the first entry of its transcript.
 |
 | When this conversation changed a check file (CHECK_FILES), the Stop hook also
 | prints one line for Ryan, without blocking, once for each new set of files.
@@ -38,7 +41,7 @@
 */
 
 // The files that make a check: a change to one is told to Ryan.
-const CHECK_FILES = ['phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'phpunit.xml', 'pint.json', 'lint/', 'tests/Structure/'];
+const CHECK_FILES = ['phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'phpunit.xml', 'pint.json', 'lint/', 'tests/Structure/', 'template/phpunit.xml', 'template/tests/Lint/'];
 
 // Where docs/PLANS.md puts plans.
 const PLAN_PATH = '#^docs/exec-plans/(active|completed)/[^/]+\.md$#';
@@ -50,7 +53,7 @@ const COMPLETED = 'docs/exec-plans/completed/';
 // The review lanes of docs/golden-principles.md ("Review lanes"): a change touches a
 // lane when it changes a file in one of its places.
 const REVIEW_LANES = [
-    'backend' => ['app/', 'database/', 'routes/', 'tests/', 'resources/js/hooks/', 'resources/js/lib/', 'composer.json', 'package.json'],
+    'backend' => ['app/', 'database/', 'routes/', 'tests/', 'resources/js/hooks/', 'resources/js/lib/', 'composer.json', 'package.json', 'scripts/', 'template/'],
     'frontend' => ['resources/js/', 'app/Http/Resources/', 'app/Http/Requests/'],
     'screens' => ['resources/js/', 'resources/css/', 'resources/views/', 'lang/', 'app/', 'DESIGN.md', 'docs/design/'],
 ];
@@ -58,6 +61,10 @@ const REVIEW_LANES = [
 // The reference feature (docs/reference/tasks/): its files other than Markdown
 // are code and touch the lanes of their path inside the feature.
 const REFERENCE_FEATURE = 'docs/reference/tasks/';
+
+// The sample copies (docs/reference/pages/): its files other than Markdown are
+// code and touch the lanes of the page or component they copy.
+const SAMPLE_COPIES = 'docs/reference/pages/';
 
 // Where `round` writes the diff and the plan the reviewers read (ignored by git).
 const REVIEW_FILES = 'storage/framework/testing/ezdev-review/';
@@ -109,7 +116,7 @@ function finishCheck(string $mode, string $argument = ''): string
     }
 
     if ($mode === 'lanes') {
-        return json_encode(REVIEW_LANES, JSON_OUTPUT | JSON_THROW_ON_ERROR);
+        return json_encode($argument === '' ? REVIEW_LANES : lanesOf($argument), JSON_OUTPUT | JSON_THROW_ON_ERROR);
     }
 
     // Outside a git repository, or before its first commit, there is nothing to
@@ -245,15 +252,30 @@ function modified(string $path): int
 }
 
 /**
+ * The nearest folder above a deleted file that is still there: deleting the file
+ * (or a folder holding it) wrote that folder, so its time is when the deletion
+ * happened at the latest.
+ */
+function nearestFolder(string $path): string
+{
+    do {
+        $path = dirname($path);
+    } while ($path !== '.' && ! is_dir($path));
+
+    return $path;
+}
+
+/**
  * The files this conversation changed: touched by a commit made since $start,
- * or different from HEAD and written since $start. Without a start every file
+ * or different from HEAD and written since $start (a deleted file: its nearest
+ * folder that is still there, nearestFolder()). Without a start every file
  * that differs from HEAD counts.
  *
  * @return list<string>
  */
 function changedInConversation(?float $start): array
 {
-    $working = array_values(array_filter(changedSince('HEAD'), fn (string $path): bool => $start === null || ! is_file($path) || modified($path) >= floor($start)));
+    $working = array_values(array_filter(changedSince('HEAD'), fn (string $path): bool => $start === null || modified(is_file($path) ? $path : nearestFolder($path)) >= floor($start)));
 
     if ($start === null) {
         return $working;
@@ -319,12 +341,48 @@ function isCheckFile(string $path): bool
 }
 
 /**
- * Code is every file outside docs/ and *.md, and the reference feature's files
- * other than Markdown: the files fingerprint() covers.
+ * Code is every file outside docs/ and *.md, and the files of the reference
+ * feature and of the sample copies other than Markdown: the files fingerprint() covers.
  */
 function isCodePath(string $path): bool
 {
-    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, REFERENCE_FEATURE));
+    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, REFERENCE_FEATURE) || str_starts_with($path, SAMPLE_COPIES));
+}
+
+/**
+ * The review lanes a change to $path touches (docs/golden-principles.md): a file
+ * of the reference feature as its path inside the feature, a sample copy as the
+ * page or component it copies.
+ *
+ * @return list<string>
+ */
+function lanesOf(string $path): array
+{
+    if (! isCodePath($path)) {
+        return [];
+    }
+
+    if (str_starts_with($path, REFERENCE_FEATURE)) {
+        $path = substr($path, strlen(REFERENCE_FEATURE));
+    } elseif (str_starts_with($path, SAMPLE_COPIES.'components/')) {
+        $path = 'resources/js/'.substr($path, strlen(SAMPLE_COPIES));
+    } elseif (str_starts_with($path, SAMPLE_COPIES)) {
+        $path = 'resources/js/pages/'.substr($path, strlen(SAMPLE_COPIES));
+    }
+
+    $lanes = [];
+
+    foreach (REVIEW_LANES as $lane => $places) {
+        foreach ($places as $place) {
+            if ($path === $place || (str_ends_with($place, '/') && str_starts_with($path, $place))) {
+                $lanes[] = $lane;
+
+                break;
+            }
+        }
+    }
+
+    return $lanes;
 }
 
 /**

@@ -2,6 +2,8 @@
 
 use Symfony\Component\Process\Process;
 
+require_once dirname(__DIR__, 2).'/Support/Workspace.php';
+
 /*
 | Before a review round (docs/workflow.md, step 4) the builder runs
 | `php scripts/hooks/finish-check.php round <plan>`: reviewers have no shell, so
@@ -13,36 +15,14 @@ const ROUND_CODE = "<?php\n\n\$a = 1;\n\$b = 2;\n\$c = 3;\n";
 
 function roundRepo(): string
 {
-    $repo = sys_get_temp_dir().'/ezdev-review-round-'.bin2hex(random_bytes(6));
-
-    roundWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
-    roundWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
-    roundWrite($repo, 'docs/exec-plans/active/.gitkeep', '');
-    roundWrite($repo, 'storage/framework/testing/.gitignore', "*\n!.gitignore\n");
-
-    (new Process(['git', 'init', '-q', '-b', 'main'], $repo))->mustRun();
-    roundCommit($repo);
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $repo]))->run());
+    $repo = workspaceFolder('review-round');
+    workspaceCopy($repo, ['scripts/hooks/finish-check.php']);
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
+    workspaceWrite($repo, 'docs/exec-plans/active/.gitkeep', '');
+    workspaceWrite($repo, 'storage/framework/testing/.gitignore', "*\n!.gitignore\n");
+    workspaceGitInit($repo);
 
     return $repo;
-}
-
-function roundWrite(string $repo, string $path, string $content): void
-{
-    if (! is_dir(dirname("{$repo}/{$path}")) && ! mkdir(dirname("{$repo}/{$path}"), 0777, true)) {
-        throw new RuntimeException("cannot make the folder of {$path}");
-    }
-
-    if (file_put_contents("{$repo}/{$path}", $content) === false) {
-        throw new RuntimeException("cannot write {$path}");
-    }
-}
-
-function roundCommit(string $repo): void
-{
-    foreach ([['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-q', '-m', 'work']] as $args) {
-        (new Process(['git', ...$args], $repo))->mustRun();
-    }
 }
 
 function roundPlan(string $milestones): string
@@ -75,14 +55,14 @@ function roundFiles(Process $process): array
 
 test('a round writes the plan\'s diff and a copy of the plan for the reviewers, and prints both paths', function () {
     $repo = roundRepo();
-    roundWrite($repo, 'app/Actions/Quotes/Before.php', ROUND_CODE);
-    roundCommit($repo);
-    roundWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [ ] M1 Actions'));
-    roundCommit($repo);
-    roundWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', ROUND_CODE);
-    roundWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
-    roundCommit($repo);
-    roundWrite($repo, 'app/Actions/Quotes/RejectQuote.php', "<?php\n\n\$rejected = true;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/Before.php', ROUND_CODE);
+    workspaceCommit($repo);
+    workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [ ] M1 Actions'));
+    workspaceCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', ROUND_CODE);
+    workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
+    workspaceCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/RejectQuote.php', "<?php\n\n\$rejected = true;\n");
 
     $process = roundRun($repo, 'docs/exec-plans/active/send-quotes.md');
     $files = roundFiles($process);
@@ -105,8 +85,8 @@ test('a round writes the plan\'s diff and a copy of the plan for the reviewers, 
 
 test('a plan not yet committed diffs against HEAD', function () {
     $repo = roundRepo();
-    roundWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
-    roundWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [ ] M1 Actions'));
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\n\$sent = true;\n");
+    workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [ ] M1 Actions'));
 
     $files = roundFiles(roundRun($repo, 'docs/exec-plans/active/send-quotes.md'));
 
@@ -117,15 +97,15 @@ test('a round leaves out of the diff the files that are as they are in the templ
     $repo = roundRepo();
     $git = fn (string ...$args) => trim((new Process(['git', ...$args], $repo))->mustRun()->getOutput());
     $git('checkout', '-q', '-b', 'template');
-    roundWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
-    roundWrite($repo, 'resources/js/pages/quotes/index.tsx', "export {};\n");
-    roundCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
+    workspaceWrite($repo, 'resources/js/pages/quotes/index.tsx', "export {};\n");
+    workspaceCommit($repo);
     $template = $git('rev-parse', 'HEAD');
     $git('checkout', '-q', 'main');
-    roundWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
-    roundWrite($repo, 'resources/js/pages/quotes/index.tsx', "export const changed = true;\n");
-    roundWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
-    roundCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
+    workspaceWrite($repo, 'resources/js/pages/quotes/index.tsx', "export const changed = true;\n");
+    workspaceWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
+    workspaceCommit($repo);
 
     $diff = (string) file_get_contents($repo.'/'.roundFiles(roundRun($repo, 'docs/exec-plans/active/sync-template.md'))['Diff']);
 
@@ -135,8 +115,8 @@ test('a round leaves out of the diff the files that are as they are in the templ
 
 test('a round for a sync plan whose template commit is not in the repository fails and says so', function () {
     $repo = roundRepo();
-    roundWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: 0123456789abcdef0123456789abcdef01234567\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
-    roundCommit($repo);
+    workspaceWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: 0123456789abcdef0123456789abcdef01234567\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
+    workspaceCommit($repo);
 
     $process = roundRun($repo, 'docs/exec-plans/active/sync-template.md');
 
@@ -148,12 +128,12 @@ test('a round for a sync plan fails and says so when git refuses to read the tem
     $repo = roundRepo();
     $git = fn (string ...$args) => trim((new Process(['git', ...$args], $repo))->mustRun()->getOutput());
     $template = $git('rev-parse', 'HEAD');
-    roundWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
-    roundWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
-    roundCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/FromTemplate.php', ROUND_CODE);
+    workspaceWrite($repo, 'docs/exec-plans/active/sync-template.md', str_replace("## Milestones\n", "## Agreed decisions\n- Template: {$template}\n\n## Milestones\n", roundPlan('- [x] M1 Sync')));
+    workspaceCommit($repo);
     // A git that refuses to read objects of the template commit, the way a broken object store does.
     $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
-    roundWrite($repo, 'bin/git', "#!/bin/sh\ncase \"\$*\" in *{$template}:*) echo 'fatal: bad object' >&2; exit 128;; esac\nexec {$real} \"\$@\"\n");
+    workspaceWrite($repo, 'bin/git', "#!/bin/sh\ncase \"\$*\" in *{$template}:*) echo 'fatal: bad object' >&2; exit 128;; esac\nexec {$real} \"\$@\"\n");
     chmod("{$repo}/bin/git", 0755);
 
     $process = new Process(['php', 'scripts/hooks/finish-check.php', 'round', 'docs/exec-plans/active/sync-template.md'], $repo, ['PATH' => "{$repo}/bin:".getenv('PATH')]);
@@ -165,9 +145,9 @@ test('a round for a sync plan fails and says so when git refuses to read the tem
 
 test('a round takes an empty new file into the diff', function () {
     $repo = roundRepo();
-    roundWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
-    roundCommit($repo);
-    roundWrite($repo, 'app/Actions/Quotes/.gitkeep', '');
+    workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
+    workspaceCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/.gitkeep', '');
 
     $process = roundRun($repo, 'docs/exec-plans/active/send-quotes.md');
 

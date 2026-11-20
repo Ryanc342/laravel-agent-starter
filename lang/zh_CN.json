@@ -369,7 +369,7 @@
     "Loading, in a table": "表格中的加载状态",
     "Login and register": "登录与注册",
     "Multi-step wizard": "多步骤向导",
-    "Open each one: create, edit (filled with the record), and a validation error (the dialog stays open)": "逐个打开：新建、编辑（已填入记录）和验证错误（对话框保持打开）",
+    "Open each one: create, edit (filled with the record), a validation error (the dialog stays open), and a long form with lines (the wide size)": "逐个打开：新建、编辑（已填入记录）、验证错误（对话框保持打开），以及带明细的长表单（宽尺寸）",
     "Orders": "订单",
     "Page title: Heading, the largest text": "页面标题：Heading，最大的文字",
     "Pagination: the page links when the list has more than one page, and the rows per page (10, 20, 50, 100) next to them": "Pagination：列表超过一页时显示页码链接，旁边是每页行数（10、20、50、100）",
@@ -472,5 +472,12 @@
     "Category saved.": "类别已保存。",
     "Category deleted.": "类别已删除。",
     "Choose file": "选择文件",
-    "No file chosen": "未选择文件"
+    "No file chosen": "未选择文件",
+    "Wide: an invoice with lines": "宽弹窗：带明细的发票",
+    "New invoice": "新建发票",
+    "Invoice date": "开票日期",
+    "Note": "备注",
+    "Create invoice": "创建发票",
+    "Subtotal": "小计",
+    "Tax (6%)": "税额（6%）"
 }

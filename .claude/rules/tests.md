@@ -1,11 +1,12 @@
 ---
 paths:
   - "tests/**"
+  - "template/tests/**"
 ---
 
 # Tests
 
-Write tests with Pest, before the code, following `docs/reference/tasks/tests/Feature/Tasks/`. A rule names its check in its tag, with its lane and level, and says why in one sentence (docs/golden-principles.md); text without a tag explains how to follow them. When a test fails, and when an existing assertion may change or go: AGENTS.md, "Red lines".
+These rules cover the project's tests (tests/) and the template's own tests (template/tests/). Write tests with Pest, before the code, following `docs/reference/tasks/tests/Feature/Tasks/`. A rule names its check in its tag, with its lane and level, and says why in one sentence (docs/golden-principles.md); text without a tag explains how to follow them. When a test fails, and when an existing assertion may change or go: AGENTS.md, "Red lines".
 
 ## What every feature needs
 
@@ -41,11 +42,13 @@ Test each `lockForUpdate()` by playing a second user who saves at the same momen
 ## Files and data
 
 - `[review:backend:2]` Test data comes from factories, never from `DB::insert()`, `DB::table(…)->insert()`, `Model::create()` (also through `query()`, `forceCreate`, `createQuietly`, `createOrFirst`, `firstOrCreate` and `updateOrCreate`), `insert()`, `upsert()`, `updateOrInsert()` or `INSERT` statements in tests/ (tests/Structure excepted). Why: a record built by hand skips the factory's states and drifts from what the app creates.
-- `[review:backend:3]` tests/ holds only Feature, Unit, Structure, Support, js, bootstrap.php, Pest.php and TestCase.php; every PHP file in tests/Feature or tests/Unit ends in `Test.php` (helpers go in tests/Support); Vitest files are `tests/js/**/*.test.ts(x)`, and tests/js holds only those and setup.ts. Why: every other test is found there by its runner.
+- `[review:backend:3]` tests/ holds only Feature, Unit, Structure, Support, js, bootstrap.php, Pest.php and TestCase.php, and template/tests only Hooks, Lint and Support; every PHP file in tests/Feature, tests/Unit, template/tests/Hooks or template/tests/Lint ends in `Test.php`; Vitest files are `tests/js/**/*.test.ts(x)`, and tests/js holds only those and setup.ts. Why: every other test is found there by its runner.
+- `[review:backend:3]` A helper function used by one test file stays in that file; one used by two or more test files goes in the Support folder: tests/Support, or template/tests/Support when only the template's own tests use it. Why: a helper that lives in one test file and is used by another breaks when that file goes.
+- `[review:backend:2]` No copied block in tests/ or template/tests/: three or more lines that do the same job in two test files become one helper in the Support folder (tests/Support/Workspace.php holds the folders, files and git repositories of the tool tests). Why: a fix to one copy misses the other, and a fixture that fails in one copy passes silently in the other.
 
 Factories are for tests: apart from the test accounts of database/seeders, no row in the app's own database is made by a factory, and the data for looking at pages comes from the walk through the forms (docs/workflow.md, step 4).
 
-`lint/`, `tests/Structure/` and the template's helpers in `tests/Support/` belong to the template: a change to a check there is an agreed decision of the plan (docs/workflow.md, step 2). No test is skipped or unfinished (.claude/rules/checks.md); turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
+A change to a check in `lint/`, `tests/Structure/` or the helpers they use is an agreed decision of the plan (docs/workflow.md, step 2). No test is skipped or unfinished (.claude/rules/checks.md); turning a Fortify feature off in config/fortify.php means deleting that feature's tests with it.
 
 ## Style
 

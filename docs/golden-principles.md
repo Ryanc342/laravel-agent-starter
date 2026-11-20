@@ -43,14 +43,14 @@ Machines check the layers, the folders of app/, where pages and components go, t
 
 One reviewer run covers one lane. A change needs rounds only for the lanes it touches: it adds, changes or deletes a file in one of the lane's places.
 
-| Lane     | Key        | Rules                                              | Touched by files in                                                                                   |
-| -------- | ---------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Backend  | `backend`  | `[review:backend]`, principles 1, 3, 5, 6, 7 and 8 | app/, database/, routes/, tests/, resources/js/hooks/, resources/js/lib/, composer.json, package.json |
-| Frontend | `frontend` | `[review:frontend]`, principle 4                   | resources/js/, app/Http/Resources/, app/Http/Requests/                                                |
-| Screens  | `screens`  | `[review:screens]`, principle 10                   | resources/js/, resources/css/, resources/views/, lang/, app/, DESIGN.md, docs/design/                 |
+| Lane     | Key        | Rules                                              | Touched by files in                                                                                                        |
+| -------- | ---------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Backend  | `backend`  | `[review:backend]`, principles 1, 3, 5, 6, 7 and 8 | app/, database/, routes/, tests/, resources/js/hooks/, resources/js/lib/, composer.json, package.json, scripts/, template/ |
+| Frontend | `frontend` | `[review:frontend]`, principle 4                   | resources/js/, app/Http/Resources/, app/Http/Requests/                                                                     |
+| Screens  | `screens`  | `[review:screens]`, principle 10                   | resources/js/, resources/css/, resources/views/, lang/, app/, DESIGN.md, docs/design/                                      |
 
 The final review reviews every lane the plan touches, both reviewers at once, so a round is at most six runs; the screens come last, when the other lanes are done, so a backend change that breaks a page is still caught at the end (docs/workflow.md, step 4). In lane `screens` only `reviewer-opus` looks at pages (the walk and the look); `reviewer-haiku` reads the code for the same rules.
 
-A file of the reference feature (docs/reference/tasks/) other than Markdown touches the lanes of its path inside the feature: docs/reference/tasks/resources/js/ as resources/js/, docs/reference/tasks/app/ as app/.
+A file of the reference feature (docs/reference/tasks/) other than Markdown touches the lanes of its path inside the feature: docs/reference/tasks/resources/js/ as resources/js/, docs/reference/tasks/app/ as app/. A sample copy (docs/reference/pages/) other than Markdown touches the lanes of the page or component it copies: docs/reference/pages/auth/login.tsx as resources/js/pages/auth/login.tsx, docs/reference/pages/components/ as resources/js/components/. `php scripts/hooks/finish-check.php lanes <path>` prints the lanes a path touches.
 
 Principles 2 and 9 have no review lane: the machines and the finish check (AGENTS.md, "Tools") check them.

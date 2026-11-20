@@ -2,6 +2,8 @@
 
 use Symfony\Component\Process\Process;
 
+require_once dirname(__DIR__, 3).'/tests/Support/Workspace.php';
+
 /*
 | scripts/hooks/finish-check.php, run the way Claude Code runs the Stop hook, in
 | a throwaway git repository: each test starts a conversation (its transcript),
@@ -14,43 +16,16 @@ use Symfony\Component\Process\Process;
  */
 function finishCheckRepo(): string
 {
-    $repo = sys_get_temp_dir().'/ezdev-finish-check-'.bin2hex(random_bytes(6));
-    $root = dirname(__DIR__, 3);
-
-    finishCheckWrite($repo, 'scripts/hooks/finish-check.php', file_get_contents("{$root}/scripts/hooks/finish-check.php") ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
-    finishCheckWrite($repo, 'docs/notes.md', "# Notes\n");
-    finishCheckWrite($repo, 'phpstan.neon', "parameters:\n");
-    finishCheckWrite($repo, '.gitignore', "/transcript.jsonl\n");
-
-    (new Process(['git', 'init', '-q', '-b', 'main'], $repo))->mustRun();
-    finishCheckCommit($repo, time() - 3600);
+    $repo = workspaceFolder('finish-check');
+    workspaceCopy($repo, ['scripts/hooks/finish-check.php']);
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
+    workspaceWrite($repo, 'docs/notes.md', "# Notes\n");
+    workspaceWrite($repo, 'phpstan.neon', "parameters:\n");
+    workspaceWrite($repo, '.gitignore', "/transcript.jsonl\n");
+    workspaceGitInit($repo, time() - 3600);
     finishCheckTranscript($repo, time());
 
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $repo]))->run());
-
     return $repo;
-}
-
-function finishCheckWrite(string $repo, string $path, string $content, ?int $time = null): void
-{
-    if (! is_dir(dirname("{$repo}/{$path}")) && ! mkdir(dirname("{$repo}/{$path}"), 0777, true)) {
-        throw new RuntimeException("cannot make the folder of {$path}");
-    }
-
-    if (file_put_contents("{$repo}/{$path}", $content) === false || ($time !== null && ! touch("{$repo}/{$path}", $time))) {
-        throw new RuntimeException("cannot write {$path}");
-    }
-}
-
-function finishCheckCommit(string $repo, ?int $time = null): void
-{
-    $date = $time === null ? [] : ['GIT_COMMITTER_DATE' => "@{$time}", 'GIT_AUTHOR_DATE' => "@{$time}"];
-
-    // Settings from the user's own git config (signing, hooks) must not reach these commits.
-    foreach ([['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-q', '-m', 'work']] as $args) {
-        (new Process(['git', ...$args], $repo, $date))->mustRun();
-    }
 }
 
 /**
@@ -58,7 +33,7 @@ function finishCheckCommit(string $repo, ?int $time = null): void
  */
 function finishCheckTranscript(string $repo, int $start): void
 {
-    finishCheckWrite($repo, 'transcript.jsonl', json_encode(['type' => 'user', 'timestamp' => gmdate('Y-m-d\TH:i:s.000\Z', $start)])."\n");
+    workspaceWrite($repo, 'transcript.jsonl', json_encode(['type' => 'user', 'timestamp' => gmdate('Y-m-d\TH:i:s.000\Z', $start)])."\n");
 }
 
 /**
@@ -107,7 +82,7 @@ function finishCheckPass(string $repo): void
 function finishCheckStopWithGit(string $repo, string $command, string $fail): array
 {
     $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
-    finishCheckWrite($repo, 'bin/git', "#!/bin/sh\nfor a in \"\$@\"; do [ \"\$a\" = {$command} ] && {$fail}; done\nexec {$real} \"\$@\"\n");
+    workspaceWrite($repo, 'bin/git', "#!/bin/sh\nfor a in \"\$@\"; do [ \"\$a\" = {$command} ] && {$fail}; done\nexec {$real} \"\$@\"\n");
     chmod("{$repo}/bin/git", 0755);
 
     $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $repo, ['PATH' => "{$repo}/bin:".getenv('PATH')]);
@@ -122,7 +97,7 @@ test('a conversation that changed no file may stop', function () {
 
 test('changed code with no passing check is sent back once, and the next stop goes through with one line for Ryan', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
 
     $first = finishCheckStop($repo);
     $again = finishCheckStop($repo, ['stop_hook_active' => true]);
@@ -136,57 +111,107 @@ test('changed code with no passing check is sent back once, and the next stop go
 
 test('a pass on the code as it is now lets the AI stop, and a change after it does not', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
     finishCheckPass($repo);
 
     expect(finishCheckStop($repo))->toBe([]);
 
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = false;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = false;\n");
 
     expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
 });
 
 test('code committed in this conversation needs a pass too', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
-    finishCheckCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
+    workspaceCommit($repo);
 
     expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
 });
 
 test('code changed before the conversation started is not this conversation\'s change', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\$earlier = true;\n", time() - 600);
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\$earlier = true;\n", time() - 600);
 
     expect(finishCheckStop($repo))->toBe([]);
 });
 
+test('a file deleted before the conversation started is not this conversation\'s change', function () {
+    $repo = finishCheckRepo();
+    workspaceWrite($repo, 'app/Actions/Quotes/Old/OldQuote.php', "<?php\n");
+    workspaceCommit($repo, time() - 3600);
+    // Deleting a file changes the time of its folder, here before the conversation.
+    workspaceRemove("{$repo}/app/Actions/Quotes/SendQuote.php");
+    touch("{$repo}/app/Actions/Quotes", time() - 600) ?: throw new RuntimeException('cannot date the folder');
+    // A folder deleted with its file: the nearest folder that is still there tells.
+    workspaceRemove("{$repo}/app/Actions/Quotes/Old");
+    touch("{$repo}/app/Actions/Quotes", time() - 600) ?: throw new RuntimeException('cannot date the folder');
+
+    expect(finishCheckStop($repo))->toBe([]);
+});
+
+test('a file deleted in the conversation is this conversation\'s change', function (string $removed) {
+    $repo = finishCheckRepo();
+    workspaceWrite($repo, 'app/Actions/Quotes/Old/OldQuote.php', "<?php\n");
+    workspaceCommit($repo, time() - 3600);
+    touch("{$repo}/app/Actions/Quotes", time() - 600) ?: throw new RuntimeException('cannot date the folder');
+    touch("{$repo}/app/Actions/Quotes/Old", time() - 600) ?: throw new RuntimeException('cannot date the folder');
+    workspaceRemove("{$repo}/{$removed}");
+
+    expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
+})->with(['a file' => 'app/Actions/Quotes/SendQuote.php', 'a folder with its file' => 'app/Actions/Quotes/Old']);
+
 test('without a transcript every uncommitted code change counts', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\$earlier = true;\n", time() - 600);
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\$earlier = true;\n", time() - 600);
 
     expect(finishCheckStop($repo, ['transcript_path' => null])['decision'] ?? null)->toBe('block');
 });
 
 test('Markdown and docs are not code', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/notes.md', "# Notes\n\nMore.\n");
-    finishCheckWrite($repo, 'docs/exec-plans/active/quotes.md', "# Quotes\n");
-    finishCheckWrite($repo, 'README.md', "# Readme\n");
+    workspaceWrite($repo, 'docs/notes.md', "# Notes\n\nMore.\n");
+    workspaceWrite($repo, 'docs/exec-plans/active/quotes.md', "# Quotes\n");
+    workspaceWrite($repo, 'README.md', "# Readme\n");
 
     expect(finishCheckStop($repo))->toBe([]);
 });
 
 test('the reference feature\'s code is code', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'docs/reference/tasks/app/Models/Task.php', "<?php\n");
+    workspaceWrite($repo, 'docs/reference/tasks/app/Models/Task.php', "<?php\n");
 
     expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
 });
 
+test('the sample copies are code, their Markdown is not', function () {
+    $repo = finishCheckRepo();
+    workspaceWrite($repo, 'docs/reference/pages/README.md', "# Samples\n");
+
+    expect(finishCheckStop($repo))->toBe([]);
+
+    workspaceWrite($repo, 'docs/reference/pages/auth/login.tsx', "export {};\n");
+
+    expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
+});
+
+test('scripts/ and template/ touch lane backend, and the sample copies the lanes of the page they copy', function () {
+    $repo = finishCheckRepo();
+    $lanes = json_decode(finishCheckMode($repo, 'lanes')->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+    $touched = fn (string $path) => json_decode(finishCheckMode($repo, 'lanes', $path)->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($lanes['backend'])->toContain('scripts/', 'template/')
+        ->and($touched('scripts/hooks/finish-check.php'))->toBe(['backend'])
+        ->and($touched('template/tests/Hooks/FinishCheckTest.php'))->toBe(['backend'])
+        ->and($touched('docs/reference/pages/auth/login.tsx'))->toBe(['frontend', 'screens'])
+        ->and($touched('docs/reference/pages/components/notifications/notification-row.tsx'))->toBe(['frontend', 'screens'])
+        ->and($touched('docs/reference/tasks/app/Http/Resources/TaskResource.php'))->toBe(['backend', 'frontend', 'screens'])
+        ->and($touched('docs/reference/pages/README.md'))->toBe([]);
+});
+
 test('a changed check file gives Ryan one line, does not block, and is told once', function (string $path) {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, $path, "changed\n");
+    workspaceWrite($repo, $path, "changed\n");
     finishCheckPass($repo);
 
     $first = finishCheckStop($repo);
@@ -194,11 +219,11 @@ test('a changed check file gives Ryan one line, does not block, and is told once
     expect($first)->not->toHaveKey('decision')
         ->and($first['systemMessage'])->toBe("This conversation changed a check: {$path}.")
         ->and(finishCheckStop($repo))->toBe([]);
-})->with(['phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'phpunit.xml', 'pint.json', 'lint/oxlint/ezdev.js', 'tests/Structure/CodeTest.php']);
+})->with(['phpstan.neon', 'vite.config.ts', 'tsconfig.json', 'phpunit.xml', 'pint.json', 'lint/oxlint/ezdev.js', 'tests/Structure/CodeTest.php', 'template/phpunit.xml', 'template/tests/Lint/CodeTest.php']);
 
 test('a check file and code with no pass block and tell Ryan in the same answer', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'phpstan.neon', "parameters:\n    level: 9\n");
+    workspaceWrite($repo, 'phpstan.neon', "parameters:\n    level: 9\n");
 
     $output = finishCheckStop($repo);
 
@@ -208,9 +233,9 @@ test('a check file and code with no pass block and tell Ryan in the same answer'
 
 test('a pass is recorded only for the code the check started on', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
     $fingerprint = trim(finishCheckMode($repo, 'fingerprint')->getOutput());
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = false;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = false;\n");
 
     $passed = finishCheckMode($repo, 'passed', $fingerprint);
 
@@ -221,7 +246,7 @@ test('a pass is recorded only for the code the check started on', function () {
 
 test('a check that starts forgets the last pass', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/AcceptQuote.php', "<?php\n\$accepted = true;\n");
     finishCheckPass($repo);
     finishCheckMode($repo, 'revoke');
 
@@ -230,7 +255,7 @@ test('a check that starts forgets the last pass', function () {
 
 test('an error inside the finish check is told to Ryan and lets the AI stop', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'phpstan.neon', "changed\n");
+    workspaceWrite($repo, 'phpstan.neon', "changed\n");
     // A state file that cannot be written.
     mkdir("{$repo}/.git/ezdev/told-".sha1('broken').'.json', 0777, true) ?: throw new RuntimeException('cannot make the state folder');
 
@@ -242,8 +267,8 @@ test('an error inside the finish check is told to Ryan and lets the AI stop', fu
 
 test('a git command that fails is told to Ryan, never read as no change', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
-    finishCheckCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    workspaceCommit($repo);
     // A git that fails for `log` only, so the commits of this conversation cannot be read.
     $output = finishCheckStopWithGit($repo, 'log', 'exit 128');
 
@@ -252,7 +277,7 @@ test('a git command that fails is told to Ryan, never read as no change', functi
 
 test('a git that refuses the repository is told to Ryan, never read as no repository', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
     // A git that refuses every rev-parse, as git does for a folder it does not trust.
     $output = finishCheckStopWithGit($repo, 'rev-parse', "{ echo 'fatal: detected dubious ownership' >&2; exit 128; }");
 
@@ -260,13 +285,12 @@ test('a git that refuses the repository is told to Ryan, never read as no reposi
 });
 
 test('outside a git repository the finish check says nothing in any language', function () {
-    $dir = sys_get_temp_dir().'/ezdev-no-git-zh-'.bin2hex(random_bytes(6));
-    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
+    $dir = workspaceFolder('no-git-zh');
+    workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
     // A git that answers in Chinese unless asked for English, as a translated git does.
     $real = trim((new Process(['which', 'git']))->mustRun()->getOutput());
-    finishCheckWrite($dir, 'bin/git', "#!/bin/sh\n[ \"\$LC_ALL\" = C ] || { echo '致命错误：不是 git 仓库' >&2; exit 128; }\nexec {$real} \"\$@\"\n");
+    workspaceWrite($dir, 'bin/git', "#!/bin/sh\n[ \"\$LC_ALL\" = C ] || { echo '致命错误：不是 git 仓库' >&2; exit 128; }\nexec {$real} \"\$@\"\n");
     chmod("{$dir}/bin/git", 0755);
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $dir]))->run());
 
     $process = new Process(['php', 'scripts/hooks/finish-check.php', 'stop'], $dir, ['PATH' => "{$dir}/bin:".getenv('PATH'), 'LANG' => 'zh_CN.UTF-8', 'LC_ALL' => 'zh_CN.UTF-8']);
     $process->setInput(json_encode(['session_id' => 'test', 'cwd' => $dir, 'stop_hook_active' => false]) ?: '');
@@ -276,14 +300,14 @@ test('outside a git repository the finish check says nothing in any language', f
 
 test('a transcript or state file that cannot be read is told to Ryan, never read as none', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
     chmod("{$repo}/transcript.jsonl", 0000);
 
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: cannot read the transcript');
 
     chmod("{$repo}/transcript.jsonl", 0644);
-    finishCheckWrite($repo, 'phpstan.neon', "changed\n");
-    finishCheckWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '{not json');
+    workspaceWrite($repo, 'phpstan.neon', "changed\n");
+    workspaceWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '{not json');
 
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: ');
 });
@@ -295,44 +319,43 @@ test('a Stop input that is not a JSON object, or a told file that holds no list,
 
     expect(json_decode($process->mustRun()->getOutput(), true, flags: JSON_THROW_ON_ERROR)['systemMessage'])->toStartWith('The finish check failed: ');
 
-    finishCheckWrite($repo, 'phpstan.neon', "changed\n");
-    finishCheckWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '"phpstan.neon"');
+    workspaceWrite($repo, 'phpstan.neon', "changed\n");
+    workspaceWrite($repo, '.git/ezdev/told-'.sha1('test').'.json', '"phpstan.neon"');
 
     expect(finishCheckStop($repo)['systemMessage'])->toContain('holds no list of check files');
 });
 
 test('a Stop input without a session, or a transcript time that cannot be read, is told to Ryan', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
 
     expect(finishCheckStop($repo, ['session_id' => null])['systemMessage'])->toBe('The finish check failed: the Stop input names no session');
 
-    finishCheckWrite($repo, 'transcript.jsonl', json_encode(['type' => 'user', 'timestamp' => 'not a time'])."\n");
+    workspaceWrite($repo, 'transcript.jsonl', json_encode(['type' => 'user', 'timestamp' => 'not a time'])."\n");
 
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: the transcript has a time stamp that cannot be read');
 
-    finishCheckWrite($repo, 'transcript.jsonl', "{broken\n");
+    workspaceWrite($repo, 'transcript.jsonl', "{broken\n");
 
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: ');
 });
 
 test('a transcript that is named but not there, or has no time stamp, is told to Ryan', function () {
     $repo = finishCheckRepo();
-    finishCheckWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
 
     expect(finishCheckStop($repo, ['transcript_path' => "{$repo}/gone.jsonl"])['systemMessage'])->toBe('The finish check failed: the transcript the Stop input names is not there');
 
-    finishCheckWrite($repo, 'transcript.jsonl', json_encode(['type' => 'summary'])."\n");
+    workspaceWrite($repo, 'transcript.jsonl', json_encode(['type' => 'summary'])."\n");
 
     expect(finishCheckStop($repo)['systemMessage'])->toStartWith('The finish check failed: the transcript has no time stamp');
 });
 
 test('before the first commit the finish check says nothing', function () {
-    $dir = sys_get_temp_dir().'/ezdev-no-commit-'.bin2hex(random_bytes(6));
-    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
-    finishCheckWrite($dir, 'app/code.php', "<?php\n");
+    $dir = workspaceFolder('no-commit');
+    workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
+    workspaceWrite($dir, 'app/code.php', "<?php\n");
     (new Process(['git', 'init', '-q', '-b', 'main'], $dir))->mustRun();
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $dir]))->run());
 
     expect(finishCheckStop($dir))->toBe([]);
 });
@@ -340,11 +363,9 @@ test('before the first commit the finish check says nothing', function () {
 test('Claude Code runs only the Stop hook, and a missing or broken script still tells Ryan', function () {
     $root = dirname(__DIR__, 3);
     $repo = finishCheckRepo();
-    $missing = sys_get_temp_dir().'/ezdev-no-finish-check-'.bin2hex(random_bytes(6));
-    mkdir($missing) ?: throw new RuntimeException("cannot make {$missing}");
+    $missing = workspaceFolder('no-finish-check');
     $broken = finishCheckRepo();
-    finishCheckWrite($broken, 'scripts/hooks/finish-check.php', "<?php\n\nthis is not php\n");
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $missing]))->run());
+    workspaceWrite($broken, 'scripts/hooks/finish-check.php', "<?php\n\nthis is not php\n");
 
     $run = function (string $command, string $dir): string {
         $process = Process::fromShellCommandline($command, $dir, ['CLAUDE_PROJECT_DIR' => $dir]);
@@ -374,10 +395,9 @@ test('the session has no question tool and no workflows, and its subagents run i
 });
 
 test('outside a git repository the finish check says nothing', function () {
-    $dir = sys_get_temp_dir().'/ezdev-no-git-'.bin2hex(random_bytes(6));
-    finishCheckWrite($dir, 'scripts/hooks/finish-check.php', file_get_contents(dirname(__DIR__, 3).'/scripts/hooks/finish-check.php') ?: throw new RuntimeException('no scripts/hooks/finish-check.php'));
-    finishCheckWrite($dir, 'app/code.php', "<?php\n");
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $dir]))->run());
+    $dir = workspaceFolder('no-git');
+    workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
+    workspaceWrite($dir, 'app/code.php', "<?php\n");
 
     expect(finishCheckStop($dir))->toBe([])
         ->and(finishCheckMode($dir, 'fingerprint')->getOutput())->toBe('');

@@ -6,6 +6,8 @@ use Tests\Structure\DesignDocChecks;
 use Tests\Structure\PlacementChecks;
 use Tests\Structure\ProjectFiles;
 
+require_once dirname(__DIR__, 3).'/tests/Support/Workspace.php';
+
 /*
 | The template keeps its machine rules (the `[PHPStan]`, `[oxlint]` and `[Structure]`
 | rules of .claude/rules/: the layer rules of principle 2, component boundaries and no import cycles, the folders of app/,
@@ -23,60 +25,14 @@ use Tests\Structure\ProjectFiles;
  */
 function skeletonFixture(array $files = []): string
 {
-    $root = sys_get_temp_dir().'/ezdev-skeleton-'.bin2hex(random_bytes(6));
-    mkdir($root, 0777, true) ?: throw new RuntimeException("cannot make {$root}");
-    // The real path: macOS reaches the temp folder through a symlink, and
-    // PHPStan matches allowIn paths against the real one.
-    $root = realpath($root) ?: $root;
-    register_shutdown_function(fn () => skeletonRemove($root));
+    // The real path (workspaceFolder): PHPStan matches allowIn paths against it.
+    $root = workspaceFolder('skeleton');
 
     foreach ($files as $path => $content) {
-        skeletonWrite($root, $path, $content);
+        workspaceWrite($root, $path, $content);
     }
 
     return $root;
-}
-
-function skeletonWrite(string $root, string $path, string $content): void
-{
-    if (! is_dir(dirname("{$root}/{$path}")) && ! mkdir(dirname("{$root}/{$path}"), 0777, true)) {
-        throw new RuntimeException("cannot make the folder of {$path}");
-    }
-
-    if (file_put_contents("{$root}/{$path}", $content) === false) {
-        throw new RuntimeException("cannot write {$path}");
-    }
-}
-
-/**
- * Copies files of the real project into the fixture, at the same paths.
- *
- * @param  list<string>  $paths
- */
-function skeletonCopy(string $root, array $paths): void
-{
-    foreach ($paths as $path) {
-        skeletonWrite($root, $path, file_get_contents(dirname(__DIR__, 3)."/{$path}") ?: throw new RuntimeException("no {$path} to copy"));
-    }
-}
-
-function skeletonRemove(string $path): void
-{
-    if (is_link($path) || is_file($path)) {
-        unlink($path) ?: throw new RuntimeException("cannot remove {$path}");
-
-        return;
-    }
-
-    if (! is_dir($path)) {
-        return;
-    }
-
-    foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $name) {
-        skeletonRemove("{$path}/{$name}");
-    }
-
-    rmdir($path) ?: throw new RuntimeException("cannot remove {$path}");
 }
 
 /**
@@ -107,7 +63,7 @@ function skeletonPhpstanErrors(): array
 
     $project = dirname(__DIR__, 3);
     $root = skeletonFixture(skeletonPhpstanFiles());
-    skeletonWrite($root, 'phpstan.neon', implode("\n", [
+    workspaceWrite($root, 'phpstan.neon', implode("\n", [
         'includes:',
         "    - {$project}/phpstan.neon",
         'parameters:',
@@ -314,10 +270,10 @@ test('the structure checks reject a silenced check', function (string $path, str
 function skeletonSettingsFixture(): string
 {
     $root = skeletonFixture();
-    skeletonCopy($root, ['phpstan.neon', 'vite.config.ts', 'lint/oxlint/ezdev.js', 'tsconfig.json', 'phpunit.xml', 'composer.json', 'package.json', '.npmrc']);
+    workspaceCopy($root, ['phpstan.neon', 'vite.config.ts', 'lint/oxlint/ezdev.js', 'tsconfig.json', 'phpunit.xml', 'composer.json', 'package.json', '.npmrc']);
 
     foreach (ProjectFiles::in(['lint/phpstan']) as $path) {
-        skeletonCopy($root, [$path]);
+        workspaceCopy($root, [$path]);
     }
 
     symlink(dirname(__DIR__, 3).'/vendor', "{$root}/vendor");
@@ -329,7 +285,7 @@ function skeletonEdit(string $root, string $path, string $search, string $replac
 {
     $content = file_get_contents("{$root}/{$path}") ?: throw new RuntimeException("no {$path} to edit");
     expect($content)->toContain($search);
-    skeletonWrite($root, $path, str_replace($search, $replace, $content));
+    workspaceWrite($root, $path, str_replace($search, $replace, $content));
 }
 
 test('the copied settings pass, so each failure below comes from its one change', function () {
@@ -364,7 +320,7 @@ test('the settings checks reject a check that is switched off or turned down', f
 
 test('the settings checks reject another lint config', function () {
     $root = skeletonSettingsFixture();
-    skeletonWrite($root, '.oxlintrc.json', "{}\n");
+    workspaceWrite($root, '.oxlintrc.json', "{}\n");
 
     expect(implode("\n", ProjectFiles::at($root, fn () => CheckSettings::noOtherLintConfig())))->toContain('.oxlintrc.json');
 });

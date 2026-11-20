@@ -5,6 +5,7 @@ use Illuminate\Support\ConfigurationUrlParser;
 use Symfony\Component\Process\Process;
 
 require_once dirname(__DIR__, 3).'/scripts/screen-round.php';
+require_once dirname(__DIR__, 2).'/Support/Workspace.php';
 
 /*
 | scripts/screen-round prepares a screen round of the final review
@@ -37,24 +38,13 @@ test('the guard lets only a local development database be reset', function (arra
  */
 function screenRoundRepo(string $env): string
 {
-    $parent = sys_get_temp_dir().'/ezdev-screen-round-'.bin2hex(random_bytes(6));
-    $repo = "{$parent}/project";
-    mkdir("{$repo}/scripts", 0777, true);
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $parent]))->run());
-
-    foreach (['scripts/screen-round', 'scripts/screen-round.php'] as $path) {
-        copy(dirname(__DIR__, 3)."/{$path}", "{$repo}/{$path}");
-    }
-
-    file_put_contents("{$repo}/.env", $env);
-    file_put_contents("{$repo}/.gitignore", ".env\n");
+    $repo = workspaceFolder('screen-round').'/project';
+    workspaceCopy($repo, ['scripts/screen-round', 'scripts/screen-round.php']);
+    workspaceWrite($repo, '.env', $env);
+    workspaceWrite($repo, '.gitignore', ".env\n");
     // The project's Composer autoloader, as a project after composer install has it.
-    mkdir("{$repo}/vendor");
-    file_put_contents("{$repo}/vendor/autoload.php", "<?php\n\nrequire ".var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true).";\n");
-
-    foreach ([['init', '-q', '-b', 'main'], ['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-q', '-m', 'work']] as $args) {
-        (new Process(['git', ...$args], $repo))->mustRun();
-    }
+    workspaceWrite($repo, 'vendor/autoload.php', "<?php\n\nrequire ".var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true).";\n");
+    workspaceGitInit($repo);
 
     return $repo;
 }
@@ -91,7 +81,7 @@ test('a database that is not local, or an APP_ENV that is not local, changes not
 
 test('a project without its Composer packages changes nothing', function () {
     $repo = screenRoundRepo("APP_ENV=local\nAPP_URL=http://127.0.0.1:1\nDB_CONNECTION=sqlite\n");
-    unlink("{$repo}/vendor/autoload.php");
+    workspaceRemove("{$repo}/vendor/autoload.php");
     $before = screenRoundState($repo);
 
     $process = new Process(['php', 'scripts/screen-round'], $repo);
@@ -203,13 +193,13 @@ test('a copy\'s app starts in the background, keeps the server\'s pid, and a res
     $copy = sys_get_temp_dir().'/ezdev-screen-round-serve-'.bin2hex(random_bytes(6));
     $server = "{$copy}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php";
 
-    foreach (["{$copy}/public", "{$copy}/storage/framework", "{$copy}/storage/logs", dirname($server)] as $dir) {
-        mkdir($dir, 0777, true);
+    foreach (["{$copy}/storage/framework", "{$copy}/storage/logs"] as $dir) {
+        mkdir($dir, 0777, true) ?: throw new RuntimeException("cannot make {$dir}");
     }
 
     // Laravel's own server.php, which loads index.php from the folder it runs in.
-    copy(dirname(__DIR__, 3).'/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php', $server);
-    file_put_contents("{$copy}/public/index.php", "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\n");
+    workspaceCopy($copy, [substr($server, strlen("{$copy}/"))]);
+    workspaceWrite($copy, 'public/index.php', "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\n");
     $port = screenRoundFreeSeatPort();
     $pids = [];
     register_shutdown_function(function () use (&$pids, $copy) {
@@ -236,8 +226,7 @@ test('a copy\'s app starts in the background, keeps the server\'s pid, and a res
 
 test('an app that answers /up without Laravel\'s health page does not count as answering', function () {
     $root = sys_get_temp_dir().'/ezdev-screen-round-probe-'.bin2hex(random_bytes(6));
-    mkdir($root);
-    file_put_contents("{$root}/router.php", "<?php\necho \"<b>Fatal error</b>: Failed opening required 'index.php'\";\n");
+    workspaceWrite($root, 'router.php', "<?php\necho \"<b>Fatal error</b>: Failed opening required 'index.php'\";\n");
     $socket = stream_socket_server('tcp://127.0.0.1:0');
     $port = (int) substr(strrchr((string) stream_socket_get_name($socket, false), ':') ?: ':0', 1);
     fclose($socket);
@@ -311,7 +300,7 @@ function screenRoundReferenceProject(array $override = []): array
         'artisan' => "<?php\nfile_put_contents('{$calls}', getcwd().' artisan '.implode(' ', array_slice(\$argv, 1)).' env:'.json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)).\"\\n\", FILE_APPEND);\n",
         // It also answers /env with the database settings of its environment.
         'public/index.php' => "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\nif (\$_SERVER['REQUEST_URI'] === '/env') { echo json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)); }\n",
-        'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php' => (string) file_get_contents("{$root}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"),
+        'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php' => file_get_contents("{$root}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php") ?: throw new RuntimeException('no server.php'),
         'routes/web.php' => "<?php\n",
         'docs/reference/tasks/README.md' => "# Reference feature\n",
         'docs/reference/tasks/routes/tasks.php' => "<?php\n",
@@ -320,19 +309,15 @@ function screenRoundReferenceProject(array $override = []): array
     ];
 
     foreach ($files as $path => $content) {
-        @mkdir(dirname("{$repo}/{$path}"), 0777, true);
-        file_put_contents("{$repo}/{$path}", $content);
+        workspaceWrite($repo, $path, $content);
     }
 
-    (new Process(['git', 'add', '-A'], $repo))->mustRun();
-    (new Process(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'project'], $repo))->mustRun();
-
+    workspaceCommit($repo);
     $bin = dirname($repo).'/bin';
-    mkdir($bin);
 
     foreach (['composer', 'npm'] as $tool) {
-        file_put_contents("{$bin}/{$tool}", "#!/bin/sh\necho \"\$PWD {$tool} \$*\" >> \"{$calls}\"\n");
-        chmod("{$bin}/{$tool}", 0755);
+        workspaceWrite($bin, $tool, "#!/bin/sh\necho \"\$PWD {$tool} \$*\" >> \"{$calls}\"\n");
+        chmod("{$bin}/{$tool}", 0755) ?: throw new RuntimeException("cannot make {$tool} runnable");
     }
 
     register_shutdown_function(function () use ($repo) {
@@ -480,7 +465,7 @@ test('a run inside a copy changes nothing', function (string $suffix) {
 
 test('an uncommitted file of the reference feature stops the round, its Markdown does not count as code', function () {
     [$repo] = screenRoundReferenceProject();
-    file_put_contents("{$repo}/docs/reference/tasks/app/Models/Task.php", "<?php\n// changed\n");
+    workspaceWrite($repo, 'docs/reference/tasks/app/Models/Task.php', "<?php\n// changed\n");
 
     $process = screenRoundRunIn($repo, ['--reference']);
 
@@ -488,13 +473,15 @@ test('an uncommitted file of the reference feature stops the round, its Markdown
         ->and($process->getOutput().$process->getErrorOutput())->toContain('Commit the code before a screen round')->toContain('docs/reference/tasks/app/Models/Task.php')
         ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse()
         ->and(screenRoundIsCode('docs/reference/tasks/app/Models/Task.php'))->toBeTrue()
-        ->and(screenRoundIsCode('docs/reference/tasks/README.md'))->toBeFalse();
+        ->and(screenRoundIsCode('docs/reference/tasks/README.md'))->toBeFalse()
+        ->and(screenRoundIsCode('docs/reference/pages/auth/login.tsx'))->toBeTrue()
+        ->and(screenRoundIsCode('docs/reference/pages/README.md'))->toBeFalse();
 });
 
 test('with MySQL the copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {
     [$repo, $port] = screenRoundReferenceProject();
     // .env is not committed, so the project switches to MySQL on this machine.
-    file_put_contents("{$repo}/.env", "APP_ENV=local\nAPP_URL=http://127.0.0.1:{$port}\nSERVER_PORT={$port}\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop\n");
+    workspaceWrite($repo, '.env', "APP_ENV=local\nAPP_URL=http://127.0.0.1:{$port}\nSERVER_PORT={$port}\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_DATABASE=shop\n");
 
     $process = screenRoundRunIn($repo, ['--reference']);
     $seats = array_map(fn (string $copy): string => screenRoundParse((string) file_get_contents(dirname(realpath($repo))."/{$copy}/.env"))['DB_DATABASE'] ?? '', ['project-review-opus']);

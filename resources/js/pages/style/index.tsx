@@ -32,7 +32,9 @@ import DetailDemo from '@/components/style/detail-demo';
 import DetailTabsDemo from '@/components/style/detail-tabs-demo';
 import ErrorPageDemo from '@/components/style/error-page-demo';
 import FeedDemo from '@/components/style/feed-demo';
-import FormDemo from '@/components/style/form-demo';
+import FormDemo, {
+    type ExampleInvoiceForm,
+} from '@/components/style/form-demo';
 import HelpDemo from '@/components/style/help-demo';
 import ImportExportDemo from '@/components/style/import-export-demo';
 import LandingDemo from '@/components/style/landing-demo';
@@ -366,6 +368,52 @@ const invoice: ExampleInvoice = {
     total: 52470,
 };
 
+const invoiceForm: ExampleInvoiceForm = {
+    customer: 'Invoice Desk Sdn Bhd',
+    date: '2026-11-20',
+    due: '2026-12-20',
+    note: 'Pay by bank transfer before the due date',
+    currency: 'MYR',
+    lines: [
+        {
+            id: 1,
+            name: 'Website design',
+            unit: 800000,
+            total: 0,
+            quantity: '1',
+        },
+        {
+            id: 2,
+            name: 'Front-end development (days)',
+            unit: 120000,
+            total: 0,
+            quantity: '12',
+        },
+        {
+            id: 3,
+            name: 'Back-end development (days)',
+            unit: 130000,
+            total: 0,
+            quantity: '10',
+        },
+        {
+            id: 4,
+            name: 'Server (months)',
+            unit: 45000,
+            total: 0,
+            quantity: '3',
+        },
+        { id: 5, name: 'Domain renewal', unit: 12000, total: 0, quantity: '1' },
+        {
+            id: 6,
+            name: 'Launch support (days)',
+            unit: 100000,
+            total: 0,
+            quantity: '2',
+        },
+    ],
+};
+
 const reportTiles = [
     { label: 'Tasks done', value: '128' },
     { label: 'Tasks added', value: '141' },
@@ -532,6 +580,14 @@ export default function Style() {
                     <FormDemo
                         task={tasks[1]}
                         requiredMessage={t('The title field is required.')}
+                        invoice={invoiceForm}
+                        price={(items) =>
+                            priceCart(items, {
+                                subtotal: t('Subtotal'),
+                                tax: t('Tax (6%)'),
+                                total: t('Total'),
+                            })
+                        }
                     />
                 </StyleSection>
 

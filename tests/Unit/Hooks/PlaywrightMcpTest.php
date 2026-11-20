@@ -3,11 +3,12 @@
 use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
 
+require_once dirname(__DIR__, 2).'/Support/Workspace.php';
+
 function playwrightWorkspace(): string
 {
-    $workspace = sys_get_temp_dir().'/ezdev-playwright-'.bin2hex(random_bytes(6));
-    mkdir("{$workspace}/bin", 0777, true);
-    file_put_contents("{$workspace}/bin/npx", <<<'JS'
+    $workspace = workspaceFolder('playwright');
+    workspaceWrite($workspace, 'bin/npx', <<<'JS'
 #!/usr/bin/env node
 const fs = require('node:fs');
 const readline = require('node:readline');
@@ -45,8 +46,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
     }
 });
 JS);
-    chmod("{$workspace}/bin/npx", 0755);
-    register_shutdown_function(fn () => (new Process(['rm', '-rf', $workspace]))->run());
+    chmod("{$workspace}/bin/npx", 0755) ?: throw new RuntimeException('cannot make npx runnable');
 
     return $workspace;
 }
@@ -66,7 +66,7 @@ function playwrightRun(string $workspace, string $exit = 'success', array $argum
 
 test('browser checks are headless and temporary screenshots are removed when the browser closes', function () {
     $workspace = playwrightWorkspace();
-    file_put_contents("{$workspace}/user.png", 'keep');
+    workspaceWrite($workspace, 'user.png', 'keep');
 
     $process = playwrightRun($workspace);
     $args = json_decode((string) file_get_contents("{$workspace}/arguments.json"), true);
@@ -89,9 +89,9 @@ test('a failed browser session removes its temporary screenshots', function () {
 
 test('the Windows launcher runs the npm CLI with Node instead of spawning the npx command shim', function () {
     $workspace = playwrightWorkspace();
-    copy("{$workspace}/bin/npx", "{$workspace}/bin/node.exe");
-    chmod("{$workspace}/bin/node.exe", 0755);
-    file_put_contents("{$workspace}/platform.cjs", <<<'JS'
+    copy("{$workspace}/bin/npx", "{$workspace}/bin/node.exe") ?: throw new RuntimeException('cannot copy npx');
+    chmod("{$workspace}/bin/node.exe", 0755) ?: throw new RuntimeException('cannot make node.exe runnable');
+    workspaceWrite($workspace, 'platform.cjs', <<<'JS'
 Object.defineProperty(process, 'platform', { value: 'win32' });
 Object.defineProperty(process, 'execPath', { value: process.env.TEST_NODE_EXE });
 JS);
@@ -183,16 +183,13 @@ test('a failed automatic close stops the browser process group and removes tempo
 test('a new session removes only stale owned sessions and preserves active and user files', function () {
     $workspace = playwrightWorkspace();
     $base = "{$workspace}/.playwright-mcp";
-    mkdir("{$base}/session-99999999-deadbeefdeadbeef", 0777, true);
-    file_put_contents("{$base}/session-99999999-deadbeefdeadbeef/.ezdev-playwright", 'temporary browser session');
-    file_put_contents("{$base}/session-99999999-deadbeefdeadbeef/old.png", 'stale');
-    mkdir("{$base}/session-".getmypid().'-aaaaaaaaaaaaaaaa');
-    file_put_contents("{$base}/session-".getmypid().'-aaaaaaaaaaaaaaaa/.ezdev-playwright', 'temporary browser session');
-    file_put_contents("{$base}/session-".getmypid().'-aaaaaaaaaaaaaaaa/live.png', 'active');
-    mkdir("{$base}/user-files");
-    file_put_contents("{$base}/user-files/keep.png", 'user');
-    mkdir("{$base}/session-99999998-bbbbbbbbbbbbbbbb");
-    file_put_contents("{$base}/session-99999998-bbbbbbbbbbbbbbbb/keep.png", 'unmarked');
+    $live = 'session-'.getmypid().'-aaaaaaaaaaaaaaaa';
+    workspaceWrite($base, 'session-99999999-deadbeefdeadbeef/.ezdev-playwright', 'temporary browser session');
+    workspaceWrite($base, 'session-99999999-deadbeefdeadbeef/old.png', 'stale');
+    workspaceWrite($base, "{$live}/.ezdev-playwright", 'temporary browser session');
+    workspaceWrite($base, "{$live}/live.png", 'active');
+    workspaceWrite($base, 'user-files/keep.png', 'user');
+    workspaceWrite($base, 'session-99999998-bbbbbbbbbbbbbbbb/keep.png', 'unmarked');
 
     expect(playwrightRun($workspace)->getExitCode())->toBe(0)
         ->and(is_dir("{$base}/session-99999999-deadbeefdeadbeef"))->toBeFalse()

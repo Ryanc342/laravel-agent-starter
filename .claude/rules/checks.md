@@ -10,6 +10,7 @@ paths:
   - "package.json"
   - "lint/**"
   - "tests/Structure/**"
+  - "template/phpunit.xml"
   - "template/tests/Lint/**"
 ---
 
