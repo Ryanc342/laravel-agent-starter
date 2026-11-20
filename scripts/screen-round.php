@@ -72,7 +72,7 @@ function screenRound(string $root, bool $reference = false): int
         return screenRoundFail("{$refusal} scripts/screen-round changed nothing: the copies' databases would be on that server. The screen lanes do not run; put that in the report (docs/workflow.md, step 5).");
     }
 
-    $changed = array_map(fn (string $line): string => trim(substr($line, 3), ' "'), screenRoundLines(screenRoundGit($root, ['status', '--porcelain'])));
+    $changed = screenRoundChangedPaths(screenRoundGit($root, ['status', '--porcelain', '-z', '--untracked-files=all']));
     $uncommitted = screenRoundCode($root, $changed);
 
     if ($uncommitted !== []) {
@@ -549,11 +549,29 @@ function screenRoundGit(string $dir, array $args): string
 }
 
 /**
+ * Every path `git status --porcelain -z` names: each entry's path, and for a
+ * rename or copy the old path too, unquoted, so no changed file is left out.
+ *
  * @return list<string>
  */
-function screenRoundLines(string $text): array
+function screenRoundChangedPaths(string $status): array
 {
-    return array_values(array_filter(explode("\n", $text), fn (string $line): bool => trim($line) !== ''));
+    $entries = explode("\0", rtrim($status, "\0"));
+    $paths = [];
+
+    for ($i = 0; $i < count($entries); $i++) {
+        if ($entries[$i] === '') {
+            continue;
+        }
+
+        $paths[] = substr($entries[$i], 3);
+
+        if (in_array($entries[$i][0], ['R', 'C'], true)) {
+            $paths[] = $entries[++$i] ?? throw new RuntimeException("git status names a rename without its old path: {$entries[$i - 1]}");
+        }
+    }
+
+    return $paths;
 }
 
 /**

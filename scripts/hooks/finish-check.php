@@ -121,7 +121,7 @@ function failureText(Throwable $error): string
 function finishCheck(string $mode, string $argument = ''): string
 {
     // Claude Code sends the conversation as JSON on stdin; the other modes read nothing.
-    $input = $mode === 'stop' ? json_decode((string) stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR) : [];
+    $input = $mode === 'stop' ? json_decode(readInput(), true, flags: JSON_THROW_ON_ERROR) : [];
 
     if (! is_array($input)) {
         throw new RuntimeException('the Stop input is not a JSON object');
@@ -132,7 +132,7 @@ function finishCheck(string $mode, string $argument = ''): string
     }
 
     if ($mode === 'code') {
-        $paths = explode("\n", (string) stream_get_contents(STDIN));
+        $paths = explode("\n", readInput());
 
         return implode('', array_map(fn (string $path): string => "{$path}\n", array_filter($paths, fn (string $path): bool => $path !== '' && isCodePath($path))));
     }
@@ -407,6 +407,17 @@ function lanesOf(string $path): array
     }
 
     return $lanes;
+}
+
+/**
+ * What the caller sent on stdin; a read that fails stops the check, never
+ * reads as nothing sent.
+ */
+function readInput(): string
+{
+    $input = stream_get_contents(STDIN);
+
+    return $input === false ? throw new RuntimeException('cannot read the input on stdin') : $input;
 }
 
 /**

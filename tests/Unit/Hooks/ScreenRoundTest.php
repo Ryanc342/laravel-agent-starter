@@ -471,6 +471,18 @@ test('an uncommitted file of the reference feature stops the round, its Markdown
         ->and(screenRoundCode($repo, ['docs/reference/tasks/app/Models/Task.php', 'docs/reference/tasks/README.md', 'docs/reference/pages/auth/login.tsx', 'docs/reference/pages/README.md']))->toBe(['docs/reference/tasks/app/Models/Task.php', 'docs/reference/pages/auth/login.tsx']);
 });
 
+test('code renamed to a non-code name before the round stops it, and so does a path git would quote', function () {
+    [$repo] = screenRoundReferenceProject();
+    (new Process(['git', 'mv', 'routes/web.php', 'notes.md'], $repo))->mustRun();
+    workspaceWrite($repo, 'app/Quote "draft".php', "<?php\n");
+
+    $process = screenRoundRunIn($repo, ['--reference']);
+
+    expect($process->getExitCode())->not->toBe(0)
+        ->and($process->getOutput().$process->getErrorOutput())->toContain('routes/web.php')->toContain('app/Quote "draft".php')
+        ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse();
+});
+
 test('with MySQL the copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {
     [$repo, $port] = screenRoundReferenceProject();
     // .env is not committed, so the project switches to MySQL on this machine.
