@@ -1,5 +1,6 @@
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import Heading from '@/components/heading';
 import DatePicker from '@/components/shared/date-picker';
 import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
@@ -136,7 +137,7 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                 </FormField>
 
                 <div className="flex flex-col gap-3">
-                    <p className="text-sm font-medium">{t('Lines')}</p>
+                    <Heading variant="small" title={t('Lines')} />
                     <div className="hidden grid-cols-12 gap-2 text-sm text-muted-foreground sm:grid">
                         <span className="col-span-5">{t('Description')}</span>
                         <span className="col-span-2 text-right">
@@ -245,7 +246,7 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                             </div>
                         );
                     })}
-                    <div className="flex items-center justify-between gap-4 border-t pt-3">
+                    <div className="flex items-center justify-between gap-4 pt-3 sm:border-t">
                         <Button
                             type="button"
                             variant="outline"
