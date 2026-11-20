@@ -87,7 +87,7 @@ export type ExampleInvoiceForm = {
 
 /**
  * A long form with lines, in the wide dialog: the invoice's fields, its lines
- * as a table and its totals. The totals come with the data, as from the
+ * as a table (on a phone without the unit price, so the line fits) and its totals. The totals come with the data, as from the
  * backend: nothing is added up here.
  */
 function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
@@ -120,7 +120,7 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                             <TableHead className="text-right">
                                 {t('Qty')}
                             </TableHead>
-                            <TableHead className="text-right">
+                            <TableHead className="hidden text-right sm:table-cell">
                                 {t('Price')}
                             </TableHead>
                             <TableHead className="text-right">
@@ -137,7 +137,7 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                                 <TableCell className="text-right tabular-nums">
                                     {formatQuantity(line.quantity)}
                                 </TableCell>
-                                <TableCell className="text-right tabular-nums">
+                                <TableCell className="hidden text-right tabular-nums sm:table-cell">
                                     {formatMoney(line.unit, invoice.currency)}
                                 </TableCell>
                                 <TableCell className="text-right tabular-nums">

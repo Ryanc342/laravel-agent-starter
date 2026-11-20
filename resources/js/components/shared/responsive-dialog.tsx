@@ -110,7 +110,9 @@ export function ResponsiveDialogBody({
     return (
         <div
             className={cn(
-                '-mx-1 -my-1 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-1 py-1',
+                // The body scrolls as a whole; its blocks keep their height (*:shrink-0),
+                // so a block that scrolls on its own, such as a table, is not squeezed.
+                '-mx-1 -my-1 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-1 py-1 *:shrink-0',
                 className,
             )}
             {...props}
