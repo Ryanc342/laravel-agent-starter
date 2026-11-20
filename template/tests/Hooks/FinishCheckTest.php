@@ -16,8 +16,7 @@ require_once dirname(__DIR__, 3).'/tests/Support/Workspace.php';
  */
 function finishCheckRepo(): string
 {
-    $repo = workspaceFolder('finish-check');
-    workspaceCopy($repo, ['scripts/hooks/finish-check.php']);
+    $repo = workspaceWithFinishCheck('finish-check');
     workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
     workspaceWrite($repo, 'docs/notes.md', "# Notes\n");
     workspaceWrite($repo, 'phpstan.neon', "parameters:\n");
@@ -190,6 +189,23 @@ test('scripts/ and template/ touch lane backend, and the sample copies the lanes
         ->and($touched('docs/reference/pages/README.md'))->toBe([]);
 });
 
+test('the code mode prints the paths that are code, as the Stop hook counts them', function () {
+    $process = workspaceFinishCheck(finishCheckRepo(), ['code'], input: "app/Models/Task.php\nREADME.md\ndocs/notes.md\ndocs/reference/tasks/app/Models/Task.php\ndocs/reference/pages/auth/login.tsx\ndocs/reference/pages/README.md\n");
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toBe("app/Models/Task.php\ndocs/reference/tasks/app/Models/Task.php\ndocs/reference/pages/auth/login.tsx\n");
+});
+
+test('a file list from git without a path stops the fingerprint, never counts as code', function () {
+    $repo = finishCheckRepo();
+    $path = workspaceFakeGit($repo, 'case "$*" in *"ls-files -s"*) echo "100644 broken"; exit 0;; esac');
+
+    $process = workspaceFinishCheck($repo, ['fingerprint'], ['PATH' => $path]);
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('git ls-files gave a line without a path: 100644 broken');
+});
+
 test('a changed check file gives Ryan one line, does not block, and is told once', function (string $path) {
     $repo = finishCheckRepo();
     workspaceWrite($repo, $path, "changed\n");
@@ -321,8 +337,7 @@ test('a git that refuses the repository is told to Ryan, never read as no reposi
 });
 
 test('outside a git repository the finish check says nothing in any language', function () {
-    $dir = workspaceFolder('no-git-zh');
-    workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
+    $dir = workspaceWithFinishCheck('no-git-zh');
     // A git that answers in Chinese unless asked for English, as a translated git does.
     $path = workspaceFakeGit($dir, "[ \"\$LC_ALL\" = C ] || { echo '致命错误：不是 git 仓库' >&2; exit 128; }");
 
@@ -383,8 +398,7 @@ test('a transcript that is named but not there, or has no time stamp, is told to
 });
 
 test('before the first commit the finish check says nothing', function () {
-    $dir = workspaceFolder('no-commit');
-    workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
+    $dir = workspaceWithFinishCheck('no-commit');
     workspaceWrite($dir, 'app/code.php', "<?php\n");
     (new Process(['git', 'init', '-q', '-b', 'main'], $dir))->mustRun();
 
@@ -426,8 +440,7 @@ test('the session has no question tool and no workflows, and its subagents run i
 });
 
 test('outside a git repository the finish check says nothing', function () {
-    $dir = workspaceFolder('no-git');
-    workspaceCopy($dir, ['scripts/hooks/finish-check.php']);
+    $dir = workspaceWithFinishCheck('no-git');
     workspaceWrite($dir, 'app/code.php', "<?php\n");
 
     expect(finishCheckStop($dir))->toBe([])

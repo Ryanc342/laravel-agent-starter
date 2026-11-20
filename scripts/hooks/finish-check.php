@@ -13,6 +13,7 @@
 |   round <plan>   before a review round: write the plan's diff and a copy of the plan for the reviewers
 |   lanes          print the review lanes and the places that touch them, as JSON
 |   lanes <path>   print the lanes a change to <path> touches, as JSON
+|   code           print the paths read from stdin (one per line) that are code
 |
 | The Stop hook checks one thing: this conversation changed code, and no
 | composer check or composer check:milestone passed on the code as it is now.
@@ -64,7 +65,7 @@ const REFERENCE_FEATURE = 'docs/reference/tasks/';
 
 // The sample copies (docs/reference/pages/): its files other than Markdown are
 // code and touch the lanes of the page or component they copy.
-const SAMPLE_COPIES = 'docs/reference/pages/';
+const SAMPLE_PAGES = 'docs/reference/pages/';
 
 // Where `round` writes the diff and the plan the reviewers read (ignored by git).
 const REVIEW_FILES = 'storage/framework/testing/ezdev-review/';
@@ -128,6 +129,12 @@ function finishCheck(string $mode, string $argument = ''): string
 
     if (isset($input['cwd']) && ! (is_string($input['cwd']) && is_dir($input['cwd']) && chdir($input['cwd']))) {
         throw new RuntimeException('the Stop input names no folder to work in');
+    }
+
+    if ($mode === 'code') {
+        $paths = explode("\n", (string) stream_get_contents(STDIN));
+
+        return implode('', array_map(fn (string $path): string => "{$path}\n", array_filter($paths, fn (string $path): bool => $path !== '' && isCodePath($path))));
     }
 
     if ($mode === 'lanes') {
@@ -363,7 +370,7 @@ function isCheckFile(string $path): bool
  */
 function isCodePath(string $path): bool
 {
-    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, REFERENCE_FEATURE) || str_starts_with($path, SAMPLE_COPIES));
+    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, REFERENCE_FEATURE) || str_starts_with($path, SAMPLE_PAGES));
 }
 
 /**
@@ -381,10 +388,10 @@ function lanesOf(string $path): array
 
     if (str_starts_with($path, REFERENCE_FEATURE)) {
         $path = substr($path, strlen(REFERENCE_FEATURE));
-    } elseif (str_starts_with($path, SAMPLE_COPIES.'components/')) {
-        $path = 'resources/js/'.substr($path, strlen(SAMPLE_COPIES));
-    } elseif (str_starts_with($path, SAMPLE_COPIES)) {
-        $path = 'resources/js/pages/'.substr($path, strlen(SAMPLE_COPIES));
+    } elseif (str_starts_with($path, SAMPLE_PAGES.'components/')) {
+        $path = 'resources/js/'.substr($path, strlen(SAMPLE_PAGES));
+    } elseif (str_starts_with($path, SAMPLE_PAGES)) {
+        $path = 'resources/js/pages/'.substr($path, strlen(SAMPLE_PAGES));
     }
 
     $lanes = [];
@@ -634,7 +641,7 @@ function fingerprint(): string
         removeTemporary($index);
     }
 
-    $code = array_filter(explode("\n", $files), fn (string $line): bool => isCodePath(explode("\t", $line, 2)[1] ?? ''));
+    $code = array_filter(explode("\n", $files), fn (string $line): bool => isCodePath(str_contains($line, "\t") ? explode("\t", $line, 2)[1] : throw new RuntimeException("git ls-files gave a line without a path: {$line}")));
 
     return sha1(implode("\n", $code));
 }

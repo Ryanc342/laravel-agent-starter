@@ -4,9 +4,9 @@
 /*
 | Usage: scripts/screen-round [--reference]
 |
-| Prepares a screen round of the final review: a copy of the app for each of
-| the two reviewers, see scripts/screen-round.php and docs/workflow.md, step 4.
-| With --reference both copies get the reference feature, for a change to
+| Prepares a screen round of the final review: a copy of the app for
+| reviewer-opus, see scripts/screen-round.php and docs/workflow.md, step 4.
+| With --reference the copy gets the reference feature, for a change to
 | docs/reference/tasks/. Run it from the project, never from a copy.
 */
 

@@ -39,7 +39,7 @@ test('the guard lets only a local development database be reset', function (arra
 function screenRoundRepo(string $env): string
 {
     $repo = workspaceFolder('screen-round').'/project';
-    workspaceCopy($repo, ['scripts/screen-round', 'scripts/screen-round.php']);
+    workspaceCopy($repo, ['scripts/screen-round', 'scripts/screen-round.php', 'scripts/hooks/finish-check.php']);
     workspaceWrite($repo, '.env', $env);
     workspaceWrite($repo, '.gitignore', ".env\n");
     // The project's Composer autoloader, as a project after composer install has it.
@@ -468,10 +468,7 @@ test('an uncommitted file of the reference feature stops the round, its Markdown
     expect($process->getExitCode())->not->toBe(0)
         ->and($process->getOutput().$process->getErrorOutput())->toContain('Commit the code before a screen round')->toContain('docs/reference/tasks/app/Models/Task.php')
         ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse()
-        ->and(screenRoundIsCode('docs/reference/tasks/app/Models/Task.php'))->toBeTrue()
-        ->and(screenRoundIsCode('docs/reference/tasks/README.md'))->toBeFalse()
-        ->and(screenRoundIsCode('docs/reference/pages/auth/login.tsx'))->toBeTrue()
-        ->and(screenRoundIsCode('docs/reference/pages/README.md'))->toBeFalse();
+        ->and(screenRoundCode($repo, ['docs/reference/tasks/app/Models/Task.php', 'docs/reference/tasks/README.md', 'docs/reference/pages/auth/login.tsx', 'docs/reference/pages/README.md']))->toBe(['docs/reference/tasks/app/Models/Task.php', 'docs/reference/pages/auth/login.tsx']);
 });
 
 test('with MySQL the copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {

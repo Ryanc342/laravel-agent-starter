@@ -15,8 +15,7 @@ const ROUND_CODE = "<?php\n\n\$a = 1;\n\$b = 2;\n\$c = 3;\n";
 
 function roundRepo(): string
 {
-    $repo = workspaceFolder('review-round');
-    workspaceCopy($repo, ['scripts/hooks/finish-check.php']);
+    $repo = workspaceWithFinishCheck('review-round');
     workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n");
     workspaceWrite($repo, 'docs/exec-plans/active/.gitkeep', '');
     workspaceWrite($repo, 'storage/framework/testing/.gitignore', "*\n!.gitignore\n");

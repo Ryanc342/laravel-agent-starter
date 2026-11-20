@@ -25,6 +25,18 @@ function workspaceFolder(string $name): string
 }
 
 /**
+ * A new folder holding a copy of this project's finish check
+ * (scripts/hooks/finish-check.php), for the tests that run it.
+ */
+function workspaceWithFinishCheck(string $name): string
+{
+    $folder = workspaceFolder($name);
+    workspaceCopy($folder, ['scripts/hooks/finish-check.php']);
+
+    return $folder;
+}
+
+/**
  * Writes a file under $root, making its folders; with $time, dates it then.
  */
 function workspaceWrite(string $root, string $path, string $content, ?int $time = null): void

@@ -72,13 +72,11 @@ function screenRound(string $root, bool $reference = false): int
         return screenRoundFail("{$refusal} scripts/screen-round changed nothing: the copies' databases would be on that server. The screen lanes do not run; put that in the report (docs/workflow.md, step 5).");
     }
 
-    $uncommitted = array_values(array_filter(
-        screenRoundLines(screenRoundGit($root, ['status', '--porcelain'])),
-        fn (string $line): bool => screenRoundIsCode(substr($line, 3)),
-    ));
+    $changed = array_map(fn (string $line): string => trim(substr($line, 3), ' "'), screenRoundLines(screenRoundGit($root, ['status', '--porcelain'])));
+    $uncommitted = screenRoundCode($root, $changed);
 
     if ($uncommitted !== []) {
-        return screenRoundFail('Commit the code before a screen round (a round of uncommitted code does not count): '.implode(', ', array_map(fn (string $line): string => trim(substr($line, 3)), $uncommitted)).'. Nothing was changed.');
+        return screenRoundFail('Commit the code before a screen round (a round of uncommitted code does not count): '.implode(', ', $uncommitted).'. Nothing was changed.');
     }
 
     $commit = trim(screenRoundGit($root, ['rev-parse', 'HEAD']));
@@ -559,14 +557,31 @@ function screenRoundLines(string $text): array
 }
 
 /**
- * Code is every file outside docs/ and *.md, and the files of the reference
- * feature and of the sample copies other than Markdown, as for the review rounds.
+ * The paths among $paths that are code, as the finish check decides
+ * (scripts/hooks/finish-check.php, `code`): one owner for what code is.
+ *
+ * @param  list<string>  $paths
+ * @return list<string>
  */
-function screenRoundIsCode(string $path): bool
+function screenRoundCode(string $root, array $paths): array
 {
-    $path = trim($path, ' "');
+    $process = proc_open([PHP_BINARY, "{$root}/scripts/hooks/finish-check.php", 'code'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $root);
 
-    return ! str_ends_with($path, '.md') && (! str_starts_with($path, 'docs/') || str_starts_with($path, SCREEN_ROUND_REFERENCE.'/') || str_starts_with($path, 'docs/reference/pages/'));
+    if (! is_resource($process)) {
+        throw new RuntimeException('The finish check could not start to tell which files are code.');
+    }
+
+    $written = fwrite($pipes[0], implode("\n", $paths));
+    fclose($pipes[0]);
+    $output = stream_get_contents($pipes[1]);
+    $error = stream_get_contents($pipes[2]);
+    $exit = proc_close($process);
+
+    if ($written === false || $output === false || $exit !== 0) {
+        throw new RuntimeException('The finish check could not tell which files are code: '.trim((string) $error));
+    }
+
+    return array_values(array_filter(explode("\n", $output), fn (string $path): bool => $path !== ''));
 }
 
 function screenRoundFail(string $message): int
