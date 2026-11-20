@@ -13,7 +13,7 @@
 |   round <plan>   before a review round: write the plan's diff and a copy of the plan for the reviewers
 |   lanes          print the review lanes and the places that touch them, as JSON
 |   lanes <path>   print the lanes a change to <path> touches, as JSON
-|   code           print the paths read from stdin (one per line) that are code
+|   code           print the paths read from stdin (NUL-separated) that are code, one per line
 |
 | The Stop hook checks one thing: this conversation changed code, and no
 | composer check or composer check:milestone passed on the code as it is now.
@@ -132,7 +132,7 @@ function finishCheck(string $mode, string $argument = ''): string
     }
 
     if ($mode === 'code') {
-        $paths = explode("\n", readInput());
+        $paths = explode("\0", readInput());
 
         return implode('', array_map(fn (string $path): string => "{$path}\n", array_filter($paths, fn (string $path): bool => $path !== '' && isCodePath($path))));
     }
@@ -305,7 +305,7 @@ function changedInConversation(?float $start): array
         return $working;
     }
 
-    $committed = explode("\n", mustGit(['log', '--since=@'.(int) floor($start), '--format=', '--name-only', '--no-renames']));
+    $committed = gitPaths(['log', '--since=@'.(int) floor($start), '--format=', '--name-only', '--no-renames', '-z']);
 
     return array_values(array_unique(array_filter([...$committed, ...$working])));
 }
@@ -484,7 +484,7 @@ function reviewRound(string $plan): string
 
     $name = basename($plan);
     $before = planBase($plan);
-    $untracked = array_filter(explode("\n", mustGit(['ls-files', '--others', '--exclude-standard'])));
+    $untracked = gitPaths(['ls-files', '--others', '--exclude-standard', '-z']);
     $paths = planChanges($plan);
     $tracked = array_values(array_diff($paths, $untracked));
     $diff = $tracked === [] ? '' : mustGit(['diff', '--no-renames', $before, '--', ...$tracked])."\n";
@@ -532,11 +532,24 @@ function writeFile(string $file, string $content): void
  * @param  list<string>  $args
  * @param  array<string, string>  $env
  */
-function mustGit(array $args, array $env = []): string
+function mustGit(array $args, array $env = [], bool $trim = true): string
 {
-    [$exit, $output, $error] = gitRun($args, $env);
+    [$exit, $output, $error] = gitRun($args, $env, $trim);
 
     return $exit === 0 ? $output : throw new RuntimeException(trim("git {$args[0]} failed: {$error}", ' :'));
+}
+
+/**
+ * The entries of a git command run with `-z`: separated by NUL and never
+ * quoted, so a name holding a quote, a backslash or a newline is read as it is.
+ *
+ * @param  list<string>  $args
+ * @param  array<string, string>  $env
+ * @return list<string>
+ */
+function gitPaths(array $args, array $env = []): array
+{
+    return array_values(array_filter(explode("\0", mustGit($args, $env, false)), fn (string $entry): bool => $entry !== ''));
 }
 
 /**
@@ -617,9 +630,7 @@ function removeTemporary(string $path): void
  */
 function changedSince(string $base): array
 {
-    $tracked = mustGit(['diff', '--name-only', '--no-renames', $base]);
-    $untracked = mustGit(['ls-files', '--others', '--exclude-standard']);
-    $paths = array_filter(array_merge(explode("\n", $tracked), explode("\n", $untracked)));
+    $paths = [...gitPaths(['diff', '--name-only', '--no-renames', '-z', $base]), ...gitPaths(['ls-files', '--others', '--exclude-standard', '-z'])];
 
     return array_values(array_unique($paths));
 }
@@ -647,12 +658,12 @@ function fingerprint(): string
     try {
         mustGit(['read-tree', 'HEAD'], $env);
         mustGit(['add', '-A'], $env);
-        $files = mustGit(['ls-files', '-s'], $env);
+        $files = gitPaths(['ls-files', '-s', '-z'], $env);
     } finally {
         removeTemporary($index);
     }
 
-    $code = array_filter(explode("\n", $files), fn (string $line): bool => isCodePath(str_contains($line, "\t") ? explode("\t", $line, 2)[1] : throw new RuntimeException("git ls-files gave a line without a path: {$line}")));
+    $code = array_filter($files, fn (string $line): bool => isCodePath(str_contains($line, "\t") ? explode("\t", $line, 2)[1] : throw new RuntimeException("git ls-files gave a line without a path: {$line}")));
 
     return sha1(implode("\n", $code));
 }

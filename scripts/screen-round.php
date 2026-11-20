@@ -589,7 +589,7 @@ function screenRoundCode(string $root, array $paths): array
         throw new RuntimeException('The finish check could not start to tell which files are code.');
     }
 
-    $written = fwrite($pipes[0], implode("\n", $paths));
+    $written = fwrite($pipes[0], implode("\0", $paths));
     fclose($pipes[0]);
     $output = stream_get_contents($pipes[1]);
     $error = stream_get_contents($pipes[2]);

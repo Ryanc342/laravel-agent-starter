@@ -164,10 +164,10 @@ function skeletonOxlintErrors(): array
         'resources/js/lib/title.ts' => "import { t } from '@/lib/i18n';\n\nexport const title = t('Dashboard');\n",
         'resources/js/lib/nav-items.ts' => "import { tChoice } from '@/lib/i18n';\n\nexport const items = [{ title: tChoice('{1} :count task|[2,*] :count tasks', 2) }];\n",
         'resources/js/lib/labels.ts' => "import { t as translate } from '@/lib/i18n';\n\nexport class Labels {\n    save = translate('Save');\n}\n",
-        'resources/js/components/beta/beta-title.tsx' => "import { t } from '@/lib/i18n';\n\nexport function BetaTitle() {\n    return t('Dashboard');\n}\n",
-        'resources/js/lib/marked.ts' => "import { msg } from '@/lib/i18n';\n\nexport const marked = [{ title: msg('Dashboard') }];\n",
-        'resources/js/lib/later.ts' => "import { t } from '@/lib/i18n';\n\nexport const label = () => t('Save');\nexport const items = [{ title: function () { return t('Save'); } }];\n",
-        'resources/js/lib/own-t.ts' => "import { t } from '@/lib/format';\n\nexport const total = t('Save');\n",
+        'resources/js/components/beta/beta-title.tsx' => "import { t } from '@/lib/i18n';\n\nexport function BetaTitle() {\n    return t('Dashboard');\n}\n\nexport function marker() {\n    debugger;\n}\n",
+        'resources/js/lib/marked.ts' => "import { msg } from '@/lib/i18n';\n\nexport const marked = [{ title: msg('Dashboard') }];\n\nexport function marker() {\n    debugger;\n}\n",
+        'resources/js/lib/later.ts' => "import { t } from '@/lib/i18n';\n\nexport const label = () => t('Save');\nexport const items = [{ title: function () { return t('Save'); } }];\n\nexport function marker() {\n    debugger;\n}\n",
+        'resources/js/lib/own-t.ts' => "import { t } from '@/lib/format';\n\nexport const total = t('Save');\n\nexport function marker() {\n    debugger;\n}\n",
     ]);
     $project = dirname(__DIR__, 3);
 
@@ -204,7 +204,8 @@ test('oxlint keeps the component boundaries and rejects import cycles', function
 ]);
 
 test('oxlint lets t() run inside a function and msg() mark a sentence at module level', function (string $file) {
-    expect(skeletonOxlintErrors()[$file] ?? '')->not->toContain('no-module-level-t');
+    // Each clean file also holds a `debugger` on purpose: its error proves oxlint linted the file.
+    expect(skeletonOxlintErrors()[$file] ?? '')->toContain('no-debugger')->not->toContain('no-module-level-t');
 })->with([
     't() inside a component' => ['resources/js/components/beta/beta-title.tsx'],
     'msg() at module level' => ['resources/js/lib/marked.ts'],

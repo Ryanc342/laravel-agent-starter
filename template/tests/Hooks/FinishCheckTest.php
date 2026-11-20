@@ -141,6 +141,17 @@ test('a file deleted in the conversation is this conversation\'s change', functi
     expect(finishCheckStop($repo)['decision'] ?? null)->toBe('block');
 })->with(['a file' => 'app/Actions/Quotes/SendQuote.php', 'a folder with its file' => 'app/Actions/Quotes/Old']);
 
+test('code whose name git would quote counts like any code, changed or committed', function (bool $commit) {
+    $repo = finishCheckRepo();
+    workspaceWrite($repo, 'app/Actions/Quotes/Quote "draft".php', "<?php\n");
+
+    if ($commit) {
+        workspaceCommit($repo);
+    }
+
+    expect(finishCheckStop($repo)['reason'] ?? null)->toContain('app/Actions/Quotes/Quote "draft".php');
+})->with(['uncommitted' => false, 'committed' => true]);
+
 test('without a transcript every uncommitted code change counts', function () {
     $repo = finishCheckRepo();
     workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php\n\$earlier = true;\n", time() - 600);
@@ -190,7 +201,7 @@ test('scripts/ and template/ touch lane backend, and the sample copies the lanes
 });
 
 test('the code mode prints the paths that are code, as the Stop hook counts them', function () {
-    $process = workspaceFinishCheck(finishCheckRepo(), ['code'], input: "app/Models/Task.php\nREADME.md\ndocs/notes.md\ndocs/reference/tasks/app/Models/Task.php\ndocs/reference/pages/auth/login.tsx\ndocs/reference/pages/README.md\n");
+    $process = workspaceFinishCheck(finishCheckRepo(), ['code'], input: "app/Models/Task.php\0README.md\0docs/notes.md\0docs/reference/tasks/app/Models/Task.php\0docs/reference/pages/auth/login.tsx\0docs/reference/pages/README.md");
 
     expect($process->getExitCode())->toBe(0)
         ->and($process->getOutput())->toBe("app/Models/Task.php\ndocs/reference/tasks/app/Models/Task.php\ndocs/reference/pages/auth/login.tsx\n");

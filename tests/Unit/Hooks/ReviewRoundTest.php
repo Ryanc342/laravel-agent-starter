@@ -128,6 +128,20 @@ test('a round for a sync plan fails and says so when git refuses to read the tem
         ->and($process->getErrorOutput())->toContain('fatal: bad object');
 });
 
+test('a round takes files whose names git would quote into the diff, committed and new', function () {
+    $repo = roundRepo();
+    workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
+    workspaceCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/Quote "sent".php', "<?php\n\$sent = true;\n");
+    workspaceCommit($repo);
+    workspaceWrite($repo, 'app/Actions/Quotes/Quote\\new.php', "<?php\n\$new = true;\n");
+
+    $process = workspaceFinishCheck($repo, ['round', 'docs/exec-plans/active/send-quotes.md']);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and(file_get_contents($repo.'/'.roundFiles($process)['Diff']))->toContain('+$sent = true;')->toContain('+$new = true;');
+});
+
 test('a round takes an empty new file into the diff', function () {
     $repo = roundRepo();
     workspaceWrite($repo, 'docs/exec-plans/active/send-quotes.md', roundPlan('- [x] M1 Actions'));
