@@ -201,10 +201,10 @@ test('scripts/ and template/ touch lane backend, and the sample copies the lanes
 });
 
 test('the code mode prints the paths that are code, as the Stop hook counts them', function () {
-    $process = workspaceFinishCheck(finishCheckRepo(), ['code'], input: "app/Models/Task.php\0README.md\0docs/notes.md\0docs/reference/tasks/app/Models/Task.php\0docs/reference/pages/auth/login.tsx\0docs/reference/pages/README.md");
+    $process = workspaceFinishCheck(finishCheckRepo(), ['code'], input: "app/Models/Task.php\0README.md\0docs/notes.md\0docs/reference/tasks/app/Models/Task.php\0docs/reference/pages/auth/login.tsx\0docs/reference/pages/README.md\0app/Quote\nDraft.php");
 
     expect($process->getExitCode())->toBe(0)
-        ->and($process->getOutput())->toBe("app/Models/Task.php\ndocs/reference/tasks/app/Models/Task.php\ndocs/reference/pages/auth/login.tsx\n");
+        ->and($process->getOutput())->toBe("app/Models/Task.php\0docs/reference/tasks/app/Models/Task.php\0docs/reference/pages/auth/login.tsx\0app/Quote\nDraft.php\0");
 });
 
 test('a file list from git without a path stops the fingerprint, never counts as code', function () {

@@ -483,6 +483,20 @@ test('code renamed to a non-code name before the round stops it, and so does a p
         ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse();
 });
 
+test('a rename git sees only in the working tree, and a name with a newline, are named as they are', function () {
+    [$repo] = screenRoundReferenceProject();
+    rename("{$repo}/routes/web.php", "{$repo}/routes/site.php") ?: throw new RuntimeException('cannot rename routes/web.php');
+    (new Process(['git', 'add', '-N', 'routes/site.php'], $repo))->mustRun();
+    workspaceWrite($repo, "app/Quote\nDraft.php", "<?php\n");
+
+    $process = screenRoundRunIn($repo, ['--reference']);
+    $output = $process->getOutput().$process->getErrorOutput();
+
+    expect($process->getExitCode())->not->toBe(0)
+        ->and($output)->toContain('routes/site.php')->toContain('routes/web.php')->toContain("app/Quote\nDraft.php")
+        ->and(file_exists(dirname($repo).'/calls.txt'))->toBeFalse();
+});
+
 test('with MySQL the copy has a database of its own, apart from the project\'s and composer check:reference\'s', function () {
     [$repo, $port] = screenRoundReferenceProject();
     // .env is not committed, so the project switches to MySQL on this machine.

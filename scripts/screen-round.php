@@ -566,7 +566,9 @@ function screenRoundChangedPaths(string $status): array
 
         $paths[] = substr($entries[$i], 3);
 
-        if (in_array($entries[$i][0], ['R', 'C'], true)) {
+        // A rename or copy names its old path next: staged (first letter) or,
+        // for an intent-to-add file, seen in the working tree (second letter).
+        if (array_intersect(str_split(substr($entries[$i], 0, 2)), ['R', 'C']) !== []) {
             $paths[] = $entries[++$i] ?? throw new RuntimeException("git status names a rename without its old path: {$entries[$i - 1]}");
         }
     }
@@ -599,7 +601,7 @@ function screenRoundCode(string $root, array $paths): array
         throw new RuntimeException('The finish check could not tell which files are code: '.trim((string) $error));
     }
 
-    return array_values(array_filter(explode("\n", $output), fn (string $path): bool => $path !== ''));
+    return array_values(array_filter(explode("\0", $output), fn (string $path): bool => $path !== ''));
 }
 
 function screenRoundFail(string $message): int

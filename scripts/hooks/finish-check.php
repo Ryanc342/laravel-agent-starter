@@ -13,7 +13,7 @@
 |   round <plan>   before a review round: write the plan's diff and a copy of the plan for the reviewers
 |   lanes          print the review lanes and the places that touch them, as JSON
 |   lanes <path>   print the lanes a change to <path> touches, as JSON
-|   code           print the paths read from stdin (NUL-separated) that are code, one per line
+|   code           print the paths read from stdin that are code (both NUL-separated)
 |
 | The Stop hook checks one thing: this conversation changed code, and no
 | composer check or composer check:milestone passed on the code as it is now.
@@ -134,7 +134,7 @@ function finishCheck(string $mode, string $argument = ''): string
     if ($mode === 'code') {
         $paths = explode("\0", readInput());
 
-        return implode('', array_map(fn (string $path): string => "{$path}\n", array_filter($paths, fn (string $path): bool => $path !== '' && isCodePath($path))));
+        return implode('', array_map(fn (string $path): string => "{$path}\0", array_filter($paths, fn (string $path): bool => $path !== '' && isCodePath($path))));
     }
 
     if ($mode === 'lanes') {
