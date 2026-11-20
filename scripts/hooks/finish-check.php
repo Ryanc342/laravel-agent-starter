@@ -86,7 +86,7 @@ try {
 } catch (Throwable $error) {
     // A broken check must neither trap the AI nor go unnoticed.
     if ($mode === 'stop') {
-        echo json_encode(['systemMessage' => 'The finish check failed: '.$error->getMessage()], JSON_OUTPUT);
+        echo json_encode(['systemMessage' => 'The finish check failed: '.failureText($error)], JSON_OUTPUT);
         exit(0);
     }
 
@@ -95,8 +95,23 @@ try {
         'passed' => 'did not record this check as passed',
         default => 'failed',
     };
-    fwrite(STDERR, "The finish check {$what}: ".$error->getMessage().PHP_EOL);
+    fwrite(STDERR, "The finish check {$what}: ".failureText($error).PHP_EOL);
     exit(1);
+}
+
+/**
+ * An error and every error before it that it replaced (an error in a `finally`
+ * keeps the pending one as its previous), so none goes unseen.
+ */
+function failureText(Throwable $error): string
+{
+    $messages = [];
+
+    for ($current = $error; $current !== null; $current = $current->getPrevious()) {
+        $messages[] = $current->getMessage();
+    }
+
+    return implode('; before that: ', $messages);
 }
 
 /**
@@ -137,7 +152,9 @@ function finishCheck(string $mode, string $argument = ''): string
         throw new RuntimeException("git rev-parse HEAD failed: {$error}");
     }
 
-    chdir($top);
+    if (! chdir($top)) {
+        throw new RuntimeException("cannot work in {$top}");
+    }
     $stateDir = mustGit(['rev-parse', '--path-format=absolute', '--git-path', 'ezdev']);
 
     if (! is_dir($stateDir) && ! mkdir($stateDir, 0777, true)) {
@@ -533,6 +550,7 @@ function gitRun(array $args, array $env = [], bool $trim = true): array
     // Git's errors go to a file, so a long error cannot fill a pipe while the
     // output is read; its messages are in English, whatever the user's language.
     $errors = tempnam(sys_get_temp_dir(), 'ezdev-git') ?: throw new RuntimeException('no temporary file for git');
+    $failed = '';
 
     try {
         $process = proc_open(['git', '-c', 'core.quotePath=false', ...$args], [1 => ['pipe', 'w'], 2 => ['file', $errors, 'w']], $pipes, null, [...getenv(), ...$env, 'LC_ALL' => 'C']);
@@ -549,9 +567,17 @@ function gitRun(array $args, array $env = [], bool $trim = true): array
             throw new RuntimeException("cannot read the answer of git {$args[0]}");
         }
 
-        return [$exit, $trim ? trim($output) : $output, trim(readText($errors))];
+        $answer = [$exit, $trim ? trim($output) : $output, trim(readText($errors))];
+        // When removing the file fails below, git's own failure is still told.
+        $failed = $exit === 0 ? '' : "git {$args[0]} failed: {$answer[2]}";
+
+        return $answer;
     } finally {
-        removeTemporary($errors);
+        try {
+            removeTemporary($errors);
+        } catch (RuntimeException $error) {
+            throw $failed === '' ? $error : new RuntimeException("{$error->getMessage()}; before that: {$failed}", previous: $error->getPrevious());
+        }
     }
 }
 

@@ -3,7 +3,7 @@
 require __DIR__.'/../vendor/autoload.php';
 require __DIR__.'/check-process.php';
 
-chdir(dirname(__DIR__));
+chdir(dirname(__DIR__)) ?: throw new RuntimeException('cannot work in '.dirname(__DIR__));
 
 $scopes = [];
 $exit = runValidation(function () use ($argv, &$scopes): array {

@@ -272,6 +272,45 @@ test('a temporary file the finish check cannot remove is told to Ryan, never lef
     expect($output['systemMessage'] ?? null)->toStartWith('The finish check failed: cannot remove the temporary file');
 });
 
+test('an error after another error is told to Ryan with the first one', function () {
+    $repo = finishCheckRepo();
+    $temp = workspaceFolder('finish-check-temp');
+    // `git add` finds the temporary folder read-only: removing git's error file
+    // fails first, then removing the fingerprint's index fails while that error is pending.
+    $path = workspaceFakeGit($repo, 'case "$*" in *"add -A"*) chmod 555 "$TMPDIR";; esac');
+
+    try {
+        $process = workspaceFinishCheck($repo, ['fingerprint'], ['PATH' => $path, 'TMPDIR' => $temp]);
+    } finally {
+        chmod($temp, 0755) ?: throw new RuntimeException('cannot make the temporary folder writable again');
+    }
+
+    expect($process->getExitCode())->toBe(1)
+        ->and(substr_count($process->getErrorOutput(), 'cannot remove the temporary file'))->toBe(2);
+});
+
+test('a temporary file that cannot be removed after git failed is told to Ryan with git\'s message', function () {
+    $repo = finishCheckRepo();
+    $temp = workspaceFolder('finish-check-temp');
+    $path = workspaceFakeGit($repo, 'chmod 555 "$TMPDIR"; echo "fatal: the object store broke" >&2; exit 128');
+
+    try {
+        $output = finishCheckStop($repo, [], ['PATH' => $path, 'TMPDIR' => $temp]);
+    } finally {
+        chmod($temp, 0755) ?: throw new RuntimeException('cannot make the temporary folder writable again');
+    }
+
+    expect($output['systemMessage'] ?? null)->toContain('cannot remove the temporary file')->toContain('fatal: the object store broke');
+});
+
+test('a top folder the finish check cannot work in is told to Ryan', function () {
+    $repo = finishCheckRepo();
+    workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
+    $path = workspaceFakeGit($repo, 'case "$*" in *--show-toplevel*) echo /nonexistent/ezdev-top; exit 0;; esac');
+
+    expect(finishCheckStop($repo, [], ['PATH' => $path])['systemMessage'] ?? null)->toBe('The finish check failed: cannot work in /nonexistent/ezdev-top');
+});
+
 test('a git that refuses the repository is told to Ryan, never read as no repository', function () {
     $repo = finishCheckRepo();
     workspaceWrite($repo, 'app/Actions/Quotes/SendQuote.php', "<?php // changed\n");
