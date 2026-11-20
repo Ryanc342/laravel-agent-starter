@@ -85,6 +85,16 @@ Answers to the open questions (Ryan, 2026-11-20)
 38. Q2: 1.6.0 adds no line under the password fields; the rule allows it, and "show the password requirements under the password fields (register, reset password, security)" goes into docs/exec-plans/tech-debt.md for a later release. No page changes beyond the sidebar.
 39. Q3, the template-only folder (decision 13): `template/` at the root. Its tests run from the template's CI with their own PHPUnit configuration, so a project's phpunit.xml names no missing folder.
 
+Rule gaps of the first final review (Ryan, 2026-11-20, after the first "开始"; Decision Log)
+40. Review lanes: scripts/ and template/ touch lane `backend`. The sample copies of docs/reference/pages/ are treated like the reference feature: they are code for the finish check, and each copy touches the lanes of the page or component it copies (docs/reference/pages/auth/login.tsx as resources/js/pages/auth/login.tsx, docs/reference/pages/components/... as resources/js/components/...). docs/golden-principles.md, the finish check's lanes and the test that keeps the two equal change together.
+41. The copied-block rule ("No copied block of code") also covers tests/ and template/tests/. The rule names its places plainly; the copied helpers of the hook tests (the write, commit and repository helpers that tests/ and template/tests/ each repeat) are written once: a helper both suites use lives in tests/Support and template/tests loads it from there (tests/ is always present in the template); template/tests/Support holds only what the template's tests alone use.
+42. tests.md also covers template/tests/ (its `paths:` and its folder rule say so; template/tests holds Hooks, Lint, Support and its phpunit.xml). A small function used by one test file stays in that file; a function used by two or more test files goes in the Support folder (tests/Support in a project, template/tests/Support in the template). The Files and Style sections say this once and no longer read differently. "lint/, tests/Structure/ and the template's helpers in tests/Support/ belong to the template" becomes: a change to a check in lint/, tests/Structure/ or the helpers they use is an agreed decision of the plan (docs/workflow.md, step 2).
+43. The check files whose change gives Ryan one line (decision 4) include template/phpunit.xml and template/tests/Lint/ (the template's own checks), next to the current list. A template-only file that is missing in a project is simply not there; the line says nothing about it.
+44. /style gets a demo of the wide dialog: in the "Form" section a fourth button, "Wide: an invoice with lines", opens `ResponsiveDialog` with `wide` holding an invoice with six lines; the specimen's label names it. This changes decisions 31 and 36 for this one demo; the other demos stay as they are. The pages look like the accepted previews: style-wide-demo-1280x800.png and style-wide-demo-phone-390x844.png (the Form section with the fourth button; on a phone the buttons wrap like the others), and the opened dialog as wide-dialog-1280x800.png and wide-dialog-phone-390x844.png (decision 35). The invoice is example data for the demo: no line-item component is built.
+45. The finish check: a file deleted before this conversation started (and not committed) is not changed in this conversation. A deleted file has no time of its own, but deleting it changes the time of its folder: a deletion counts as changed in this conversation unless the nearest folder above it that still exists was last changed before the conversation started. When that folder changed later for another reason, the deletion still counts (the safe side: one more check, never a missed one). Tests first in template/tests/Hooks.
+46. form-requests.md: the inline `Rule::unique(...)` in "Not a break" becomes plain words (a `unique` rule limited to the user's own records), with the reference file that shows it if one does; no rule file holds code (decision 22).
+47. docs/workflow.md, step 4: when a review finding comes in, fix every problem of the same kind in this change, not only the place it names.
+
 ## Open questions
 None left: Q1 to Q3 are answered in decisions 37 to 39.
 
@@ -105,7 +115,8 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - [x] M7 Every other review rule in the new format (decisions 27 and 28).
 - [x] M8 Sample copies (decisions 29 to 31).
 - [x] M9 Sidebar links (decision 32).
-- [ ] M10 Final: full `composer check` and `composer check:reference`, the final review of every touched lane, CHANGELOG.md and the READMEs (decision 33), one trial from a small new request in a scratch worktree, then stop for "发布".
+- [ ] M10 Rule gaps (decisions 40 to 47): lanes and code for scripts/, template/ and the sample copies; the copied-block and tests rules; the check files; the wide dialog demo on /style; deletions before the conversation; the rule without code; the "same kind" sentence of the workflow.
+- [ ] M11 Final: full `composer check` and `composer check:reference`, the final review of every touched lane, CHANGELOG.md and the READMEs (decision 33), one trial from a small new request in a scratch worktree, then stop for "发布".
 
 ## Validation
 - Per milestone: `composer check:milestone -- <affected test paths>`
@@ -115,6 +126,8 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - The copy check fails when a copy differs from its page (decision 31).
 - `git archive HEAD` holds none of the template-only files (decision 13).
 - W1 user (test@example.com): sign in, the dashboard opens, the sidebar has no Repository or Documentation link, open Settings and come back.
+- W2 user (test@example.com): open /style, in the Form section open "Wide: an invoice with lines": the dialog is wide with six lines on desktop and the full-width sheet on a phone; close it.
+- template/tests/Hooks: a file deleted before the conversation does not send the AI back; one deleted during it does (decision 45). A change to template/phpunit.xml or template/tests/Lint/ gives Ryan one line (decision 43).
 
 ## Progress
 - 2026-11-20 Plan written in the planning chat; the 1.5.0 plan moved to completed/ as parked, commit 470ae10a.
@@ -152,6 +165,7 @@ This section goes from PLANS.md in M4 (decision 8); this plan keeps it as histor
 - 2026-11-20 A Pint failure was hidden once by `| tail -1` before a commit (round 11); the next commit fixed the formatting and the Progress line says so.
 
 ## Decision Log
+- 2026-11-20 Ryan added decisions 40 to 47 after the first final review, from its rule gaps; they change the requirements after "开始", so this plan waits for a new "开始". The old M10 (final) becomes M11 and runs again on the new code: full `composer check` and `composer check:reference`, a final review of every lane the new changes touch, and the trial. Decision 44 changes decisions 31 and 36 for one /style demo.
 
 ## Outcomes & Retrospective
 Rule gaps (for the template):
