@@ -21,7 +21,7 @@ Before writing a condition, decide what it is about and write it once:
 | One loaded record, no query needs it     | Model method                    | `$order->isCancellable()`                                |
 | Who may act                              | Policy ability                  | controller `Gate::authorize()`, Resource `can.*`         |
 
-- `[review:backend:2]` Inside a model, a condition that a scope filters on is not written again in a method: for a fixed value (a status, a type) the scope and the method both ask the same enum method, with no query (`open()` uses `TaskStatus::openValues()`, `isOpen()` asks `$this->status->isOpen()`); for any other condition (a date, a count) the method asks the scope with `whereKey($this->getKey())->exists()`. Why: a condition written in the scope and again in the method drifts apart.
+- `[review:backend:2]` Inside a model, a condition that a scope filters on is not written again in a method: for a fixed value (a status, a type) the scope and the method both ask the same enum method, with no query (docs/reference/tasks/app/Models/Task.php: the open scope and the open check ask TaskStatus); for any other condition (a date, a count) the method asks the scope, limited to this record's key, whether it exists. Why: a condition written in the scope and again in the method drifts apart.
 
 docs/reference/tasks/app/Models/Task.php shows both (`isOpen()` and `canBeCompleted()`, `isOverdue()`).
 
@@ -39,7 +39,7 @@ Use `#[Fillable([...])]` and `casts()`, as in `app/Models/User.php`, and cast en
 
 ## Policies
 
-- `[review:backend:2]` A Policy ability calls model and enum methods (`$task->isOwnedBy($user)`) instead of comparing fields. Why: a comparison in the Policy is missed when the model's method changes.
+- `[review:backend:2]` A Policy ability calls model and enum methods (docs/reference/tasks/app/Policies/TaskPolicy.php) instead of comparing fields. Why: a comparison in the Policy is missed when the model's method changes.
 
 One Policy per model. List, create and bulk operations have abilities too (`viewAny`, `create`, `completeOverdue`). A check that already has one owner for the whole app (for example signing out deactivated accounts in middleware) is not repeated in Policies or Actions.
 
