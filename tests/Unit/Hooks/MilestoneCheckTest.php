@@ -8,7 +8,7 @@ function milestoneWorkspace(): string
 {
     $repo = workspaceFolder('milestone');
     $root = dirname(__DIR__, 3);
-    workspaceCopy($repo, ['scripts/hooks/finish-check.php', ...array_values(array_filter(['scripts/check-milestone.php', 'scripts/check.php', 'scripts/check-process.php'], fn (string $script) => is_file("{$root}/{$script}")))]);
+    workspaceCopy($repo, ['scripts/hooks/finish-check.php', 'scripts/check-milestone.php', 'scripts/check.php', 'scripts/check-process.php']);
     workspaceWrite($repo, 'vendor/autoload.php', '<?php require '.var_export("{$root}/vendor/autoload.php", true).';');
     workspaceWrite($repo, '.gitignore', "/vendor/\n/runtime/\n/storage/\n");
     workspaceWrite($repo, 'tests/Feature/QuoteTest.php', "<?php\n");
@@ -17,9 +17,14 @@ function milestoneWorkspace(): string
     $stub = <<<'PHP'
 <?php
 $phase = match (basename(__FILE__)) { 'composer.php' => 'static', 'artisan' => 'php', 'pest' => 'template', default => 'js' };
-file_put_contents(getcwd().'/runtime/commands', json_encode([$phase, array_slice($argv, 1)])."\n", FILE_APPEND);
-if (getenv('MILESTONE_TEST_EDIT') === $phase) {
-    file_put_contents(getcwd().'/app/quote.php', "<?php\n\$edited = true;\n");
+// A record or an edit that cannot be written fails the command, so no test reads a missing record as "nothing ran".
+if (file_put_contents(getcwd().'/runtime/commands', json_encode([$phase, array_slice($argv, 1)])."\n", FILE_APPEND) === false) {
+    fwrite(STDERR, "the stub cannot record its call\n");
+    exit(9);
+}
+if (getenv('MILESTONE_TEST_EDIT') === $phase && file_put_contents(getcwd().'/app/quote.php', "<?php\n\$edited = true;\n") === false) {
+    fwrite(STDERR, "the stub cannot edit app/quote.php\n");
+    exit(9);
 }
 exit(getenv('MILESTONE_TEST_FAIL') === $phase ? 7 : 0);
 PHP;

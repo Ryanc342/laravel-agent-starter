@@ -293,7 +293,7 @@ function screenRoundReferenceProject(array $override = []): array
         'storage/framework/.gitignore' => "*\n!.gitignore\n",
         'database/.gitignore' => "*.sqlite\n",
         // It notes the database settings it got from the environment too.
-        'artisan' => "<?php\nfile_put_contents('{$calls}', getcwd().' artisan '.implode(' ', array_slice(\$argv, 1)).' env:'.json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)).\"\\n\", FILE_APPEND);\n",
+        'artisan' => "<?php\nfile_put_contents('{$calls}', getcwd().' artisan '.implode(' ', array_slice(\$argv, 1)).' env:'.json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)).\"\\n\", FILE_APPEND) === false && exit(9);\n",
         // It also answers /env with the database settings of its environment.
         'public/index.php' => "<?php\nif (\$_SERVER['REQUEST_URI'] === '/up') { echo 'Application up'; }\nif (\$_SERVER['REQUEST_URI'] === '/env') { echo json_encode(array_filter(getenv(), fn (\$key) => str_starts_with(\$key, 'DB_') || \$key === 'APP_ENV', ARRAY_FILTER_USE_KEY)); }\n",
         'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php' => file_get_contents("{$root}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php") ?: throw new RuntimeException('no server.php'),
