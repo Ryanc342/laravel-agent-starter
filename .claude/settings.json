@@ -1,3 +1,37 @@
 {
-    "enabledMcpjsonServers": ["laravel-boost"]
+    "enabledMcpjsonServers": ["laravel-boost"],
+    "hooks": {
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php \"$CLAUDE_PROJECT_DIR/.claude/hooks/plan-gate.php\" user-prompt"
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Edit|MultiEdit|Write|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "php \"$CLAUDE_PROJECT_DIR/.claude/hooks/plan-gate.php\" pre-tool"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check.sh\"",
+                        "timeout": 600
+                    }
+                ]
+            }
+        ]
+    }
 }

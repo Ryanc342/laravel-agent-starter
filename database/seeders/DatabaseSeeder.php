@@ -12,8 +12,8 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database with one test account per role, each with
-     * the password `password`. A plan's walk list names them (docs/PLANS.md); a
-     * project adds one here for each role it brings. The template has one role,
+     * the password `password` (test@example.com), for checking the site by hand.
+     * A project adds one here for each role it brings. The template has one role,
      * the signed-in user.
      */
     public function run(): void
