@@ -20,8 +20,8 @@ export type PublicLink = Pick<NavItem, 'title' | 'href'>;
  * The top bar of a public page: the logo, the page links, and on the right
  * "Log in" and "Get started" (or "Dashboard" when signed in). On a phone the
  * links and buttons wait in a `Sheet` that a menu button opens. A full-width
- * strip with a line under it, no shadow. `signedIn` comes in as a prop so a
- * demo can show both states; `PublicLayout` reads it from the page props.
+ * strip with a line under it, no shadow. `PublicLayout` reads `signedIn`
+ * from the page props.
  * `label` names the page links.
  */
 export default function PublicHeader({

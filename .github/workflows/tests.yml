@@ -49,9 +49,5 @@ jobs:
       - name: Setup Application
         run: composer setup
 
-      # The browser tests run in Playwright's Chromium, the version package.json pins.
-      - name: Install the browser for the browser tests
-        run: npx playwright install --with-deps chromium
-
       - name: Run all checks
         run: composer check
