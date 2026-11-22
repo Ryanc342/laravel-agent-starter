@@ -2,6 +2,7 @@
 
 本项目 = Laravel 官方 React Starter Kit + 下面几条约定。
 Laravel 的写法以 Laravel Boost 的官方指引为准（<laravel-boost-guidelines> 区块，自动生成，不要手改）。
+Boost 的指引和 .claude/skills/ 里的技能，跟本文件说法不一样时，以本文件为准。
 
 ## 命令
 - `composer check`：全部检查（Pint、PHPStan、oxlint、tsc、Vitest、Pest）。说「完成」之前必须通过；需要 MySQL 在运行。

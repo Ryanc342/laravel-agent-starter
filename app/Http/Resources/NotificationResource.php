@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * One notification as a page receives it.
@@ -21,10 +20,8 @@ final class NotificationResource extends ResourceData
         public NotificationCan $can,
     ) {}
 
-    public static function from(Model $record, ?User $viewer): static
+    public static function from(Notification $record, ?User $viewer): self
     {
-        assert($record instanceof Notification);
-
         return new self(
             id: $record->id,
             message: $record->message(),

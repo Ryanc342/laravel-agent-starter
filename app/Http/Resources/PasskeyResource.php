@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use App\Models\Passkey;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use UnexpectedValueException;
 
 /**
@@ -20,10 +19,8 @@ final class PasskeyResource extends ResourceData
         public ?string $last_used_at_diff,
     ) {}
 
-    public static function from(Model $record, ?User $viewer): static
+    public static function from(Passkey $record, ?User $viewer): self
     {
-        assert($record instanceof Passkey);
-
         return new self(
             id: $record->id,
             name: $record->name,

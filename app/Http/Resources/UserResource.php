@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
@@ -19,10 +18,8 @@ final class UserResource extends ResourceData
         public string $initials,
     ) {}
 
-    public static function from(Model $record, ?User $viewer): static
+    public static function from(User $record, ?User $viewer): self
     {
-        assert($record instanceof User);
-
         return new self(
             id: $record->id,
             name: $record->name,

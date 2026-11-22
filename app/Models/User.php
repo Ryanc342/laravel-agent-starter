@@ -16,7 +16,6 @@ use Illuminate\Support\Carbon;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Passkeys\Passkey as PackagePasskey;
 
 /**
  * @property string $id
@@ -69,11 +68,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     /**
      * The passkeys the security page lists: newest first, with only the columns it shows.
      *
-     * @return Collection<int, PackagePasskey>
+     * @return Collection<int, Passkey>
      */
     public function passkeysForSettings(): Collection
     {
-        return $this->passkeys()
+        return Passkey::query()
+            ->where('user_id', $this->getKey())
             ->select(['id', 'name', 'credential', 'created_at', 'last_used_at'])
             ->latest()
             ->get();
