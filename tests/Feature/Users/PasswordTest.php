@@ -10,8 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
-$newPassword = ['password' => 'new-password', 'password_confirmation' => 'new-password'];
-
 test('a reset by link stores the new password hashed and tells the user', function () {
     $user = User::factory()->create();
 
@@ -20,16 +18,6 @@ test('a reset by link stores the new password hashed and tells the user', functi
     $user->refresh();
     expect($user->password)->not->toBe('new-password')
         ->and(Hash::check('new-password', $user->password))->toBeTrue()
-        ->and($user->notifications()->sole()->type)->toBe(PasswordChanged::class);
-});
-
-test('changing the password needs the current one, then sets and tells the same way as a reset', function () {
-    $user = User::factory()->create();
-    $this->actingAs($user);
-
-    app(ResetPassword::class)->handle($user, 'new-password');
-
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue()
         ->and($user->notifications()->sole()->type)->toBe(PasswordChanged::class);
 });
 

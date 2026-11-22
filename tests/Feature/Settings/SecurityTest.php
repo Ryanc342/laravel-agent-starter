@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\PasswordChanged;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -81,6 +82,7 @@ test('password can be updated', function () {
         ->assertRedirect(route('security.edit'));
 
     $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+    expect($user->notifications()->sole()->type)->toBe(PasswordChanged::class);
 });
 
 test('correct password must be provided to update password', function () {

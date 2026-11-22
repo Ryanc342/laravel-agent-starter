@@ -6,7 +6,7 @@ input=$(cat)
 cd "$CLAUDE_PROJECT_DIR" || exit 1
 marker="$(git rev-parse --git-dir)/claude-check-passed"
 
-if [ -f "$marker" ] && [ -z "$(find app bootstrap config database resources routes tests composer.json package.json -type f -newer "$marker" -print -quit)" ]; then
+if [ -f "$marker" ] && [ -z "$(find .claude app bootstrap config database resources routes tests composer.json package.json -type f -newer "$marker" -print -quit)" ]; then
   exit 0
 fi
 

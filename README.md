@@ -37,7 +37,7 @@ Open the folder in Claude Code and say yes when it asks whether you trust it: th
 1. **Grill.** The AI looks up what the code, the database and the docs answer, then asks you the rest, round by round, each question with its recommendation. Reply "是" to take it, or answer by number.
 2. **Plan.** It writes `docs/plans/<date>-<time>-<name>.md` (goal, questions and answers, files, how to verify) and stops.
 3. **开始.** You say "开始" (or "start"); only then may it change files, and only what the plan says.
-4. **Result.** After `composer check` passes it writes the result at the end of the plan and reports in plain words.
+4. **Result.** After `composer check` passes it writes the result at the end of the plan, commits (`git add -A`, `git commit`), and reports in plain words.
 
 Laravel conventions come from Laravel Boost (the guidelines in `CLAUDE.md`, the skills in `.claude/skills/`, the MCP server in `.mcp.json`); where they disagree with `AGENTS.md`, `AGENTS.md` wins. `composer update` refreshes them.
 
@@ -45,7 +45,7 @@ Laravel conventions come from Laravel Boost (the guidelines in `CLAUDE.md`, the 
 
 Registered in `.claude/settings.json`:
 
-- **Plan gate** (`.claude/hooks/plan-gate.php`). Before the AI edits a file outside `docs/plans/`, it needs an approved plan: your "开始" approves the newest plan as it is at that moment. If the plan changes afterwards (a new requirement, the result written), or a newer plan appears, the approval lapses.
+- **Plan gate** (`.claude/hooks/plan-gate.php`). Before the AI edits a file outside `docs/plans/`, runs a Bash command, or uses Boost's `tinker` or `record-rule`, it needs an approved plan: your "开始" approves the newest plan as it is at that moment. Without one, Bash only runs read-only git commands (`status`, `log`, `diff`, `show`, `blame`, `grep`, `ls-files`) and `git add` / `git commit` (no `--amend`, no `push`). If the plan changes afterwards (a new requirement, the result written), or a newer plan appears, the approval lapses. A plan that already has its result is closed: "开始" does not approve it, and the AI has to grill you and write a new plan.
 - **Check before stopping** (`.claude/hooks/check.sh`). When the AI is about to stop and code changed since the last pass, it runs `composer check`. If it fails, the AI is sent back once to fix it; if it still fails, the AI stops and you see one line saying so.
 
 ## Deploying
