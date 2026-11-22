@@ -32,8 +32,7 @@
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-browser": "^4.3",
         "pestphp/pest-plugin-laravel": "^4.0",
-        "spatie/laravel-typescript-transformer": "^3.3",
-        "spaze/phpstan-disallowed-calls": "^4.0"
+        "spatie/laravel-typescript-transformer": "^3.3"
     },
     "autoload": {
         "psr-4": {
@@ -44,7 +43,6 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Lint\\PHPStan\\": "lint/phpstan/",
             "Tests\\": "tests/"
         }
     },
@@ -60,34 +58,18 @@
         "lint": [
             "pint --parallel"
         ],
-        "lint:check": [
-            "pint --parallel --test"
-        ],
         "check": [
             "Composer\\Config::disableProcessTimeout",
-            "@php scripts/check.php"
-        ],
-        "check:static": [
-            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
-            "@php scripts/check-generated-types.php",
-            "@lint:check",
-            "@types:check",
+            "pint --parallel --test",
+            "phpstan analyse --memory-limit=1G",
             "npm run check",
-            "npm run types:check"
+            "npm run types:check",
+            "npx vp test run",
+            "@php artisan test --compact"
         ],
         "ci:check": [
             "@check"
-        ],
-        "types:check": [
-            "phpstan analyse --memory-limit=1G"
-        ],
-        "test": [
-            "@php artisan config:clear --ansi",
-            "@lint:check",
-            "@types:check",
-            "npm test",
-            "@php artisan test"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

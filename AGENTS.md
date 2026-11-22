@@ -1,44 +1,29 @@
-# Ezdev Template: agent guide
+# 项目说明（给 AI）
 
-This file is a map, not a manual. It stays under 100 lines.
-Details live in the files it points to; read them when the task needs them.
+本项目 = Laravel 官方 React Starter Kit + 下面几条约定。
+Laravel 的写法以 Laravel Boost 的官方指引为准（<laravel-boost-guidelines> 区块，自动生成，不要手改）。
 
-## Commands
+## 命令
+- `composer check`：全部检查（Pint、PHPStan、oxlint、tsc、Vitest、Pest）。说「完成」之前必须通过；需要 MySQL 在运行。
+- `composer lint`、`npm run check:fix`：自动格式化。
+- `php artisan test --filter=<名字>`：开发中只跑相关测试。
 
-- `composer check`: every machine check (Pint, PHPStan with the layer rules, the generated types, oxlint, tsc, Vitest, the build, Pest on MySQL with the browser tests). It must pass before you say "done". MySQL must be running. It takes a few minutes: run it in the foreground with a Bash timeout of 600000 ms. `composer check:static`: just the static phase.
-- `php artisan test --compact --group=<plan>.D1`, `npx vp test run -t <plan>.D1`: the tests of one decision, while you build.
-- `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
-- `php scripts/workflow.php status`: where the plan is and the next step. `review`, `report`, `cleanup`, `upgrade`: docs/workflow.md.
-- `scripts/worktree-up <name>`: a git worktree with its own .env, database and port, for parallel work.
+## 每件事都按这四步（新需求、改动、修复、优化都一样，不分大小）
+1. Grill：先自己查清代码、数据库（Boost MCP）和文档能回答的，再逐轮追问我，直到没有待定的决定。
+   - 每轮问现在就能问的全部问题；答案要等别的问题定了才知道的，放到下一轮。
+   - 每题附上你的建议和理由，问法让我回「是」就等于采纳；我可以按编号回答。
+   - 钱、权限、谁能看到什么数据、删除或改动真实数据，一律问我。
+   - 没有待定的决定时，用一句话复述你的理解，问我对不对。
+2. 计划：写 docs/plans/<年-月-日>-<时分>-<名字>.md：目标、问答记录（每题的建议和我的回答）、要改的文件、怎么验证。然后停下，等我说「开始」。
+3. 动手：只做计划里的事。我说「开始」之前，除了 docs/plans/ 里的计划，不改任何文件（包括用 Bash、artisan make 等命令）。中途要加或改需求：先改计划，等我再说「开始」。看到旧代码的问题，写进结果，不要顺手改。
+4. 收尾：composer check 通过后，在计划末尾写「结果」（做了什么、怎么验证的、要我决定的事），再用中文大白话汇报。写上结果，这份计划就关闭了。
 
-## How we work
-
-Every change goes through one plan (docs/PLANS.md) and the steps of docs/workflow.md: the draft with your questions, the user's "开始", the build, composer check, the review, the report. After "开始" you ask nothing. The workflow tool (scripts/workflow.php) keeps the steps and tells you the next one; a new conversation starts with it.
-
-## The skeleton
-
-- .claude/rules/skeleton.md, read in every session: every block of the app, where its files live, the arrows between the blocks, and the rules for every block and for the workflow.
-- .claude/rules/skeleton/: one card per block and per arrow, loaded when you read or change a file in its location. Read the card yourself before you add a file to a block.
-- Each rule's tag says who guarantees it: `machine`, `test`, `part`, `reviewer` (with its Check line) or `note`.
-
-## Red lines
-
-- Fix the code, not the test. Change or delete an existing test assertion only when a decision of the plan changes the requirement, and name that decision.
-- Build only what the plan lists. What it does not say follows the cards or keeps the current behaviour, and waits for the user (docs/workflow.md, Build).
-- Never silence a check: no ignore comments, no skipped tests, no lowered level or wider exception; the error says what to do instead.
-- Do not create documentation files the user did not ask for, except plans and the docs this file lists.
-
-## Docs map
-
-- .claude/rules/skeleton.md and .claude/rules/skeleton/: the rules
-- docs/workflow.md: what the workflow tool does not do: questions, build, review, report, cleanup, upgrades
-- docs/PLANS.md: how to write a plan, and how a test names a decision
-- docs/exec-plans/active/: the open plan. docs/exec-plans/completed/: reported plans
-- docs/exec-plans/tech-debt.md: the existing debt the reviews found
-- /style (resources/js/pages/style, local only): the one design reference, every shared component and the demo of every kind of page; each component's header says what it is for
-
-## Tools
-
-- Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Subagents: `explorer` (read-only lookups) and `reviewer-haiku` (read-only, one review pack per run). They run in the foreground: the session waits for their answers.
-- Hooks (.claude/settings.json): the workflow tool runs when a session starts, on each message, before a file is written or a command runs, after a command, when you stop and when a reviewer ends.
+## 防屎山
+1. 先找再写：新建函数、组件、hook、scope 之前，先搜有没有现成的；差不多能用就给它加个参数。
+2. 放对地方：页面在 resources/js/pages/<功能>/；第二个页面也要用时，组件才放进 components/shared/。控制器只做「接请求 → 调用 → 返回」；业务写入放 app/Actions/<领域>/<动词名词>.php 的 handle()；权限用 Policy；校验用 FormRequest。
+3. 要一起成功或一起失败的写入（钱、库存、状态）放进 DB::transaction()；先读再改的行用 lockForUpdate()。
+4. 不吞错误：不 catch 了继续跑；必需的值不给默认值（缺价格不是 0）；不加重试。
+5. 不关检查：不加 ignore 注释、不跳过测试、不降 PHPStan 级别、不为了通过而改测试断言（需求变了除外，并在结果里说明）。
+6. 每个新行为都有测试，优先写 Pest 功能测试。
+7. 不加新依赖包，除非计划里写了并且我同意。
+8. 不写我没要求的文档（docs/plans/ 里的计划除外）。

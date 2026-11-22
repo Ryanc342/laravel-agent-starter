@@ -5,6 +5,3 @@
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
-
-# The template's own files (its changelog, plans, tools and their tests): laravel new leaves them out.
-/template export-ignore

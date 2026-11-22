@@ -43,7 +43,7 @@ export default defineConfig({
             ],
         },
     },
-    // Frontend tests (vp test, part of composer check): .claude/rules/skeleton/test.md.
+    // Frontend tests (vp test, part of composer check).
     test: {
         include: ['tests/js/**/*.test.{ts,tsx}'],
         environment: 'jsdom',
@@ -53,12 +53,7 @@ export default defineConfig({
         // The default plugins plus import (for import/no-cycle). Setting
         // plugins replaces the default list, so every plugin is named here.
         plugins: ['typescript', 'unicorn', 'oxc', 'import'],
-        // Ezdev's own rules (lint/oxlint/ezdev.js says what each keeps).
-        // Only these and import cycles are machine rules.
-        jsPlugins: ['./lint/oxlint/ezdev.js'],
         rules: {
-            'ezdev/component-boundaries': 'error',
-            'ezdev/submit-button': 'error',
             'import/no-cycle': 'error',
             // Only no-cycle is wanted from the import plugin; these two are
             // its rules that oxlint turns on by default.

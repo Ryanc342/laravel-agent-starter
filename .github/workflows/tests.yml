@@ -55,13 +55,3 @@ jobs:
 
       - name: Run all checks
         run: composer check
-
-      - name: Verify the starter kit with Laravel Installer
-        if: github.repository == 'Ryanc342/laravel-agent-starter'
-        run: python3 template/scripts/check-installer
-        env:
-          STARTER_INSTALLER_ISOLATED_MYSQL: '1'
-          DB_HOST: 127.0.0.1
-          DB_PORT: '3306'
-          DB_USERNAME: root
-          DB_PASSWORD: ''

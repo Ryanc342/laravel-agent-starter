@@ -6,8 +6,6 @@
 | composer setup runs it, and so does the Laravel installer after it creates a
 | project (post-create-project-cmd). While the installer still has to write its
 | own settings it sets LARAVEL_INSTALLER_DEFER_HOOKS, and this does nothing.
-| The template's tests load this file for the class alone
-| (template/tests/Installation).
 */
 
 use Dotenv\Dotenv;
