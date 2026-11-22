@@ -67,21 +67,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Whether the email address already belongs to an account, other than $except.
-     * The database's unique index holds the same rule for two saves at once.
-     */
-    public static function emailTaken(string $email, ?self $except = null): bool
-    {
-        $query = self::query()->where('email', $email);
-
-        if ($except !== null) {
-            $query->whereKeyNot($except->getKey());
-        }
-
-        return $query->exists();
-    }
-
-    /**
      * The passkeys the security page lists: newest first, with only the columns it shows.
      *
      * @return Collection<int, PackagePasskey>

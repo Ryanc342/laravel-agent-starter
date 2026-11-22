@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Users\ResetPassword;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
 use App\Http\Resources\PasskeyResource;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -41,5 +44,17 @@ class SecurityController extends Controller
         }
 
         return Inertia::render('settings/security', $props);
+    }
+
+    /**
+     * Change the user's password, after they typed the current one.
+     */
+    public function update(PasswordUpdateRequest $request, ResetPassword $resetPassword): RedirectResponse
+    {
+        $resetPassword->handle($request->user(), $request->validated('password'));
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+
+        return back();
     }
 }

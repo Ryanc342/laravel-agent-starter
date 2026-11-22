@@ -13,7 +13,7 @@ test('every unread notification of the user becomes read and the number is retur
     Notification::factory()->for($user, 'notifiable')->count(2)->create();
     Notification::factory()->for($user, 'notifiable')->read()->create();
 
-    $marked = app(MarkAllNotificationsRead::class)->run($user);
+    $marked = app(MarkAllNotificationsRead::class)->handle($user);
 
     expect($marked)->toBe(2)
         ->and(Notification::query()->ownedBy($user)->unread()->count())->toBe(0);
@@ -24,7 +24,7 @@ test('another user\'s notifications stay unread', function () {
     Notification::factory()->for($user, 'notifiable')->create();
     $other = Notification::factory()->create();
 
-    app(MarkAllNotificationsRead::class)->run($user);
+    app(MarkAllNotificationsRead::class)->handle($user);
 
     expect($other->refresh()->read_at)->toBeNull();
 });
@@ -34,7 +34,7 @@ test('with nothing unread it refuses and changes nothing', function () {
     $read = Notification::factory()->for($user, 'notifiable')->read()->create();
     $readAt = $read->read_at;
 
-    expect(fn () => app(MarkAllNotificationsRead::class)->run($user))
+    expect(fn () => app(MarkAllNotificationsRead::class)->handle($user))
         ->toThrow(ValidationException::class);
 
     expect($read->refresh()->read_at?->toIso8601String())->toBe($readAt?->toIso8601String());

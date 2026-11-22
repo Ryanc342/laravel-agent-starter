@@ -84,8 +84,8 @@ class Notification extends DatabaseNotification
     }
 
     /**
-     * The notifications this user may see (prototype): the one place the list
-     * part and the Policy take "who sees what" from.
+     * The notifications this user may see: the one place the notifications
+     * page takes "who sees what" from.
      *
      * @param  Builder<self>  $query
      */

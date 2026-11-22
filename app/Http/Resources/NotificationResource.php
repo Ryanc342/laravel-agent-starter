@@ -2,18 +2,15 @@
 
 namespace App\Http\Resources;
 
-use App\Actions\Notifications\MarkNotificationRead;
-use App\Http\OperationGate;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * One notification as a page receives it.
- * Every flag and every can.* calls an existing owner; none writes a condition.
+ * can.mark_read makes the same checks as marking it read (the Policy and
+ * Notification::canBeMarkedRead), so the button shows exactly when it succeeds.
  */
-#[TypeScript]
 final class NotificationResource extends ResourceData
 {
     public function __construct(
@@ -34,7 +31,7 @@ final class NotificationResource extends ResourceData
             created_at_diff: $record->created_at?->diffForHumans(),
             is_unread: $record->isUnread(),
             can: new NotificationCan(
-                mark_read: $viewer !== null && OperationGate::allows($viewer, MarkNotificationRead::class, $record),
+                mark_read: $viewer !== null && $viewer->can('markRead', $record) && $record->canBeMarkedRead(),
             ),
         );
     }

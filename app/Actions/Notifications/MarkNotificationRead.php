@@ -2,38 +2,28 @@
 
 namespace App\Actions\Notifications;
 
-use App\Actions\Operation;
 use App\Models\Notification;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Marks one notification as read.
+ * Marks one notification as read. The row is read again with a lock, so the
+ * check sees what is stored now.
  */
-final class MarkNotificationRead extends Operation
+final class MarkNotificationRead
 {
-    public function ability(): string
+    public function handle(Notification $notification): void
     {
-        return 'markRead';
-    }
+        DB::transaction(function () use ($notification): void {
+            $locked = Notification::query()->whereKey($notification->getKey())->lockForUpdate()->firstOrFail();
 
-    public function subjectClass(): string
-    {
-        return Notification::class;
-    }
+            if (! $locked->canBeMarkedRead()) {
+                throw ValidationException::withMessages([
+                    'notification' => __('This notification is already read.'),
+                ]);
+            }
 
-    public function refusal(User $user, ?Model $subject): ?array
-    {
-        return $subject instanceof Notification && $subject->canBeMarkedRead()
-            ? null
-            : ['notification' => __('This notification is already read.')];
-    }
-
-    protected function perform(User $user, ?Model $subject, array $input): mixed
-    {
-        assert($subject instanceof Notification);
-        $subject->markAsRead();
-
-        return null;
+            $locked->markAsRead();
+        });
     }
 }

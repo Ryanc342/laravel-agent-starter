@@ -5,13 +5,11 @@ namespace App\Http\Resources;
 use App\Models\Passkey;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 use UnexpectedValueException;
 
 /**
  * One of the user's passkeys, as the security page lists it.
  */
-#[TypeScript]
 final class PasskeyResource extends ResourceData
 {
     public function __construct(

@@ -33,7 +33,6 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            // Private files are sent only through Route::download(), which checks the Policy.
             'serve' => false,
             'throw' => true,
             'report' => false,

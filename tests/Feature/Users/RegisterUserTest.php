@@ -1,12 +1,10 @@
 <?php
 
 use App\Actions\Users\RegisterUser;
-use App\Models\User;
 use App\Notifications\AccountCreated;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
@@ -22,7 +20,7 @@ function registerUserInput(array $input = []): array
 }
 
 test('a new user is stored with a hashed password and an unverified email', function () {
-    $user = app(RegisterUser::class)->run(null, null, registerUserInput());
+    $user = app(RegisterUser::class)->handle(...Arr::only(registerUserInput(), ['name', 'email', 'password']));
 
     $user->refresh();
     expect($user->name)->toBe('Test User')
@@ -32,22 +30,7 @@ test('a new user is stored with a hashed password and an unverified email', func
 });
 
 test('a new user gets a welcome notification', function () {
-    $user = app(RegisterUser::class)->run(null, null, registerUserInput());
+    $user = app(RegisterUser::class)->handle(...Arr::only(registerUserInput(), ['name', 'email', 'password']));
 
     expect($user->notifications()->sole()->type)->toBe(AccountCreated::class);
-});
-
-test('an email address that already has an account is refused, and nothing is stored', function () {
-    User::factory()->create(['email' => 'test@example.com']);
-
-    expect(fn () => app(RegisterUser::class)->run(null, null, registerUserInput()))
-        ->toThrow(ValidationException::class);
-    expect(User::query()->count())->toBe(1);
-});
-
-test('someone who is signed in cannot register another account', function () {
-    $user = User::factory()->create();
-
-    expect(fn () => app(RegisterUser::class)->run($user, null, registerUserInput()))
-        ->toThrow(AuthorizationException::class);
 });

@@ -2,44 +2,23 @@
 
 namespace App\Actions\Users;
 
-use App\Actions\UserlessOperation;
-use App\Concerns\PasswordValidationRules;
 use App\Models\User;
 use App\Notifications\PasswordChanged;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Sets a new password for the user in $subject and tells them. Fortify's
- * password reset by link runs it through App\Http\Fortify\ResetUserPassword,
- * after Fortify has checked the link; ChangePassword runs it for the signed-in user.
+ * Sets a new password for the user and tells them. Both ways of setting a
+ * password use it: the reset by link (App\Actions\Fortify\ResetUserPassword)
+ * and the security page (SecurityController::update), so both write and
+ * notify the same way.
  */
-final class ResetPassword extends UserlessOperation
+final class ResetPassword
 {
-    use PasswordValidationRules;
-
-    public function ability(): string
+    public function handle(User $user, string $password): void
     {
-        return 'resetPassword';
-    }
-
-    public function subjectClass(): string
-    {
-        return User::class;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'password' => $this->passwordRules(),
-        ];
-    }
-
-    protected function perform(?Model $subject, array $input): mixed
-    {
-        assert($subject instanceof User);
-        $subject->forceFill(['password' => $input['password']])->save();
-        $subject->notify(new PasswordChanged);
-
-        return null;
+        DB::transaction(function () use ($user, $password): void {
+            $user->forceFill(['password' => $password])->save();
+            $user->notify(new PasswordChanged);
+        });
     }
 }

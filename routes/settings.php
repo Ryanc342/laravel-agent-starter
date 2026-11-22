@@ -1,9 +1,6 @@
 <?php
 
-use App\Actions\Users\ChangePassword;
-use App\Actions\Users\DeletePasskey;
-use App\Actions\Users\DeleteUser;
-use App\Actions\Users\UpdateProfile;
+use App\Http\Controllers\Settings\PasskeyController;
 use App\Http\Controllers\Settings\PasskeyEndpointsController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -14,8 +11,8 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile')->name('settings');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::operation('settings/profile', UpdateProfile::class)->name('profile.update');
-    Route::operation('settings/profile/delete', DeleteUser::class)->name('profile.destroy');
+    Route::post('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('settings/profile/delete', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -23,11 +20,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(RequirePassword::class)
         ->name('security.edit');
 
-    Route::operation('settings/password', ChangePassword::class)
+    Route::post('settings/password', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
-    Route::operation('settings/passkeys/{passkey}/delete', DeletePasskey::class)
+    Route::post('settings/passkeys/{passkey}/delete', [PasskeyController::class, 'destroy'])
         ->middleware('password.confirm')
         ->name('passkeys.destroy');
 

@@ -5,13 +5,11 @@ namespace App\Http\Resources;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * The signed-in user, shared with every page as `auth.user`
  * (HandleInertiaRequests): only what the pages show.
  */
-#[TypeScript]
 final class UserResource extends ResourceData
 {
     public function __construct(

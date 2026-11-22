@@ -2,12 +2,9 @@
 
 namespace App\Http\Resources;
 
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
-
 /**
- * Which buttons a notification row shows; each flag asks OperationGate.
+ * Which buttons a notification row shows (NotificationResource fills it).
  */
-#[TypeScript]
 final class NotificationCan extends ResourceShape
 {
     public function __construct(

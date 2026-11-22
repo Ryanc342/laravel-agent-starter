@@ -5,8 +5,8 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * Who may change an account. The account operations act on the user who runs
- * them, so a signed-in user can only ever change their own account.
+ * Who may change an account. The settings pages act on the signed-in user,
+ * so a signed-in user can only ever change their own account.
  */
 class UserPolicy
 {
@@ -34,8 +34,8 @@ class UserPolicy
     }
 
     /**
-     * A new password for $model: by link, Fortify has checked the link first;
-     * on the security page, ChangePassword passes the signed-in user.
+     * A new password for $model: by link (Fortify has checked the link first),
+     * or by a signed-in user for themselves.
      */
     public function resetPassword(?User $user, User $model): bool
     {

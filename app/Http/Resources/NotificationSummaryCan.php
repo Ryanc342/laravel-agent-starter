@@ -2,12 +2,9 @@
 
 namespace App\Http\Resources;
 
-use Spatie\TypeScriptTransformer\Attributes\TypeScript;
-
 /**
- * Which notification buttons the bell and the notifications page show; each flag asks OperationGate.
+ * Which notification buttons the bell and the notifications page show (HandleInertiaRequests fills it).
  */
-#[TypeScript]
 final class NotificationSummaryCan extends ResourceShape
 {
     public function __construct(

@@ -6,10 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
 
 /**
- * A typed shape the page receives (part of the Resource part). Its
- * constructor lists every field with its PHP type; the frontend type
- * generator reads those types, so the TypeScript copy is generated and never
- * written by hand. A nested group of fields (a Resource's can flags) is a
+ * A typed shape the page receives. Its constructor lists every field with its
+ * PHP type; the TypeScript copy in resources/js/types/resources.d.ts is kept
+ * the same by hand. A nested group of fields (a Resource's can flags) is a
  * shape of its own.
  *
  * @implements Arrayable<string, mixed>

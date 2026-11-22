@@ -2,55 +2,27 @@
 
 namespace App\Actions\Users;
 
-use App\Actions\UserlessOperation;
-use App\Concerns\PasswordValidationRules;
-use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Notifications\AccountCreated;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A guest creates an account. Fortify's registration route runs it through
- * App\Http\Fortify\CreateNewUser.
+ * App\Actions\Fortify\CreateNewUser, which checks the input first.
  */
-final class RegisterUser extends UserlessOperation
+final class RegisterUser
 {
-    use PasswordValidationRules, ProfileValidationRules;
-
-    public function ability(): string
+    public function handle(string $name, string $email, string $password): User
     {
-        return 'register';
-    }
+        return DB::transaction(function () use ($name, $email, $password): User {
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => $password,
+            ]);
+            $user->notify(new AccountCreated);
 
-    public function subjectClass(): string
-    {
-        return User::class;
-    }
-
-    public function rules(): array
-    {
-        return [
-            ...$this->profileRules(),
-            'password' => $this->passwordRules(),
-        ];
-    }
-
-    public function inputRefusal(?Model $subject, array $input): ?array
-    {
-        return User::emailTaken((string) $input['email'])
-            ? ['email' => __('The email has already been taken.')]
-            : null;
-    }
-
-    protected function perform(?Model $subject, array $input): User
-    {
-        $user = User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-        ]);
-        $user->notify(new AccountCreated);
-
-        return $user;
+            return $user;
+        });
     }
 }

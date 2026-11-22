@@ -10,8 +10,8 @@ declare module 'react' {
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
         // The keys every page receives (HandleInertiaRequests::share()); a test
-        // checks this list against the backend. The groups inside are generated
-        // from the backend (resources/js/types/generated.d.ts).
+        // checks this list against the backend. The groups inside are in
+        // resources/js/types/resources.d.ts, written by hand to match the backend.
         sharedPageProps: {
             name: string;
             signedIn: boolean;

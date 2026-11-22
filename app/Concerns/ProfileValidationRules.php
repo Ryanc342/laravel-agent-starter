@@ -2,12 +2,14 @@
 
 namespace App\Concerns;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 
 /**
- * The shape of a user's name and email address, for the operations that take
- * them. Whether an address already belongs to another account is not a shape:
- * those operations ask User::emailTaken() in their inputRefusal().
+ * The rules for a user's name and email address. An address that already
+ * belongs to another account is refused; the database's unique index holds
+ * the same rule for two saves at once.
  */
 trait ProfileValidationRules
 {
@@ -16,11 +18,11 @@ trait ProfileValidationRules
      *
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
-    protected function profileRules(): array
+    protected function profileRules(?string $userId = null): array
     {
         return [
             'name' => $this->nameRules(),
-            'email' => $this->emailRules(),
+            'email' => $this->emailRules($userId),
         ];
     }
 
@@ -39,8 +41,16 @@ trait ProfileValidationRules
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
-    protected function emailRules(): array
+    protected function emailRules(?string $userId = null): array
     {
-        return ['required', 'string', 'email', 'max:255'];
+        return [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            $userId === null
+                ? Rule::unique(User::class)
+                : Rule::unique(User::class)->ignore($userId),
+        ];
     }
 }

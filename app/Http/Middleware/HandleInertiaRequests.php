@@ -2,9 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Actions\Notifications\MarkAllNotificationsRead;
 use App\Enums\PerPage;
-use App\Http\OperationGate;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\NotificationSummary;
 use App\Http\Resources\NotificationSummaryCan;
@@ -59,7 +57,8 @@ class HandleInertiaRequests extends Middleware
             'notificationSummary' => fn (): ?NotificationSummary => $user === null ? null : new NotificationSummary(
                 unread: Notification::query()->ownedBy($user)->unread()->count(),
                 can: new NotificationSummaryCan(
-                    mark_all_read: OperationGate::allows($user, MarkAllNotificationsRead::class),
+                    // The same checks as MarkAllNotificationsRead, so the button shows exactly when it succeeds.
+                    mark_all_read: $user->can('markAllRead', Notification::class) && $user->hasUnreadNotifications(),
                 ),
             ),
             // Sent only when the bell or the dashboard block asks for it (router.reload({ only: ['latestNotifications'] })).
