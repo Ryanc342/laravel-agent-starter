@@ -1,13 +1,11 @@
-import { Form, Head } from '@inertiajs/react';
-import FormField from '@/components/shared/form-field';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
+import { Head } from '@inertiajs/react';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
+import StackedForm from '@/components/shared/stacked-form';
+import AuthPrompt from '@/components/users/auth-prompt';
 import NewPasswordFields from '@/components/users/new-password-fields';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
-import { msg, t } from '@/lib/i18n';
 
 type Props = {
     passwordRules: string;
@@ -16,74 +14,55 @@ type Props = {
 export default function Register({ passwordRules }: Props) {
     return (
         <>
-            <Head title={t('Register')} />
-            <Form
-                noValidate
+            <Head title="Register" />
+            <StackedForm
+                wideButtons
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
-                className="flex flex-col gap-6"
             >
-                {({ processing, errors }) => (
+                {({ errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <FormField
-                                label={t('Name')}
-                                htmlFor="name"
-                                error={errors.name}
-                            >
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder={t('Full name')}
-                                />
-                            </FormField>
+                        <TextField
+                            label="Name"
+                            id="name"
+                            type="text"
+                            required
+                            autoFocus
+                            autoComplete="name"
+                            name="name"
+                            error={errors.name}
+                        />
 
-                            <FormField
-                                label={t('Email address')}
-                                htmlFor="email"
-                                error={errors.email}
-                            >
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder={t('email@example.com')}
-                                />
-                            </FormField>
+                        <TextField
+                            label="Email address"
+                            id="email"
+                            type="email"
+                            required
+                            autoComplete="email"
+                            name="email"
+                            error={errors.email}
+                        />
 
-                            <NewPasswordFields
-                                passwordRules={passwordRules}
-                                errors={errors}
-                            />
+                        <NewPasswordFields
+                            passwordRules={passwordRules}
+                            errors={errors}
+                        />
 
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                data-test="register-user-button"
-                            >
-                                {processing && <Spinner />}
-                                {t('Create account')}
-                            </Button>
-                        </div>
+                        <SubmitButton>Create</SubmitButton>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            {t('Already have an account?')}{' '}
-                            <TextLink href={login()}>{t('Log in')}</TextLink>
-                        </div>
+                        <AuthPrompt
+                            text="Already have an account?"
+                            link="Log in"
+                            href={login()}
+                        />
                     </>
                 )}
-            </Form>
+            </StackedForm>
         </>
     );
 }
 
 Register.layout = {
-    title: msg('Create an account'),
+    title: 'Create an account',
 };

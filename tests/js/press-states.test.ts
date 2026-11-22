@@ -24,13 +24,3 @@ test('every press colour is defined once for light and once for dark, and mapped
         expect(css).toContain(`--color-${token}: var(--${token});`);
     }
 });
-
-test('hover is a neutral grey: the accent colours have no chroma', () => {
-    for (const token of ['accent', 'accent-pressed', 'sidebar-accent']) {
-        for (const theme of [light, dark]) {
-            expect(theme).toMatch(
-                new RegExp(`--${token}: oklch\\([\\d.]+ 0 0\\);`),
-            );
-        }
-    }
-});

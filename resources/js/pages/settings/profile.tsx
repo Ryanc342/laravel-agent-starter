@@ -1,117 +1,73 @@
-import { Form, Head, usePage } from '@inertiajs/react';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import DeleteUser from '@/components/users/delete-user';
-import Heading from '@/components/heading';
-import FormField from '@/components/shared/form-field';
-import TextLink from '@/components/text-link';
+import { Head } from '@inertiajs/react';
 import Actions from '@/components/shared/actions';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { edit } from '@/routes/profile';
-import { send } from '@/routes/verification';
-import type { Auth } from '@/types';
-import { msg, t } from '@/lib/i18n';
-
-type PageProps = {
-    auth: Auth;
-};
+import Section from '@/components/shared/section';
+import StackedForm from '@/components/shared/stacked-form';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
+import DeleteUser from '@/components/users/delete-user';
+import EmailVerificationNotice from '@/components/users/email-verification-notice';
+import { edit, update } from '@/routes/profile';
 
 export default function Profile({
+    user,
     emailNeedsVerification,
     verificationLinkSent,
     can,
 }: {
+    user: App.Http.Resources.UserResource;
     emailNeedsVerification: boolean;
     verificationLinkSent: boolean;
     can: {
         delete_account: boolean;
     };
 }) {
-    const { auth } = usePage<PageProps>().props;
-
     return (
         <>
-            <Head title={t('Profile settings')} />
+            <Head title="Profile settings" />
 
-            <h1 className="sr-only">{t('Profile settings')}</h1>
-
-            <div className="space-y-6">
-                <Heading variant="small" title={t('Profile')} />
-
-                <Form
-                    noValidate
-                    {...ProfileController.update.form()}
+            <Section title="Profile">
+                <StackedForm
+                    {...update.form()}
                     options={{
                         preserveScroll: true,
                     }}
-                    className="space-y-6"
                 >
-                    {({ processing, errors }) => (
+                    {({ errors }) => (
                         <>
-                            <FormField
-                                label={t('Name')}
-                                htmlFor="name"
+                            <TextField
+                                label="Name"
+                                id="name"
+                                defaultValue={user.name}
+                                name="name"
+                                required
+                                autoComplete="name"
                                 error={errors.name}
-                            >
-                                <Input
-                                    id="name"
-                                    defaultValue={auth.user.name}
-                                    name="name"
-                                    required
-                                    autoComplete="name"
-                                    placeholder={t('Full name')}
-                                />
-                            </FormField>
+                            />
 
-                            <FormField
-                                label={t('Email address')}
-                                htmlFor="email"
+                            <TextField
+                                label="Email address"
+                                id="email"
+                                type="email"
+                                defaultValue={user.email}
+                                name="email"
+                                required
+                                autoComplete="username"
                                 error={errors.email}
-                            >
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    defaultValue={auth.user.email}
-                                    name="email"
-                                    required
-                                    autoComplete="username"
-                                    placeholder={t('Email address')}
-                                />
-                            </FormField>
+                            />
 
                             {emailNeedsVerification && (
-                                <div>
-                                    <p className="-mt-4 text-sm text-muted-foreground">
-                                        {t('Your email address is unverified.')}{' '}
-                                        <TextLink href={send()} as="button">
-                                            {t(
-                                                'Click here to re-send the verification email.',
-                                            )}
-                                        </TextLink>
-                                    </p>
-
-                                    {verificationLinkSent && (
-                                        <div className="mt-2 text-sm font-medium text-success">
-                                            {t(
-                                                'A new verification link has been sent to your email address.',
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                <EmailVerificationNotice
+                                    linkSent={verificationLinkSent}
+                                />
                             )}
 
                             <Actions>
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-profile-button"
-                                >
-                                    {t('Save')}
-                                </Button>
+                                <SubmitButton>Save</SubmitButton>
                             </Actions>
                         </>
                     )}
-                </Form>
-            </div>
+                </StackedForm>
+            </Section>
 
             {can.delete_account && <DeleteUser />}
         </>
@@ -121,7 +77,7 @@ export default function Profile({
 Profile.layout = {
     breadcrumbs: [
         {
-            title: msg('Profile settings'),
+            title: 'Profile settings',
             href: edit(),
         },
     ],

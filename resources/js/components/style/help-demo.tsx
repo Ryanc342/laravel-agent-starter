@@ -1,19 +1,15 @@
 import Heading from '@/components/heading';
 import FaqList, { type FaqTopic } from '@/components/shared/faq-list';
-import type {
-    PublicHeaderLabels,
-    PublicLink,
-} from '@/components/shared/public-header';
+import type { PublicLink } from '@/components/shared/public-header';
 import PublicFrame from '@/components/style/public-frame';
 import TextLink from '@/components/text-link';
 
 /**
- * The help page (docs/design/patterns/help.md): a search box, the questions
+ * The help page: a search box, the questions
  * grouped by topic as collapsible rows, and a link to the contact page.
  */
 export default function HelpDemo({
     links,
-    barLabels,
     title,
     topics,
     searchLabel,
@@ -22,7 +18,6 @@ export default function HelpDemo({
     contactLabel,
 }: {
     links: PublicLink[];
-    barLabels?: PublicHeaderLabels;
     title: string;
     topics: FaqTopic[];
     searchLabel: string;
@@ -31,7 +26,7 @@ export default function HelpDemo({
     contactLabel: string;
 }) {
     return (
-        <PublicFrame links={links} barLabels={barLabels}>
+        <PublicFrame name="Help" links={links}>
             <div className="grid max-w-3xl gap-8">
                 <Heading title={title} />
                 <FaqList

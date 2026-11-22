@@ -1,18 +1,13 @@
 import { Check, Copy } from 'lucide-react';
 import Actions from '@/components/shared/actions';
 import ErrorState from '@/components/shared/error-state';
+import IconButton from '@/components/shared/icon-button';
 import LabeledDivider from '@/components/shared/labeled-divider';
+import TextField from '@/components/shared/text-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
-import { t } from '@/lib/i18n';
 
 /**
  * The first step of the setup dialog: the QR code and the setup key to copy.
@@ -38,11 +33,7 @@ export default function TwoFactorSetupStep({
     return (
         <>
             {errors?.length ? (
-                <ErrorState
-                    message={t(
-                        'Could not load the setup code. Close this window and try again.',
-                    )}
-                />
+                <ErrorState message="Could not load the setup code. Close this window and try again." />
             ) : (
                 <>
                     <div className="mx-auto flex max-w-md overflow-hidden">
@@ -67,36 +58,26 @@ export default function TwoFactorSetupStep({
                         <Button onClick={onNextStep}>{buttonText}</Button>
                     </Actions>
 
-                    <LabeledDivider>
-                        {t('or, enter the code manually')}
-                    </LabeledDivider>
+                    <LabeledDivider>or, enter the code manually</LabeledDivider>
 
                     <div className="flex w-full items-center gap-2">
                         {!manualSetupKey ? (
-                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-12 w-full" />
                         ) : (
                             <>
-                                <Input
+                                <TextField
+                                    label="Setup key"
                                     readOnly
-                                    aria-label={t('Setup key')}
                                     value={manualSetupKey}
+                                    className="flex-1"
                                 />
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            aria-label={t('Copy setup key')}
-                                            onClick={() => copy(manualSetupKey)}
-                                        >
-                                            <IconComponent />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {t('Copy setup key')}
-                                    </TooltipContent>
-                                </Tooltip>
+                                <IconButton
+                                    label="Copy setup key"
+                                    variant="outline"
+                                    onClick={() => copy(manualSetupKey)}
+                                >
+                                    <IconComponent />
+                                </IconButton>
                             </>
                         )}
                     </div>

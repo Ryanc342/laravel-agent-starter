@@ -1,24 +1,20 @@
+import DetailList from '@/components/shared/detail-list';
 import { Link } from '@inertiajs/react';
 import Heading from '@/components/heading';
-import type {
-    PublicHeaderLabels,
-    PublicLink,
-} from '@/components/shared/public-header';
+import type { PublicLink } from '@/components/shared/public-header';
 import PublicFrame from '@/components/style/public-frame';
 import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { t } from '@/lib/i18n';
 
 /**
- * A product or service page (docs/design/patterns/product.md): the title and
+ * A product or service page: the title and
  * one line, sections that alternate text and a neutral picture block (they
  * stack on a phone), the key facts as a list and one call to action. The
  * picture block is where the project's own picture goes.
  */
 export default function ProductDemo({
     links,
-    barLabels,
     title,
     summary,
     sections,
@@ -27,7 +23,6 @@ export default function ProductDemo({
     action,
 }: {
     links: PublicLink[];
-    barLabels?: PublicHeaderLabels;
     title: string;
     summary: string;
     sections: { title: string; text: string }[];
@@ -36,7 +31,7 @@ export default function ProductDemo({
     action: string;
 }) {
     return (
-        <PublicFrame links={links} barLabels={barLabels}>
+        <PublicFrame name="Product" links={links}>
             <div className="grid gap-10">
                 <div className="grid gap-2">
                     <Heading title={title} />
@@ -61,33 +56,22 @@ export default function ProductDemo({
                         </div>
                         <div
                             role="img"
-                            aria-label={t('Picture')}
+                            aria-label="Picture"
                             className="aspect-video rounded-lg bg-muted"
                         />
                     </section>
                 ))}
 
-                <dl className="grid max-w-xl gap-3 text-sm">
-                    {facts.map((fact) => (
-                        <div
-                            key={fact.label}
-                            className="flex justify-between gap-4"
-                        >
-                            <dt className="text-muted-foreground">
-                                {fact.label}
-                            </dt>
-                            <dd className="min-w-0 text-right break-words">
-                                {fact.value}
-                            </dd>
-                        </div>
-                    ))}
-                    <div className="flex justify-between gap-4">
-                        <dt className="text-muted-foreground">{price.label}</dt>
-                        <dd className="tabular-nums">
-                            {formatMoney(price.amount, price.currency)}
-                        </dd>
-                    </div>
-                </dl>
+                <DetailList
+                    layout="beside"
+                    details={[
+                        ...facts,
+                        {
+                            label: price.label,
+                            value: formatMoney(price.amount, price.currency),
+                        },
+                    ]}
+                />
 
                 <div>
                     <Button asChild>

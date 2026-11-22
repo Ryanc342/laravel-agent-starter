@@ -1,6 +1,5 @@
 import { CircleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { t } from '@/lib/i18n';
 
 /**
  * A region that could not load: centred, a red icon and a red line saying what
@@ -26,7 +25,7 @@ export default function ErrorState({
             <p className="text-sm text-destructive-foreground">{message}</p>
             {onRetry && (
                 <Button variant="outline" onClick={onRetry}>
-                    {t('Try again')}
+                    Try again
                 </Button>
             )}
         </div>

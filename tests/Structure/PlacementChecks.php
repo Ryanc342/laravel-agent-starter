@@ -3,9 +3,9 @@
 namespace Tests\Structure;
 
 /**
- * Where code may live (docs/golden-principles.md, principles 6 and 7): the
- * folders of app/, where pages and components live, and code lives only where
- * the checks read it. Each method returns what it found wrong, as
+ * Where code may live (.claude/rules/skeleton.md, the locations, ALL-7 and
+ * ALL-8): the folders of app/, where pages and components live, and code lives
+ * only where the checks read it. Each method returns what it found wrong, as
  * "path: problem" lines; FoldersTest.php and CodeTest.php expect none, and
  * template/tests/Lint/SkeletonChecksTest.php plants a broken file for each.
  */
@@ -27,7 +27,6 @@ final class PlacementChecks
         'input-error.tsx',
         'nav-main.tsx',
         'nav-user.tsx',
-        'password-input.tsx',
         'text-link.tsx',
         'user-info.tsx',
         'user-menu-content.tsx',
@@ -35,12 +34,73 @@ final class PlacementChecks
 
     private const array GENERATED_JS = ['resources/js/actions', 'resources/js/routes', 'resources/js/wayfinder'];
 
+    /** The operation part: the only files directly in app/Actions. */
+    private const array OPERATION_PART = ['After.php', 'Operation.php', 'OperationSteps.php', 'OutsideCall.php', 'UserlessOperation.php'];
+
+    /**
+     * Every class in app/Actions/<Domain>/ is an operation: it extends
+     * App\Actions\Operation or App\Actions\UserlessOperation. Read from the
+     * source, so a planted fixture is checked the same way.
+     *
+     * @return list<string>
+     */
+    public static function actionsAreOperations(): array
+    {
+        $found = [];
+
+        foreach (ProjectFiles::code(['app/Actions']) as $path) {
+            $relative = substr($path, strlen('app/Actions/'));
+
+            if (! str_contains($relative, '/')) {
+                if (! in_array($relative, self::OPERATION_PART, true)) {
+                    $found[] = "{$path}: only the operation part sits directly in app/Actions; an operation goes in app/Actions/<Domain>/";
+                }
+
+                continue;
+            }
+
+            $parent = self::parentClass(ProjectFiles::read($path));
+
+            if (! in_array($parent, ['App\\Actions\\Operation', 'App\\Actions\\UserlessOperation'], true)) {
+                $found[] = "{$path}: extends App\\Actions\\Operation or App\\Actions\\UserlessOperation";
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * The fully qualified name of the class a PHP file's class extends, or null.
+     */
+    private static function parentClass(string $code): ?string
+    {
+        if (preg_match('/^\s*(?:(?:final|abstract|readonly)\s+)*class\s+\w+\s+extends\s+(\\\\?[\w\\\\]+)/m', $code, $extends) !== 1) {
+            return null;
+        }
+
+        $name = $extends[1];
+
+        if (str_starts_with($name, '\\')) {
+            return substr($name, 1);
+        }
+
+        $first = explode('\\', $name)[0];
+
+        if (preg_match('/^use\s+([\w\\\\]*\\\\'.preg_quote($first, '/').')\s*;/m', $code, $use) === 1) {
+            return $use[1].substr($name, strlen($first));
+        }
+
+        preg_match('/^namespace\s+([\w\\\\]+)\s*;/m', $code, $namespace);
+
+        return isset($namespace[1]) ? "{$namespace[1]}\\{$name}" : $name;
+    }
+
     /**
      * @return list<string>
      */
     public static function appFolders(): array
     {
-        $allowed = ['Actions', 'Concerns', 'Console', 'Enums', 'Http', 'Integrations', 'Models', 'Notifications', 'Policies', 'Providers', 'Support'];
+        $allowed = ['Actions', 'Concerns', 'Console', 'Enums', 'Http', 'Jobs', 'Models', 'Notifications', 'Policies', 'Providers', 'Support'];
         $found = [];
 
         foreach (self::entries('app') as $name) {
@@ -99,6 +159,34 @@ final class PlacementChecks
     }
 
     /**
+     * The style page (/style) is the one design reference: every component in
+     * components/shared is imported by one of its files (components/style or
+     * pages/style), so it is shown there.
+     *
+     * @return list<string>
+     */
+    public static function styleShowsSharedComponents(): array
+    {
+        $shown = [];
+
+        foreach (ProjectFiles::code(['resources/js/components/style', 'resources/js/pages/style']) as $path) {
+            foreach (self::importedPaths(ProjectFiles::read($path)) as $imported) {
+                $shown[] = self::importTarget($path, $imported);
+            }
+        }
+
+        $found = [];
+
+        foreach (ProjectFiles::code(['resources/js/components/shared']) as $path) {
+            if (! in_array(preg_replace('/\.tsx?$/', '', $path), $shown, true)) {
+                $found[] = "{$path}: not on the style page; show it in resources/js/components/style";
+            }
+        }
+
+        return $found;
+    }
+
+    /**
      * @return list<string>
      */
     public static function typeScriptOnly(): array
@@ -128,7 +216,7 @@ final class PlacementChecks
     public static function docsMarkdownOnly(): array
     {
         return array_values(array_filter(
-            ProjectFiles::in(['docs'], ['docs/reference']),
+            ProjectFiles::in(['docs']),
             fn (string $path): bool => ! str_ends_with($path, '.md'),
         ));
     }

@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -21,7 +22,7 @@ test('profile information can be updated', function () {
 
     $response = $this
         ->actingAs($user)
-        ->patch(route('profile.update'), [
+        ->post(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
@@ -42,7 +43,7 @@ test('email verification status is unchanged when the email address is unchanged
 
     $response = $this
         ->actingAs($user)
-        ->patch(route('profile.update'), [
+        ->post(route('profile.update'), [
             'name' => 'Test User',
             'email' => $user->email,
         ]);
@@ -59,7 +60,7 @@ test('user can delete their account', function () {
 
     $response = $this
         ->actingAs($user)
-        ->delete(route('profile.destroy'), [
+        ->post(route('profile.destroy'), [
             'password' => 'password',
         ]);
 
@@ -71,13 +72,24 @@ test('user can delete their account', function () {
     $this->assertNull($user->fresh());
 });
 
+test('deleting an account signed in with "remember me" does not save the user again', function () {
+    $user = User::factory()->create(['remember_token' => Str::random(60)]);
+
+    $this->actingAs($user)
+        ->post(route('profile.destroy'), ['password' => 'password'])
+        ->assertRedirect(route('home'));
+
+    $this->assertGuest();
+    expect(User::query()->whereKey($user->id)->exists())->toBeFalse();
+});
+
 test('correct password must be provided to delete account', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
         ->from(route('profile.edit'))
-        ->delete(route('profile.destroy'), [
+        ->post(route('profile.destroy'), [
             'password' => 'wrong-password',
         ]);
 
@@ -113,8 +125,8 @@ test('the settings address opens the profile page', function () {
 test('guests are redirected to the login page', function () {
     $this->get(route('settings'))->assertRedirect(route('login'));
     $this->get(route('profile.edit'))->assertRedirect(route('login'));
-    $this->patch(route('profile.update'))->assertRedirect(route('login'));
-    $this->delete(route('profile.destroy'))->assertRedirect(route('login'));
+    $this->post(route('profile.update'))->assertRedirect(route('login'));
+    $this->post(route('profile.destroy'))->assertRedirect(route('login'));
 });
 
 test('invalid profile input is rejected and changes nothing', function (array $input, string $field) {
@@ -123,7 +135,7 @@ test('invalid profile input is rejected and changes nothing', function (array $i
 
     $this->actingAs($user)
         ->from(route('profile.edit'))
-        ->patch(route('profile.update'), $input)
+        ->post(route('profile.update'), $input)
         ->assertSessionHasErrors($field)
         ->assertRedirect(route('profile.edit'));
 
@@ -145,7 +157,7 @@ test('the delete account button is shown exactly when deleting succeeds', functi
         ->get(route('profile.edit'))
         ->assertInertia(fn (Assert $page) => $page->where('can.delete_account', $verified));
 
-    $this->delete(route('profile.destroy'), ['password' => 'password']);
+    $this->post(route('profile.destroy'), ['password' => 'password']);
 
     expect($user->fresh() === null)->toBe($verified);
 })->with([

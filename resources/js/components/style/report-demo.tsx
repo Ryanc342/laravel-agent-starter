@@ -4,7 +4,6 @@ import ReportChart, {
 } from '@/components/shared/report-chart';
 import ReportRange from '@/components/shared/report-range';
 import StatTiles, { type StatTile } from '@/components/shared/stat-tiles';
-import { t } from '@/lib/i18n';
 
 type Row = Record<string, string | number>;
 
@@ -30,33 +29,33 @@ export default function ReportDemo({
     return (
         <div className="grid gap-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
-                <Heading title={t('Task report')} />
+                <Heading title="Task report" />
                 <ReportRange />
             </div>
 
             <StatTiles tiles={tiles} />
 
             <div className="grid gap-3">
-                <Heading variant="small" title={t('Tasks done per day')} />
+                <Heading variant="small" title="Tasks done per day" />
                 <div className="rounded-lg border p-4">
                     <ReportChart
                         data={daily}
                         xKey="day"
                         series={dailySeries}
-                        ariaLabel={t('Tasks done per day')}
+                        ariaLabel="Tasks done per day"
                     />
                 </div>
             </div>
 
             <div className="grid gap-3">
-                <Heading variant="small" title={t('Tasks by team')} />
+                <Heading variant="small" title="Tasks by team" />
                 <div className="rounded-lg border p-4">
                     <ReportChart
                         kind="bar"
                         data={teams}
                         xKey="team"
                         series={teamSeries}
-                        ariaLabel={t('Tasks by team')}
+                        ariaLabel="Tasks by team"
                     />
                 </div>
             </div>

@@ -6,13 +6,8 @@ import PublicLayout from '@/layouts/public-layout';
 const page = vi.hoisted(() => ({
     props: {
         name: 'Acme',
-        auth: { user: null } as { user: unknown },
+        signedIn: false,
         today: { date: '2026-11-14', year: 2026 },
-        locale: 'en',
-        locales: [
-            { value: 'en', label: 'English', short: 'EN' },
-            { value: 'zh_CN', label: '中文', short: '中文' },
-        ],
     },
 }));
 
@@ -31,7 +26,7 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 test('signed out, the layout puts Log in and Get started in the bar and the page in main', () => {
-    page.props.auth = { user: null };
+    page.props.signedIn = false;
     render(
         <PublicLayout>
             <p>The page</p>
@@ -45,7 +40,7 @@ test('signed out, the layout puts Log in and Get started in the bar and the page
 });
 
 test('signed in, the layout shows Dashboard', () => {
-    page.props.auth = { user: { id: 1 } };
+    page.props.signedIn = true;
     render(
         <PublicLayout>
             <p>The page</p>

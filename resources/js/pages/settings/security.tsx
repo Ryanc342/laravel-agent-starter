@@ -1,17 +1,16 @@
-import { Form, Head } from '@inertiajs/react';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
-import Heading from '@/components/heading';
-import FormField from '@/components/shared/form-field';
+import { Head } from '@inertiajs/react';
 import ManagePasskeys from '@/components/users/manage-passkeys';
 import type { Props as ManagePasskeysProps } from '@/components/users/manage-passkeys';
 import ManageTwoFactor from '@/components/users/manage-two-factor';
 import type { Props as ManageTwoFactorProps } from '@/components/users/manage-two-factor';
 import NewPasswordFields from '@/components/users/new-password-fields';
-import PasswordInput from '@/components/password-input';
 import Actions from '@/components/shared/actions';
-import { Button } from '@/components/ui/button';
+import PasswordField from '@/components/shared/password-field';
+import Section from '@/components/shared/section';
+import StackedForm from '@/components/shared/stacked-form';
+import SubmitButton from '@/components/shared/submit-button';
 import { edit } from '@/routes/security';
-import { msg, t } from '@/lib/i18n';
+import { update } from '@/routes/user-password';
 
 type Props = {
     passwordRules: string;
@@ -21,16 +20,11 @@ type Props = {
 export default function Security(props: Props) {
     return (
         <>
-            <Head title={t('Security settings')} />
+            <Head title="Security settings" />
 
-            <h1 className="sr-only">{t('Security settings')}</h1>
-
-            <div className="space-y-6">
-                <Heading variant="small" title={t('Update password')} />
-
-                <Form
-                    noValidate
-                    {...SecurityController.update.form()}
+            <Section title="Update password">
+                <StackedForm
+                    {...update.form()}
                     options={{
                         preserveScroll: true,
                     }}
@@ -40,41 +34,30 @@ export default function Security(props: Props) {
                         'current_password',
                     ]}
                     resetOnSuccess
-                    className="space-y-6"
                 >
-                    {({ errors, processing }) => (
+                    {({ errors }) => (
                         <>
-                            <FormField
-                                label={t('Current password')}
-                                htmlFor="current_password"
+                            <PasswordField
+                                label="Current password"
+                                id="current_password"
+                                name="current_password"
+                                autoComplete="current-password"
                                 error={errors.current_password}
-                            >
-                                <PasswordInput
-                                    id="current_password"
-                                    name="current_password"
-                                    autoComplete="current-password"
-                                    placeholder={t('Current password')}
-                                />
-                            </FormField>
+                            />
 
                             <NewPasswordFields
                                 passwordRules={props.passwordRules}
                                 errors={errors}
-                                label={t('New password')}
+                                label="New password"
                             />
 
                             <Actions>
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-password-button"
-                                >
-                                    {t('Save')}
-                                </Button>
+                                <SubmitButton>Save</SubmitButton>
                             </Actions>
                         </>
                     )}
-                </Form>
-            </div>
+                </StackedForm>
+            </Section>
 
             <ManageTwoFactor
                 canManageTwoFactor={props.canManageTwoFactor}
@@ -93,7 +76,7 @@ export default function Security(props: Props) {
 Security.layout = {
     breadcrumbs: [
         {
-            title: msg('Security settings'),
+            title: 'Security settings',
             href: edit(),
         },
     ],

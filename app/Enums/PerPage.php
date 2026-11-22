@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\ReadsChoice;
+
 /**
  * How many rows a list page shows. The user picks one under the list; it lives
  * only in the URL (`?per_page=50`). The choices reach React as the shared prop
@@ -9,6 +11,8 @@ namespace App\Enums;
  */
 enum PerPage: int
 {
+    use ReadsChoice;
+
     case Ten = 10;
     case Twenty = 20;
     case Fifty = 50;
@@ -19,11 +23,7 @@ enum PerPage: int
      */
     public static function fromQuery(mixed $value): self
     {
-        if (! is_string($value) || ! ctype_digit($value)) {
-            return self::Twenty;
-        }
-
-        return self::tryFrom((int) $value) ?? self::Twenty;
+        return self::fromValue($value) ?? self::Twenty;
     }
 
     /**

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Notification;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -84,4 +86,29 @@ test('every page receives today\'s date and year in the app\'s timezone', functi
             ->where('today.date', '2027-01-01')
             ->where('today.year', 2027),
         );
+});
+
+test('every page tells whether someone is signed in', function () {
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page->where('signedIn', false));
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('signedIn', true));
+});
+
+test('the keys every page receives are the ones the web types list in resources/js/types/global.d.ts', function () {
+    $request = Request::create('/');
+    $request->setLaravelSession($this->app['session']->driver());
+    $sent = array_values(array_diff(array_keys(app(HandleInertiaRequests::class)->share($request)), ['errors']));
+
+    $types = (string) file_get_contents(base_path('resources/js/types/global.d.ts'));
+    preg_match('/sharedPageProps: \{(.*?)\n        \};/s', $types, $block);
+    preg_match_all('/^\s+(\w+)\??:/m', $block[1] ?? '', $listed);
+
+    sort($sent);
+    $typed = $listed[1];
+    sort($typed);
+
+    expect($typed)->not->toBe([])->and($typed)->toBe($sent);
 });

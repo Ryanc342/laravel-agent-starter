@@ -31,7 +31,7 @@ test('passkey management requires authentication', function (string $method, str
 
     $this->assertModelExists($passkey);
 })->with([
-    ['get', 'passkey.registration-options'], ['post', 'passkey.store'], ['delete', 'passkey.destroy'],
+    ['get', 'passkey.registration-options'], ['post', 'passkey.store'], ['post', 'passkeys.destroy'],
     ['get', 'passkey.confirm-options'], ['post', 'passkey.confirm'],
 ]);
 
@@ -43,7 +43,7 @@ test('passkey registration and deletion require password confirmation', function
 
     $this->assertModelExists($passkey);
 })->with([
-    ['get', 'passkey.registration-options'], ['post', 'passkey.store'], ['delete', 'passkey.destroy'],
+    ['get', 'passkey.registration-options'], ['post', 'passkey.store'], ['post', 'passkeys.destroy'],
 ]);
 
 test('a valid authenticator registers a passkey for only the signed in account', function () {
@@ -89,10 +89,10 @@ test('passkeys can only be deleted by their owner', function (bool $own) {
     $user = $own ? User::query()->findOrFail($passkey->user_id) : User::factory()->create();
 
     $response = $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])
-        ->deleteJson(route('passkey.destroy', $passkey));
+        ->post(route('passkeys.destroy', $passkey));
 
     if ($own) {
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertModelMissing($passkey);
     } else {
         $response->assertForbidden();
@@ -107,7 +107,7 @@ test('the security page only lists the signed in users passkeys', function () {
 
     $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])->get(route('security.edit'))
         ->assertOk()->assertInertia(fn (Assert $page) => $page
-        ->has('passkeys.data', 1)->where('passkeys.data.0.id', $passkey->id));
+        ->has('passkeys', 1)->where('passkeys.0.id', $passkey->id));
 });
 
 test('passkey verification confirms the session with a real signature', function () {

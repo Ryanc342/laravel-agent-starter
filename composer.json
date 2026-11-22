@@ -13,13 +13,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.4.1",
-        "dompdf/dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "laravel/wayfinder": "^0.1.14",
-        "spatie/laravel-pdf": "^2.14"
+        "laravel/wayfinder": "^0.1.14"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -32,7 +30,9 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9.3",
         "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-browser": "^4.3",
         "pestphp/pest-plugin-laravel": "^4.0",
+        "spatie/laravel-typescript-transformer": "^3.3",
         "spaze/phpstan-disallowed-calls": "^4.0"
     },
     "autoload": {
@@ -51,7 +51,7 @@
     "scripts": {
         "setup": [
             "composer install",
-            "@php artisan starter:initialize"
+            "@php scripts/setup.php"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -70,21 +70,14 @@
         "check:static": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
+            "@php scripts/check-generated-types.php",
             "@lint:check",
             "@types:check",
             "npm run check",
             "npm run types:check"
         ],
-        "check:milestone": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php scripts/check-milestone.php"
-        ],
         "ci:check": [
             "@check"
-        ],
-        "check:reference": [
-            "Composer\\Config::disableProcessTimeout",
-            "bash scripts/check-reference"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
@@ -107,7 +100,7 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "@php artisan starter:initialize"
+            "@php scripts/setup.php"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
@@ -118,7 +111,7 @@
             "dont-discover": [],
             "installer": {
                 "post-create-project": [
-                    "@php artisan starter:initialize"
+                    "@php scripts/setup.php"
                 ]
             }
         }

@@ -6,7 +6,7 @@ use App\Models\Notification;
 use App\Models\User;
 
 /**
- * Who may act on a notification. State rules (for example "already read") live in the Actions.
+ * Who may act on a notification. State rules live in the Actions.
  */
 class NotificationPolicy
 {

@@ -5,55 +5,40 @@ Details live in the files it points to; read them when the task needs them.
 
 ## Commands
 
-- `composer check`: every machine check (Pint, PHPStan with the layer rules, oxlint with the component boundaries, tsc, Vitest, Pest on MySQL). It must pass before you say "done". MySQL must be running. It takes a few minutes: run it in the foreground with a Bash timeout of 600000 ms.
-- `composer check:milestone -- <test paths>`: all static checks and the affected tests, between milestones. `composer check:static`: just the static phase.
-- `php artisan test --compact --filter=<Name>`: one test.
+- `composer check`: every machine check (Pint, PHPStan with the layer rules, the generated types, oxlint, tsc, Vitest, the build, Pest on MySQL with the browser tests). It must pass before you say "done". MySQL must be running. It takes a few minutes: run it in the foreground with a Bash timeout of 600000 ms. `composer check:static`: just the static phase.
+- `php artisan test --compact --group=<plan>.D1`, `npx vp test run -t <plan>.D1`: the tests of one decision, while you build.
 - `composer lint`: format PHP. `npm run check:fix`: format and lint the frontend.
-- `composer check:reference`: the reference feature still passes every check. Run it after changing rules or tooling.
+- `php scripts/workflow.php status`: where the plan is and the next step. `review`, `report`, `cleanup`, `upgrade`: docs/workflow.md.
 - `scripts/worktree-up <name>`: a git worktree with its own .env, database and port, for parallel work.
 
 ## How we work
 
-Read docs/workflow.md before you answer a request, and follow its steps: questions, the plan (docs/PLANS.md), the user's "开始", the build, the review, the report. After "开始" you ask nothing.
+Every change goes through one plan (docs/PLANS.md) and the steps of docs/workflow.md: the draft with your questions, the user's "开始", the build, composer check, the review, the report. After "开始" you ask nothing. The workflow tool (scripts/workflow.php) keeps the steps and tells you the next one; a new conversation starts with it.
 
-Starting a new conversation? Read docs/exec-plans/active/ first and continue from Progress.
+## The skeleton
 
-## Architecture (details: ARCHITECTURE.md)
-
-- Layers, top to bottom: React, Http (Controller, FormRequest, Resource), Actions and Policies, Models, Enums. A layer may use the layers below it, never the ones above.
-- Every business rule has exactly one owner (table in ARCHITECTURE.md). Every other place calls it.
-- External services enter only through app/Integrations, called only from Actions.
-- New features copy the structure of docs/reference/tasks/ and of the notifications feature in app/ (map in ARCHITECTURE.md). Never copy their domains.
-- The starter kit's auth and settings code follows the same rules (app/Actions/Users, app/Policies/UserPolicy.php, app/Http/Fortify, app/Http/Controllers/Settings).
+- .claude/rules/skeleton.md, read in every session: every block of the app, where its files live, the arrows between the blocks, and the rules for every block and for the workflow.
+- .claude/rules/skeleton/: one card per block and per arrow, loaded when you read or change a file in its location. Read the card yourself before you add a file to a block.
+- Each rule's tag says who guarantees it: `machine`, `test`, `part`, `reviewer` (with its Check line) or `note`.
 
 ## Red lines
 
 - Fix the code, not the test. Change or delete an existing test assertion only when a decision of the plan changes the requirement, and name that decision.
-- Build only what the plan lists. What it does not say follows the template rules or keeps the current behaviour (docs/workflow.md, step 3).
+- Build only what the plan lists. What it does not say follows the cards or keeps the current behaviour, and waits for the user (docs/workflow.md, Build).
 - Never silence a check: no ignore comments, no skipped tests, no lowered level or wider exception; the error says what to do instead.
 - Do not create documentation files the user did not ask for, except plans and the docs this file lists.
 
 ## Docs map
 
-- ARCHITECTURE.md: layers, dependency direction, where each rule goes
-- docs/workflow.md: questions, plan, build, review, report
-- docs/PLANS.md: how to write an ExecPlan
-- docs/exec-plans/active/: work in progress. docs/exec-plans/completed/: finished plans
-- docs/exec-plans/tech-debt.md: known debt, oldest first
-- .claude/rules/: every rule, once, in the file of the folders it is about; Claude Code loads a file when you read a matching file
-- docs/golden-principles.md: the principles, the review lanes and how a rule names its check
-- docs/prompts/review.md, docs/prompts/cleanup.md, docs/prompts/upgrade.md: prompts for review, the cleanup and upgrades
-- docs/reference/tasks/: the reference feature
-- DESIGN.md: the style of every screen, and which design file to read for which task
-- docs/design/: foundations (colour, type, space, messages), components, and one file per page pattern
+- .claude/rules/skeleton.md and .claude/rules/skeleton/: the rules
+- docs/workflow.md: what the workflow tool does not do: questions, build, review, report, cleanup, upgrades
+- docs/PLANS.md: how to write a plan, and how a test names a decision
+- docs/exec-plans/active/: the open plan. docs/exec-plans/completed/: reported plans
+- docs/exec-plans/tech-debt.md: the existing debt the reviews found
+- /style (resources/js/pages/style, local only): the one design reference, every shared component and the demo of every kind of page; each component's header says what it is for
 
 ## Tools
 
 - Boost MCP (`laravel-boost`): database-schema, search-docs, logs. Prefer it over guessing.
-- Playwright MCP (`playwright`): an isolated headless browser, never the user's Chrome, for the previews of a plan and for `reviewer-opus` in lane `screens`; close it after checks. How the reviewer opens pages: docs/prompts/review.md, step 6.
-- Subagents: `explorer` (read-only lookups, small model), and `reviewer-opus` and `reviewer-haiku` (fresh context, read-only, two different models; only `reviewer-opus` has a browser). They run in the foreground: the session waits for their answers.
-- Finish check (scripts/hooks/finish-check.php): when you are about to stop after changing code that no `composer check` or `composer check:milestone` passed on, it sends you back once. Run the check.
-
-## Code Review Rules
-
-The reviewers follow docs/prompts/review.md: one lane per run, findings only for what breaks a written rule, decision or walk item.
+- Subagents: `explorer` (read-only lookups) and `reviewer-haiku` (read-only, one review pack per run). They run in the foreground: the session waits for their answers.
+- Hooks (.claude/settings.json): the workflow tool runs when a session starts, on each message, before a file is written or a command runs, after a command, when you stop and when a reviewer ends.

@@ -8,9 +8,9 @@ use Illuminate\Notifications\Notification;
  * A message shown on the notifications page only: stored in the database,
  * never mailed. Each notification adds its own toArray().
  *
- * A notification stores its English sentence and its values, not a finished
- * sentence, so the reader sees it in their own language (Notification::message()
- * translates it when shown). Build the stored data with sentence().
+ * A notification stores its sentence and the values of its :placeholders;
+ * Notification::message() fills them in when it is shown. Build the stored
+ * data with sentence().
  */
 abstract class InAppNotification extends Notification
 {
@@ -23,9 +23,8 @@ abstract class InAppNotification extends Notification
     }
 
     /**
-     * What toArray() stores: the English sentence, written once, and the values
-     * its :placeholders take. Its Chinese is in lang/zh_CN.json under the same
-     * English text (.claude/rules/translations.md).
+     * What toArray() stores: the sentence, written once, and the values its
+     * :placeholders take.
      *
      * @param  array<string, string|int>  $values
      * @return array{message: string, values: array<string, string|int>}

@@ -10,11 +10,9 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
-import type { User } from '@/types';
-import { t } from '@/lib/i18n';
 
 type Props = {
-    user: User;
+    user: App.Http.Resources.UserResource;
 };
 
 export function UserMenuContent({ user }: Props) {
@@ -42,7 +40,7 @@ export function UserMenuContent({ user }: Props) {
                         onClick={cleanup}
                     >
                         <Settings className="mr-2" />
-                        {t('Settings')}
+                        Settings
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -56,7 +54,7 @@ export function UserMenuContent({ user }: Props) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    {t('Log out')}
+                    Log out
                 </Link>
             </DropdownMenuItem>
         </>

@@ -1,13 +1,8 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import IconButton from '@/components/shared/icon-button';
 import { Button } from '@/components/ui/button';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 /**
@@ -55,7 +50,7 @@ export default function BulkActionBar({
             <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
                 <div
                     role="region"
-                    aria-label={t('Bulk actions')}
+                    aria-label="Bulk actions"
                     data-slot="bulk-action-bar"
                     className="pointer-events-auto flex w-full max-w-full flex-wrap items-center gap-2 rounded-lg border bg-popover px-3 py-2 text-popover-foreground shadow-md sm:w-auto sm:gap-3 sm:px-4"
                 >
@@ -69,8 +64,8 @@ export default function BulkActionBar({
                     >
                         <span className="text-sm font-medium whitespace-nowrap tabular-nums">
                             {allResults && total !== undefined
-                                ? t('All :total selected', { total })
-                                : t(':count selected', { count })}
+                                ? `All ${total} selected`
+                                : `${count} selected`}
                         </span>
                         {offersPage ? (
                             <Button
@@ -78,7 +73,7 @@ export default function BulkActionBar({
                                 size="inline"
                                 onClick={onSelectPage}
                             >
-                                {t('Select this page')}
+                                Select this page
                             </Button>
                         ) : null}
                         {offersAll ? (
@@ -87,26 +82,16 @@ export default function BulkActionBar({
                                 size="inline"
                                 onClick={onSelectAllResults}
                             >
-                                {t('Select all :total results', { total })}
+                                {`Select all ${total} results`}
                             </Button>
                         ) : null}
                     </div>
                     <div className="flex flex-1 items-center gap-2 sm:flex-none">
                         {children}
                     </div>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label={t('Clear selection')}
-                                onClick={onClear}
-                            >
-                                <X />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t('Clear selection')}</TooltipContent>
-                    </Tooltip>
+                    <IconButton label="Clear selection" onClick={onClear}>
+                        <X />
+                    </IconButton>
                 </div>
             </div>
         </>

@@ -2,7 +2,7 @@ import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
 import DatePicker from '@/components/shared/date-picker';
-import FormField from '@/components/shared/form-field';
+import IconButton from '@/components/shared/icon-button';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
     ResponsiveDialogClose,
@@ -10,15 +10,10 @@ import ResponsiveDialog, {
 } from '@/components/shared/responsive-dialog';
 import { Specimen } from '@/components/style/style-section';
 import type { ExampleTask } from '@/components/style/types';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { formatMoney } from '@/lib/format';
-import { t } from '@/lib/i18n';
 
 /** The fields and buttons of a form dialog: fields in the body, buttons in the footer, main button first. */
 function DemoForm({
@@ -37,28 +32,24 @@ function DemoForm({
             className="flex min-h-0 flex-1 flex-col gap-6"
         >
             <ResponsiveDialogBody>
-                <FormField
-                    label={t('Title')}
-                    htmlFor="form-demo-title"
+                <TextField
+                    label="Title"
+                    name="title"
+                    defaultValue={task?.title}
                     error={error}
-                >
-                    <Input id="form-demo-title" defaultValue={task?.title} />
-                </FormField>
-                <FormField label={t('Due date')} htmlFor="form-demo-due">
-                    <DatePicker
-                        id="form-demo-due"
-                        defaultValue={task?.due_on ?? ''}
-                    />
-                </FormField>
+                />
+                <DatePicker
+                    label="Due date"
+                    name="due_on"
+                    defaultValue={task?.due_on ?? ''}
+                />
             </ResponsiveDialogBody>
 
             <ResponsiveDialogFooter>
                 <ResponsiveDialogClose asChild>
-                    <Button type="button" variant="outline">
-                        {t('Cancel')}
-                    </Button>
+                    <Button variant="outline">Cancel</Button>
                 </ResponsiveDialogClose>
-                <Button type="submit">{submitLabel}</Button>
+                <SubmitButton sending={false}>{submitLabel}</SubmitButton>
             </ResponsiveDialogFooter>
         </form>
     );
@@ -120,36 +111,12 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
             className="flex min-h-0 flex-1 flex-col gap-6"
         >
             <ResponsiveDialogBody>
-                <FormField label={t('Customer')} htmlFor="wide-demo-customer">
-                    <Input
-                        id="wide-demo-customer"
-                        defaultValue={invoice.customer}
-                    />
-                </FormField>
-                <FormField label={t('Invoice date')} htmlFor="wide-demo-date">
-                    <DatePicker
-                        id="wide-demo-date"
-                        defaultValue={invoice.date}
-                    />
-                </FormField>
-                <FormField label={t('Due date')} htmlFor="wide-demo-due">
-                    <DatePicker id="wide-demo-due" defaultValue={invoice.due} />
-                </FormField>
+                <TextField label="Customer" defaultValue={invoice.customer} />
+                <DatePicker label="Invoice date" defaultValue={invoice.date} />
+                <DatePicker label="Due date" defaultValue={invoice.due} />
 
                 <div className="flex flex-col gap-3">
-                    <Heading variant="small" title={t('Lines')} />
-                    <div className="hidden grid-cols-12 gap-2 text-sm text-muted-foreground sm:grid">
-                        <span className="col-span-5">{t('Description')}</span>
-                        <span className="col-span-2 text-right">
-                            {t('Qty')}
-                        </span>
-                        <span className="col-span-2 text-right">
-                            {t('Price')}
-                        </span>
-                        <span className="col-span-2 text-right">
-                            {t('Amount')}
-                        </span>
-                    </div>
+                    <Heading variant="small" title="Lines" />
                     {lines.map((row, index) => {
                         const id = `wide-demo-line-${row.key}`;
                         const number = index + 1;
@@ -159,52 +126,32 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                                 key={row.key}
                                 className="grid grid-cols-12 items-center gap-2 border-b pb-3 sm:border-0 sm:pb-0"
                             >
-                                <FormField
-                                    hideLabel
-                                    label={t('Description of line :number', {
-                                        number,
-                                    })}
-                                    htmlFor={`${id}-description`}
+                                <TextField
+                                    label="Description"
+                                    aria-label={`Description of line ${number}`}
+                                    id={`${id}-description`}
+                                    defaultValue={row.line?.description}
+                                    onChange={() => forget(row.key)}
                                     className="col-span-10 sm:order-1 sm:col-span-5"
-                                >
-                                    <Input
-                                        id={`${id}-description`}
-                                        defaultValue={row.line?.description}
-                                        onChange={() => forget(row.key)}
-                                    />
-                                </FormField>
-                                <FormField
-                                    hideLabel
-                                    label={t('Quantity of line :number', {
-                                        number,
-                                    })}
-                                    htmlFor={`${id}-quantity`}
+                                />
+                                <TextField
+                                    label="Quantity"
+                                    aria-label={`Quantity of line ${number}`}
+                                    id={`${id}-quantity`}
+                                    inputMode="decimal"
+                                    defaultValue={row.line?.quantity}
+                                    onChange={() => forget(row.key)}
                                     className="col-span-3 sm:order-2 sm:col-span-2"
-                                >
-                                    <Input
-                                        id={`${id}-quantity`}
-                                        inputMode="decimal"
-                                        className="text-right tabular-nums"
-                                        defaultValue={row.line?.quantity}
-                                        onChange={() => forget(row.key)}
-                                    />
-                                </FormField>
-                                <FormField
-                                    hideLabel
-                                    label={t('Unit price of line :number', {
-                                        number,
-                                    })}
-                                    htmlFor={`${id}-unit`}
+                                />
+                                <TextField
+                                    label="Price"
+                                    aria-label={`Unit price of line ${number}`}
+                                    id={`${id}-unit`}
+                                    inputMode="decimal"
+                                    defaultValue={row.line?.unit}
+                                    onChange={() => forget(row.key)}
                                     className="col-span-5 sm:order-3 sm:col-span-2"
-                                >
-                                    <Input
-                                        id={`${id}-unit`}
-                                        inputMode="decimal"
-                                        className="text-right tabular-nums"
-                                        defaultValue={row.line?.unit}
-                                        onChange={() => forget(row.key)}
-                                    />
-                                </FormField>
+                                />
                                 <p className="col-span-4 text-right text-sm tabular-nums sm:order-4 sm:col-span-2">
                                     {row.line
                                         ? formatMoney(
@@ -213,42 +160,25 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                                           )
                                         : unknown}
                                 </p>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="col-span-2 col-start-11 row-start-1 justify-self-end sm:order-5 sm:col-span-1 sm:col-start-auto sm:row-start-auto"
-                                            aria-label={t(
-                                                'Remove line :number',
-                                                {
-                                                    number,
-                                                },
-                                            )}
-                                            onClick={() =>
-                                                setLines((rows) =>
-                                                    rows.filter(
-                                                        (other) =>
-                                                            other.key !==
-                                                            row.key,
-                                                    ),
-                                                )
-                                            }
-                                        >
-                                            <X />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {t('Remove line')}
-                                    </TooltipContent>
-                                </Tooltip>
+                                <IconButton
+                                    label={`Remove line ${number}`}
+                                    className="col-span-2 col-start-11 row-start-1 justify-self-end sm:order-5 sm:col-span-1 sm:col-start-auto sm:row-start-auto"
+                                    onClick={() =>
+                                        setLines((rows) =>
+                                            rows.filter(
+                                                (other) =>
+                                                    other.key !== row.key,
+                                            ),
+                                        )
+                                    }
+                                >
+                                    <X />
+                                </IconButton>
                             </div>
                         );
                     })}
                     <div className="flex items-center justify-between gap-4 pt-3 sm:border-t">
                         <Button
-                            type="button"
                             variant="outline"
                             onClick={() => {
                                 setLines((rows) => [
@@ -259,10 +189,10 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                             }}
                         >
                             <Plus />
-                            {t('Add line')}
+                            Add
                         </Button>
                         <p className="text-sm font-medium tabular-nums">
-                            {t('Total')}{' '}
+                            Total{' '}
                             {changed
                                 ? unknown
                                 : formatMoney(invoice.total, invoice.currency)}
@@ -270,18 +200,14 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
                     </div>
                 </div>
 
-                <FormField label={t('Note')} htmlFor="wide-demo-note">
-                    <Input id="wide-demo-note" defaultValue={invoice.note} />
-                </FormField>
+                <TextField label="Note" defaultValue={invoice.note} />
             </ResponsiveDialogBody>
 
             <ResponsiveDialogFooter>
                 <ResponsiveDialogClose asChild>
-                    <Button type="button" variant="outline">
-                        {t('Cancel')}
-                    </Button>
+                    <Button variant="outline">Cancel</Button>
                 </ResponsiveDialogClose>
-                <Button type="submit">{t('Create invoice')}</Button>
+                <SubmitButton sending={false}>Create</SubmitButton>
             </ResponsiveDialogFooter>
         </form>
     );
@@ -289,7 +215,8 @@ function WideDemoForm({ invoice }: { invoice: ExampleInvoiceForm }) {
 
 /**
  * Creating and editing a record: always a dialog, never a form above the list.
- * A long form with lines uses the wide dialog.
+ * A long form with lines uses the wide dialog. In an app the dialog sends an
+ * operation (Route::operation()).
  */
 export default function FormDemo({
     task,
@@ -301,42 +228,33 @@ export default function FormDemo({
     invoice: ExampleInvoiceForm;
 }) {
     return (
-        <Specimen
-            label={t(
-                'Open each one: create, edit (filled with the record), a validation error (the dialog stays open), and a long form with lines (the wide size)',
-            )}
-        >
-            <ResponsiveDialog
-                trigger={<Button>{t('Add task')}</Button>}
-                title={t('Add task')}
-            >
-                <DemoForm submitLabel={t('Add task')} />
+        <Specimen label="Open each one: create, edit (filled with the record), a validation error (the dialog stays open), and a long form with lines (the wide size)">
+            <ResponsiveDialog trigger={<Button>Add</Button>} title="Add task">
+                <DemoForm submitLabel="Add" />
             </ResponsiveDialog>
 
             <ResponsiveDialog
-                trigger={<Button variant="outline">{t('Edit task')}</Button>}
-                title={t('Edit task')}
+                trigger={<Button variant="outline">Edit</Button>}
+                title="Edit task"
             >
-                <DemoForm task={task} submitLabel={t('Save changes')} />
+                <DemoForm task={task} submitLabel="Save" />
             </ResponsiveDialog>
 
             <ResponsiveDialog
-                trigger={
-                    <Button variant="outline">{t('With an error')}</Button>
-                }
-                title={t('Add task')}
+                trigger={<Button variant="outline">With an error</Button>}
+                title="Add task"
             >
-                <DemoForm submitLabel={t('Add task')} error={requiredMessage} />
+                <DemoForm submitLabel="Add" error={requiredMessage} />
             </ResponsiveDialog>
 
             <ResponsiveDialog
                 wide
                 trigger={
                     <Button variant="outline">
-                        {t('Wide: an invoice with lines')}
+                        Wide: an invoice with lines
                     </Button>
                 }
-                title={t('New invoice')}
+                title="New invoice"
             >
                 <WideDemoForm invoice={invoice} />
             </ResponsiveDialog>

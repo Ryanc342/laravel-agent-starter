@@ -3,10 +3,6 @@
         "laravel-boost": {
             "command": "php",
             "args": ["artisan", "boost:mcp"]
-        },
-        "playwright": {
-            "command": "node",
-            "args": ["scripts/playwright-mcp"]
         }
     }
 }

@@ -4,7 +4,6 @@ import ResponsiveDialog, {
     ResponsiveDialogClose,
 } from '@/components/shared/responsive-dialog';
 import { Button } from '@/components/ui/button';
-import { t } from '@/lib/i18n';
 
 /** The dialog's props without `instruction`, kept for each width separately. */
 type WithoutInstruction<T> = T extends unknown ? Omit<T, 'instruction'> : never;
@@ -36,7 +35,7 @@ export function ConfirmDialogActions({
         <Actions className="shrink-0">
             <ResponsiveDialogClose asChild>
                 <Button type="button" variant="outline" onClick={onCancel}>
-                    {t('Cancel')}
+                    Cancel
                 </Button>
             </ResponsiveDialogClose>
             {children}

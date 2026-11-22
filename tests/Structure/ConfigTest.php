@@ -1,18 +1,17 @@
 <?php
 
 use Tests\Structure\CheckSettings;
-use Tests\Structure\DesignDocChecks;
 use Tests\Structure\PlacementChecks;
 use Tests\Structure\ProjectFiles;
 
 /*
-| Principle 9 in docs/golden-principles.md: the checks stay as set. The template
-| keeps its machine rules (tagged in .claude/rules/); none is turned down
-| (AGENTS.md "Red lines"), and these tests say so in composer check too,
-| wherever it runs. The checks are in CheckSettings.php.
+| The checks stay as set (.claude/rules/skeleton.md, ALL-10 and ALL-11). The
+| template keeps its machine rules (the `machine` rules of the cards); none is
+| turned down, and these tests say so in composer check too, wherever it runs.
+| The checks are in CheckSettings.php.
 */
 
-test('PHPStan keeps its level, paths and extensions, covers every folder composer autoloads, and keeps every layer rule of principle 2 with its folders', function () {
+test('PHPStan keeps its level, paths and extensions, covers every folder composer autoloads, and keeps every layer rule of the skeleton with its folders', function () {
     expect(CheckSettings::phpstan())->toBe([]);
 });
 
@@ -43,7 +42,7 @@ test('every structure check runs on this project: no check can be dropped from t
     ));
     $missing = [];
 
-    foreach ([PlacementChecks::class, CheckSettings::class, DesignDocChecks::class] as $class) {
+    foreach ([PlacementChecks::class, CheckSettings::class] as $class) {
         $short = (new ReflectionClass($class))->getShortName();
 
         foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {

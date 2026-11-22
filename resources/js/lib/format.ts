@@ -2,32 +2,27 @@
  * Every number and date React shows goes through these functions, so the
  * whole app formats them one way. The backend sends the values (money as
  * integer minor units (cents), quantities as decimal strings, dates as YYYY-MM-DD); these
- * only turn them into text, in the language the page is in (`lib/i18n.ts`).
- * Set the Intl locale of each language and the currency for the project here.
+ * only turn them into text. Set the Intl locale and the currency for the project here.
  */
-import { currentLanguage } from '@/lib/i18n';
-
-const locales: Record<string, string> = { en: 'en-MY', zh_CN: 'zh-CN' };
+const locale = 'en-MY';
 const currency = 'MYR';
 
-/** The Intl locale of the page's language. */
+/** The Intl locale every number, date and month name is shown in. */
 export function intlLocale(): string {
-    return locales[currentLanguage()] ?? locales.en;
+    return locale;
 }
 
-// One formatter per language, so switching language never reuses another's.
 const cache = new Map<string, Intl.NumberFormat | Intl.DateTimeFormat>();
 
 function formatter<T extends Intl.NumberFormat | Intl.DateTimeFormat>(
     id: string,
-    create: (locale: string) => T,
+    create: () => T,
 ): T {
-    const key = `${intlLocale()}|${id}`;
-    let found = cache.get(key) as T | undefined;
+    let found = cache.get(id) as T | undefined;
 
     if (!found) {
-        found = create(intlLocale());
-        cache.set(key, found);
+        found = create();
+        cache.set(id, found);
     }
 
     return found;
@@ -42,7 +37,7 @@ function formatter<T extends Intl.NumberFormat | Intl.DateTimeFormat>(
 export function formatMoney(minor: number, code: string = currency): string {
     const format = formatter(
         `money|${code}`,
-        (locale) =>
+        () =>
             new Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency: code,
@@ -58,15 +53,15 @@ export function formatMoney(minor: number, code: string = currency): string {
 export function formatQuantity(value: number | string): string {
     return formatter(
         'quantity',
-        (locale) => new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }),
+        () => new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }),
     ).format(Number(value));
 }
 
-/** "2026-11-04" → "4 Nov 2026", or "2026年11月4日" in Chinese */
+/** "2026-11-04" → "4 Nov 2026" */
 export function formatDate(value: string): string {
     return formatter(
         'date',
-        (locale) =>
+        () =>
             new Intl.DateTimeFormat(locale, {
                 day: 'numeric',
                 month: 'short',

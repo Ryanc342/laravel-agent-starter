@@ -86,7 +86,7 @@ test('a text column menu offers both sorts and a search inside the column', () =
         screen.getByRole('button', { name: 'Sort descending' }),
     ).toBeTruthy();
     expect(
-        screen.getByRole('searchbox', { name: 'Search Title' }),
+        screen.getByRole('searchbox', { name: 'Search title' }),
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Clear' })).toBeTruthy();
 });
@@ -205,7 +205,7 @@ test('typing in the column search waits for a pause, then asks for it', () => {
     vi.useFakeTimers();
     render(title());
     open('Title');
-    const box = screen.getByRole('searchbox', { name: 'Search Title' });
+    const box = screen.getByRole('searchbox', { name: 'Search title' });
 
     fireEvent.change(box, { target: { value: 'milk' } });
     expect(state.get).not.toHaveBeenCalled();
@@ -220,7 +220,7 @@ test('typing in the column search waits for a pause, then asks for it', () => {
 test('pressing Enter in the column search asks at once', () => {
     render(title());
     open('Title');
-    const box = screen.getByRole('searchbox', { name: 'Search Title' });
+    const box = screen.getByRole('searchbox', { name: 'Search title' });
 
     fireEvent.change(box, { target: { value: 'quote' } });
     fireEvent.keyDown(box, { key: 'Enter' });
@@ -442,7 +442,7 @@ test('a text menu and a range menu have a line between sort, the filter and Clea
     const { unmount } = render(title());
     open('Title');
     const lines = separators();
-    const search = screen.getByRole('searchbox', { name: 'Search Title' });
+    const search = screen.getByRole('searchbox', { name: 'Search title' });
 
     expect(lines).toHaveLength(2);
     expect(
@@ -466,7 +466,7 @@ test('a text menu and a range menu have a line between sort, the filter and Clea
     ).toHaveLength(5);
 });
 
-test('the range ends are one row each, the label before the input', () => {
+test('the range ends are one row each, a box with its label inside', () => {
     render(due());
     open('Due date');
 
@@ -478,7 +478,7 @@ test('the range ends are one row each, the label before the input', () => {
             row.querySelectorAll('input, [data-slot="date-picker"]'),
         ).toHaveLength(1);
         expect(
-            before(row.querySelector(`label[for="${input.id}"]`)!, input),
+            before(input, row.querySelector(`label[for="${input.id}"]`)!),
         ).toBe(true);
     }
 });
@@ -522,24 +522,6 @@ test('without Clear the menu ends with its filter and has no trailing line', () 
     expect(
         document.querySelectorAll('[data-slot="separator-root"]'),
     ).toHaveLength(2);
-});
-
-test('the search box and the range ends use the small Input size, not a height class', () => {
-    const { unmount } = render(title());
-    open('Title');
-    const search = screen.getByRole('searchbox', { name: 'Search Title' });
-
-    expect(search.getAttribute('data-size')).toBe('sm');
-    unmount();
-
-    render(due());
-    open('Due date');
-
-    for (const label of ['From', 'To']) {
-        expect(screen.getByLabelText(label).getAttribute('data-size')).toBe(
-            'sm',
-        );
-    }
 });
 
 test('a typed amount asks for the list after a pause of 400 ms, not on each key', () => {

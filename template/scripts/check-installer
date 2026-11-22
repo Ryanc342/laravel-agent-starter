@@ -33,7 +33,7 @@ $pdo = Illuminate\\Support\\Facades\\DB::connection()->getPdo();
 if (getenv('STARTER_VERIFY_TEST_DATABASES') === '1') {
  $name = $pdo->query('SELECT DATABASE()')->fetchColumn();
  $tables = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=? AND table_name=?');
- foreach (['_test', '_reference_test'] as $suffix) {
+ foreach (['_test'] as $suffix) {
   $tables->execute([$name.$suffix, 'migrations']);
   if (! $tables->fetchColumn()) { exit(1); }
  }
@@ -234,9 +234,8 @@ def main():
             results.append(state)
             print(f'{mode}: PDO MySQL {state["mysql"]}; migrated database {expected}', flush=True)
             verify_start(project, application_environment, workspace / f'{mode}-dev.log')
-            for check in ['check', 'check:reference']:
-                run(['composer', check], project, application_environment | {'CI': 'true'},
-                    workspace / f'{mode}-{check.replace(":", "-")}.log')
+            run(['composer', 'check'], project, application_environment | {'CI': 'true'},
+                workspace / f'{mode}-check.log')
             subprocess.run(['php'], input=VERIFY, cwd=project,
                            env=application_environment | {'STARTER_VERIFY_TEST_DATABASES': '1'},
                            check=True, capture_output=True, text=True)
@@ -246,11 +245,11 @@ def main():
     finally:
         # Only generated names in this disposable service can be removed.
         names = [p.name.replace('-', '_') + suffix for p in projects
-                 for suffix in ['', '_test', '_reference_test']]
+                 for suffix in ['', '_test']]
         cleanup = '''<?php
 $pdo = new PDO('mysql:host='.getenv('DB_HOST').';port='.getenv('DB_PORT'), getenv('DB_USERNAME'), getenv('DB_PASSWORD'));
 foreach (json_decode(getenv('STARTER_SMOKE_DATABASES')) as $name) {
- if (! preg_match('/^install_(agent|human)_[a-f0-9]{8}(_test|_reference_test)?$/', $name)) { exit(1); }
+ if (! preg_match('/^install_(agent|human)_[a-f0-9]{8}(_test)?$/', $name)) { exit(1); }
  $pdo->exec('DROP DATABASE IF EXISTS `'.$name.'`');
 }
 '''

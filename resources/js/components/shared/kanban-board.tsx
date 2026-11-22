@@ -20,7 +20,7 @@ import { GripVertical, MoveRight } from 'lucide-react';
 import { useId, useState, type ReactNode } from 'react';
 import EmptyState from '@/components/shared/empty-state';
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
+import IconButton from '@/components/shared/icon-button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,7 +28,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { t } from '@/lib/i18n';
 import {
     dropTarget,
     kanbanAnnouncements,
@@ -83,7 +82,7 @@ function CardShell<Card extends KanbanCard>({
         >
             <button
                 type="button"
-                aria-label={t('Drag :title', { title: card.title })}
+                aria-label={`Drag ${card.title}`}
                 className="mt-0.5 shrink-0 touch-none rounded-md text-muted-foreground transition-colors hover:bg-accent active:bg-accent-pressed"
                 {...attributes}
                 {...listeners}
@@ -94,18 +93,16 @@ function CardShell<Card extends KanbanCard>({
                 {renderCard(card)}
             </div>
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="shrink-0"
-                        aria-label={t('Move :title to', { title: card.title })}
-                    >
-                        <MoveRight />
-                    </Button>
-                </DropdownMenuTrigger>
+                <IconButton
+                    label={`Move ${card.title} to`}
+                    trigger={DropdownMenuTrigger}
+                    size="icon-sm"
+                    className="shrink-0"
+                >
+                    <MoveRight />
+                </IconButton>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{t('Move to')}</DropdownMenuLabel>
+                    <DropdownMenuLabel>Move to</DropdownMenuLabel>
                     {others.map((other) => (
                         <DropdownMenuItem
                             key={other.id}
@@ -156,7 +153,7 @@ function Column<Card extends KanbanCard>({
                 >
                     {column.cards.length === 0 ? (
                         <li className="py-4">
-                            <EmptyState message={t('No cards.')} />
+                            <EmptyState message="No cards." />
                         </li>
                     ) : (
                         column.cards.map((card) => (
@@ -229,7 +226,7 @@ export default function KanbanBoard<Card extends KanbanCard>({
             collisionDetection={closestCorners}
             accessibility={{
                 announcements: kanbanAnnouncements(columns),
-                screenReaderInstructions: { draggable: t(kanbanInstructions) },
+                screenReaderInstructions: { draggable: kanbanInstructions },
             }}
             onDragStart={start}
             onDragEnd={end}

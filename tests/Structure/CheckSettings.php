@@ -5,16 +5,16 @@ namespace Tests\Structure;
 use Symfony\Component\Process\Process;
 
 /**
- * Principle 9 in docs/golden-principles.md: no check is silenced, and the
- * checks stay as set (AGENTS.md "Red lines"), and these checks say so in
- * composer check too, wherever it runs.
+ * No check is silenced and the checks stay as set (.claude/rules/skeleton.md,
+ * ALL-10 and ALL-11), and these checks say so in composer check too, wherever
+ * it runs.
  * Each method returns what it found wrong; CodeTest.php and ConfigTest.php
  * expect none, and template/tests/Lint/SkeletonChecksTest.php breaks each once.
  */
 final class CheckSettings
 {
     /**
-     * The layer rules of principle 2, as PHPStan resolves phpstan.neon: each
+     * The skeleton's PHPStan layer rules, as PHPStan resolves phpstan.neon: each
      * namespace list with exactly these folders. A message may change; the
      * folders may not.
      *
@@ -23,7 +23,7 @@ final class CheckSettings
     private const array NAMESPACES = [
         [['App\Models\*'], ['allowExceptIn' => ['app/Enums/*']]],
         [['App\Policies\*'], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*']]],
-        [['App\Actions\*'], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*', 'app/Policies/*', 'app/Notifications/*', 'app/Http/Resources/*', 'app/Http/Requests/*']]],
+        [['App\Actions\*'], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*', 'app/Policies/*', 'app/Notifications/*', 'app/Http/Requests/*']]],
         [['App\Http\*'], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*', 'app/Policies/*', 'app/Notifications/*', 'app/Actions/*']]],
         [[
             'Illuminate\Http\*',
@@ -36,20 +36,60 @@ final class CheckSettings
             'Illuminate\Support\Facades\Redirect',
             'Illuminate\Support\Facades\URL',
             'Illuminate\Support\Facades\Cookie',
+            'Illuminate\Contracts\Auth\Guard',
+            'Illuminate\Contracts\Auth\StatefulGuard',
+            'Illuminate\Contracts\Auth\Factory',
+            'Illuminate\Auth\AuthManager',
+            'Illuminate\Auth\SessionGuard',
+            'Illuminate\Session\*',
+            'Illuminate\Contracts\Session\*',
             'Inertia\*',
-        ], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*', 'app/Policies/*', 'app/Notifications/*', 'app/Actions/*']]],
-        [['Illuminate\Support\Facades\Gate', 'Illuminate\Contracts\Auth\Access\Gate', 'Illuminate\Auth\Access\AuthorizationException'], ['allowExceptIn' => ['app/Models/*']]],
-        [['Illuminate\Support\Facades\DB'], ['allowExceptIn' => ['app/Http/Controllers/*']]],
-        [['App\Integrations\*'], ['allowIn' => ['app/Actions/*', 'app/Integrations/*']]],
-        [['Illuminate\Support\Facades\Http', 'Illuminate\Http\Client\*'], ['allowIn' => ['app/Integrations/*']]],
+        ], ['exclude' => ['Illuminate\Http\Client\*'], 'allowExceptIn' => ['app/Enums/*', 'app/Models/*', 'app/Policies/*', 'app/Notifications/*', 'app/Actions/*']]],
+        [['Illuminate\Support\Facades\Gate', 'Illuminate\Contracts\Auth\Access\Gate', 'Illuminate\Auth\Access\AuthorizationException'], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*']]],
+        [['Illuminate\Support\Facades\DB', 'Illuminate\Support\Facades\Schema', 'Illuminate\Database\ConnectionInterface', 'Illuminate\Database\Connection', 'Illuminate\Database\DatabaseManager'], ['allowExceptIn' => ['app/Http/Controllers/*']]],
+        [['App\Actions\OutsideCall'], ['allowIn' => ['app/Actions/*', 'app/Jobs/OperationJob.php']]],
+        [['Illuminate\Support\Facades\Http', 'Illuminate\Http\Client\*'], ['allowIn' => ['app/Actions/OutsideCall.php']]],
+        [['Illuminate\Support\Facades\Storage', 'Illuminate\Contracts\Filesystem\*'], ['allowIn' => ['app/Support/StoredFile.php']]],
+        [[
+            'Illuminate\Support\Facades\Mail',
+            'Illuminate\Support\Facades\Notification',
+            'Illuminate\Contracts\Mail\Factory',
+            'Illuminate\Contracts\Mail\Mailer',
+            'Illuminate\Mail\MailManager',
+            'Illuminate\Mail\Mailer',
+            'Illuminate\Contracts\Notifications\Dispatcher',
+            'Illuminate\Notifications\ChannelManager',
+        ], ['allowIn' => ['app/Actions/*']]],
         [['Database\Seeders\*'], ['allowIn' => ['database/*']]],
         [['Database\Factories\*'], ['allowIn' => ['database/*', 'app/Models/*']]],
         [['Tests\*'], []],
     ];
 
     /**
-     * The request helpers of principle 2, rule "Actions use no HTTP classes or
-     * helpers".
+     * Running an operation (prototype): only the operation part and Actions
+     * call Operation::run(); a Resource or a page flag only asks OperationGate.
+     *
+     * @var list<array{0: list<string>, 1: array<string, list<string>>}>
+     */
+    private const array METHODS = [
+        [['Illuminate\Database\Eloquent\Model::getConnection()', 'Illuminate\Database\Eloquent\Builder::getConnection()', 'Illuminate\Database\Query\Builder::getConnection()'], ['allowExceptIn' => ['app/Http/Controllers/*']]],
+        [['Illuminate\Foundation\Auth\Access\Authorizable::can()', 'Illuminate\Foundation\Auth\Access\Authorizable::cannot()', 'Illuminate\Foundation\Auth\Access\Authorizable::cant()'], ['allowExceptIn' => ['app/Enums/*', 'app/Models/*']]],
+        [['Illuminate\Notifications\Notifiable::notify()', 'Illuminate\Notifications\Notifiable::notifyNow()', 'Illuminate\Notifications\RoutesNotifications::notify()', 'Illuminate\Notifications\RoutesNotifications::notifyNow()'], ['allowIn' => ['app/Actions/*']]],
+        [['App\Actions\Operation::run()', 'App\Actions\UserlessOperation::run()'], ['allowIn' => ['app/Http/Controllers/OperationController.php', 'app/Actions/*', 'app/Http/Fortify/*', 'app/Console/*', 'app/Jobs/*']]],
+        [['App\Actions\UserlessOperation::runBySystem()'], ['allowIn' => ['app/Console/*', 'app/Jobs/*', 'app/Http/Controllers/WebhookController.php']]],
+    ];
+
+    /**
+     * Factories make records only in tests, seeders and other factories.
+     *
+     * @var list<array{0: list<string>, 1: array<string, list<string>>}>
+     */
+    private const array STATIC_CALLS = [
+        [['Illuminate\Database\Eloquent\Factories\HasFactory::factory()'], ['allowIn' => ['database/*']]],
+    ];
+
+    /**
+     * The request helpers an operation may not use (.claude/rules/skeleton/act.md).
      *
      * @var list<array{0: list<string>, 1: array<string, list<string>>}>
      */
@@ -101,7 +141,7 @@ final class CheckSettings
     /**
      * PHPStan keeps its level, paths and extensions, registers every rule in
      * lint/phpstan, covers every folder composer autoloads, and keeps the
-     * layer rules of principle 2 with their folders.
+     * skeleton's layer rules with their folders.
      *
      * @return list<string>
      */
@@ -202,7 +242,7 @@ final class CheckSettings
 
         $ignored = [
             'vendor/**', 'node_modules/**', 'public/**', 'bootstrap/ssr/**', 'docs/**', 'tailwind.config.js',
-            'resources/js/actions/**', 'resources/js/components/ui/*', 'resources/js/routes/**', 'resources/js/wayfinder/**',
+            'resources/js/actions/**', 'resources/js/components/ui/*', 'resources/js/routes/**', 'resources/js/types/generated.d.ts', 'resources/js/wayfinder/**',
         ];
         preg_match('/ignorePatterns: \[(.*?)\]/s', $lint, $patterns);
         preg_match_all("/'([^']+)'/", $patterns[1] ?? '', $patterns);
@@ -282,8 +322,8 @@ final class CheckSettings
             }
         }
 
-        if ($suites !== ['Unit' => ['tests/Unit'], 'Feature' => ['tests/Feature'], 'Structure' => ['tests/Structure']]) {
-            $problems[] = 'phpunit.xml: the suites are Unit, Feature and Structure, each its own tests/ folder';
+        if ($suites !== ['Unit' => ['tests/Unit'], 'Feature' => ['tests/Feature'], 'Structure' => ['tests/Structure'], 'Browser' => ['tests/Browser']]) {
+            $problems[] = 'phpunit.xml: the suites are Unit, Feature, Structure and Browser, each its own tests/ folder';
         }
 
         if (isset($xml->groups)) {
@@ -310,12 +350,12 @@ final class CheckSettings
             'check:static' => [
                 'Composer\\Config::disableProcessTimeout',
                 '@php artisan config:clear --ansi',
+                '@php scripts/check-generated-types.php',
                 '@lint:check',
                 '@types:check',
                 'npm run check',
                 'npm run types:check',
             ],
-            'check:milestone' => ['Composer\\Config::disableProcessTimeout', '@php scripts/check-milestone.php'],
             'lint:check' => ['pint --parallel --test'],
             'types:check' => ['phpstan analyse --memory-limit=1G'],
         ] as $script => $steps) {
@@ -377,6 +417,8 @@ final class CheckSettings
 
         return [
             ...self::compare('disallowedNamespaces', ['namespace', 'class'], self::NAMESPACES, $parameters['disallowedNamespaces'] ?? []),
+            ...self::compare('disallowedStaticCalls', ['method'], self::STATIC_CALLS, $parameters['disallowedStaticCalls'] ?? []),
+            ...self::compare('disallowedMethodCalls', ['method'], self::METHODS, $parameters['disallowedMethodCalls'] ?? []),
             ...self::compare('disallowedFunctionCalls', ['function'], self::FUNCTIONS, $parameters['disallowedFunctionCalls'] ?? []),
         ];
     }

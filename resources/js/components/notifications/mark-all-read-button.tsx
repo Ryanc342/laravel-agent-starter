@@ -1,7 +1,6 @@
 import { Form } from '@inertiajs/react';
-import AllNotificationsReadController from '@/actions/App/Http/Controllers/AllNotificationsReadController';
-import { Button } from '@/components/ui/button';
-import { t } from '@/lib/i18n';
+import SubmitButton from '@/components/shared/submit-button';
+import { store as markAllRead } from '@/routes/notifications/read-all';
 
 /**
  * "Mark all as read", for the notifications page and the bell's card. Shown
@@ -17,20 +16,16 @@ export default function MarkAllReadButton({
     return (
         <Form
             noValidate
-            {...AllNotificationsReadController.store.form()}
+            {...markAllRead.form()}
             options={{ preserveScroll: true }}
             onSuccess={onSuccess}
         >
-            {({ processing }) => (
-                <Button
-                    type="submit"
-                    variant={size === 'sm' ? 'ghost' : 'outline'}
-                    size={size}
-                    disabled={processing}
-                >
-                    {t('Mark all as read')}
-                </Button>
-            )}
+            <SubmitButton
+                variant={size === 'sm' ? 'ghost' : 'outline'}
+                size={size}
+            >
+                Mark all as read
+            </SubmitButton>
         </Form>
     );
 }

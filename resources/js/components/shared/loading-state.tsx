@@ -1,6 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { t } from '@/lib/i18n';
 
 /**
  * Data that arrives later: skeletons shaped like what is coming. A phone gets
@@ -25,7 +24,7 @@ export default function LoadingState({
                 isMobile ? 'grid gap-3' : framed ? 'rounded-lg border' : ''
             }
         >
-            <span className="sr-only">{t('Loading')}</span>
+            <span className="sr-only">Loading</span>
             {Array.from({ length: rows }, (_, index) =>
                 isMobile ? (
                     <div

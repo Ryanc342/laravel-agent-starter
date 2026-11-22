@@ -49,13 +49,12 @@ jobs:
       - name: Setup Application
         run: composer setup
 
+      # The browser tests run in Playwright's Chromium, the version package.json pins.
+      - name: Install the browser for the browser tests
+        run: npx playwright install --with-deps chromium
+
       - name: Run all checks
         run: composer check
-
-      # The reference feature the AI copies (docs/reference/tasks) must pass the
-      # same checks, so a rule change that breaks the example fails here.
-      - name: Check the reference feature
-        run: composer check:reference
 
       - name: Verify the starter kit with Laravel Installer
         if: github.repository == 'Ryanc342/laravel-agent-starter'

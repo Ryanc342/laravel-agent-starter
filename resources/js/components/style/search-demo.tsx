@@ -3,7 +3,6 @@ import SearchBox from '@/components/shared/search-box';
 import SearchResults, {
     type SearchGroup,
 } from '@/components/shared/search-results';
-import { t } from '@/lib/i18n';
 
 /**
  * Search across more than one kind of record: the box in the top bar (a mock
@@ -27,7 +26,7 @@ export default function SearchDemo({
                 <SearchBox action={action} defaultValue={query} />
             </header>
             <div className="grid gap-6 p-4 md:p-6">
-                <Heading title={t('Search results')} />
+                <Heading title="Search results" />
                 <SearchResults query={query} groups={groups} />
             </div>
         </div>

@@ -2,7 +2,6 @@ import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 import Actions from '@/components/shared/actions';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 /**
@@ -31,17 +30,10 @@ export default function WizardLayout({
         <div className="grid gap-6 md:grid-cols-4 md:gap-10">
             {isMobile ? (
                 <p className="text-sm font-medium">
-                    {t('Step :current of :total · :step', {
-                        current: current + 1,
-                        total: steps.length,
-                        step: t(steps[current]),
-                    })}
+                    {`Step ${current + 1} of ${steps.length} · ${steps[current]}`}
                 </p>
             ) : (
-                <ol
-                    className="grid content-start gap-1"
-                    aria-label={t('Steps')}
-                >
+                <ol className="grid content-start gap-1" aria-label="Steps">
                     {steps.map((step, index) => (
                         <li
                             key={step}
@@ -58,14 +50,14 @@ export default function WizardLayout({
                             <span className="flex size-5 shrink-0 items-center justify-center text-xs tabular-nums">
                                 {index < current ? (
                                     <Check
-                                        aria-label={t('Done')}
+                                        aria-label="Done"
                                         className="size-4 text-primary"
                                     />
                                 ) : (
                                     index + 1
                                 )}
                             </span>
-                            <span className="min-w-0 truncate">{t(step)}</span>
+                            <span className="min-w-0 truncate">{step}</span>
                         </li>
                     ))}
                 </ol>
@@ -73,7 +65,7 @@ export default function WizardLayout({
             <div className="grid min-w-0 content-start gap-6 md:col-span-3">
                 {instruction && (
                     <p className="text-sm text-muted-foreground">
-                        {t(instruction)}
+                        {instruction}
                     </p>
                 )}
                 {children}

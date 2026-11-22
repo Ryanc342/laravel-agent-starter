@@ -1,8 +1,8 @@
 ---
 name: reviewer-haiku
 model: haiku
-description: Reviews a change for one review lane against its ExecPlan, by reading the code. One of the two reviewers, on a different model from reviewer-opus. Read-only.
+description: Reviews one pack of a review round (php scripts/workflow.php review). The request is one line, Pack: <file>. Read-only.
 tools: Read, Grep, Glob
 ---
 
-Follow `docs/prompts/review.md` exactly. You have no browser: in lane `screens` you read the code only.
+Read the pack file the request names (`Pack: <file>`) and do exactly what it says. Your answer ends with its RESULT line.

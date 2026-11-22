@@ -1,3 +1,4 @@
+import DetailList from '@/components/shared/detail-list';
 import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
@@ -11,7 +12,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { formatDate, formatMoney } from '@/lib/format';
-import { t } from '@/lib/i18n';
 
 export type ExampleInvoice = {
     number: string;
@@ -33,58 +33,43 @@ export type ExampleInvoice = {
 };
 
 /**
- * A sheet that is printed or saved as a PDF: the bar above it (hidden when
- * printing), then the sheet with the seller and buyer, the lines as a plain
- * table and the totals on the right. Every figure comes from the backend. The
- * real print page is the task's (`tasks/print`); this shows the invoice layout.
+ * A sheet that is printed: the bar above it (hidden when printing), then the
+ * sheet with the seller and buyer, the lines as a plain table and the totals
+ * on the right. Every figure comes from the backend. In an app the page comes
+ * from the record part (Route::record()), and Print is the browser's print.
  */
 export default function PrintDemo({ invoice }: { invoice: ExampleInvoice }) {
-    const inform = () =>
-        toast('On a real print page this prints, or downloads the PDF.');
+    const inform = () => toast('On a real print page this prints.');
 
     return (
         <div className="grid gap-6">
             <Actions data-testid="print-bar" className="print:hidden">
-                <Button variant="outline" onClick={inform}>
-                    {t('Download PDF')}
-                </Button>
-                <Button onClick={inform}>{t('Print')}</Button>
+                <Button onClick={inform}>Print</Button>
             </Actions>
 
             <div className="grid max-w-3xl gap-6 rounded-lg border p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading
-                        title={t('Invoice :number', { number: invoice.number })}
-                    />
+                    <Heading title={`Invoice ${invoice.number}`} />
                     <p className="text-sm text-muted-foreground">
                         {formatDate(invoice.date)}
                     </p>
                 </div>
 
-                <dl className="grid gap-4 text-sm sm:grid-cols-2">
-                    <div className="grid gap-1">
-                        <dt className="text-muted-foreground">{t('From')}</dt>
-                        <dd>{invoice.seller}</dd>
-                    </div>
-                    <div className="grid gap-1">
-                        <dt className="text-muted-foreground">{t('To')}</dt>
-                        <dd>{invoice.buyer}</dd>
-                    </div>
-                </dl>
+                <DetailList
+                    columns={2}
+                    details={[
+                        { label: 'From', value: invoice.seller },
+                        { label: 'To', value: invoice.buyer },
+                    ]}
+                />
 
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>{t('Description')}</TableHead>
-                            <TableHead className="text-right">
-                                {t('Qty')}
-                            </TableHead>
-                            <TableHead className="text-right">
-                                {t('Price')}
-                            </TableHead>
-                            <TableHead className="text-right">
-                                {t('Total')}
-                            </TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Qty</TableHead>
+                            <TableHead className="text-right">Price</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

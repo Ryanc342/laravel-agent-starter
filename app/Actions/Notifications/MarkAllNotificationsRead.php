@@ -2,38 +2,60 @@
 
 namespace App\Actions\Notifications;
 
+use App\Actions\After;
+use App\Actions\Operation;
 use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * Marks every unread notification of a user as read. It calls
- * MarkNotificationRead for each one instead of copying its check and write,
- * all in one transaction. With nothing unread it refuses, so the "Mark all as
- * read" button (can.mark_all_read) shows exactly when pressing it succeeds.
+ * Marks every unread notification of a user as read. It runs
+ * MarkNotificationRead for each one instead of copying its check and write;
+ * the part puts all of them in one transaction. With nothing unread it
+ * refuses, and the same refusal hides the "Mark all as read" button.
  */
-final class MarkAllNotificationsRead
+final class MarkAllNotificationsRead extends Operation
 {
     public function __construct(private MarkNotificationRead $markNotificationRead) {}
+
+    public function ability(): string
+    {
+        return 'markAllRead';
+    }
+
+    public function subjectClass(): string
+    {
+        return Notification::class;
+    }
+
+    public function refusal(User $user, ?Model $subject): ?array
+    {
+        return $user->hasUnreadNotifications()
+            ? null
+            : ['notifications' => __('There are no unread notifications.')];
+    }
 
     /**
      * @return int the number of notifications marked as read
      */
-    public function handle(User $user): int
+    protected function perform(User $user, ?Model $subject, array $input): int
     {
-        if (! $user->hasUnreadNotifications()) {
-            throw ValidationException::withMessages([
-                'notifications' => __('There are no unread notifications.'),
-            ]);
-        }
+        $marked = 0;
 
-        return DB::transaction(function () use ($user): int {
-            $notifications = Notification::query()->ownedBy($user)->unread()->get();
-
-            $notifications->each(fn (Notification $notification) => $this->markNotificationRead->handle($notification));
-
-            return $notifications->count();
+        // In batches: a user's unread notifications grow with use.
+        Notification::query()->ownedBy($user)->unread()->chunkById(100, function (Collection $notifications) use ($user, &$marked): void {
+            foreach ($notifications as $notification) {
+                $this->markNotificationRead->run($user, $notification);
+                $marked++;
+            }
         });
+
+        return $marked;
+    }
+
+    public function after(mixed $result): After
+    {
+        return After::back(trans_choice(':count notification marked as read.|:count notifications marked as read.', (int) $result));
     }
 }

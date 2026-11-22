@@ -1,27 +1,16 @@
 import { router } from '@inertiajs/react';
-import { destroy } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
-import Heading from '@/components/heading';
 import EmptyState from '@/components/shared/empty-state';
+import Section from '@/components/shared/section';
 import PasskeyItem from '@/components/users/passkey-item';
 import PasskeyRegistration from '@/components/users/passkey-register';
-import type { Passkey } from '@/types/auth';
-import type { ResourceCollection } from '@/types/resource';
-import { t } from '@/lib/i18n';
 
 export type Props = {
     canManagePasskeys?: boolean;
-    passkeys?: ResourceCollection<Passkey>;
+    passkeys?: App.Http.Resources.PasskeyResource[];
 };
 
 export default function ManagePasskeys(props: Props) {
-    const passkeys = props.passkeys?.data ?? [];
-
-    const handleDelete = (id: number, onError: () => void) => {
-        router.delete(destroy.url(id), {
-            preserveScroll: true,
-            onError,
-        });
-    };
+    const passkeys = props.passkeys ?? [];
 
     const handleRegisterSuccess = () => {
         router.reload();
@@ -32,24 +21,18 @@ export default function ManagePasskeys(props: Props) {
     }
 
     return (
-        <div className="space-y-6">
-            <Heading variant="small" title={t('Passkeys')} />
-
+        <Section title="Passkeys">
             {passkeys.length > 0 ? (
                 <div className="overflow-hidden rounded-lg border border-border">
                     {passkeys.map((passkey) => (
-                        <PasskeyItem
-                            key={passkey.id}
-                            passkey={passkey}
-                            onDelete={handleDelete}
-                        />
+                        <PasskeyItem key={passkey.id} passkey={passkey} />
                     ))}
                 </div>
             ) : (
-                <EmptyState message={t('You have no passkeys yet.')} />
+                <EmptyState message="You have no passkeys yet." />
             )}
 
             <PasskeyRegistration onSuccess={handleRegisterSuccess} />
-        </div>
+        </Section>
     );
 }

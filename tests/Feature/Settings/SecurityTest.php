@@ -25,7 +25,7 @@ test('security page is displayed', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/security')
             ->where('canManagePasskeys', true)
-            ->where('passkeys.data', [])
+            ->where('passkeys', [])
             ->where('canManageTwoFactor', true)
             ->where('twoFactorEnabled', false),
         );
@@ -57,7 +57,7 @@ test('security page renders without two factor when feature is disabled', functi
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/security')
             ->where('canManagePasskeys', false)
-            ->where('passkeys.data', [])
+            ->where('passkeys', [])
             ->where('canManageTwoFactor', false)
             ->missing('twoFactorEnabled')
             ->missing('requiresConfirmation'),
@@ -70,7 +70,7 @@ test('password can be updated', function () {
     $response = $this
         ->actingAs($user)
         ->from(route('security.edit'))
-        ->put(route('user-password.update'), [
+        ->post(route('user-password.update'), [
             'current_password' => 'password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
@@ -89,7 +89,7 @@ test('correct password must be provided to update password', function () {
     $response = $this
         ->actingAs($user)
         ->from(route('security.edit'))
-        ->put(route('user-password.update'), [
+        ->post(route('user-password.update'), [
             'current_password' => 'wrong-password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
@@ -102,7 +102,7 @@ test('correct password must be provided to update password', function () {
 
 test('guests are redirected to the login page', function () {
     $this->get(route('security.edit'))->assertRedirect(route('login'));
-    $this->put(route('user-password.update'))->assertRedirect(route('login'));
+    $this->post(route('user-password.update'))->assertRedirect(route('login'));
 });
 
 test('password managers can find where passkeys are managed, without signing in', function () {
@@ -119,7 +119,7 @@ test('a new password that breaks a rule is rejected and changes nothing', functi
 
     $this->actingAs($user)
         ->from(route('security.edit'))
-        ->put(route('user-password.update'), ['current_password' => 'password', ...$input])
+        ->post(route('user-password.update'), ['current_password' => 'password', ...$input])
         ->assertSessionHasErrors('password')
         ->assertRedirect(route('security.edit'));
 

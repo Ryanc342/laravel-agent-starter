@@ -3,7 +3,6 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
 import LatestNotifications from '@/components/notifications/latest-notifications';
-import type { AppNotification } from '@/types/notification';
 
 const reload = vi.hoisted(() => vi.fn());
 
@@ -20,23 +19,29 @@ vi.mock('@inertiajs/react', () => ({
 }));
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 vi.mock('@/components/notifications/notification-row', () => ({
-    default: ({ notification }: { notification: AppNotification }) => (
-        <li>{notification.message}</li>
-    ),
+    default: ({
+        notification,
+    }: {
+        notification: App.Http.Resources.NotificationResource;
+    }) => <li>{notification.message}</li>,
 }));
 
-function notification(id: string, message: string): AppNotification {
+function notification(
+    id: string,
+    message: string,
+): App.Http.Resources.NotificationResource {
     return {
         id,
         message,
-        created_at: null,
         created_at_diff: '5 minutes ago',
         is_unread: true,
         can: { mark_read: true },
     };
 }
 
-function propsAre(latestNotifications: AppNotification[] | undefined) {
+function propsAre(
+    latestNotifications: App.Http.Resources.NotificationResource[] | undefined,
+) {
     vi.mocked(usePage).mockReturnValue({
         props: { latestNotifications },
     } as unknown as ReturnType<typeof usePage>);
@@ -87,9 +92,7 @@ test('it shows a row for each notification and a link to all of them', () => {
         screen.getAllByRole('listitem').map((row) => row.textContent),
     ).toEqual(['Your password was changed.', 'A new passkey was added.']);
     expect(
-        screen
-            .getByRole('link', { name: 'View all notifications' })
-            .getAttribute('href'),
+        screen.getByRole('link', { name: 'View all' }).getAttribute('href'),
     ).toBe('/notifications');
     expect(screen.queryByRole('status')).toBeNull();
 });

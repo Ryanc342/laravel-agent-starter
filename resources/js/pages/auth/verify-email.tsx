@@ -1,11 +1,10 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
+import { Head } from '@inertiajs/react';
+import StatusMessage from '@/components/shared/status-message';
+import SubmitButton from '@/components/shared/submit-button';
+import StackedForm from '@/components/shared/stacked-form';
+import AuthPrompt from '@/components/users/auth-prompt';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
-import { msg, t } from '@/lib/i18n';
 
 export default function VerifyEmail({
     verificationLinkSent,
@@ -14,41 +13,24 @@ export default function VerifyEmail({
 }) {
     return (
         <>
-            <Head title={t('Email verification')} />
+            <Head title="Email verification" />
 
-            {verificationLinkSent && (
-                <div className="mb-4 text-center text-sm font-medium text-success">
-                    {t(
-                        'A new verification link has been sent to the email address you provided during registration.',
-                    )}
-                </div>
-            )}
+            <StatusMessage
+                message={
+                    verificationLinkSent
+                        ? 'A new verification link has been sent to the email address you provided during registration.'
+                        : undefined
+                }
+            />
 
-            <Form noValidate {...send.form()} className="space-y-6 text-center">
-                {({ processing }) => (
-                    <>
-                        <Button
-                            type="submit"
-                            className="w-full"
-                            disabled={processing}
-                        >
-                            {processing && <Spinner />}
-                            {t('Resend verification email')}
-                        </Button>
-
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
-                        >
-                            {t('Log out')}
-                        </TextLink>
-                    </>
-                )}
-            </Form>
+            <StackedForm wideButtons {...send.form()}>
+                <SubmitButton>Resend</SubmitButton>
+                <AuthPrompt link="Log out" href={logout()} />
+            </StackedForm>
         </>
     );
 }
 
 VerifyEmail.layout = {
-    title: msg('Email verification'),
+    title: 'Email verification',
 };

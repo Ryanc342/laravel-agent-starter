@@ -5,7 +5,7 @@ import type { Choice } from '@/components/shared/column-menu';
 import type { SearchGroup } from '@/components/shared/search-results';
 import type { TimelineEvent } from '@/components/shared/timeline';
 import ApprovalDemo, {
-    type ApprovalState,
+    type ApprovalView,
 } from '@/components/style/approval-demo';
 import AuthDemo from '@/components/style/auth-demo';
 import BulkActionsDemo from '@/components/style/bulk-actions-demo';
@@ -14,18 +14,14 @@ import CheckoutDemo from '@/components/style/checkout-demo';
 import ContactDemo from '@/components/style/contact-demo';
 import CustomerAreaDemo from '@/components/style/customer-area-demo';
 import {
-    answerCheckout,
-    answerContact,
     checkout,
     contact,
     customerArea,
     help,
     landing,
-    priceCart,
     pricing,
     product,
     publicLinks,
-    publicLinksZh,
 } from '@/components/style/customer-examples';
 import DashboardDemo from '@/components/style/dashboard-demo';
 import DetailDemo from '@/components/style/detail-demo';
@@ -54,12 +50,9 @@ import SearchDemo from '@/components/style/search-demo';
 import SettingsDemo from '@/components/style/settings-demo';
 import SharedDemo from '@/components/style/shared-demo';
 import StatesDemo from '@/components/style/states-demo';
-import StyleSection, {
-    DemoFrame,
-    Variant,
-} from '@/components/style/style-section';
+import StyleSection, { DemoFrame } from '@/components/style/style-section';
 import TokensDemo from '@/components/style/tokens-demo';
-import WizardDemo from '@/components/style/wizard-demo';
+import WizardDemo, { type WizardState } from '@/components/style/wizard-demo';
 import type {
     ExampleNotification,
     ExampleTask,
@@ -76,7 +69,6 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 import type { ResourceCollection } from '@/types/resource';
-import { t, msg } from '@/lib/i18n';
 
 // Example data for the demos. It is not backend data: a demo takes its data
 // only through props, and this page is where the examples come from.
@@ -205,58 +197,39 @@ const searchGroups: SearchGroup[] = [
 
 const wizardSteps = [
     {
-        name: msg('Team'),
-        fields: [{ id: 'team-name', label: msg('Team name') }],
+        name: 'Team',
+        fields: [{ id: 'team-name', label: 'Team name' }],
     },
     {
-        name: msg('Members'),
+        name: 'Members',
         fields: [
-            { id: 'member-1', label: msg('First member') },
-            { id: 'member-2', label: msg('Second member') },
+            { id: 'member-1', label: 'First member' },
+            { id: 'member-2', label: 'Second member' },
         ],
     },
     {
-        name: msg('Review'),
-        fields: [{ id: 'team-note', label: msg('Note for the team') }],
+        name: 'Review',
+        fields: [{ id: 'team-note', label: 'Note for the team' }],
     },
 ];
 
-// Stands in for the server's answer to a step (a FormRequest on a real page).
-const answerWizardStep = (
-    fields: { id: string; label: string }[],
-    values: Record<string, string>,
-) =>
-    Object.fromEntries(
-        fields
-            .filter((field) => !values[field.id]?.trim())
-            .map((field) => [
-                field.id,
-                t('Enter :field.', { field: t(field.label).toLowerCase() }),
-            ]),
-    );
-
-// Stands in for what the backend sends with each state of the request: the
-// label, the badge and the `can.*` flags.
-const approvalStates: Record<
-    'pending' | 'approved' | 'rejected',
-    ApprovalState
-> = {
-    pending: {
-        label: msg('Pending'),
-        variant: 'warning',
-        can: { approve: true, reject: true },
+// The wizard as it looks at three moments; the errors are what the server
+// answered for that step.
+const wizardStates: WizardState[] = [
+    { label: 'The first step', step: 0, values: {}, errors: {} },
+    {
+        label: 'The second step, sent back with an error',
+        step: 1,
+        values: { 'member-1': 'Mei Ling' },
+        errors: { 'member-2': 'Enter the second member.' },
     },
-    approved: {
-        label: msg('Approved'),
-        variant: 'success',
-        can: { approve: false, reject: false },
+    {
+        label: 'The last step',
+        step: 2,
+        values: { 'team-note': 'We meet on Mondays.' },
+        errors: {},
     },
-    rejected: {
-        label: msg('Rejected'),
-        variant: 'destructive',
-        can: { approve: false, reject: false },
-    },
-};
+];
 
 // A list without a detail page: its rows carry their own actions.
 const categories: ExampleCategory[] = [
@@ -264,14 +237,6 @@ const categories: ExampleCategory[] = [
     { id: 2, name: 'Travel', expenses: 7 },
     { id: 3, name: 'Meals with clients', expenses: 4 },
 ];
-
-// Stands in for the FormRequest that checks a category's name.
-const answerCategoryName = (name: string) =>
-    name.trim() ? null : t('Enter a name for the category.');
-
-// Stands in for the FormRequest that checks the reason.
-const answerRejection = (reason: string) =>
-    reason.trim() ? null : t('Enter a reason.');
 
 const approvalEvents: TimelineEvent[] = [
     {
@@ -292,6 +257,49 @@ const approvalEvents: TimelineEvent[] = [
         actor: 'Mei Ling',
         action: 'added the receipt',
         when: '13 Nov, 08:10',
+    },
+];
+
+// What the backend sends with the request at each moment: the label, the
+// badge, the `can.*` flags and the history.
+const approvalViews: ApprovalView[] = [
+    {
+        moment: 'Waiting for a decision',
+        label: 'Pending',
+        variant: 'warning',
+        can: { approve: true, reject: true },
+        events: approvalEvents,
+    },
+    {
+        moment: 'Approved',
+        label: 'Approved',
+        variant: 'success',
+        can: { approve: false, reject: false },
+        events: [
+            ...approvalEvents,
+            {
+                id: 4,
+                actor: 'Ahmad',
+                action: 'approved',
+                when: '13 Nov, 10:20',
+            },
+        ],
+    },
+    {
+        moment: 'Rejected, with the reason',
+        label: 'Rejected',
+        variant: 'destructive',
+        can: { approve: false, reject: false },
+        events: [
+            ...approvalEvents,
+            {
+                id: 4,
+                actor: 'Ahmad',
+                action: 'rejected',
+                when: '13 Nov, 10:20',
+                note: 'The hotel is above the travel limit.',
+            },
+        ],
     },
 ];
 
@@ -322,9 +330,9 @@ const tickets: ExampleTicket[] = [
 ];
 
 const orderFacts = [
-    { label: msg('Customer'), value: 'Invoice Desk Sdn Bhd' },
-    { label: msg('Order date'), value: '4 Nov 2026' },
-    { label: msg('Delivery to'), value: 'Jalan Ampang 12, Kuala Lumpur' },
+    { label: 'Customer', value: 'Invoice Desk Sdn Bhd' },
+    { label: 'Order date', value: '4 Nov 2026' },
+    { label: 'Delivery to', value: 'Jalan Ampang 12, Kuala Lumpur' },
 ];
 
 const orderItems = [
@@ -457,7 +465,7 @@ const calendarEvents = [
 const kanbanColumns: KanbanColumn<ExampleCard>[] = [
     {
         id: 'new',
-        label: msg('New'),
+        label: 'New',
         cards: [
             { id: 'o1', title: 'Order 1041, spare parts', owner: 'Mei Ling' },
             { id: 'o2', title: 'Order 1042, delivery to Ipoh', owner: 'Ahmad' },
@@ -465,43 +473,43 @@ const kanbanColumns: KanbanColumn<ExampleCard>[] = [
     },
     {
         id: 'packing',
-        label: msg('Packing'),
+        label: 'Packing',
         cards: [{ id: 'o3', title: 'Order 1040, 20 boxes', owner: 'Siti' }],
     },
-    { id: 'shipped', label: msg('Shipped'), cards: [] },
+    { id: 'shipped', label: 'Shipped', cards: [] },
 ];
 
 const menu = [
-    ['tokens', msg('Tokens')],
-    ['ui', msg('UI components')],
-    ['shared', msg('Shared blocks')],
-    ['list', msg('List')],
-    ['detail', msg('Detail')],
-    ['detail-tabs', msg('Detail with tabs')],
-    ['form', msg('Form')],
-    ['wizard', msg('Multi-step wizard')],
-    ['approval', msg('Approval')],
-    ['list-detail', msg('List beside detail')],
-    ['bulk-actions', msg('Bulk actions')],
-    ['import-export', msg('Import and export')],
-    ['search', msg('Search results')],
-    ['report', msg('Charts and reports')],
-    ['calendar', msg('Calendar')],
-    ['kanban', msg('Kanban')],
-    ['print', msg('Print page')],
-    ['states', msg('States')],
-    ['dashboard', msg('Dashboard')],
-    ['settings', msg('Settings')],
-    ['feed', msg('Feed')],
-    ['auth', msg('Login and register')],
-    ['landing', msg('Home / landing')],
-    ['pricing', msg('Pricing')],
-    ['product', msg('Product page')],
-    ['customer-area', msg('Customer area')],
-    ['checkout', msg('Checkout')],
-    ['help', msg('Help / FAQ')],
-    ['contact', msg('Contact form')],
-    ['error-page', msg('Error pages')],
+    ['tokens', 'Tokens'],
+    ['ui', 'UI components'],
+    ['shared', 'Shared blocks'],
+    ['list', 'List'],
+    ['detail', 'Detail'],
+    ['detail-tabs', 'Detail with tabs'],
+    ['form', 'Form'],
+    ['wizard', 'Multi-step wizard'],
+    ['approval', 'Approval'],
+    ['list-detail', 'List beside detail'],
+    ['bulk-actions', 'Bulk actions'],
+    ['import-export', 'Import and export'],
+    ['search', 'Search results'],
+    ['report', 'Charts and reports'],
+    ['calendar', 'Calendar'],
+    ['kanban', 'Kanban'],
+    ['print', 'Print page'],
+    ['states', 'States'],
+    ['dashboard', 'Dashboard'],
+    ['settings', 'Settings'],
+    ['feed', 'Feed'],
+    ['auth', 'Login and register'],
+    ['landing', 'Home / landing'],
+    ['pricing', 'Pricing'],
+    ['product', 'Product page'],
+    ['customer-area', 'Customer area'],
+    ['checkout', 'Checkout'],
+    ['help', 'Help / FAQ'],
+    ['contact', 'Contact form'],
+    ['error-page', 'Error pages'],
 ];
 
 /** Example data: the names of the demo records, shown as they are. */
@@ -510,17 +518,17 @@ const exampleRecord = { order: 'Order 1042', claim: 'Expense claim 218' };
 export default function Style() {
     return (
         <>
-            <Head title={t('Style overview')} />
+            <Head title="Style overview" />
 
-            <div className="mx-auto flex max-w-5xl flex-col gap-12 p-4 md:p-6">
+            <main className="mx-auto flex max-w-5xl flex-col gap-12 p-4 md:p-6">
                 <header className="flex flex-col gap-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
-                        <Heading title={t('Style overview')} />
+                        <Heading title="Style overview" />
                         <AppearanceToggleTab />
                     </div>
 
                     <nav
-                        aria-label={t('Sections')}
+                        aria-label="Sections"
                         className="flex flex-wrap gap-x-5 gap-y-2 text-sm"
                     >
                         {menu.map(([id, label]) => (
@@ -529,27 +537,27 @@ export default function Style() {
                                 href={`#${id}`}
                                 className="text-muted-foreground transition-colors hover:text-foreground active:text-primary-pressed"
                             >
-                                {t(label)}
+                                {label}
                             </a>
                         ))}
                     </nav>
                 </header>
 
-                <StyleSection id="tokens" title={t('Tokens')}>
+                <StyleSection id="tokens" title="Tokens">
                     <TokensDemo />
                 </StyleSection>
 
-                <StyleSection id="ui" title={t('UI components')}>
+                <StyleSection id="ui" title="UI components">
                     <UiActionsDemo />
                     <UiFieldsDemo />
                     <UiSurfacesDemo />
                 </StyleSection>
 
-                <StyleSection id="shared" title={t('Shared blocks')}>
+                <StyleSection id="shared" title="Shared blocks">
                     <SharedDemo tasks={tasks} pagination={pagination} />
                 </StyleSection>
 
-                <StyleSection id="list" title={t('List')}>
+                <StyleSection id="list" title="List">
                     <DemoFrame>
                         <ListDemo
                             tasks={tasks}
@@ -560,18 +568,18 @@ export default function Style() {
                     <DemoFrame>
                         <RowActionsDemo
                             categories={categories}
-                            answer={answerCategoryName}
+                            nameError="Enter a name for the category."
                         />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="detail" title={t('Detail')}>
+                <StyleSection id="detail" title="Detail">
                     <DemoFrame>
                         <DetailDemo task={tasks[0]} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="detail-tabs" title={t('Detail with tabs')}>
+                <StyleSection id="detail-tabs" title="Detail with tabs">
                     <DemoFrame>
                         <DetailTabsDemo
                             title={exampleRecord.order}
@@ -583,41 +591,38 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="form" title={t('Form')}>
+                <StyleSection id="form" title="Form">
                     <FormDemo
                         task={tasks[1]}
-                        requiredMessage={t('The title field is required.')}
+                        requiredMessage="The title field is required."
                         invoice={invoiceForm}
                     />
                 </StyleSection>
 
-                <StyleSection id="wizard" title={t('Multi-step wizard')}>
+                <StyleSection id="wizard" title="Multi-step wizard">
                     <DemoFrame>
                         <WizardDemo
-                            title={t('Set up team')}
+                            title="Set up team"
                             steps={wizardSteps}
-                            submitLabel={t('Create team')}
-                            answer={answerWizardStep}
+                            states={wizardStates}
                         />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="approval" title={t('Approval')}>
+                <StyleSection id="approval" title="Approval">
                     <DemoFrame>
                         <ApprovalDemo
                             title={exampleRecord.claim}
                             facts={[
-                                { label: t('Amount'), value: 'RM 480.00' },
-                                { label: t('Requested by'), value: 'Mei Ling' },
+                                { label: 'Amount', value: 'RM 480.00' },
+                                { label: 'Requested by', value: 'Mei Ling' },
                             ]}
-                            events={approvalEvents}
-                            states={approvalStates}
-                            answer={answerRejection}
+                            views={approvalViews}
                         />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="list-detail" title={t('List beside detail')}>
+                <StyleSection id="list-detail" title="List beside detail">
                     <DemoFrame>
                         <ListDetailDemo
                             tickets={tickets}
@@ -629,7 +634,7 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="bulk-actions" title={t('Bulk actions')}>
+                <StyleSection id="bulk-actions" title="Bulk actions">
                     <DemoFrame>
                         <BulkActionsDemo
                             tasks={tasks}
@@ -638,37 +643,23 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="import-export" title={t('Import and export')}>
+                <StyleSection id="import-export" title="Import and export">
                     <DemoFrame>
                         <ImportExportDemo
                             rowErrors={[
-                                t('Row :index: Due date is not a date.', {
-                                    index: 2,
-                                }),
-                                t('Row :index: Title is required.', {
-                                    index: 3,
-                                }),
-                                t('Row :index: Due date is not a date.', {
-                                    index: 4,
-                                }),
-                                t('Row :index: Due date is not a date.', {
-                                    index: 5,
-                                }),
-                                t('Row :index: Due date is not a date.', {
-                                    index: 6,
-                                }),
-                                t('Row :index: Due date is not a date.', {
-                                    index: 7,
-                                }),
-                                t('Row :index: Title is required.', {
-                                    index: 8,
-                                }),
+                                `Row ${2}: Due date is not a date.`,
+                                `Row ${3}: Title is required.`,
+                                `Row ${4}: Due date is not a date.`,
+                                `Row ${5}: Due date is not a date.`,
+                                `Row ${6}: Due date is not a date.`,
+                                `Row ${7}: Due date is not a date.`,
+                                `Row ${8}: Title is required.`,
                             ]}
                         />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="search" title={t('Search results')}>
+                <StyleSection id="search" title="Search results">
                     <DemoFrame flush>
                         <SearchDemo
                             query="invoice"
@@ -678,23 +669,23 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="report" title={t('Charts and reports')}>
+                <StyleSection id="report" title="Charts and reports">
                     <DemoFrame>
                         <ReportDemo
                             tiles={reportTiles}
                             daily={reportDaily}
-                            dailySeries={[{ key: 'done', label: t('Done') }]}
+                            dailySeries={[{ key: 'done', label: 'Done' }]}
                             teams={reportTeams}
                             teamSeries={[
-                                { key: 'open', label: t('Open') },
-                                { key: 'done', label: t('Done') },
-                                { key: 'overdue', label: t('Overdue') },
+                                { key: 'open', label: 'Open' },
+                                { key: 'done', label: 'Done' },
+                                { key: 'overdue', label: 'Overdue' },
                             ]}
                         />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="calendar" title={t('Calendar')}>
+                <StyleSection id="calendar" title="Calendar">
                     <DemoFrame>
                         <CalendarDemo
                             events={calendarEvents}
@@ -704,23 +695,23 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="kanban" title={t('Kanban')}>
+                <StyleSection id="kanban" title="Kanban">
                     <DemoFrame>
                         <KanbanDemo columns={kanbanColumns} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="print" title={t('Print page')}>
+                <StyleSection id="print" title="Print page">
                     <DemoFrame>
                         <PrintDemo invoice={invoice} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="states" title={t('States')}>
-                    <StatesDemo subject={t('tasks')} />
+                <StyleSection id="states" title="States">
+                    <StatesDemo subject="tasks" />
                 </StyleSection>
 
-                <StyleSection id="dashboard" title={t('Dashboard')}>
+                <StyleSection id="dashboard" title="Dashboard">
                     <DemoFrame>
                         <DashboardDemo
                             notifications={notifications}
@@ -729,8 +720,8 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="settings" title={t('Settings')}>
-                    <DemoFrame flush>
+                <StyleSection id="settings" title="Settings">
+                    <DemoFrame>
                         <SettingsDemo
                             name="Test User"
                             email="test@example.com"
@@ -738,137 +729,53 @@ export default function Style() {
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="feed" title={t('Feed')}>
+                <StyleSection id="feed" title="Feed">
                     <DemoFrame>
                         <FeedDemo notifications={notifications} />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="auth" title={t('Login and register')}>
+                <StyleSection id="auth" title="Login and register">
                     <DemoFrame>
                         <AuthDemo
-                            title={t('Log in to your account')}
-                            fields={[
-                                {
-                                    id: 'email',
-                                    label: t('Email address'),
-                                    type: 'email',
-                                    placeholder: 'email@example.com',
-                                },
-                                {
-                                    id: 'password',
-                                    label: t('Password'),
-                                    type: 'password',
-                                    placeholder: t('Password'),
-                                },
-                            ]}
-                            submitLabel={t('Log in')}
-                            footer={t("Don't have an account?")}
-                            footerLink={t('Sign up')}
+                            title="Log in to your account"
+                            status="Your password has been reset."
+                            submitLabel="Log in"
+                            footer="Don't have an account?"
+                            footerLink="Sign up"
                         />
                     </DemoFrame>
                 </StyleSection>
 
-                <StyleSection id="landing" title={t('Home / landing')}>
-                    <Variant label={t('English')}>
-                        <LandingDemo links={publicLinks} {...landing.en} />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <LandingDemo links={publicLinksZh} {...landing.zh} />
-                    </Variant>
+                <StyleSection id="landing" title="Home / landing">
+                    <LandingDemo links={publicLinks} {...landing} />
                 </StyleSection>
 
-                <StyleSection id="pricing" title={t('Pricing')}>
-                    <Variant label={t('English')}>
-                        <PricingDemo links={publicLinks} {...pricing.en} />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <PricingDemo links={publicLinksZh} {...pricing.zh} />
-                    </Variant>
+                <StyleSection id="pricing" title="Pricing">
+                    <PricingDemo links={publicLinks} {...pricing} />
                 </StyleSection>
 
-                <StyleSection id="product" title={t('Product page')}>
-                    <Variant label={t('English')}>
-                        <ProductDemo links={publicLinks} {...product.en} />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <ProductDemo links={publicLinksZh} {...product.zh} />
-                    </Variant>
+                <StyleSection id="product" title="Product page">
+                    <ProductDemo links={publicLinks} {...product} />
                 </StyleSection>
 
-                <StyleSection id="customer-area" title={t('Customer area')}>
-                    <Variant label={t('English')}>
-                        <CustomerAreaDemo
-                            links={publicLinks}
-                            {...customerArea.en}
-                        />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <CustomerAreaDemo
-                            links={publicLinksZh}
-                            {...customerArea.zh}
-                        />
-                    </Variant>
+                <StyleSection id="customer-area" title="Customer area">
+                    <CustomerAreaDemo links={publicLinks} {...customerArea} />
                 </StyleSection>
 
-                <StyleSection id="checkout" title={t('Checkout')}>
-                    <Variant label={t('English')}>
-                        <CheckoutDemo
-                            links={publicLinks}
-                            {...checkout.en}
-                            price={(items) =>
-                                priceCart(items, checkout.en.labels)
-                            }
-                            answer={answerCheckout}
-                        />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <CheckoutDemo
-                            links={publicLinksZh}
-                            {...checkout.zh}
-                            price={(items) =>
-                                priceCart(items, checkout.zh.labels)
-                            }
-                            answer={(step, values, items) =>
-                                answerCheckout(
-                                    step,
-                                    values,
-                                    items,
-                                    'lines',
-                                    true,
-                                )
-                            }
-                        />
-                    </Variant>
+                <StyleSection id="checkout" title="Checkout">
+                    <CheckoutDemo links={publicLinks} {...checkout} />
                 </StyleSection>
 
-                <StyleSection id="help" title={t('Help / FAQ')}>
-                    <Variant label={t('English')}>
-                        <HelpDemo links={publicLinks} {...help.en} />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <HelpDemo links={publicLinksZh} {...help.zh} />
-                    </Variant>
+                <StyleSection id="help" title="Help / FAQ">
+                    <HelpDemo links={publicLinks} {...help} />
                 </StyleSection>
 
-                <StyleSection id="contact" title={t('Contact form')}>
-                    <Variant label={t('English')}>
-                        <ContactDemo
-                            links={publicLinks}
-                            {...contact.en}
-                            answer={answerContact}
-                        />
-                    </Variant>
-                    <Variant label={t('Chinese')}>
-                        <ContactDemo
-                            links={publicLinksZh}
-                            {...contact.zh}
-                            answer={(values) => answerContact(values, true)}
-                        />
-                    </Variant>
+                <StyleSection id="contact" title="Contact form">
+                    <ContactDemo links={publicLinks} {...contact} />
                 </StyleSection>
 
-                <StyleSection id="error-page" title={t('Error pages')}>
+                <StyleSection id="error-page" title="Error pages">
                     <ErrorPageDemo
                         examples={[
                             { status: 403, signedIn: true },
@@ -878,7 +785,7 @@ export default function Style() {
                         ]}
                     />
                 </StyleSection>
-            </div>
+            </main>
         </>
     );
 }

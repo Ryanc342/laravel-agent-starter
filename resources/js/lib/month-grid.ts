@@ -1,21 +1,43 @@
 import { parseDateValue, toDateValue } from '@/lib/date-value';
 
-/** "2026-11" for a day, and the month a "YYYY-MM" value names (this month when it is not one). */
+/** "2026-11" for a day. */
 export function monthValue(date: Date): string {
     return toDateValue(date).slice(0, 7);
 }
 
-export function parseMonth(value: string, fallback = new Date()): Date {
-    const day = /^\d{4}-\d{2}$/.test(value)
+/** The first day of the month a "YYYY-MM" value names, or undefined when it names none. */
+function firstDay(value: string): Date | undefined {
+    return /^\d{4}-\d{2}$/.test(value)
         ? parseDateValue(`${value}-01`)
         : undefined;
+}
 
-    return day ?? new Date(fallback.getFullYear(), fallback.getMonth(), 1);
+/** The first day of the month a "YYYY-MM" value names; a value that names none is a programming error. */
+function firstOf(value: string): Date {
+    const day = firstDay(value);
+
+    if (day === undefined) {
+        throw new Error(`"${value}" is not a month (YYYY-MM).`);
+    }
+
+    return day;
+}
+
+/**
+ * The month a "YYYY-MM" value from outside (the URL) names, or the month of
+ * `fallback` when it names none. The fallback is the backend's today: the
+ * browser's clock is never read.
+ */
+export function parseMonth(value: string, fallback: Date): Date {
+    return (
+        firstDay(value) ??
+        new Date(fallback.getFullYear(), fallback.getMonth(), 1)
+    );
 }
 
 /** The month before or after `value` ("2026-12" + 1 → "2027-01"). */
 export function shiftMonth(value: string, by: number): string {
-    const first = parseMonth(value);
+    const first = firstOf(value);
 
     return monthValue(new Date(first.getFullYear(), first.getMonth() + by, 1));
 }
@@ -30,7 +52,7 @@ export function monthGrid(
     value: string,
     weekStartsOn = 0,
 ): { date: string; day: number; outside: boolean }[][] {
-    const first = parseMonth(value);
+    const first = firstOf(value);
     const lead = (first.getDay() - weekStartsOn + 7) % 7;
     const start = new Date(first.getFullYear(), first.getMonth(), 1 - lead);
     const days = new Date(
@@ -72,5 +94,5 @@ export function monthTitle(value: string, locale: string): string {
     return new Intl.DateTimeFormat(locale, {
         month: 'long',
         year: 'numeric',
-    }).format(parseMonth(value));
+    }).format(firstOf(value));
 }

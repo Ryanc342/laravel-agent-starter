@@ -5,7 +5,6 @@ import FeedList from '@/components/shared/feed-list';
 import { Button } from '@/components/ui/button';
 import { useLatestNotifications } from '@/hooks/use-latest-notifications';
 import { index } from '@/routes/notifications';
-import { t } from '@/lib/i18n';
 import Actions from '@/components/shared/actions';
 
 /**
@@ -22,12 +21,12 @@ export default function LatestNotifications() {
     return (
         <div className="grid gap-4">
             <FeedList
-                emptyMessage={t('You have no notifications.')}
+                emptyMessage="You have no notifications."
                 loading={latest === undefined && !failed}
                 error={
                     failed
                         ? {
-                              message: t('Could not load your notifications.'),
+                              message: 'Could not load your notifications.',
                               onRetry: load,
                           }
                         : undefined
@@ -43,9 +42,7 @@ export default function LatestNotifications() {
             {latest !== undefined && latest.length > 0 && (
                 <Actions>
                     <Button variant="outline" asChild>
-                        <Link href={index()}>
-                            {t('View all notifications')}
-                        </Link>
+                        <Link href={index()}>View all</Link>
                     </Button>
                 </Actions>
             )}

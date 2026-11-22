@@ -1,11 +1,10 @@
 import { usePasskeyRegister } from '@laravel/passkeys/react';
 import { useState } from 'react';
-import FormField from '@/components/shared/form-field';
 import Actions from '@/components/shared/actions';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
-import { t } from '@/lib/i18n';
 
 type Props = {
     onSuccess: () => void;
@@ -40,7 +39,7 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
     if (!isSupported) {
         return (
             <div className="text-sm text-muted-foreground">
-                {t('Passkeys are not supported in this browser.')}
+                Passkeys are not supported in this browser.
             </div>
         );
     }
@@ -49,7 +48,7 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
         return (
             <Actions>
                 <Button variant="outline" onClick={() => setShowForm(true)}>
-                    {t('Add passkey')}
+                    Add
                 </Button>
             </Actions>
         );
@@ -61,31 +60,29 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
             onSubmit={handleSubmit}
             className="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
         >
-            <FormField
-                label={t('Passkey name')}
-                htmlFor="passkey-name"
-                error={error ?? undefined}
-            >
-                <Input
+            <div className="grid gap-2">
+                <TextField
+                    label="Passkey name"
                     id="passkey-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder={t('e.g., MacBook Pro, iPhone')}
                     autoFocus
+                    error={error ?? undefined}
                 />
                 <p className="text-xs text-muted-foreground">
-                    {t('A name helps you identify this passkey later.')}
+                    A name such as the device helps you identify this passkey
+                    later.
                 </p>
-            </FormField>
+            </div>
 
             <Actions>
-                <Button type="button" variant="ghost" onClick={handleCancel}>
-                    {t('Cancel')}
+                <Button variant="ghost" onClick={handleCancel}>
+                    Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading || !name.trim()}>
-                    {isLoading ? t('Registering...') : t('Register passkey')}
-                </Button>
+                <SubmitButton sending={isLoading} disabled={!name.trim()}>
+                    Register
+                </SubmitButton>
             </Actions>
         </form>
     );

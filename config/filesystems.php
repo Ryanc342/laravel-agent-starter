@@ -33,8 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
-            'throw' => false,
+            // Private files are sent only through Route::download(), which checks the Policy.
+            'serve' => false,
+            'throw' => true,
             'report' => false,
         ],
 
@@ -43,7 +44,7 @@ return [
             'root' => storage_path('app/public'),
             'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
-            'throw' => false,
+            'throw' => true,
             'report' => false,
         ],
 

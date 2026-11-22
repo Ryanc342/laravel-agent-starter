@@ -5,26 +5,40 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * Who may change an account: only its owner. The settings pages only ever
- * pass the signed-in user, but every endpoint still asks (.claude/rules/controllers.md).
+ * Who may change an account. The account operations act on the user who runs
+ * them, so a signed-in user can only ever change their own account.
  */
 class UserPolicy
 {
-    public function update(User $user, User $model): bool
+    /**
+     * Only someone without an account creates one.
+     */
+    public function register(?User $user): bool
     {
-        return $user->is($model);
+        return $user === null;
     }
 
-    /**
-     * The language switch changes only the caller's own preference, so everyone may use it, guests included.
-     */
-    public function updateLocale(?User $user): bool
+    public function updateProfile(User $user): bool
     {
         return true;
     }
 
-    public function delete(User $user, User $model): bool
+    public function updatePassword(User $user): bool
     {
-        return $user->is($model);
+        return true;
+    }
+
+    public function deleteAccount(User $user): bool
+    {
+        return true;
+    }
+
+    /**
+     * A new password for $model: by link, Fortify has checked the link first;
+     * on the security page, ChangePassword passes the signed-in user.
+     */
+    public function resetPassword(?User $user, User $model): bool
+    {
+        return $user === null || $user->is($model);
     }
 }

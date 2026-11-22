@@ -9,8 +9,7 @@ vi.mock('@inertiajs/react', () => ({
 function field(props: Partial<React.ComponentProps<typeof DatePicker>> = {}) {
     return render(
         <form data-testid="form">
-            <label htmlFor="due">Due date</label>
-            <DatePicker id="due" name="due_on" {...props} />
+            <DatePicker label="Due date" id="due" name="due_on" {...props} />
         </form>,
     );
 }
@@ -21,17 +20,21 @@ function sent(): string | null {
     ) as string | null;
 }
 
-test('it shows the date its value names, and the placeholder when there is none', () => {
+test('it shows the date its value names, and only its label when there is none', () => {
     const { unmount } = field({ defaultValue: '2026-11-04' });
 
     expect(screen.getByLabelText('Due date').textContent).toContain(
         '4 Nov 2026',
     );
+    expect(screen.getByLabelText('Due date').hasAttribute('data-empty')).toBe(
+        false,
+    );
     unmount();
 
     field();
-    expect(screen.getByLabelText('Due date').textContent).toContain(
-        'Pick a date',
+    expect(screen.getByLabelText('Due date').textContent).toBe('');
+    expect(screen.getByLabelText('Due date').hasAttribute('data-empty')).toBe(
+        true,
     );
 });
 
@@ -87,15 +90,16 @@ test('a controlled field shows its value and leaves the change to its owner', ()
     );
 });
 
-test('it looks like an Input: the same border, the small size and the red border for an error', () => {
-    field({ size: 'sm' });
-    const trigger = screen.getByLabelText('Due date');
+test('an error gives it the red border of an Input', () => {
+    field({ error: 'Pick a due date.' });
 
-    expect(trigger.getAttribute('data-size')).toBe('sm');
+    expect(screen.getByLabelText('Due date').getAttribute('aria-invalid')).toBe(
+        'true',
+    );
 });
 
 test('it has no hidden field without a name', () => {
-    render(<DatePicker id="x" defaultValue="2026-11-04" />);
+    render(<DatePicker label="Due date" defaultValue="2026-11-04" />);
 
     expect(document.querySelector('input')).toBeNull();
 });

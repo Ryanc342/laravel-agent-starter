@@ -2,16 +2,17 @@
  * Ezdev's rules for oxlint. vite.config.ts loads this file under
  * lint.jsPlugins:
  *
- * - "ezdev/component-boundaries" (docs/golden-principles.md, principle 7):
+ * - "ezdev/component-boundaries" (.claude/rules/skeleton/comp.md, COMP-8):
  *   domain components never import another domain's components,
  *   components/shared never imports domain components, and nothing imports a
  *   page.
- * - "ezdev/no-module-level-t" (principle 10, .claude/rules/translations.md): t()
- *   and tChoice() from @/lib/i18n never run at import time, when the language
- *   is not set yet.
  *
- * Only these rules and import/no-cycle are machine rules; the other
- * frontend rules are [review] rules (docs/prompts/review.md).
+ * - "ezdev/submit-button": only SubmitButton sends a form. No other element
+ *   says type="submit", and a plain <button> says its type, since a
+ *   <button> without one sends its form.
+ *
+ * Only these rules and import/no-cycle are oxlint's machine rules; the cards
+ * of .claude/rules/skeleton/ name each.
  *
  * Each message says what to do instead, because oxlint prints it.
  */
@@ -149,64 +150,66 @@ const componentBoundaries = rule(
     },
 );
 
-const FUNCTIONS = [
-    'FunctionDeclaration',
-    'FunctionExpression',
-    'ArrowFunctionExpression',
-];
+/** The text of a JSX attribute's value when it is written out, else null. */
+function attributeText(attribute) {
+    const value =
+        attribute.value?.type === 'JSXExpressionContainer'
+            ? attribute.value.expression
+            : attribute.value;
 
-const noModuleLevelT = rule(
-    'Translate where a sentence is shown, never at import time',
-    (context, file) => {
-        const translators = new Set();
+    if (value?.type === 'Literal' && typeof value.value === 'string') {
+        return value.value;
+    }
 
-        return {
-            ImportDeclaration(node) {
-                if (
-                    importTarget(file, node.source.value) !==
-                    'resources/js/lib/i18n'
-                ) {
-                    return;
-                }
+    if (value?.type === 'TemplateLiteral' && value.expressions.length === 0) {
+        return value.quasis[0].value.cooked;
+    }
 
-                for (const specifier of node.specifiers) {
-                    if (
-                        specifier.type === 'ImportSpecifier' &&
-                        ['t', 'tChoice'].includes(specifier.imported.name)
-                    ) {
-                        translators.add(specifier.local.name);
-                    }
-                }
-            },
-            CallExpression(node) {
-                const callee = unwrap(node.callee);
+    return null;
+}
 
-                if (
-                    callee?.type !== 'Identifier' ||
-                    !translators.has(callee.name)
-                ) {
-                    return;
-                }
+const submitButton = rule('Only SubmitButton sends a form', (context, file) => {
+    if (file === 'resources/js/components/shared/submit-button.tsx') {
+        return {};
+    }
 
-                for (let at = node.parent; at; at = at.parent) {
-                    if (FUNCTIONS.includes(at.type)) {
-                        return;
-                    }
-                }
+    return {
+        JSXOpeningElement(node) {
+            const type = node.attributes.find(
+                (attribute) =>
+                    attribute.type === 'JSXAttribute' &&
+                    attribute.name.name === 'type',
+            );
 
+            if (type !== undefined && attributeText(type) === 'submit') {
+                context.report({
+                    node: type,
+                    message:
+                        'Only SubmitButton (components/shared/submit-button.tsx) sends a form: it is disabled and shows a spinner while the form is sent. Use it instead of type="submit".',
+                });
+
+                return;
+            }
+
+            if (
+                node.name.type === 'JSXIdentifier' &&
+                node.name.name === 'button' &&
+                type === undefined
+            ) {
                 context.report({
                     node,
-                    message: `${callee.name}() runs at import time, before the language is set, so it keeps the English sentence. Mark the sentence with msg('...') and call t() where it is shown (.claude/rules/translations.md).`,
+                    message:
+                        'A <button> without a type sends its form. Give it type="button", or use SubmitButton when it is meant to send the form.',
                 });
-            },
-        };
-    },
-);
+            }
+        },
+    };
+});
 
 export default {
     meta: { name: 'ezdev' },
     rules: {
         'component-boundaries': componentBoundaries,
-        'no-module-level-t': noModuleLevelT,
+        'submit-button': submitButton,
     },
 };

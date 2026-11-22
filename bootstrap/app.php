@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\SetLocale;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Webauthn\Exception\WebauthnException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -21,11 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
             HandleAppearance::class,
-            SetLocale::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
@@ -41,6 +41,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request): Response {
             $status = $response->getStatusCode();
 
+            // An expired page (419) or too many tries (429) sends the user back to
+            // the page they were on, with a message, instead of an error page.
+            if (in_array($status, [419, 429], true) && ! $response instanceof JsonResponse) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => $status === 419
+                    ? __('This page has expired. Please try again.')
+                    : __('Too many attempts. Please try again later.')]);
+
+                return back();
+            }
+
             if (! in_array($status, [403, 404, 500, 503], true)
                 || $response instanceof JsonResponse
                 || ($status === 500 && config('app.debug'))) {
@@ -53,8 +63,12 @@ return Application::configure(basePath: dirname(__DIR__))
             ])->toResponse($request)->setStatusCode($status);
         });
 
-        // A passkey the WebAuthn library rejects (a wrong signature, for example) is
-        // a refused input, not a server error.
+        // A record that does not exist is a plain 404: Laravel's own message names
+        // the model, which a JSON response would show to the caller.
+        $exceptions->map(ModelNotFoundException::class, fn (ModelNotFoundException $exception) => new NotFoundHttpException(__('Not found.'), $exception));
+
+        // A passkey the WebAuthn library rejects is a refused input, not a server
+        // error.
         $exceptions->map(WebauthnException::class, fn () => ValidationException::withMessages([
             'credential' => __('This passkey could not be verified. Please try again.'),
         ]));

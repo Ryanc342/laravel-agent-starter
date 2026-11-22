@@ -1,11 +1,10 @@
 import { Link } from '@inertiajs/react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
 
 /**
- * The pages of a customer's account (docs/design/patterns/customer-area.md):
+ * The pages of a customer's account:
  * one row of links under the top bar, the current page in the selected colour.
  * A link is current when its address is the page's, or when it says so itself
  * (`isActive`, as a demo does). On a phone the row scrolls sideways inside its
@@ -16,7 +15,7 @@ export default function AccountNav({ items }: { items: NavItem[] }) {
 
     return (
         <nav
-            aria-label={t('Account')}
+            aria-label="Account"
             className="-mx-4 flex gap-1 overflow-x-auto border-b px-4 pb-3 md:mx-0 md:px-0"
         >
             {items.map((item) => {
@@ -32,7 +31,7 @@ export default function AccountNav({ items }: { items: NavItem[] }) {
                             current && 'bg-accent-pressed',
                         )}
                     >
-                        {t(item.title)}
+                        {item.title}
                     </Link>
                 );
             })}

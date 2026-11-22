@@ -1,14 +1,14 @@
 import { Form } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import Heading from '@/components/heading';
 import TwoFactorRecoveryCodes from '@/components/users/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/users/two-factor-setup-modal';
 import Actions from '@/components/shared/actions';
+import Section from '@/components/shared/section';
+import SubmitButton from '@/components/shared/submit-button';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { disable, enable } from '@/routes/two-factor';
-import { t } from '@/lib/i18n';
 
 export type Props = {
     canManageTwoFactor?: boolean;
@@ -47,21 +47,14 @@ export default function ManageTwoFactor(props: Props) {
     }
 
     return (
-        <div className="space-y-6">
-            <Heading variant="small" title={t('Two-factor authentication')} />
+        <Section title="Two-factor authentication">
             {twoFactorEnabled ? (
                 <div className="space-y-4">
                     <Actions>
                         <Form noValidate {...disable.form()}>
-                            {({ processing }) => (
-                                <Button
-                                    variant="destructive"
-                                    type="submit"
-                                    disabled={processing}
-                                >
-                                    {t('Disable 2FA')}
-                                </Button>
-                            )}
+                            <SubmitButton variant="destructive">
+                                Disable
+                            </SubmitButton>
                         </Form>
                     </Actions>
 
@@ -76,7 +69,7 @@ export default function ManageTwoFactor(props: Props) {
                     {hasSetupData ? (
                         <Button onClick={() => setShowSetupModal(true)}>
                             <ShieldCheck />
-                            {t('Continue setup')}
+                            Continue
                         </Button>
                     ) : (
                         <Form
@@ -84,11 +77,7 @@ export default function ManageTwoFactor(props: Props) {
                             {...enable.form()}
                             onSuccess={() => setShowSetupModal(true)}
                         >
-                            {({ processing }) => (
-                                <Button type="submit" disabled={processing}>
-                                    {t('Enable 2FA')}
-                                </Button>
-                            )}
+                            <SubmitButton>Enable</SubmitButton>
                         </Form>
                     )}
                 </Actions>
@@ -105,6 +94,6 @@ export default function ManageTwoFactor(props: Props) {
                 fetchSetupData={fetchSetupData}
                 errors={errors}
             />
-        </div>
+        </Section>
     );
 }

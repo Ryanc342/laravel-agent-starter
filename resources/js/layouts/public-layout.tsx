@@ -7,7 +7,7 @@ import PublicHeader, {
 import { useToday } from '@/hooks/use-today';
 
 /**
- * The layout of every public page (docs/design/patterns/landing.md): the top
+ * The layout of every public page: the top
  * bar, the page at a readable width, and the footer. A page sets its links
  * with `Page.layout = { links: [...] }` (only the pages that exist). Signed-in
  * customer pages use it too, with their own account navigation.
@@ -19,16 +19,17 @@ export default function PublicLayout({
     links?: PublicLink[];
     children: ReactNode;
 }) {
-    const { auth } = usePage().props;
+    const { signedIn } = usePage().props;
     const today = useToday();
 
     return (
         <div className="flex min-h-svh flex-col bg-background text-foreground">
-            <PublicHeader links={links} signedIn={auth.user !== null} />
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 md:px-6 md:py-12">
+            <PublicHeader links={links} signedIn={signedIn} label="Pages" />
+            {/* The page's parts one under the other, with the space of a public page between them. */}
+            <main className="mx-auto grid w-full max-w-6xl flex-1 content-start gap-12 px-4 py-8 md:gap-16 md:px-6 md:py-12">
                 {children}
             </main>
-            <PublicFooter links={links} year={today.year} />
+            <PublicFooter links={links} year={today.year} label="Footer" />
         </div>
     );
 }

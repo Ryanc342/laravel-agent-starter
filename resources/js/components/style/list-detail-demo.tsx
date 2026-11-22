@@ -1,3 +1,4 @@
+import DetailList from '@/components/shared/detail-list';
 import { usePage } from '@inertiajs/react';
 import Heading from '@/components/heading';
 import ListDetailLayout, {
@@ -5,7 +6,6 @@ import ListDetailLayout, {
 } from '@/components/shared/list-detail-layout';
 import { Badge } from '@/components/ui/badge';
 import { listParam } from '@/lib/list-query';
-import { t } from '@/lib/i18n';
 
 export type ExampleTicket = {
     id: number;
@@ -37,14 +37,14 @@ export default function ListDetailDemo({
 
     return (
         <div className="grid gap-6">
-            <Heading title={t('Tickets')} />
+            <Heading title="Tickets" />
             <ListDetailLayout
                 selected={chosen !== undefined}
                 backHref={backHref}
-                backLabel={t('Tickets')}
+                backLabel="Tickets"
                 list={
                     <nav
-                        aria-label={t('Tickets')}
+                        aria-label="Tickets"
                         className="grid overflow-hidden rounded-lg border"
                     >
                         {tickets.map((ticket) => (
@@ -76,12 +76,14 @@ export default function ListDetailDemo({
                                 {shown.status}
                             </Badge>
                         </div>
-                        <dl className="grid gap-1 text-sm">
-                            <dt className="text-muted-foreground">
-                                {t('Requested by')}
-                            </dt>
-                            <dd>{shown.requester}</dd>
-                        </dl>
+                        <DetailList
+                            details={[
+                                {
+                                    label: 'Requested by',
+                                    value: shown.requester,
+                                },
+                            ]}
+                        />
                         <p className="text-sm">{shown.summary}</p>
                     </div>
                 }

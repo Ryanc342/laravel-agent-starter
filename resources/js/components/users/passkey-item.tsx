@@ -1,26 +1,13 @@
-import { KeyRound, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import ConfirmDialog, {
-    ConfirmDialogActions,
-} from '@/components/shared/confirm-dialog';
+import { KeyRound } from 'lucide-react';
+import ConfirmButton from '@/components/shared/confirm-button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import type { Passkey } from '@/types/auth';
-import { t } from '@/lib/i18n';
+import { destroy } from '@/routes/passkeys';
 
 type Props = {
-    passkey: Passkey;
-    onDelete: (id: number, onError: () => void) => void;
+    passkey: App.Http.Resources.PasskeyResource;
 };
 
-export default function PasskeyItem({ passkey, onDelete }: Props) {
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleDelete = () => {
-        setIsDeleting(true);
-        onDelete(passkey.id, () => setIsDeleting(false));
-    };
-
+export default function PasskeyItem({ passkey }: Props) {
     return (
         <div className="flex items-center justify-between border-b p-4 last:border-b-0">
             <div className="flex items-center gap-4">
@@ -37,48 +24,28 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                         )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        {t('Added :time', { time: passkey.created_at_diff })}
+                        {`Added ${passkey.created_at_diff}`}
                         {passkey.last_used_at_diff && (
                             <>
                                 <span className="mx-1 text-muted-foreground/50">
                                     /
                                 </span>
-                                {t('Last used :time', {
-                                    time: passkey.last_used_at_diff,
-                                })}
+                                {`Last used ${passkey.last_used_at_diff}`}
                             </>
                         )}
                     </p>
                 </div>
             </div>
 
-            <ConfirmDialog
-                trigger={
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive active:bg-destructive/20"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">{t('Remove')}</span>
-                    </Button>
-                }
-                title={t('Remove passkey')}
-                consequence={t(
-                    '“:name” will be removed and can no longer be used to sign in.',
-                    { name: passkey.name },
-                )}
+            <ConfirmButton
+                variant="outline"
+                size="sm"
+                form={destroy.form(passkey.id)}
+                title="Delete this passkey?"
+                consequence={`“${passkey.name}” will be deleted and can no longer be used to sign in.`}
             >
-                <ConfirmDialogActions>
-                    <Button
-                        variant="destructive"
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                    >
-                        {isDeleting ? t('Removing...') : t('Remove passkey')}
-                    </Button>
-                </ConfirmDialogActions>
-            </ConfirmDialog>
+                Delete
+            </ConfirmButton>
         </div>
     );
 }

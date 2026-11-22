@@ -2,6 +2,45 @@
 
 Versions follow [Semantic Versioning](https://semver.org): a new rule or behaviour change bumps the minor version, a wording fix bumps the patch version.
 
+## [3.0.0] - 2026-11-22
+
+The version is 3.0.0 because the template's early 2.x numbering (below) already used 2.0.0 to 2.13.0.
+
+The rules are rewritten as one skeleton, the workflow is kept by a tool, and the repeated work of every feature is done by ready-made parts. A project on 1.x takes this release through an upgrade plan; nothing is kept for compatibility.
+
+### Added
+
+- The skeleton: `.claude/rules/skeleton.md` (every block, where its files live, the arrows, and the rules for every block and the workflow; read in every session) and one card per block and per arrow in `.claude/rules/skeleton/`, loaded by its paths. Each rule is tagged with who guarantees it (`machine` with the check it names, `test`, `part`, `reviewer` with its Check line, `note`).
+- The workflow tool, `scripts/workflow.php`, run as six Claude Code hooks: it records the plan's steps (draft, approved, built, checked, reviewed, reported); holds back 开始 while a question is open; refuses a code write before 开始 and catches a command that changed code; voids the approval when the plan is edited; tells a new conversation where the plan is; sends the AI back once at a stop with a step missing; records each reviewer's result; prepares the review rounds; writes the report; and drafts cleanup and upgrade plans (`cleanup`, `upgrade`).
+- Plans in a new format (`docs/PLANS.md`): Purpose, Questions (with Recommended and Answer), Decisions (D1...), Screens (S1...), in the user's language. Each decision and screen has a test that names it (`<plan>.D1`); a decision no test can prove says `(no test: <reason>)` and the reviewers check it.
+- The operation part and its siblings: `Operation` and `UserlessOperation` with `Route::operation`, `Route::listing`, `Route::record`, `Route::download`, `Route::webhook`, `OperationJob`, `StoredFile`, `OutsideCall` (`app/Actions/OutsideCall.php`), `ReadsChoice`, `UrlRecords`, and `PartRoutesTest`, which calls every route a part opens. Registration, password reset by link, account deletion and the profile and password settings use them.
+- The record part, `Route::record($uri, $model, $resource, $page, $prop, $with)`: every page about the record in its URL (its detail page, its print page) finds the record (404 when there is none), asks the Policy's `view`, loads the relations the page reads and sends the Resource.
+- The listing part's export: a list whose `Route::listing()` allows `'export' => true` sends every row as a CSV file for `export=csv`, with its search, filters and sort, every page; its Resource implements `ExportsCsv` (column heading => one of its fields, text, a number or null). Which records, and their order, is read first in one query and their contents in batches by key, so a change to the list while the file is sent writes no row twice and leaves none out. The file starts with a UTF-8 mark, and a cell a spreadsheet would run as a formula gets a `'` in front. `ExportButton` downloads the list as it is shown.
+- The operation part's CSV rows: `csvRows()` names an uploaded CSV file and the rules of one row; the first line must name exactly those columns, every row is checked, and when any is wrong nothing is written and each wrong row is an input error with its line ("Row 3: ..."); otherwise the operation gets the rows by line number and writes them in its one transaction.
+- Page types generated from the Resources (spatie/laravel-typescript-transformer) into `resources/js/types/generated.d.ts`; composer check fails when the committed file differs.
+- Shared components: the boxed fields with floating labels (text, password, textarea, select, date picker, search), `SubmitButton`, `ConfirmButton`, `IconButton`, `ExportButton`, `DetailList`, `PageHeader`, `Section`, `StackedForm` and others; every shared component is shown on `/style`, which a structure check enforces.
+- Browser tests (pestphp/pest-plugin-browser, Playwright's Chromium at a fixed version): every page on a computer and a phone, light and dark, with no sideways scrolling, page errors or accessibility issues.
+- Machine checks for the factories, the database in controllers, permissions in models and enums, mail and notifications outside Actions, the guard and the session below the controllers, the HTTP client outside `OutsideCall`, storage outside `StoredFile`, and who may run an operation; structure checks for Actions and routes; oxlint's `ezdev/submit-button`. Each check is proven both ways: it rejects code that breaks its rule and accepts code that keeps it.
+- UUIDs for users, notifications and passkeys; strict mode in development and tests; 419 and 429 answered with a toast on the page; `php artisan dev` runs the schedule.
+
+### Changed
+
+- Security updates: laravel/framework 13.43.0 and symfony/http-foundation, http-kernel, routing, serializer and yaml 8.1.11; `composer audit` finds no advisory.
+- The review: one reviewer (`reviewer-haiku`) per pack of at most ten reviewer rules of the cards the change touches, plus one pack of the global rules; the next round reviews only the open cards and the cards whose files changed. A reviewer's last line is its RESULT; rule gaps and older code go into the report and the debt list.
+- composer check is the only check command; while building, run only the tests of one decision.
+- Existing debt is never fixed on the side: the report counts it, and at ten items brings a draft cleanup plan.
+- Buttons say only their verb; "Forgot your password?" sits below the sign-in button; the base Button is `type="button"` unless it is the SubmitButton.
+- The month calendar needs today's date passed in; copying to the clipboard tells the user when it fails; "Mark all as read" reads in chunks; a JSON 404 has a fixed message.
+
+### Removed
+
+- `.claude/rules/*.md` (the rule files), `docs/golden-principles.md`, `ARCHITECTURE.md`, `DESIGN.md`, `docs/design/`, `docs/prompts/`, the reviewer-opus subagent, the finish check (`scripts/hooks/finish-check.php`) and `composer check:milestone`.
+- The reference feature (`docs/reference/`), `composer check:reference` and the reference pages.
+- The two languages (`lang/`, the translation helpers, the language switch, `users.locale`).
+- PDF (dompdf, spatie/laravel-pdf and the Chinese font).
+- The AI's own browser (`scripts/screen-round`, the Playwright MCP server and the HTML previews).
+- `README.zh-CN.md`, `app/Integrations`, `InstallBoost`, the "inspire" command.
+
 ## [1.6.0] - 2026-11-20
 
 A lighter template: one finish check instead of a set of guards, three review lanes, every review rule with a level and one plain job, and design samples kept apart from the pages a project uses. It holds the unreleased 1.5.0 work, minus what this release takes out again.

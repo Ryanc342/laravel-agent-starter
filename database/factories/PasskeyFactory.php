@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Passkey;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Laravel\Passkeys\Passkey;
 use ParagonIE\ConstantTime\Base64UrlSafe;
 
 /** @extends Factory<Passkey> */

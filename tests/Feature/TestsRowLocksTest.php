@@ -7,7 +7,7 @@ use Tests\Support\TestsRowLocks;
 
 /*
 | The template's check of tests/Support/TestsRowLocks.php, the helper for row-lock tests
-| (.claude/rules/tests.md, "Row locks"). A feature's lock test calls waitsForLock() at the
+| (.claude/rules/skeleton/act.md, ACT-16). A feature's lock test calls waitsForLock() at the
 | moment its Action holds the lock, for example from a model event.
 */
 

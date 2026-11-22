@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { expect, test, vi } from 'vite-plus/test';
 import KanbanBoard from '@/components/shared/kanban-board';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { KanbanColumn } from '@/lib/kanban';
 
 const columns: KanbanColumn[] = [
@@ -20,11 +21,13 @@ function board() {
     const onMove = vi.fn();
 
     render(
-        <KanbanBoard
-            columns={columns}
-            renderCard={(card) => <span>{card.title}</span>}
-            onMove={onMove}
-        />,
+        <TooltipProvider>
+            <KanbanBoard
+                columns={columns}
+                renderCard={(card) => <span>{card.title}</span>}
+                onMove={onMove}
+            />
+        </TooltipProvider>,
     );
 
     return onMove;

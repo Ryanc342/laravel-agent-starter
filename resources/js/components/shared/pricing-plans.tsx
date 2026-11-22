@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useListQuery } from '@/hooks/use-list-query';
 import { formatMoney } from '@/lib/format';
-import { msg, t } from '@/lib/i18n';
 import { listParam } from '@/lib/list-query';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
@@ -26,16 +25,16 @@ export type Plan = {
 };
 
 const defaultLabels = {
-    billing: msg('Billing period'),
-    monthly: msg('Monthly'),
-    yearly: msg('Yearly'),
-    recommended: msg('Recommended'),
-    perMonth: msg('/ month'),
-    perYear: msg('/ year'),
+    billing: 'Billing period',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    recommended: 'Recommended',
+    perMonth: '/ month',
+    perYear: '/ year',
 };
 
 /**
- * Plans side by side (docs/design/patterns/pricing.md), with the billing choice
+ * Plans side by side, with the billing choice
  * above them. The choice lives only in the URL (`?billing=yearly`; monthly is
  * the default and has no query), so a link shares it, and it only picks which
  * of the backend's two prices to show: nothing is calculated here. One plan is
@@ -69,14 +68,14 @@ export default function PricingPlans({
                         change({ billing: value === 'yearly' ? value : null });
                     }
                 }}
-                aria-label={t(labels.billing)}
+                aria-label={labels.billing}
                 className="w-fit"
             >
                 <ToggleGroupItem value="monthly">
-                    {t(labels.monthly)}
+                    {labels.monthly}
                 </ToggleGroupItem>
                 <ToggleGroupItem value="yearly">
-                    {t(labels.yearly)}
+                    {labels.yearly}
                 </ToggleGroupItem>
             </ToggleGroup>
 
@@ -95,7 +94,7 @@ export default function PricingPlans({
                             <Heading variant="small" title={plan.name} />
                             {plan.recommended && (
                                 <Badge variant="secondary">
-                                    {t(labels.recommended)}
+                                    {labels.recommended}
                                 </Badge>
                             )}
                         </div>
@@ -108,8 +107,8 @@ export default function PricingPlans({
                             </span>
                             <span className="text-sm text-muted-foreground">
                                 {billing === 'yearly'
-                                    ? t(labels.perYear)
-                                    : t(labels.perMonth)}
+                                    ? labels.perYear
+                                    : labels.perMonth}
                             </span>
                         </p>
                         <ul className="grid gap-2 text-sm">

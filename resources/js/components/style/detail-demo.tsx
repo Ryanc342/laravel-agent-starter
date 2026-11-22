@@ -1,3 +1,4 @@
+import DetailList from '@/components/shared/detail-list';
 import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
 import type { ExampleTask } from '@/components/style/types';
@@ -10,18 +11,19 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/format';
-import { t } from '@/lib/i18n';
 
-/** One record's page: the breadcrumb that ends at the list, its name, status and actions, then its facts. */
+/**
+ * One record's page: the breadcrumb that ends at the list, its name, status
+ * and actions, then its facts. In an app the page comes from the record part
+ * (Route::record()).
+ */
 export default function DetailDemo({ task }: { task: ExampleTask }) {
     return (
         <div className="flex flex-col gap-8">
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
-                        <BreadcrumbLink href="#list">
-                            {t('Tasks')}
-                        </BreadcrumbLink>
+                        <BreadcrumbLink href="#list">Tasks</BreadcrumbLink>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -34,24 +36,28 @@ export default function DetailDemo({ task }: { task: ExampleTask }) {
                     </Badge>
                     {task.overdue && (
                         <Badge variant="destructive" className="mt-1">
-                            {t('Overdue')}
+                            Overdue
                         </Badge>
                     )}
                 </div>
 
                 <Actions data-testid="record-actions">
-                    <Button variant="outline">{t('Edit task')}</Button>
-                    <Button variant="outline">{t('Delete task')}</Button>
-                    <Button>{t('Complete task')}</Button>
+                    <Button variant="outline">Edit</Button>
+                    <Button variant="outline">Delete</Button>
+                    <Button>Complete</Button>
                 </Actions>
             </div>
 
-            <dl className="grid max-w-xl gap-1 text-sm">
-                <dt className="text-muted-foreground">{t('Due date')}</dt>
-                <dd>
-                    {task.due_on ? formatDate(task.due_on) : t('No due date')}
-                </dd>
-            </dl>
+            <DetailList
+                details={[
+                    {
+                        label: 'Due date',
+                        value: task.due_on
+                            ? formatDate(task.due_on)
+                            : 'No due date',
+                    },
+                ]}
+            />
         </div>
     );
 }

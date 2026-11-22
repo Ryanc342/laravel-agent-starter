@@ -1,3 +1,4 @@
+import DetailList from '@/components/shared/detail-list';
 import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
 import Timeline, { type TimelineEvent } from '@/components/shared/timeline';
@@ -5,7 +6,6 @@ import UrlTabs from '@/components/shared/url-tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
-import { t } from '@/lib/i18n';
 
 type Item = { id: number; description: string; quantity: number; unit: number };
 
@@ -37,7 +37,7 @@ export default function DetailTabsDemo({
                     </Badge>
                 </div>
                 <Actions>
-                    <Button variant="outline">{t('Edit order')}</Button>
+                    <Button variant="outline">Edit</Button>
                 </Actions>
             </div>
 
@@ -46,21 +46,7 @@ export default function DetailTabsDemo({
                     {
                         value: 'overview',
                         label: 'Overview',
-                        content: (
-                            <dl className="grid max-w-xl gap-4 text-sm">
-                                {facts.map((fact) => (
-                                    <div
-                                        key={fact.label}
-                                        className="grid gap-1"
-                                    >
-                                        <dt className="text-muted-foreground">
-                                            {t(fact.label)}
-                                        </dt>
-                                        <dd>{fact.value}</dd>
-                                    </div>
-                                ))}
-                            </dl>
-                        ),
+                        content: <DetailList details={facts} />,
                     },
                     {
                         value: 'items',

@@ -1,18 +1,13 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import EmptyState from '@/components/shared/empty-state';
 import Heading from '@/components/heading';
+import IconButton from '@/components/shared/icon-button';
 import { Button } from '@/components/ui/button';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useListQuery } from '@/hooks/use-list-query';
 import { useToday } from '@/hooks/use-today';
 import { parseDateValue } from '@/lib/date-value';
-import { formatDate } from '@/lib/format';
-import { t } from '@/lib/i18n';
+import { formatDate, intlLocale } from '@/lib/format';
 import { listParam } from '@/lib/list-query';
 import {
     monthGrid,
@@ -44,7 +39,6 @@ export default function MonthCalendar({
     events,
     onEvent,
     onMore,
-    locale = 'en',
     weekStartsOn = 0,
     today: todayProp,
     defaultMonth,
@@ -52,7 +46,6 @@ export default function MonthCalendar({
     events: CalendarEvent[];
     onEvent: (event: CalendarEvent) => void;
     onMore: (date: string) => void;
-    locale?: string;
     weekStartsOn?: number;
     /** The day that counts as today, `YYYY-MM-DD`; the backend's by default. */
     today?: string;
@@ -63,11 +56,14 @@ export default function MonthCalendar({
     const shared = useToday();
     const today = todayProp ?? shared.date;
     const { url, change } = useListQuery();
+    const todayDate = parseDateValue(today);
+
+    if (todayDate === undefined) {
+        throw new Error(`Today "${today}" is not a date (YYYY-MM-DD).`);
+    }
+
     const month = monthValue(
-        parseMonth(
-            listParam(url, 'month') || defaultMonth || '',
-            parseDateValue(today),
-        ),
+        parseMonth(listParam(url, 'month') || defaultMonth || '', todayDate),
     );
     const byDate = new Map<string, CalendarEvent[]>();
 
@@ -76,36 +72,26 @@ export default function MonthCalendar({
     }
 
     const nav = (label: string, to: string, icon: React.ReactNode) => (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label={label}
-                    onClick={() => change({ month: to })}
-                >
-                    {icon}
-                </Button>
-            </TooltipTrigger>
-            <TooltipContent>{label}</TooltipContent>
-        </Tooltip>
+        <IconButton
+            label={label}
+            variant="outline"
+            onClick={() => change({ month: to })}
+        >
+            {icon}
+        </IconButton>
     );
 
     const header = (
         <div className="flex flex-wrap items-center justify-between gap-2">
-            <Heading title={monthTitle(month, locale)} />
+            <Heading title={monthTitle(month, intlLocale())} />
             <div className="flex items-center gap-2">
-                {nav(
-                    t('Previous month'),
-                    shiftMonth(month, -1),
-                    <ChevronLeft />,
-                )}
-                {nav(t('Next month'), shiftMonth(month, 1), <ChevronRight />)}
+                {nav('Previous month', shiftMonth(month, -1), <ChevronLeft />)}
+                {nav('Next month', shiftMonth(month, 1), <ChevronRight />)}
                 <Button
                     variant="outline"
                     onClick={() => change({ month: today.slice(0, 7) })}
                 >
-                    {t('Today')}
+                    Today
                 </Button>
             </div>
         </div>
@@ -121,7 +107,7 @@ export default function MonthCalendar({
                 {header}
                 {days.length === 0 ? (
                     <div className="rounded-lg border px-4 py-8">
-                        <EmptyState message={t('Nothing this month.')} />
+                        <EmptyState message="Nothing this month." />
                     </div>
                 ) : (
                     days.map((date) => (
@@ -152,7 +138,7 @@ export default function MonthCalendar({
             {header}
             <div className="overflow-hidden rounded-lg border">
                 <div className="grid grid-cols-7 border-b bg-muted text-center text-xs text-muted-foreground">
-                    {weekdayNames(locale, weekStartsOn).map((name) => (
+                    {weekdayNames(intlLocale(), weekStartsOn).map((name) => (
                         <div key={name} className="py-2">
                             {name}
                         </div>
@@ -206,11 +192,9 @@ export default function MonthCalendar({
                                             onClick={() => onMore(day.date)}
                                             className="rounded-md px-2 py-1 text-left text-xs text-muted-foreground transition-colors hover:bg-accent active:bg-accent-pressed"
                                         >
-                                            {t('+:count more', {
-                                                count:
-                                                    dayEvents.length -
-                                                    visibleEvents,
-                                            })}
+                                            {`+${
+                                                dayEvents.length - visibleEvents
+                                            } more`}
                                         </button>
                                     ) : null}
                                 </div>

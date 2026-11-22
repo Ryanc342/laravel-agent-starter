@@ -1,7 +1,7 @@
 export type StatTile = { label: string; value: string };
 
 /**
- * A row of number tiles (docs/design/patterns/report.md): a label and one
+ * A row of number tiles: a label and one
  * figure each, in a bordered box. The figures are the backend's, already
  * formatted; there are no placeholders, and a tile shows no chart of its own.
  */

@@ -1,8 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
-import NotificationReadController from '@/actions/App/Http/Controllers/NotificationReadController';
 import FeedRow from '@/components/shared/feed-row';
-import type { AppNotification } from '@/types/notification';
+import { store as markRead } from '@/routes/notifications/read';
 
 /**
  * One notification, as a row of the notifications page ("list") or of the
@@ -16,7 +15,7 @@ export default function NotificationRow({
     variant = 'list',
     onMarkedRead,
 }: {
-    notification: AppNotification;
+    notification: App.Http.Resources.NotificationResource;
     variant?: 'list' | 'menu';
     onMarkedRead?: () => void;
 }) {
@@ -32,15 +31,12 @@ export default function NotificationRow({
             onClick={
                 notification.can.mark_read
                     ? () =>
-                          router.visit(
-                              NotificationReadController.store(notification.id),
-                              {
-                                  preserveScroll: true,
-                                  onStart: () => setProcessing(true),
-                                  onFinish: () => setProcessing(false),
-                                  onSuccess: onMarkedRead,
-                              },
-                          )
+                          router.visit(markRead(notification.id), {
+                              preserveScroll: true,
+                              onStart: () => setProcessing(true),
+                              onFinish: () => setProcessing(false),
+                              onSuccess: onMarkedRead,
+                          })
                     : undefined
             }
         />

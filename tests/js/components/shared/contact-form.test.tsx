@@ -3,9 +3,10 @@ import { expect, test, vi } from 'vite-plus/test';
 import ContactForm from '@/components/shared/contact-form';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
+vi.mock('@inertiajs/react', () => ({ useFormContext: () => undefined }));
 
 test('name, email, subject and message are labelled fields with the names the server expects', () => {
-    render(<ContactForm />);
+    render(<ContactForm sending={false} />);
 
     expect(screen.getByLabelText('Name').getAttribute('name')).toBe('name');
     expect(screen.getByLabelText('Email').getAttribute('name')).toBe('email');
@@ -20,19 +21,20 @@ test('name, email, subject and message are labelled fields with the names the se
     expect(message.getAttribute('name')).toBe('message');
 });
 
-test('one button, named for what happens', () => {
-    render(<ContactForm />);
+test('one button, a verb, that sends the form', () => {
+    render(<ContactForm sending={false} />);
 
     const buttons = screen.getAllByRole('button');
 
     expect(buttons).toHaveLength(1);
-    expect(buttons[0].textContent).toBe('Send message');
+    expect(buttons[0].textContent).toBe('Send');
     expect(buttons[0].getAttribute('type')).toBe('submit');
 });
 
 test('an error marks its field with a red border and shows no visible text under it', () => {
     render(
         <ContactForm
+            sending={false}
             errors={{ email: 'Enter an email address like name@example.com.' }}
         />,
     );
@@ -46,7 +48,7 @@ test('an error marks its field with a red border and shows no visible text under
 });
 
 test('while sending the button is disabled and shows a spinner', () => {
-    render(<ContactForm processing />);
+    render(<ContactForm sending />);
 
     expect((screen.getByRole('button') as HTMLButtonElement).disabled).toBe(
         true,
@@ -56,11 +58,14 @@ test('while sending the button is disabled and shows a spinner', () => {
 
 test('typed values come back after a failed send', () => {
     render(
-        <ContactForm defaultValues={{ name: '陈美玲', subject: 'Order 12' }} />,
+        <ContactForm
+            sending={false}
+            defaultValues={{ name: 'Tan Mei Ling', subject: 'Order 12' }}
+        />,
     );
 
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe(
-        '陈美玲',
+        'Tan Mei Ling',
     );
     expect((screen.getByLabelText('Subject') as HTMLInputElement).value).toBe(
         'Order 12',

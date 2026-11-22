@@ -8,10 +8,10 @@ import {
     weekdayNames,
 } from '@/lib/month-grid';
 
-test('a month value is read, and anything else means the fallback month', () => {
+test("a month value is read, and anything else means the fallback month (the backend's today, never the browser clock)", () => {
     const fallback = new Date(2026, 5, 17);
 
-    expect(monthValue(parseMonth('2026-11'))).toBe('2026-11');
+    expect(monthValue(parseMonth('2026-11', fallback))).toBe('2026-11');
     expect(monthValue(parseMonth('', fallback))).toBe('2026-06');
     expect(monthValue(parseMonth('2026-13', fallback))).toBe('2026-06');
     expect(monthValue(parseMonth('nonsense', fallback))).toBe('2026-06');
@@ -54,5 +54,9 @@ test('weekday names and the month title follow the language', () => {
     expect(weekdayNames('en', 1)[0]).toBe('Mon');
     expect(weekdayNames('en', 1)).toHaveLength(7);
     expect(monthTitle('2026-11', 'en')).toBe('November 2026');
-    expect(monthTitle('2026-11', 'zh-CN')).toContain('11月');
+});
+
+test('a month that is not a "YYYY-MM" value is a programming error past the URL', () => {
+    expect(() => shiftMonth('2026-13', 1)).toThrow('"2026-13" is not a month');
+    expect(() => monthGrid('')).toThrow('"" is not a month');
 });

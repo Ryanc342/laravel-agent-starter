@@ -10,8 +10,8 @@ import {
 import { cn } from "@/lib/utils"
 
 /**
- * One entry per series. `color` is a theme token such as `var(--chart-1)`;
- * the series are coloured through `var(--color-<key>)` (patterns/report.md).
+ * One entry per series. `color` is a theme token, `var(--chart-<n>)`;
+ * the series are coloured through `var(--color-<key>)`.
  */
 export type ChartConfig = Record<string, { label: string; color: string }>
 

@@ -14,11 +14,10 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
-import { msg } from '@/lib/i18n';
 
 const mainNavItems: NavItem[] = [
     {
-        title: msg('Dashboard'),
+        title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
     },

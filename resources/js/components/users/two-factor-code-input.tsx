@@ -14,7 +14,8 @@ type TwoFactorCodeInputProps = {
 };
 
 /**
- * The boxes for a two-factor code, shared by the login challenge and the setup dialog.
+ * The boxes for a two-factor code, centred, shared by the login challenge and
+ * the setup dialog.
  */
 export default function TwoFactorCodeInput({
     id,
@@ -23,21 +24,23 @@ export default function TwoFactorCodeInput({
     disabled,
 }: TwoFactorCodeInputProps) {
     return (
-        <InputOTP
-            id={id}
-            name="code"
-            maxLength={OTP_MAX_LENGTH}
-            value={value}
-            onChange={onChange}
-            disabled={disabled}
-            pattern={REGEXP_ONLY_DIGITS}
-            autoFocus
-        >
-            <InputOTPGroup>
-                {Array.from({ length: OTP_MAX_LENGTH }, (_, index) => (
-                    <InputOTPSlot key={index} index={index} />
-                ))}
-            </InputOTPGroup>
-        </InputOTP>
+        <div className="flex justify-center">
+            <InputOTP
+                id={id}
+                name="code"
+                maxLength={OTP_MAX_LENGTH}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+                pattern={REGEXP_ONLY_DIGITS}
+                autoFocus
+            >
+                <InputOTPGroup>
+                    {Array.from({ length: OTP_MAX_LENGTH }, (_, index) => (
+                        <InputOTPSlot key={index} index={index} />
+                    ))}
+                </InputOTPGroup>
+            </InputOTP>
+        </div>
     );
 }

@@ -16,6 +16,9 @@
         <testsuite name="Structure">
             <directory>tests/Structure</directory>
         </testsuite>
+        <testsuite name="Browser">
+            <directory>tests/Browser</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

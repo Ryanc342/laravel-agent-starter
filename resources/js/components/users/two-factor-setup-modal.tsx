@@ -6,7 +6,6 @@ import ResponsiveDialog, {
 import TwoFactorSetupStep from '@/components/users/two-factor-setup-step';
 import TwoFactorVerificationStep from '@/components/users/two-factor-verification-step';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
-import { t } from '@/lib/i18n';
 
 type Props = {
     isOpen: boolean;
@@ -34,7 +33,6 @@ export default function TwoFactorSetupModal({
     const [showVerificationStep, setShowVerificationStep] =
         useState<boolean>(false);
 
-    // Not memoised: the sentences must follow the language of the page.
     const modalConfig = ((): {
         title: string;
         description: string;
@@ -42,31 +40,26 @@ export default function TwoFactorSetupModal({
     } => {
         if (twoFactorEnabled) {
             return {
-                title: t('Two-factor authentication enabled'),
-                description: t(
+                title: 'Two-factor authentication enabled',
+                description:
                     'Scan the QR code or enter the setup key in your authenticator app.',
-                ),
-                buttonText: t('Close'),
+                buttonText: 'Close',
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: t('Verify authentication code'),
-                description: t(
-                    'Enter the :length-digit code from your authenticator app.',
-                    { length: OTP_MAX_LENGTH },
-                ),
-                buttonText: t('Continue'),
+                title: 'Verify authentication code',
+                description: `Enter the ${OTP_MAX_LENGTH}-digit code from your authenticator app.`,
+                buttonText: 'Continue',
             };
         }
 
         return {
-            title: t('Enable two-factor authentication'),
-            description: t(
+            title: 'Enable two-factor authentication',
+            description:
                 'Scan the QR code or enter the setup key in your authenticator app.',
-            ),
-            buttonText: t('Continue'),
+            buttonText: 'Continue',
         };
     })();
 

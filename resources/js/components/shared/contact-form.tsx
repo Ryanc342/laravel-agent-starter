@@ -1,96 +1,57 @@
-import FormField from '@/components/shared/form-field';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
-import { msg, t } from '@/lib/i18n';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
+import TextareaField from '@/components/shared/textarea-field';
 
 type ContactValues = Partial<
     Record<'name' | 'email' | 'subject' | 'message', string>
 >;
 
 /**
- * The fields and the button of a contact form (docs/design/patterns/contact.md):
- * name, email, subject and message as `FormField` rows, and one button. It sits
- * inside the page's own form (Inertia's `<Form>`, which gives `errors` and
- * `processing`). An error gives its field a red border and no text; the toast
- * and the focus come from `useValidationErrorToasts`. `defaultValues` bring
- * back what was typed.
+ * The fields and the button of a contact form: name, email, subject and
+ * message, then Send. Use it on a contact page, inside the page's Inertia
+ * `<Form>`, which gives `errors`. `defaultValues` bring back what was typed.
+ * `sending` is only for a form that is not an Inertia `<Form>` (SubmitButton).
  */
-const defaultLabels = {
-    name: msg('Name'),
-    email: msg('Email'),
-    subject: msg('Subject'),
-    message: msg('Message'),
-};
-
 export default function ContactForm({
     errors = {},
-    processing = false,
     defaultValues = {},
-    submitLabel = msg('Send message'),
-    labels = defaultLabels,
+    sending,
 }: {
     errors?: Record<string, string>;
-    processing?: boolean;
     defaultValues?: ContactValues;
-    submitLabel?: string;
-    labels?: typeof defaultLabels;
+    sending?: boolean;
 }) {
     return (
         <div className="grid gap-6">
-            <FormField
-                label={t(labels.name)}
-                htmlFor="contact-name"
+            <TextField
+                label="Name"
+                name="name"
+                autoComplete="name"
+                defaultValue={defaultValues.name}
                 error={errors.name}
-            >
-                <Input
-                    id="contact-name"
-                    name="name"
-                    autoComplete="name"
-                    defaultValue={defaultValues.name}
-                />
-            </FormField>
-            <FormField
-                label={t(labels.email)}
-                htmlFor="contact-email"
+            />
+            <TextField
+                label="Email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                defaultValue={defaultValues.email}
                 error={errors.email}
-            >
-                <Input
-                    id="contact-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    defaultValue={defaultValues.email}
-                />
-            </FormField>
-            <FormField
-                label={t(labels.subject)}
-                htmlFor="contact-subject"
+            />
+            <TextField
+                label="Subject"
+                name="subject"
+                defaultValue={defaultValues.subject}
                 error={errors.subject}
-            >
-                <Input
-                    id="contact-subject"
-                    name="subject"
-                    defaultValue={defaultValues.subject}
-                />
-            </FormField>
-            <FormField
-                label={t(labels.message)}
-                htmlFor="contact-message"
+            />
+            <TextareaField
+                label="Message"
+                name="message"
+                defaultValue={defaultValues.message}
                 error={errors.message}
-            >
-                <Textarea
-                    id="contact-message"
-                    name="message"
-                    defaultValue={defaultValues.message}
-                />
-            </FormField>
+            />
             <div>
-                <Button type="submit" disabled={processing}>
-                    {processing && <Spinner />}
-                    {t(submitLabel)}
-                </Button>
+                <SubmitButton sending={sending}>Send</SubmitButton>
             </div>
         </div>
     );

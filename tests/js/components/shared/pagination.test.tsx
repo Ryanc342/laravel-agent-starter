@@ -85,8 +85,10 @@ afterEach(() => {
 });
 
 test('the page links and the rows-per-page choice sit in one row', () => {
-    render(<Pagination collection={collection(45, 20, 2)} />);
-    const nav = screen.getByRole('navigation', { name: 'Pagination' });
+    render(
+        <Pagination label="Task pages" collection={collection(45, 20, 2)} />,
+    );
+    const nav = screen.getByRole('navigation', { name: 'Task pages' });
 
     expect(nav.textContent).toContain('Page 2 of 3');
     expect(screen.getByRole('link', { name: 'Previous' })).toBeTruthy();
@@ -95,7 +97,7 @@ test('the page links and the rows-per-page choice sit in one row', () => {
 });
 
 test('the choice offers the four sizes the backend sends and shows the current one', () => {
-    render(<Pagination collection={collection(45, 50)} />);
+    render(<Pagination label="Task pages" collection={collection(45, 50)} />);
     const choice = screen.getByLabelText('Rows per page') as HTMLSelectElement;
 
     expect(Array.from(choice.options).map((option) => option.value)).toEqual([
@@ -108,7 +110,9 @@ test('the choice offers the four sizes the backend sends and shows the current o
 });
 
 test('picking a size reloads the list on its first page and keeps the filters', () => {
-    render(<Pagination collection={collection(45, 20, 2)} />);
+    render(
+        <Pagination label="Task pages" collection={collection(45, 20, 2)} />,
+    );
 
     fireEvent.change(screen.getByLabelText('Rows per page'), {
         target: { value: '100' },
@@ -119,7 +123,7 @@ test('picking a size reloads the list on its first page and keeps the filters', 
 });
 
 test('a list on one page still offers the choice when it has more rows than the smallest size', () => {
-    render(<Pagination collection={collection(15, 20)} />);
+    render(<Pagination label="Task pages" collection={collection(15, 20)} />);
 
     expect(screen.getByLabelText('Rows per page')).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Next' })).toBeNull();
@@ -127,13 +131,17 @@ test('a list on one page still offers the choice when it has more rows than the 
 });
 
 test('a list that fits the smallest size shows nothing', () => {
-    const { container } = render(<Pagination collection={collection(8, 20)} />);
+    const { container } = render(
+        <Pagination label="Task pages" collection={collection(8, 20)} />,
+    );
 
     expect(container.firstChild).toBeNull();
 });
 
 test('a collection that is not paginated shows nothing', () => {
-    const { container } = render(<Pagination collection={{ data: [] }} />);
+    const { container } = render(
+        <Pagination label="Task pages" collection={{ data: [] }} />,
+    );
 
     expect(container.firstChild).toBeNull();
 });

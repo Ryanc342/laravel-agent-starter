@@ -3,9 +3,8 @@ import { Bell } from 'lucide-react';
 import { useState } from 'react';
 import MarkAllReadButton from '@/components/notifications/mark-all-read-button';
 import NotificationRow from '@/components/notifications/notification-row';
-import EmptyState from '@/components/shared/empty-state';
-import ErrorState from '@/components/shared/error-state';
-import LoadingState from '@/components/shared/loading-state';
+import FeedList from '@/components/shared/feed-list';
+import IconButton from '@/components/shared/icon-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,14 +12,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useLatestNotifications } from '@/hooks/use-latest-notifications';
 import { index } from '@/routes/notifications';
-import { t } from '@/lib/i18n';
 
 /**
  * The bell in the top bar. The unread count comes with every page
@@ -49,64 +42,50 @@ export default function NotificationMenu() {
                 }
             }}
         >
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="relative"
-                            aria-label={
-                                unread > 0
-                                    ? t('Notifications, :count unread', {
-                                          count: unread,
-                                      })
-                                    : t('Notifications')
-                            }
-                        >
-                            <Bell />
-                            {unread > 0 && (
-                                <Badge
-                                    size="count"
-                                    className="pointer-events-none absolute -top-1 -right-1"
-                                >
-                                    {unread > 9 ? '9+' : unread}
-                                </Badge>
-                            )}
-                        </Button>
-                    </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent>{t('Notifications')}</TooltipContent>
-            </Tooltip>
+            <IconButton
+                trigger={PopoverTrigger}
+                label={
+                    unread > 0
+                        ? `Notifications, ${unread} unread`
+                        : 'Notifications'
+                }
+                className="relative"
+            >
+                <Bell />
+                {unread > 0 && (
+                    <Badge
+                        size="count"
+                        className="pointer-events-none absolute -top-1 -right-1"
+                    >
+                        {unread > 9 ? '9+' : unread}
+                    </Badge>
+                )}
+            </IconButton>
 
             <PopoverContent align="end" className="w-80 p-0">
                 <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
-                    <h2 className="text-sm font-medium">
-                        {t('Notifications')}
-                    </h2>
+                    <h2 className="text-sm font-medium">Notifications</h2>
                     {notificationSummary.can.mark_all_read && (
                         <MarkAllReadButton size="sm" onSuccess={loadLatest} />
                     )}
                 </div>
 
-                {failed ? (
-                    <div className="px-4 py-6">
-                        <ErrorState
-                            message={t('Could not load your notifications.')}
-                            onRetry={loadLatest}
-                        />
-                    </div>
-                ) : latest === undefined ? (
-                    <div className="p-4">
-                        <LoadingState rows={3} />
-                    </div>
-                ) : latest.length === 0 ? (
-                    <div className="px-4 py-6">
-                        <EmptyState message={t('You have no notifications.')} />
-                    </div>
-                ) : (
-                    <ul className="max-h-96 divide-y overflow-y-auto">
-                        {latest.map((notification) => (
+                <div className="max-h-96 overflow-y-auto">
+                    <FeedList
+                        framed={false}
+                        emptyMessage="You have no notifications."
+                        loading={!failed && latest === undefined}
+                        error={
+                            failed
+                                ? {
+                                      message:
+                                          'Could not load your notifications.',
+                                      onRetry: loadLatest,
+                                  }
+                                : undefined
+                        }
+                    >
+                        {latest?.map((notification) => (
                             <NotificationRow
                                 key={notification.id}
                                 notification={notification}
@@ -114,8 +93,8 @@ export default function NotificationMenu() {
                                 onMarkedRead={loadLatest}
                             />
                         ))}
-                    </ul>
-                )}
+                    </FeedList>
+                </div>
 
                 <div className="border-t p-1">
                     <Button
@@ -125,7 +104,7 @@ export default function NotificationMenu() {
                         asChild
                     >
                         <Link href={index()} onClick={() => setOpen(false)}>
-                            {t('View all')}
+                            View all
                         </Link>
                     </Button>
                 </div>

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import Heading from '@/components/heading';
 import KanbanBoard from '@/components/shared/kanban-board';
+import PageHeader from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import type { KanbanColumn, KanbanMove } from '@/lib/kanban';
-import { t } from '@/lib/i18n';
-import Actions from '@/components/shared/actions';
 
 export type ExampleCard = { id: string; title: string; owner: string };
 
@@ -43,23 +41,16 @@ export default function KanbanDemo({
 }: {
     columns: KanbanColumn<ExampleCard>[];
 }) {
-    const [columns, setColumns] = useState(() =>
-        initial.map((column) => ({ ...column, label: t(column.label) })),
-    );
+    const [columns, setColumns] = useState(initial);
 
     return (
         <div className="grid gap-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-                <Heading title={t('Orders')} />
-                <Actions>
-                    <Button>{t('Add order')}</Button>
-                </Actions>
-            </div>
+            <PageHeader title="Orders" actions={<Button>Add</Button>} />
             <KanbanBoard
                 columns={columns}
                 onMove={(move) => {
                     setColumns(applyMove(columns, move));
-                    toast.success(t('Order moved.'), { id: 'kanban-move' });
+                    toast.success('Order moved.', { id: 'kanban-move' });
                 }}
                 renderCard={(card) => (
                     <>

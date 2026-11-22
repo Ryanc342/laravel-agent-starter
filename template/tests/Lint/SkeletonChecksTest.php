@@ -2,18 +2,17 @@
 
 use Symfony\Component\Process\Process;
 use Tests\Structure\CheckSettings;
-use Tests\Structure\DesignDocChecks;
 use Tests\Structure\PlacementChecks;
 use Tests\Structure\ProjectFiles;
 
-require_once dirname(__DIR__, 3).'/tests/Support/Workspace.php';
+require_once dirname(__DIR__).'/Support/Workspace.php';
 
 /*
-| The template keeps its machine rules (the `[PHPStan]`, `[oxlint]` and `[Structure]`
-| rules of .claude/rules/: the layer rules of principle 2, component boundaries and no import cycles, the folders of app/,
+| The template keeps its machine rules (the `machine` rules of the skeleton's
+| cards, .claude/rules/skeleton/: the PHPStan layer rules, component boundaries and no import cycles, the folders of app/,
 | where pages and components live, code lives only where the checks read it,
-| no check is silenced, the checks stay as set, the design spec's index and its
-| values, no t() at module level). Each test plants code that
+| no check is silenced, the checks stay as set, the style page shows every
+| shared component, only SubmitButton sends a form). Each test plants code that
 | breaks one kept rule in a fixture project outside the repository and expects
 | the real check, run with the real config, to reject it.
 */
@@ -107,19 +106,52 @@ function skeletonPhpstanFiles(): array
         'app/Policies/SkeletonPolicy.php' => $class('App\\Policies', 'SkeletonPolicy', 'use App\\Actions\\Users\\SkeletonAction;', '    public function run(SkeletonAction $action): void {}'),
         'app/Actions/Skeleton/SkeletonRequestAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonRequestAction', 'use Illuminate\\Http\\Request;', '    public function handle(Request $request): void {}'),
         'app/Actions/Skeleton/SkeletonHelperAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonHelperAction', '', '    public function handle(): mixed { return auth()->id(); }'),
-        'app/Http/Resources/SkeletonResource.php' => $class('App\\Http\\Resources', 'SkeletonResource', 'use App\\Actions\\Users\\SkeletonAction;', '    public function run(SkeletonAction $action): void {}'),
+        'app/Http/Resources/SkeletonResource.php' => $class('App\\Http\\Resources', 'SkeletonResource', "use App\\Actions\\Notifications\\MarkNotificationRead;\nuse App\\Models\\User;", '    public function go(MarkNotificationRead $operation, User $user): mixed { return $operation->run($user); }'),
         'app/Http/Requests/SkeletonRequest.php' => $class('App\\Http\\Requests', 'SkeletonRequest', 'use App\\Actions\\Users\\SkeletonAction;', '    public function run(SkeletonAction $action): void {}'),
         'app/Notifications/SkeletonNotification.php' => $class('App\\Notifications', 'SkeletonNotification', 'use App\\Http\\Resources\\UserResource;', '    public function data(UserResource $resource): void {}'),
         'app/Http/Controllers/SkeletonDbController.php' => $class('App\\Http\\Controllers', 'SkeletonDbController', 'use Illuminate\\Support\\Facades\\DB;', '    public function index(): int { return DB::table(\'users\')->count(); }'),
-        'app/Http/Controllers/SkeletonIntegrationController.php' => $class('App\\Http\\Controllers', 'SkeletonIntegrationController', 'use App\\Integrations\\SkeletonService;', '    public function index(SkeletonService $service): void {}'),
+        'app/Http/Controllers/SkeletonOutsideController.php' => $class('App\\Http\\Controllers', 'SkeletonOutsideController', 'use App\\Actions\\OutsideCall;', '    public function index(OutsideCall $call): void {}'),
         'app/Actions/Skeleton/SkeletonHttpAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonHttpAction', 'use Illuminate\\Support\\Facades\\Http;', '    public function handle(): mixed { return Http::get(\'https://example.com\'); }'),
         'app/Console/SkeletonSeederCommand.php' => $class('App\\Console', 'SkeletonSeederCommand', 'use Database\\Seeders\\DatabaseSeeder;', '    public function handle(DatabaseSeeder $seeder): void {}'),
         'app/Actions/Skeleton/SkeletonFactoryAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonFactoryAction', 'use Database\\Factories\\UserFactory;', '    public function handle(UserFactory $factory): void {}'),
         'app/Support/SkeletonTestSupport.php' => $class('App\\Support', 'SkeletonTestSupport', 'use Tests\\TestCase;', '    public function run(TestCase $test): void {}'),
+        'app/Actions/Skeleton/SkeletonFactoryCall.php' => $class('App\\Actions\\Skeleton', 'SkeletonFactoryCall', 'use App\\Models\\User;', '    public function handle(): void { User::factory()->create(); }'),
+        'app/Http/Controllers/SkeletonConnectionController.php' => $class('App\\Http\\Controllers', 'SkeletonConnectionController', 'use Illuminate\\Database\\ConnectionInterface;', '    public function index(ConnectionInterface $db): int { return $db->table(\'users\')->delete(); }'),
+        'app/Http/Controllers/SkeletonGetConnectionController.php' => $class('App\\Http\\Controllers', 'SkeletonGetConnectionController', 'use App\\Models\\User;', '    public function index(User $user): int { return $user->getConnection()->table(\'users\')->delete(); }'),
+        'app/Models/SkeletonCanModel.php' => $class('App\\Models', 'SkeletonCanModel', '', '    public function allowedFor(User $user): bool { return $user->can(\'view\', $user); }'),
+        'app/Enums/SkeletonGateKind.php' => "<?php\n\nnamespace App\\Enums;\n\nuse Illuminate\\Support\\Facades\\Gate;\n\nenum SkeletonGateKind: string\n{\n    case A = 'a';\n\n    public function allowed(): bool\n    {\n        return Gate::allows('view');\n    }\n}\n",
+        'app/Policies/SkeletonGuardPolicy.php' => $class('App\\Policies', 'SkeletonGuardPolicy', 'use Illuminate\\Contracts\\Auth\\Guard;', '    public function __construct(private Guard $guard) {}'),
+        'app/Http/Controllers/SkeletonMailController.php' => $class('App\\Http\\Controllers', 'SkeletonMailController', 'use Illuminate\\Support\\Facades\\Mail;', '    public function index(): void { Mail::raw(\'hello\', function ($message): void {}); }'),
+        'app/Http/Controllers/SkeletonNotifyController.php' => $class('App\\Http\\Controllers', 'SkeletonNotifyController', "use App\\Models\\User;\nuse App\\Notifications\\PasswordChanged;", '    public function index(User $user): void { $user->notify(new PasswordChanged); }'),
+        ...skeletonPhpstanCleanFiles(),
     ];
 }
 
-test('PHPStan keeps the layers of principle 2: each forbidden use in a fixture is rejected', function (string $file, string $forbidden) {
+/**
+ * The same rules met the right way: each file uses what a rule allows where
+ * it allows it, so PHPStan must find nothing in them.
+ *
+ * @return array<string, string>
+ */
+function skeletonPhpstanCleanFiles(): array
+{
+    $class = fn (string $namespace, string $name, string $use, string $body): string => "<?php\n\nnamespace {$namespace};\n\n{$use}\n\nfinal class {$name}\n{\n{$body}\n}\n";
+
+    return [
+        'app/Actions/Skeleton/SkeletonMailAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonMailAction', 'use Illuminate\\Support\\Facades\\Mail;', '    public function handle(): void { Mail::raw(\'hello\', function ($message): void {}); }'),
+        'app/Actions/Skeleton/SkeletonNotifyAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonNotifyAction', "use App\\Models\\User;\nuse App\\Notifications\\PasswordChanged;", '    public function handle(User $user): void { $user->notify(new PasswordChanged); }'),
+        'app/Actions/Skeleton/SkeletonOutsideAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonOutsideAction', 'use App\\Actions\\OutsideCall;', '    public function __construct(private OutsideCall $call) {}'),
+        'app/Actions/Skeleton/SkeletonDbAction.php' => $class('App\\Actions\\Skeleton', 'SkeletonDbAction', 'use Illuminate\\Support\\Facades\\DB;', '    public function handle(): int { return DB::table(\'users\')->count(); }'),
+        'app/Http/Controllers/SkeletonGateController.php' => $class('App\\Http\\Controllers', 'SkeletonGateController', "use App\\Models\\User;\nuse Illuminate\\Support\\Facades\\Gate;", '    public function index(): void { Gate::authorize(\'register\', User::class); }'),
+        'app/Policies/SkeletonModelPolicy.php' => $class('App\\Policies', 'SkeletonModelPolicy', 'use App\\Models\\User;', '    public function view(User $user): bool { return $user->exists; }'),
+    ];
+}
+
+test('PHPStan blocks nothing that is allowed: the clean files of the fixture have no error', function () {
+    expect(array_intersect_key(skeletonPhpstanErrors(), skeletonPhpstanCleanFiles()))->toBe([]);
+});
+
+test('PHPStan keeps the skeleton\'s layer rules: each forbidden use in a fixture is rejected', function (string $file, string $forbidden) {
     expect(implode("\n", skeletonPhpstanErrors()[$file] ?? []))->toContain($forbidden);
 })->with([
     'enums use no models' => ['app/Enums/SkeletonKind.php', 'App\\Models\\User is forbidden'],
@@ -129,15 +161,23 @@ test('PHPStan keeps the layers of principle 2: each forbidden use in a fixture i
     'policies use no actions' => ['app/Policies/SkeletonPolicy.php', 'App\\Actions\\Users\\SkeletonAction is forbidden'],
     'actions use no request classes' => ['app/Actions/Skeleton/SkeletonRequestAction.php', 'Illuminate\\Http\\Request is forbidden'],
     'actions use no request helpers' => ['app/Actions/Skeleton/SkeletonHelperAction.php', 'auth() is forbidden'],
-    'resources call no actions' => ['app/Http/Resources/SkeletonResource.php', 'App\\Actions\\Users\\SkeletonAction is forbidden'],
+    'resources run no operation' => ['app/Http/Resources/SkeletonResource.php', 'App\\Actions\\Operation::run()'],
     'form requests call no actions' => ['app/Http/Requests/SkeletonRequest.php', 'App\\Actions\\Users\\SkeletonAction is forbidden'],
     'notifications use no http' => ['app/Notifications/SkeletonNotification.php', 'App\\Http\\Resources\\UserResource is forbidden'],
     'controllers use no DB facade' => ['app/Http/Controllers/SkeletonDbController.php', 'Illuminate\\Support\\Facades\\DB is forbidden'],
-    'integrations only from actions' => ['app/Http/Controllers/SkeletonIntegrationController.php', 'App\\Integrations\\SkeletonService is forbidden'],
-    'the http client only in integrations' => ['app/Actions/Skeleton/SkeletonHttpAction.php', 'Illuminate\\Support\\Facades\\Http is forbidden'],
+    'the outside-service part only from actions' => ['app/Http/Controllers/SkeletonOutsideController.php', 'App\\Actions\\OutsideCall is forbidden'],
+    'the http client only in the outside-service part' => ['app/Actions/Skeleton/SkeletonHttpAction.php', 'Illuminate\\Support\\Facades\\Http is forbidden'],
     'the app uses no seeders' => ['app/Console/SkeletonSeederCommand.php', 'Database\\Seeders\\DatabaseSeeder is forbidden'],
     'factories only in models' => ['app/Actions/Skeleton/SkeletonFactoryAction.php', 'Database\\Factories\\UserFactory is forbidden'],
     'the app uses no test code' => ['app/Support/SkeletonTestSupport.php', 'Tests\\TestCase is forbidden'],
+    'the app makes no record with a factory' => ['app/Actions/Skeleton/SkeletonFactoryCall.php', 'HasFactory::factory()'],
+    'controllers take no database connection' => ['app/Http/Controllers/SkeletonConnectionController.php', 'Illuminate\\Database\\ConnectionInterface is forbidden'],
+    'controllers ask no model for its connection' => ['app/Http/Controllers/SkeletonGetConnectionController.php', 'Model::getConnection()'],
+    'models check no permission through the user' => ['app/Models/SkeletonCanModel.php', 'Authorizable::can()'],
+    'enums use no Gate' => ['app/Enums/SkeletonGateKind.php', 'Illuminate\\Support\\Facades\\Gate is forbidden'],
+    'policies take no guard' => ['app/Policies/SkeletonGuardPolicy.php', 'Illuminate\\Contracts\\Auth\\Guard is forbidden'],
+    'only actions send mail' => ['app/Http/Controllers/SkeletonMailController.php', 'Illuminate\\Support\\Facades\\Mail is forbidden'],
+    'only actions send notifications' => ['app/Http/Controllers/SkeletonNotifyController.php', 'notify()'],
 ]);
 
 /**
@@ -161,13 +201,9 @@ function skeletonOxlintErrors(): array
         'resources/js/components/shared/shared-card.tsx' => "import { BetaCard } from '@/components/beta/beta-card';\n\nexport const SharedCard = BetaCard;\n",
         'resources/js/lib/first.ts' => "import { second } from './second';\n\nexport const first = (): unknown => second;\n",
         'resources/js/lib/second.ts' => "import { first } from './first';\n\nexport const second = (): unknown => first;\n",
-        'resources/js/lib/title.ts' => "import { t } from '@/lib/i18n';\n\nexport const title = t('Dashboard');\n",
-        'resources/js/lib/nav-items.ts' => "import { tChoice } from '@/lib/i18n';\n\nexport const items = [{ title: tChoice('{1} :count task|[2,*] :count tasks', 2) }];\n",
-        'resources/js/lib/labels.ts' => "import { t as translate } from '@/lib/i18n';\n\nexport class Labels {\n    save = translate('Save');\n}\n",
-        'resources/js/components/beta/beta-title.tsx' => "import { t } from '@/lib/i18n';\n\nexport function BetaTitle() {\n    return t('Dashboard');\n}\n\nexport function marker() {\n    debugger;\n}\n",
-        'resources/js/lib/marked.ts' => "import { msg } from '@/lib/i18n';\n\nexport const marked = [{ title: msg('Dashboard') }];\n\nexport function marker() {\n    debugger;\n}\n",
-        'resources/js/lib/later.ts' => "import { t } from '@/lib/i18n';\n\nexport const label = () => t('Save');\nexport const items = [{ title: function () { return t('Save'); } }];\n\nexport function marker() {\n    debugger;\n}\n",
-        'resources/js/lib/own-t.ts' => "import { t } from '@/lib/format';\n\nexport const total = t('Save');\n\nexport function marker() {\n    debugger;\n}\n",
+        'resources/js/components/alpha/alpha-submit.tsx' => "export const AlphaSubmit = () => <button type=\"submit\">Save</button>;\n",
+        'resources/js/components/alpha/alpha-plain.tsx' => "export const AlphaPlain = () => <button>Save</button>;\n",
+        ...skeletonOxlintCleanFiles(),
     ]);
     $project = dirname(__DIR__, 3);
 
@@ -191,27 +227,76 @@ function skeletonOxlintErrors(): array
     return $errors;
 }
 
-test('oxlint keeps the component boundaries and rejects import cycles', function (string $file, string $rule) {
+/**
+ * The same rules met the right way: a domain uses a shared component, a page
+ * uses a domain component, SubmitButton says type="submit" and a plain button
+ * says its type. oxlint must find nothing in them.
+ *
+ * @return array<string, string>
+ */
+function skeletonOxlintCleanFiles(): array
+{
+    return [
+        'resources/js/components/shared/shared-badge.tsx' => "export const SharedBadge = 'badge';\n",
+        'resources/js/components/alpha/alpha-badge.tsx' => "import { SharedBadge } from '@/components/shared/shared-badge';\n\nexport const AlphaBadge = SharedBadge;\n",
+        'resources/js/pages/home/index.tsx' => "import { AlphaBadge } from '@/components/alpha/alpha-badge';\n\nexport default function Home() {\n    return <p>{AlphaBadge}</p>;\n}\n",
+        'resources/js/components/shared/submit-button.tsx' => "export default function SubmitButton() {\n    return <button type=\"submit\">Save</button>;\n}\n",
+        'resources/js/components/alpha/alpha-toggle.tsx' => "export const AlphaToggle = () => <button type=\"button\">Show</button>;\n",
+    ];
+}
+
+test('oxlint blocks nothing that is allowed: the clean files of the fixture have no error', function () {
+    expect(array_intersect_key(skeletonOxlintErrors(), skeletonOxlintCleanFiles()))->toBe([]);
+});
+
+test('oxlint keeps the component boundaries, rejects import cycles and lets only SubmitButton send a form', function (string $file, string $rule) {
     expect(skeletonOxlintErrors()[$file] ?? '')->toContain($rule);
 })->with([
     'a domain imports another domain' => ['resources/js/components/alpha/alpha-card.tsx', 'ezdev(component-boundaries)'],
     'a component imports a page' => ['resources/js/components/beta/beta-page-link.tsx', 'ezdev(component-boundaries)'],
     'shared imports a domain' => ['resources/js/components/shared/shared-card.tsx', 'ezdev(component-boundaries)'],
     'an import cycle' => ['resources/js/lib/first.ts', 'import(no-cycle)'],
-    't() at module level' => ['resources/js/lib/title.ts', 'ezdev(no-module-level-t)'],
-    'tChoice() in a module-level array' => ['resources/js/lib/nav-items.ts', 'ezdev(no-module-level-t)'],
-    't() in a class field' => ['resources/js/lib/labels.ts', 'ezdev(no-module-level-t)'],
+    'a button that says type="submit"' => ['resources/js/components/alpha/alpha-submit.tsx', 'ezdev(submit-button)'],
+    'a plain button without a type' => ['resources/js/components/alpha/alpha-plain.tsx', 'ezdev(submit-button)'],
 ]);
 
-test('oxlint lets t() run inside a function and msg() mark a sentence at module level', function (string $file) {
-    // Each clean file also holds a `debugger` on purpose: its error proves oxlint linted the file.
-    expect(skeletonOxlintErrors()[$file] ?? '')->toContain('no-debugger')->not->toContain('no-module-level-t');
-})->with([
-    't() inside a component' => ['resources/js/components/beta/beta-title.tsx'],
-    'msg() at module level' => ['resources/js/lib/marked.ts'],
-    't() inside an arrow function and a function expression' => ['resources/js/lib/later.ts'],
-    'a t() imported from another module' => ['resources/js/lib/own-t.ts'],
-]);
+/**
+ * A fixture where every structure check has something to read and everything
+ * sits where it may: an operation in its domain folder, a page in its domain
+ * folder, a shared component the style page shows, a component of the starter
+ * kit at the components root, components/ui importing a helper, Markdown in
+ * docs/, Laravel's front controller in public/, a PHP file required by PHP.
+ */
+function skeletonStructureCleanFixture(): string
+{
+    return skeletonFixture([
+        'app/Actions/Users/SkeletonOperation.php' => "<?php\n\nnamespace App\\Actions\\Users;\n\nuse App\\Actions\\Operation;\n\nfinal class SkeletonOperation extends Operation\n{\n}\n",
+        'app/Models/SkeletonModel.php' => "<?php\n\nnamespace App\\Models;\n\nfinal class SkeletonModel\n{\n}\n",
+        'resources/js/app.tsx' => "export {};\n",
+        'resources/js/pages/home/index.tsx' => "export default function Home() {\n    return null;\n}\n",
+        'resources/js/components/heading.tsx' => "export default function Heading() {\n    return null;\n}\n",
+        'resources/js/components/shared/badge-row.tsx' => "export default function BadgeRow() {\n    return null;\n}\n",
+        'resources/js/components/style/shared-demo.tsx' => "import BadgeRow from '@/components/shared/badge-row';\n\nexport default BadgeRow;\n",
+        'resources/js/components/ui/button.tsx' => "import { cn } from '@/lib/utils';\n\nexport const Button = cn;\n",
+        'resources/js/lib/utils.ts' => "export const cn = (): string => '';\n",
+        'docs/notes.md' => "# Notes\n",
+        'public/index.php' => "<?php\n",
+        'routes/web.php' => "<?php\n\nrequire __DIR__.'/settings.php';\n",
+        'routes/settings.php' => "<?php\n",
+        'resources/views/app.blade.php' => "<div>{{ \$page['component'] }}</div>\n",
+    ]);
+}
+
+test('the structure checks block nothing that is allowed: every check passes on the clean fixture', function () {
+    $root = skeletonStructureCleanFixture();
+    $found = [];
+
+    foreach ((new ReflectionClass(PlacementChecks::class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        $found = [...$found, ...ProjectFiles::at($root, fn () => $method->invoke(null))];
+    }
+
+    expect($found)->toBe([]);
+});
 
 test('the structure checks reject a file in the wrong place', function (array $files, Closure $check, string $found) {
     $root = skeletonFixture($files);
@@ -227,20 +312,10 @@ test('the structure checks reject a file in the wrong place', function (array $f
     'a non-Markdown file in docs/' => [['docs/notes.php' => "<?php\n"], fn () => PlacementChecks::docsMarkdownOnly(), 'docs/notes.php'],
     'PHP in public/' => [['public/tool.php' => "<?php\n"], fn () => PlacementChecks::publicNoPhp(), 'public/tool.php'],
     'an import that leaves resources/js' => [['resources/js/lib/outside.ts' => "import x from '../../../app/x';\n\nexport default x;\n"], fn () => PlacementChecks::importsStayInside(), 'resources/js/lib/outside.ts'],
+    'an action that is not an operation' => [['app/Actions/Users/PlainAction.php' => "<?php\n\nnamespace App\\Actions\\Users;\n\nfinal class PlainAction\n{\n}\n"], fn () => PlacementChecks::actionsAreOperations(), 'app/Actions/Users/PlainAction.php'],
     'PHP required from a non-PHP file' => [['app/Support/Loader.php' => "<?php\n\nrequire __DIR__.'/code.txt';\n"], fn () => PlacementChecks::requiresOnlyPhp(), 'app/Support/Loader.php'],
     'PHP in a Blade view' => [['resources/views/app.blade.php' => "@php \$x = 1; @endphp\n"], fn () => PlacementChecks::bladeNoPhp(), 'resources/views/app.blade.php'],
-]);
-
-test('the design document checks reject a broken spec', function (array $files, Closure $check, string $found) {
-    $root = skeletonFixture(['DESIGN.md' => "# Design\n\n- docs/design/patterns/list.md\n"] + $files);
-
-    expect(implode("\n", ProjectFiles::at($root, $check)))->toContain($found);
-})->with([
-    'a pattern file missing from the index' => [['docs/design/patterns/wizard.md' => "# Wizard\n\n## Demo\n"], fn () => DesignDocChecks::patternIndex(), 'wizard.md: not in the DESIGN.md index'],
-    'a pattern file without its Sample or Demo' => [['docs/design/patterns/list.md' => "# List\n"], fn () => DesignDocChecks::patternIndex(), 'list.md: no Sample or Demo section'],
-    'a named file that does not exist' => [['docs/design/patterns/list.md' => "# List\n\n## Demo\n\n`resources/js/pages/style/missing.tsx`\n"], fn () => DesignDocChecks::patternFiles(), 'list.md: resources/js/pages/style/missing.tsx'],
-    'a pixel value' => [['docs/design/foundations.md' => "A card has 24px of padding.\n"], fn () => DesignDocChecks::designValues(), 'foundations.md:1: 24px'],
-    'a Tailwind size class' => [['docs/design/patterns/list.md' => "# List\n\n## Demo\n\nUse `p-6` for the card.\n"], fn () => DesignDocChecks::designValues(), 'list.md:5: p-6'],
+    'a shared component the style page does not show' => [['resources/js/components/shared/badge-row.tsx' => "export default function BadgeRow() {\n    return null;\n}\n", 'resources/js/components/style/shared-demo.tsx' => "export default function SharedDemo() {\n    return null;\n}\n"], fn () => PlacementChecks::styleShowsSharedComponents(), 'resources/js/components/shared/badge-row.tsx'],
 ]);
 
 test('the structure checks reject a symlink', function () {
@@ -310,7 +385,7 @@ test('the settings checks reject a check that is switched off or turned down', f
 })->with([
     'a lower PHPStan level' => ['phpstan.neon', 'level: 7', 'level: 5', fn () => CheckSettings::phpstan(), 'level'],
     'a layer rule removed' => ['phpstan.neon', "namespace:\n                - 'Illuminate\\Support\\Facades\\DB'", "namespace:\n                - 'Illuminate\\Support\\Facades\\Schema'", fn () => CheckSettings::phpstan(), 'Illuminate\\Support\\Facades\\DB'],
-    'a layer rule widened' => ['phpstan.neon', "allowIn:\n                - app/Integrations/*\n", "allowIn:\n                - app/Integrations/*\n                - app/Http/*\n", fn () => CheckSettings::phpstan(), 'Illuminate\\Support\\Facades\\Http'],
+    'a layer rule widened' => ['phpstan.neon', "allowIn:\n                - app/Actions/OutsideCall.php\n", "allowIn:\n                - app/Actions/OutsideCall.php\n                - app/Http/*\n", fn () => CheckSettings::phpstan(), 'Illuminate\\Support\\Facades\\Http'],
     'a request helper allowed again' => ['phpstan.neon', "                - 'auth()'\n", '', fn () => CheckSettings::phpstan(), 'auth()'],
     'the component boundaries off' => ['vite.config.ts', "'ezdev/component-boundaries': 'error'", "'ezdev/component-boundaries': 'off'", fn () => CheckSettings::oxlint(), 'ezdev/component-boundaries'],
     'import cycles allowed' => ['vite.config.ts', "'import/no-cycle': 'error'", "'import/no-cycle': 'warn'", fn () => CheckSettings::oxlint(), 'import/no-cycle'],

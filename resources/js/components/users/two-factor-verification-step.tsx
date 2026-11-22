@@ -2,11 +2,11 @@ import { Form } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import Actions from '@/components/shared/actions';
 import FormField from '@/components/shared/form-field';
+import SubmitButton from '@/components/shared/submit-button';
 import { Button } from '@/components/ui/button';
 import TwoFactorCodeInput from '@/components/users/two-factor-code-input';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { confirm } from '@/routes/two-factor';
-import { t } from '@/lib/i18n';
 
 /**
  * The second step of the setup dialog: confirm the code from the authenticator app.
@@ -49,38 +49,32 @@ export default function TwoFactorVerificationStep({
                         className="relative w-full space-y-3"
                     >
                         <FormField
-                            label={t('Authentication code')}
+                            label="Authentication code"
                             htmlFor="otp"
                             hideLabel
                             className="py-2"
                             error={errors?.confirmTwoFactorAuthentication?.code}
                         >
-                            <div className="flex w-full items-center justify-center">
-                                <TwoFactorCodeInput
-                                    id="otp"
-                                    onChange={setCode}
-                                    disabled={processing}
-                                />
-                            </div>
+                            <TwoFactorCodeInput
+                                id="otp"
+                                onChange={setCode}
+                                disabled={processing}
+                            />
                         </FormField>
 
                         <Actions>
                             <Button
-                                type="button"
                                 variant="outline"
                                 onClick={onBack}
                                 disabled={processing}
                             >
-                                {t('Back')}
+                                Back
                             </Button>
-                            <Button
-                                type="submit"
-                                disabled={
-                                    processing || code.length < OTP_MAX_LENGTH
-                                }
+                            <SubmitButton
+                                disabled={code.length < OTP_MAX_LENGTH}
                             >
-                                {t('Confirm')}
-                            </Button>
+                                Confirm
+                            </SubmitButton>
                         </Actions>
                     </div>
                 </>

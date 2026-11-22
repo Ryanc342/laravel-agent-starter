@@ -1,23 +1,18 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { toast } from 'sonner';
-import { afterEach, beforeEach, expect, test, vi } from 'vite-plus/test';
+import { expect, test, vi } from 'vite-plus/test';
 import CheckoutDemo from '@/components/style/checkout-demo';
 import ContactDemo from '@/components/style/contact-demo';
 import CustomerAreaDemo from '@/components/style/customer-area-demo';
 import {
-    answerCheckout,
-    answerContact,
     checkout,
     contact,
     customerArea,
     help,
     landing,
-    priceCart,
     pricing,
     product,
     publicLinks,
-    publicLinksZh,
 } from '@/components/style/customer-examples';
 import HelpDemo from '@/components/style/help-demo';
 import LandingDemo from '@/components/style/landing-demo';
@@ -29,308 +24,123 @@ vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('@inertiajs/react', () => ({
     router: { get: vi.fn() },
+    useFormContext: () => undefined,
     usePage: () => ({
         url: '/style',
         props: {
             name: 'Acme',
             auth: { user: null },
-            locale: 'en',
-            locales: [
-                { value: 'en', label: 'English', short: 'EN' },
-                { value: 'zh_CN', label: '中文', short: '中文' },
-            ],
+            today: { date: '2026-11-14', year: 2026 },
         },
     }),
+    // Only what reaches the DOM: Inertia's own options (prefetch) stay out, as the real Link keeps them.
     Link: ({
         href,
         children,
-        ...rest
+        className,
+        'aria-current': current,
+        'aria-label': label,
     }: {
         href: unknown;
         children: ReactNode;
+        className?: string;
+        'aria-current'?: 'page' | 'true';
+        'aria-label'?: string;
     }) => (
         <a
             href={
                 typeof href === 'string' ? href : (href as { url: string }).url
             }
-            {...rest}
+            className={className}
+            aria-current={current}
+            aria-label={label}
         >
             {children}
         </a>
     ),
 }));
 
-const failed = vi.fn();
-const listen = (event: Event) => failed((event as CustomEvent).detail.errors);
-
-beforeEach(() => {
-    failed.mockReset();
-    vi.mocked(toast.success).mockClear();
-    document.addEventListener('inertia:error', listen);
-});
-
-afterEach(() => {
-    document.removeEventListener('inertia:error', listen);
-});
-
 function withTooltips(node: ReactNode) {
     return render(<TooltipProvider>{node}</TooltipProvider>);
 }
 
-function renderCheckout(zh = false) {
-    const data = zh ? checkout.zh : checkout.en;
+test('the checkout shows its three steps as fixed states, with the summary the server priced', () => {
+    withTooltips(<CheckoutDemo links={publicLinks} {...checkout} />);
 
-    return withTooltips(
-        <CheckoutDemo
-            links={zh ? publicLinksZh : publicLinks}
-            {...data}
-            price={(items) => priceCart(items, data.labels)}
-            answer={(step, values, items) =>
-                answerCheckout(step, values, items, zh ? 'lines' : 'items', zh)
-            }
-        />,
-    );
-}
-
-test('the checkout starts at the cart with its steps and a summary the server priced', () => {
-    renderCheckout();
-
-    const steps = screen.getByRole('list', { name: 'Steps' });
-
-    expect(within(steps).getAllByRole('listitem')).toHaveLength(3);
+    expect(screen.getAllByRole('list', { name: 'Steps' })).toHaveLength(3);
     expect(
         screen.getByRole('spinbutton', { name: /Quantity of Spare parts/ }),
     ).toBeTruthy();
-    expect(screen.getByText('Subtotal')).toBeTruthy();
-    expect(screen.getByText('Tax (6%)')).toBeTruthy();
+    expect(screen.getAllByText('Subtotal')).toHaveLength(3);
+    expect(
+        screen.getAllByText('Total')[0].nextElementSibling?.textContent,
+    ).toContain('524.70');
 });
 
-test('changing a quantity asks the stand-in server for new totals', () => {
-    renderCheckout();
+test('the details step shows the errors of the data on their fields', () => {
+    withTooltips(<CheckoutDemo links={publicLinks} {...checkout} />);
 
-    const before = screen.getByText('Total').nextElementSibling?.textContent;
-
-    fireEvent.change(
-        screen.getByRole('spinbutton', { name: /Quantity of Spare parts/ }),
-        { target: { value: '4' } },
-    );
-
-    expect(screen.getByText('Total').nextElementSibling?.textContent).not.toBe(
-        before,
-    );
-});
-
-test('a bad quantity fires the validation event with the Laravel key and stays on the cart', () => {
-    renderCheckout();
-
-    fireEvent.change(
-        screen.getByRole('spinbutton', { name: /Quantity of Spare parts/ }),
-        { target: { value: '0' } },
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-
-    expect(failed).toHaveBeenCalledTimes(1);
-    expect(Object.keys(failed.mock.calls[0][0])).toEqual(['items.0.quantity']);
     expect(
         screen
-            .getByRole('spinbutton', { name: /Quantity of Spare parts/ })
+            .getByRole('textbox', { name: 'Email' })
             .getAttribute('aria-invalid'),
     ).toBe('true');
-    expect(screen.queryByRole('textbox', { name: 'Name' })).toBeNull();
+    expect(
+        screen
+            .getByRole('textbox', { name: 'Delivery address' })
+            .getAttribute('aria-invalid'),
+    ).toBeNull();
 });
 
-test('the steps go Cart, Details, Review; details are checked; there is no card field; the last button places the order', () => {
-    renderCheckout();
+test('the review shows the details and leaves payment to the provider: no card field, the last button pays', () => {
+    withTooltips(<CheckoutDemo links={publicLinks} {...checkout} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByRole('textbox', { name: 'Name' })).toBeTruthy();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(Object.keys(failed.mock.calls[0][0])).toEqual([
-        'name',
-        'email',
-        'address',
-    ]);
-
-    fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
-        target: { value: 'Mei Ling' },
-    });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
-        target: { value: 'mei@example.com' },
-    });
-    fireEvent.change(
-        screen.getByRole('textbox', { name: 'Delivery address' }),
-        { target: { value: 'Jalan Ampang 12' } },
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-
-    expect(screen.getByText('Mei Ling')).toBeTruthy();
+    expect(screen.getByText('Tan Mei Ling')).toBeTruthy();
     expect(screen.getByText(/payment element goes here/)).toBeTruthy();
     expect(
         document.querySelector('[autocomplete="cc-number"], [name*="card"]'),
     ).toBeNull();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
-    expect(toast.success).toHaveBeenCalledWith('Order placed.');
     expect(
-        screen.getByRole('spinbutton', { name: /Quantity of Spare parts/ }),
-    ).toBeTruthy();
+        screen.getByRole('button', { name: 'Pay' }).getAttribute('type'),
+    ).toBe('submit');
 });
 
-test('the Chinese checkout has Chinese steps, errors and CNY amounts', () => {
-    renderCheckout(true);
+test('the contact page shows the empty form and the one the server sent back with errors', () => {
+    render(<ContactDemo links={publicLinks} {...contact} />);
 
-    expect(screen.getByRole('list', { name: 'Steps' }).textContent).toContain(
-        '购物车',
-    );
+    const emails = screen.getAllByLabelText('Email');
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: /数量.*备件/ }), {
-        target: { value: '' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
-
-    expect(failed.mock.calls[0][0]['lines.0.quantity']).toContain('请输入');
-    expect(document.body.textContent).toContain('CN¥');
-});
-
-test('an empty contact form fires the event with all four errors; a good one says it was sent and clears itself', () => {
-    render(
-        <ContactDemo
-            links={publicLinks}
-            {...contact.en}
-            answer={answerContact}
-        />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
-    expect(Object.keys(failed.mock.calls[0][0])).toEqual([
-        'name',
-        'email',
-        'subject',
-        'message',
-    ]);
-    expect(screen.getByLabelText('Email').getAttribute('aria-invalid')).toBe(
-        'true',
-    );
-
-    fireEvent.change(screen.getByLabelText('Name'), {
-        target: { value: 'Mei Ling' },
-    });
-    fireEvent.change(screen.getByLabelText('Email'), {
-        target: { value: 'mei@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText('Subject'), {
-        target: { value: 'Order 1042' },
-    });
-    fireEvent.change(screen.getByLabelText('Message'), {
-        target: { value: 'Where is it?' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
-
-    expect(failed).toHaveBeenCalledTimes(1);
-    expect(toast.success).toHaveBeenCalledWith('Message sent.');
-    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('');
-});
-
-test('a failed contact send keeps what was typed', () => {
-    render(
-        <ContactDemo
-            links={publicLinks}
-            {...contact.en}
-            answer={answerContact}
-        />,
-    );
-
-    fireEvent.change(screen.getByLabelText('Name'), {
-        target: { value: 'Mei Ling' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
-
-    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe(
-        'Mei Ling',
-    );
-});
-
-test('every Chinese demo has a Chinese top bar, not only Chinese page text', () => {
-    render(<PricingDemo links={publicLinksZh} {...pricing.zh} />);
-
-    expect(screen.getByRole('link', { name: '登录' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '立即开始' })).toBeTruthy();
-    expect(screen.queryByRole('link', { name: 'Log in' })).toBeNull();
-});
-
-test('the Chinese contact demo has Chinese labels and button, and Chinese checkout buttons', () => {
-    const { unmount } = render(
-        <ContactDemo
-            links={publicLinksZh}
-            {...contact.zh}
-            answer={(values) => answerContact(values, true)}
-        />,
-    );
-
-    expect(screen.getByLabelText('姓名')).toBeTruthy();
-    expect(screen.getByLabelText('留言').tagName).toBe('TEXTAREA');
-    expect(screen.getByRole('button', { name: '发送留言' })).toBeTruthy();
-    unmount();
-
-    renderCheckout(true);
-    expect(screen.getByRole('button', { name: '下一步' })).toBeTruthy();
+    expect(emails).toHaveLength(2);
+    expect(emails[0].getAttribute('aria-invalid')).toBeNull();
+    expect(emails[1].getAttribute('aria-invalid')).toBe('true');
     expect(
-        screen.getByRole('button', { name: '移除 备件，每箱 20 件' }),
-    ).toBeTruthy();
+        (screen.getAllByLabelText('Name')[1] as HTMLInputElement).value,
+    ).toBe('Tan Mei Ling');
 });
 
-test('the contact and checkout stand-ins use one rule for a name, an email and a quantity', () => {
-    expect(
-        answerContact({ name: ' ', email: 'x', subject: 's', message: 'm' }),
-    ).toEqual({
-        name: 'Enter your name.',
-        email: 'Enter an email address like name@example.com.',
-    });
-    expect(
-        answerCheckout(1, { name: ' ', email: 'x', address: 'a' }, []),
-    ).toMatchObject({
-        name: 'Enter your name.',
-        email: 'Enter an email address like name@example.com.',
-    });
+test('the landing demo shows the hero in the display size, the features and a closing button', () => {
+    render(<LandingDemo links={publicLinks} {...landing} />);
 
-    const item = { id: 1, name: 'A', unit: 100, quantity: '1.5', total: 0 };
-
-    expect(Object.keys(answerCheckout(0, {}, [item]))).toEqual([
-        'items.0.quantity',
-    ]);
-    expect(priceCart([item], checkout.en.labels).total.amount).toBe(0);
-});
-
-test('the landing demo shows the hero in the display size, the features and a closing button, in English and in Chinese', () => {
-    const { unmount } = render(
-        <LandingDemo links={publicLinks} {...landing.en} />,
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
+        'Start building your app',
     );
-
     expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(3);
     expect(
         screen.getAllByRole('link', { name: 'Get started' }).length,
     ).toBeGreaterThan(1);
-    unmount();
-
-    render(<LandingDemo links={publicLinksZh} {...landing.zh} />);
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
-        '开始搭建你的应用',
-    );
 });
 
-test('the pricing demo has the title in the display size and the plans, in Chinese with yuan', () => {
-    render(<PricingDemo links={publicLinksZh} {...pricing.zh} />);
+test('the pricing demo has the billing choice and the plans', () => {
+    render(<PricingDemo links={publicLinks} {...pricing} />);
 
-    expect(screen.getByRole('radio', { name: '按年' })).toBeTruthy();
-    expect(screen.getByText('推荐')).toBeTruthy();
-
-    expect(screen.getByText('团队版')).toBeTruthy();
-    expect(document.body.textContent).toContain('CN¥99.00');
+    expect(screen.getByRole('radio', { name: 'Yearly' })).toBeTruthy();
+    expect(screen.getByText('Recommended')).toBeTruthy();
+    expect(screen.getByText('Team')).toBeTruthy();
+    expect(document.body.textContent).toContain('49.00');
 });
 
 test('the product demo alternates its sections and ends with one button', () => {
-    render(<ProductDemo links={publicLinks} {...product.en} />);
+    render(<ProductDemo links={publicLinks} {...product} />);
 
     const sections = document.querySelectorAll('section');
 
@@ -341,7 +151,7 @@ test('the product demo alternates its sections and ends with one button', () => 
 
 test('the customer area demo has Dashboard in the bar, the account navigation and the orders as a list', () => {
     const { container } = render(
-        <CustomerAreaDemo links={publicLinks} {...customerArea.en} />,
+        <CustomerAreaDemo links={publicLinks} {...customerArea} />,
     );
 
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeTruthy();
@@ -356,10 +166,10 @@ test('the customer area demo has Dashboard in the bar, the account navigation an
 });
 
 test('the help demo searches its questions and links to the contact page', () => {
-    render(<HelpDemo links={publicLinks} {...help.zh} />);
+    render(<HelpDemo links={publicLinks} {...help} />);
 
-    fireEvent.change(screen.getByRole('searchbox', { name: '搜索帮助' }), {
-        target: { value: '发票' },
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search help' }), {
+        target: { value: 'invoice' },
     });
 
     expect(
@@ -368,6 +178,6 @@ test('the help demo searches its questions and links to the contact page', () =>
             .filter((button) => button.hasAttribute('aria-expanded')),
     ).toHaveLength(1);
     expect(
-        screen.getByRole('link', { name: '联系我们', description: '' }),
+        screen.getByRole('link', { name: 'Contact us', description: '' }),
     ).toBeTruthy();
 });

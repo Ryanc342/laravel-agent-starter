@@ -7,6 +7,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * A boxed field's label (FloatingLabel) rests inside the box while its control,
+ * the `peer` before it, is empty and not focused: an input or a textarea shows
+ * its blank placeholder, a select has no value (Radix sets data-placeholder),
+ * a date picker has no date (data-empty).
+ */
+@custom-variant field-empty (.peer:is(:placeholder-shown, [data-placeholder], [data-empty]):not(:focus, [data-state='open']) ~ &);
+
 @theme {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, 'PingFang SC',
@@ -14,7 +22,7 @@
         'Noto Sans SC', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* The display size: the home hero and the pricing page only (foundations.md). */
+    /* The display size: the home hero and the pricing page only. */
     --text-display: 2.25rem;
     --text-display--line-height: 1.15;
     --text-display--font-weight: 600;
@@ -110,7 +118,7 @@
     --secondary-foreground: var(--foreground);
     --secondary-pressed: oklch(0.9 0 0);
     --muted: oklch(0.97 0.005 265);
-    --muted-foreground: oklch(0.5 0.025 265);
+    --muted-foreground: oklch(0.49 0.025 265);
     /* White behind a QR code, so phones can scan it. */
     --qr-background: oklch(1 0 0);
     --accent: oklch(0.95 0 0);
@@ -258,7 +266,7 @@ input[type='button']:not(:disabled) {
 
 /*
  * A page is printed on A4 in black on white, without the app's chrome (the
- * sidebar, the top bar, toasts): docs/design/patterns/print.md. The buttons of
+ * sidebar, the top bar, toasts). The buttons of
  * a print page hide themselves with Tailwind's `print:hidden`. The colour
  * tokens are set to their light values, so a printout from dark mode is
  * readable.

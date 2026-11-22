@@ -1,17 +1,18 @@
 import Heading from '@/components/heading';
 import EmptyState from '@/components/shared/empty-state';
+import ErrorState from '@/components/shared/error-state';
+import LoadingState from '@/components/shared/loading-state';
+import RegionState from '@/components/shared/region-state';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import type { TableColumn } from '@/components/shared/responsive-table';
 import { Button } from '@/components/ui/button';
 import type { ReactNode } from 'react';
-import { t } from '@/lib/i18n';
 
 type Row = { id: number; title: string; status: string };
 
-/** Built when the demo renders, because `t()` needs the language, which is set after the module loads. */
 const columns = (): TableColumn<Row>[] => [
-    { header: t('Title'), cell: (row) => row.title },
-    { header: t('Status'), cell: (row) => row.status },
+    { header: 'Title', cell: (row) => row.title },
+    { header: 'Status', cell: (row) => row.status },
 ];
 
 function Region({
@@ -51,14 +52,12 @@ function TableState({
             columns={columns()}
             rows={[]}
             getRowKey={(row) => row.id}
-            emptyMessage={t('You have no :subject yet.', { subject })}
+            emptyMessage={`You have no ${subject} yet.`}
             loading={loading}
             error={
                 failed
                     ? {
-                          message: t('Could not load your :subject.', {
-                              subject,
-                          }),
+                          message: `Could not load your ${subject}.`,
                           onRetry: () => undefined,
                       }
                     : undefined
@@ -75,19 +74,34 @@ function TableState({
 export default function StatesDemo({ subject }: { subject: string }) {
     return (
         <div className="grid gap-6 md:grid-cols-2">
-            <Region title={t('Empty, in a table')} framed={false}>
+            <Region title="Empty, in a table" framed={false}>
                 <TableState subject={subject} />
             </Region>
-            <Region title={t('Loading, in a table')} framed={false}>
+            <Region title="Loading, in a table" framed={false}>
                 <TableState subject={subject} loading />
             </Region>
-            <Region title={t('Failed to load, in a table')} framed={false}>
+            <Region title="Failed to load, in a table" framed={false}>
                 <TableState subject={subject} failed />
             </Region>
-            <Region title={t('Empty, with the create button')}>
+            <Region title="Empty, with the create button">
                 <EmptyState
-                    message={t('You have no :subject yet.', { subject })}
-                    action={<Button>{t('Add task')}</Button>}
+                    message={`You have no ${subject} yet.`}
+                    action={<Button>Add</Button>}
+                />
+            </Region>
+            <Region title="Loading, in a box (RegionState)">
+                <RegionState
+                    emptyMessage={`You have no ${subject} yet.`}
+                    loading
+                />
+            </Region>
+            <Region title="Loading, on its own (LoadingState)">
+                <LoadingState rows={3} />
+            </Region>
+            <Region title="Failed to load, on its own (ErrorState)">
+                <ErrorState
+                    message={`Could not load your ${subject}.`}
+                    onRetry={() => undefined}
                 />
             </Region>
         </div>

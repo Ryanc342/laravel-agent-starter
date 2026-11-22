@@ -11,11 +11,6 @@ vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
             name: 'Acme',
-            locale: 'en',
-            locales: [
-                { value: 'en', label: 'English', short: 'EN' },
-                { value: 'zh_CN', label: '中文', short: '中文' },
-            ],
         },
     }),
     Link: ({ href, children }: { href: unknown; children: ReactNode }) => (
@@ -44,7 +39,7 @@ const links = [
 function header(signedIn: boolean, pageLinks = links) {
     return render(
         <TooltipProvider>
-            <PublicHeader links={pageLinks} signedIn={signedIn} />
+            <PublicHeader links={pageLinks} signedIn={signedIn} label="Pages" />
         </TooltipProvider>,
     );
 }
@@ -120,45 +115,10 @@ test('on a phone, signed in, the sheet holds the links and Dashboard', () => {
 });
 
 test('the footer has one row of links and the copyright line with the app name and year', () => {
-    render(<PublicFooter links={links} year={2026} />);
+    render(<PublicFooter links={links} year={2026} label="Footer" />);
 
     const row = screen.getByRole('navigation', { name: 'Footer' });
 
     expect(within(row).getAllByRole('link')).toHaveLength(4);
     expect(screen.getByText('© 2026 Acme')).toBeTruthy();
-});
-
-test('the words on the bar can be given in another language, on a computer and in the phone menu', () => {
-    const labels = {
-        login: '登录',
-        getStarted: '立即开始',
-        dashboard: '控制台',
-        openMenu: '打开菜单',
-        menu: '菜单',
-    };
-
-    vi.mocked(useIsMobile).mockReturnValue(false);
-    const { unmount } = render(
-        <TooltipProvider>
-            <PublicHeader links={links} signedIn={false} labels={labels} />
-        </TooltipProvider>,
-    );
-
-    expect(screen.getByRole('link', { name: '登录' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '立即开始' })).toBeTruthy();
-    unmount();
-
-    vi.mocked(useIsMobile).mockReturnValue(true);
-    render(
-        <TooltipProvider>
-            <PublicHeader links={links} signedIn labels={labels} />
-        </TooltipProvider>,
-    );
-    fireEvent.click(screen.getByRole('button', { name: '打开菜单' }));
-
-    expect(
-        within(screen.getByRole('dialog')).getByRole('link', {
-            name: '控制台',
-        }),
-    ).toBeTruthy();
 });

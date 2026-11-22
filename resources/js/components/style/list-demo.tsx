@@ -1,21 +1,21 @@
-import Heading from '@/components/heading';
 import type { Choice } from '@/components/shared/column-menu';
 import ListToolbar from '@/components/shared/list-toolbar';
+import PageHeader from '@/components/shared/page-header';
 import Pagination from '@/components/shared/pagination';
 import ResponsiveTable from '@/components/shared/responsive-table';
 import type { TableColumn } from '@/components/shared/responsive-table';
+import SortFilterSheet from '@/components/shared/sort-filter-sheet';
+import { DemoState } from '@/components/style/style-section';
 import type { ExampleTask } from '@/components/style/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatMoney } from '@/lib/format';
 import type { ResourceCollection } from '@/types/resource';
-import { t } from '@/lib/i18n';
-import Actions from '@/components/shared/actions';
 
 function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
     return [
         {
-            header: t('Title'),
+            header: 'Title',
             className: 'max-w-80 truncate font-medium',
             menu: { sortKey: 'title', search: { param: 'search' } },
             cell: (task) => (
@@ -28,7 +28,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
             ),
         },
         {
-            header: t('Status'),
+            header: 'Status',
             hideLabelOnCard: true,
             menu: {
                 sortKey: 'status',
@@ -38,13 +38,13 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
                 <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{task.status}</Badge>
                     {task.overdue && (
-                        <Badge variant="destructive">{t('Overdue')}</Badge>
+                        <Badge variant="destructive">Overdue</Badge>
                     )}
                 </div>
             ),
         },
         {
-            header: t('Amount'),
+            header: 'Amount',
             menu: {
                 sortKey: 'amount',
                 range: {
@@ -56,7 +56,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
             cell: (task) => formatMoney(task.amount),
         },
         {
-            header: t('Due date'),
+            header: 'Due date',
             menu: {
                 sortKey: 'due_on',
                 range: {
@@ -66,7 +66,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
                 },
             },
             cell: (task) =>
-                task.due_on ? formatDate(task.due_on) : t('No due date'),
+                task.due_on ? formatDate(task.due_on) : 'No due date',
         },
     ];
 }
@@ -75,6 +75,7 @@ function demoColumns(statusChoices: Choice[]): TableColumn<ExampleTask>[] {
  * A list of records: header with the create button, the search box (and on a
  * phone the "Sort & filter" button), the table with its column menus, the
  * pages. The example data does not filter; the menus change the address only.
+ * In an app the page comes from the listing part (Route::listing()).
  */
 export default function ListDemo({
     tasks,
@@ -89,26 +90,23 @@ export default function ListDemo({
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-                <Heading title={t('Tasks')} />
-                <Actions>
-                    <Button>{t('Add task')}</Button>
-                </Actions>
-            </div>
+            <PageHeader title="Tasks" actions={<Button>Add</Button>} />
 
             <div className="flex flex-col gap-4">
-                <ListToolbar
-                    columns={columns}
-                    searchLabel={t('Search tasks')}
-                />
+                <ListToolbar columns={columns} searchLabel="Search tasks" />
                 <ResponsiveTable
                     columns={columns}
                     rows={tasks}
                     getRowKey={(task) => task.id}
-                    emptyMessage={t('You have no tasks yet.')}
+                    emptyMessage="You have no tasks yet."
                 />
             </div>
-            <Pagination collection={pagination} />
+            <Pagination collection={pagination} label="Task pages" />
+            <DemoState label="On a phone the column menus open from one button (SortFilterSheet)">
+                <div>
+                    <SortFilterSheet columns={columns} />
+                </div>
+            </DemoState>
         </div>
     );
 }

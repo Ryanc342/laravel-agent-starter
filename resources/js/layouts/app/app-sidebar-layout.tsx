@@ -13,7 +13,8 @@ export default function AppSidebarLayout({
             <AppSidebar />
             <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                {children}
+                {/* Every app page's frame: its padding and the space between its parts. */}
+                <div className="flex flex-col gap-8 p-4 md:p-6">{children}</div>
             </AppContent>
         </AppShell>
     );

@@ -1,160 +1,144 @@
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import Heading from '@/components/heading';
 import ConfirmDialog, {
     ConfirmDialogActions,
 } from '@/components/shared/confirm-dialog';
-import FormField from '@/components/shared/form-field';
 import ResponsiveDialog, {
     ResponsiveDialogBody,
     ResponsiveDialogClose,
     ResponsiveDialogFooter,
 } from '@/components/shared/responsive-dialog';
 import ResponsiveTable from '@/components/shared/responsive-table';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
+import { DemoState } from '@/components/style/style-section';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { t } from '@/lib/i18n';
 
 export type ExampleCategory = { id: number; name: string; expenses: number };
 
+/** The edit dialog: the name as typed, and the server's error when it sent the form back. */
+function EditDialog({
+    category,
+    error,
+    onClose,
+}: {
+    category: ExampleCategory | null;
+    error?: string;
+    onClose: () => void;
+}) {
+    return (
+        <ResponsiveDialog
+            open={category !== null}
+            onOpenChange={(open) => !open && onClose()}
+            title="Edit category"
+        >
+            {/* A form, so Enter in the field sends it like the Save button. */}
+            <form
+                noValidate
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    onClose();
+                }}
+                className="flex min-h-0 flex-1 flex-col gap-6"
+            >
+                <ResponsiveDialogBody>
+                    <TextField
+                        label="Category name"
+                        name="name"
+                        required
+                        defaultValue={error ? '' : category?.name}
+                        error={error}
+                    />
+                </ResponsiveDialogBody>
+                <ResponsiveDialogFooter>
+                    <ResponsiveDialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </ResponsiveDialogClose>
+                    <SubmitButton sending={false}>Save</SubmitButton>
+                </ResponsiveDialogFooter>
+            </form>
+        </ResponsiveDialog>
+    );
+}
+
 /**
- * A list whose records have no detail page (patterns/list.md): each row's own
- * actions sit in one three-dot menu (`RowActions`, through `ResponsiveTable`),
- * Edit first and Delete last with its confirmation. React decides nothing: the
- * name is checked by `answer`; on a real page the FormRequest answers, and here
- * the page's example data stands in for it.
+ * A list whose records have no detail page: each row's own actions sit in one
+ * three-dot menu (RowActions, through ResponsiveTable), Edit first and Delete
+ * last with its confirmation. The second state is the edit dialog as the
+ * server sent it back, with the error from the demo data (`nameError`).
  */
 export default function RowActionsDemo({
     categories,
-    answer,
+    nameError,
 }: {
     categories: ExampleCategory[];
-    answer: (name: string) => string | null;
+    nameError: string;
 }) {
-    const [rows, setRows] = useState(categories);
     const [editing, setEditing] = useState<ExampleCategory | null>(null);
+    const [failed, setFailed] = useState<ExampleCategory | null>(null);
     const [deleting, setDeleting] = useState<ExampleCategory | null>(null);
-    const [name, setName] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const nameInput = useRef<HTMLInputElement>(null);
-
-    const edit = (category: ExampleCategory) => {
-        setEditing(category);
-        setName(category.name);
-        setError(null);
-    };
-
-    const save = () => {
-        const message = answer(name);
-
-        setError(message);
-
-        if (message) {
-            toast.error(message, { id: 'category-name' });
-            // As after a failed submit: the field with the error gets focus.
-            nameInput.current?.focus();
-
-            return;
-        }
-
-        setRows(
-            rows.map((row) =>
-                row.id === editing?.id ? { ...row, name: name.trim() } : row,
-            ),
-        );
-        setEditing(null);
-        toast.success(t('Category saved.'));
-    };
-
-    const remove = () => {
-        setRows(rows.filter((row) => row.id !== deleting?.id));
-        setDeleting(null);
-        toast.success(t('Category deleted.'));
-    };
 
     return (
         <div className="grid gap-6">
-            <Heading title={t('Expense categories')} />
+            <Heading title="Expense categories" />
 
-            <ResponsiveTable
-                columns={[
-                    {
-                        header: t('Category'),
-                        className: 'font-medium',
-                        cell: (category) => category.name,
-                    },
-                    {
-                        header: t('Expenses'),
-                        cell: (category) => category.expenses,
-                    },
-                ]}
-                rows={rows}
-                getRowKey={(category) => category.id}
-                emptyMessage={t('No categories yet.')}
-                rowActions={(category) => [
-                    { label: t('Edit'), onSelect: () => edit(category) },
-                    {
-                        label: t('Delete'),
-                        destructive: true,
-                        onSelect: () => setDeleting(category),
-                    },
-                ]}
+            <DemoState label="The list: open a row's menu">
+                <ResponsiveTable
+                    columns={[
+                        {
+                            header: 'Category',
+                            className: 'font-medium',
+                            cell: (category) => category.name,
+                        },
+                        {
+                            header: 'Expenses',
+                            cell: (category) => category.expenses,
+                        },
+                    ]}
+                    rows={categories}
+                    getRowKey={(category) => category.id}
+                    emptyMessage="No categories yet."
+                    rowActions={(category) => [
+                        { label: 'Edit', onSelect: () => setEditing(category) },
+                        {
+                            label: 'Delete',
+                            destructive: true,
+                            onSelect: () => setDeleting(category),
+                        },
+                    ]}
+                />
+            </DemoState>
+
+            <DemoState label="Edit, sent back with an error">
+                <div>
+                    <Button
+                        variant="outline"
+                        onClick={() => setFailed(categories[0])}
+                    >
+                        Edit
+                    </Button>
+                </div>
+            </DemoState>
+
+            <EditDialog category={editing} onClose={() => setEditing(null)} />
+            <EditDialog
+                category={failed}
+                error={nameError}
+                onClose={() => setFailed(null)}
             />
-
-            <ResponsiveDialog
-                open={editing !== null}
-                onOpenChange={(open) => !open && setEditing(null)}
-                title={t('Edit category')}
-            >
-                {/* A form, so Enter in the field saves like the Save button. */}
-                <form
-                    noValidate
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        save();
-                    }}
-                    className="flex min-h-0 flex-1 flex-col gap-6"
-                >
-                    <ResponsiveDialogBody>
-                        <FormField
-                            label={t('Category name')}
-                            htmlFor="category-name"
-                            error={error ?? undefined}
-                        >
-                            <Input
-                                ref={nameInput}
-                                id="category-name"
-                                required
-                                value={name}
-                                onChange={(event) =>
-                                    setName(event.target.value)
-                                }
-                            />
-                        </FormField>
-                    </ResponsiveDialogBody>
-                    <ResponsiveDialogFooter>
-                        <ResponsiveDialogClose asChild>
-                            <Button type="button" variant="outline">
-                                {t('Cancel')}
-                            </Button>
-                        </ResponsiveDialogClose>
-                        <Button type="submit">{t('Save')}</Button>
-                    </ResponsiveDialogFooter>
-                </form>
-            </ResponsiveDialog>
 
             <ConfirmDialog
                 open={deleting !== null}
                 onOpenChange={(open) => !open && setDeleting(null)}
-                title={t('Delete this category?')}
-                consequence={t(
-                    '“:name” will be deleted. This cannot be undone.',
-                    { name: deleting?.name ?? '' },
-                )}
+                title="Delete this category?"
+                consequence={`“${deleting?.name ?? ''}” will be deleted. This cannot be undone.`}
             >
                 <ConfirmDialogActions>
-                    <Button variant="destructive" onClick={remove}>
-                        {t('Delete category')}
+                    <Button
+                        variant="destructive"
+                        onClick={() => setDeleting(null)}
+                    >
+                        Delete
                     </Button>
                 </ConfirmDialogActions>
             </ConfirmDialog>

@@ -3,7 +3,7 @@ import { formatMoney } from '@/lib/format';
 type SummaryRow = { label: string; amount: number };
 
 /**
- * The totals of an order (docs/design/patterns/checkout.md): the backend's
+ * The totals of an order: the backend's
  * subtotal, tax and the like as a `dl`, and the total last, bold. Amounts are
  * minor units and go through `formatMoney`; nothing is added up here.
  */

@@ -76,13 +76,14 @@ test('a card shows the name first, the status next, then the other columns with 
     expect(within(card).getByText('2026-11-04')).toBeTruthy();
 });
 
-test('a status shown without its label on a card has no label there', () => {
+test('a status shown without its label on a card keeps the label for screen readers only', () => {
     vi.mocked(useIsMobile).mockReturnValue(true);
 
     render(table());
     const card = screen.getAllByRole('listitem')[0];
 
-    expect(within(card).queryByText('Status')).toBeNull();
+    expect(within(card).getByText('Status').tagName).toBe('DT');
+    expect(within(card).getByText('Status').className).toBe('sr-only');
     expect(within(card).getByText('Open')).toBeTruthy();
 });
 

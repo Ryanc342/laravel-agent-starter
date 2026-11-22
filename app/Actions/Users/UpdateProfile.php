@@ -2,37 +2,67 @@
 
 namespace App\Actions\Users;
 
+use App\Actions\After;
+use App\Actions\Operation;
+use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Notifications\EmailChanged;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
 
-final class UpdateProfile
+/**
+ * The signed-in user changes their name and email address. A changed address
+ * is unverified until the user verifies it again, and the user is told.
+ */
+final class UpdateProfile extends Operation
 {
-    /**
-     * Business rule: a changed email address is unverified until the user
-     * verifies it again, and the user is notified of the change.
-     *
-     * @param  array<string, mixed>  $data  validated input: name, email
-     */
-    public function handle(User $user, array $data): void
+    use ProfileValidationRules;
+
+    public function ability(): string
     {
-        DB::transaction(function () use ($user, $data) {
-            $user->fill([
-                'name' => $data['name'],
-                'email' => $data['email'],
-            ]);
+        return 'updateProfile';
+    }
 
-            $emailChanged = $user->isDirty('email');
+    public function subjectClass(): string
+    {
+        return User::class;
+    }
 
-            if ($emailChanged) {
-                $user->email_verified_at = null;
-            }
+    public function rules(): array
+    {
+        return $this->profileRules();
+    }
 
-            $user->save();
+    public function inputRefusal(User $user, ?Model $subject, array $input): ?array
+    {
+        return User::emailTaken((string) $input['email'], except: $user)
+            ? ['email' => __('The email has already been taken.')]
+            : null;
+    }
 
-            if ($emailChanged) {
-                $user->notify(new EmailChanged($user->email));
-            }
-        });
+    protected function perform(User $user, ?Model $subject, array $input): mixed
+    {
+        $user->fill([
+            'name' => $input['name'],
+            'email' => $input['email'],
+        ]);
+
+        $emailChanged = $user->isDirty('email');
+
+        if ($emailChanged) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($emailChanged) {
+            $user->notify(new EmailChanged($user->email));
+        }
+
+        return null;
+    }
+
+    public function after(mixed $result): After
+    {
+        return After::toRoute('profile.edit', message: __('Profile updated.'));
     }
 }

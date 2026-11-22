@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PerPage;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -56,18 +57,23 @@ test('the list shows 20 notifications per page', function () {
             ->where('notifications.meta.total', 21));
 });
 
-test('the list pages by the rows per page in the URL', function (int $perPage) {
+test('every rows-per-page choice the page offers is a size the list pages by, and it offers every size the list accepts', function () {
     $user = User::factory()->create();
     Notification::factory()->for($user, 'notifiable')->count(101)->create();
 
-    $this->actingAs($user)
-        ->get(route('notifications.index', ['per_page' => $perPage]))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('notifications.data', $perPage)
-            ->where('notifications.meta.per_page', $perPage)
-            ->where('notifications.meta.total', 101));
-})->with([10, 20, 50, 100]);
+    $offered = $this->actingAs($user)->get(route('notifications.index'))->inertiaProps('perPageOptions');
+
+    expect($offered)->toBe(array_map(fn (PerPage $size): int => $size->value, PerPage::cases()));
+
+    foreach ($offered as $perPage) {
+        $this->get(route('notifications.index', ['per_page' => $perPage]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('notifications.data', $perPage)
+                ->where('notifications.meta.per_page', $perPage)
+                ->where('notifications.meta.total', 101));
+    }
+});
 
 test('a rows-per-page value that is not offered pages by 20', function (mixed $value) {
     $user = User::factory()->create();

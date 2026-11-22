@@ -1,14 +1,13 @@
-import { Form } from '@inertiajs/react';
-import { Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
+import ConfirmButton from '@/components/shared/confirm-button';
 import ErrorState from '@/components/shared/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useErrorsToast } from '@/hooks/use-errors-toast';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
-import { t } from '@/lib/i18n';
 
 type Props = {
     recoveryCodesList: string[];
@@ -51,35 +50,22 @@ export default function TwoFactorRecoveryCodes({
     }, [recoveryCodesList.length, fetchRecoveryCodes]);
 
     const RecoveryCodeIconComponent = codesAreVisible ? EyeOff : Eye;
-    // The button name stays bold inside the sentence: split the sentence at its placeholder.
-    const regenerateWarning = t(
-        'Each recovery code can be used once to access your account and will be removed after use. If you need more, click :button above.',
-        { button: '\u0001' },
-    ).split('\u0001');
 
     return (
         <div className="grid gap-4">
-            <Heading variant="small" title={t('2FA recovery codes')} />
+            <Heading variant="small" title="2FA recovery codes" />
             <div>
                 <Actions className="select-none">
                     {canRegenerateCodes && (
-                        <Form
-                            noValidate
-                            {...regenerateRecoveryCodes.form()}
-                            options={{ preserveScroll: true }}
+                        <ConfirmButton
+                            variant="secondary"
+                            form={regenerateRecoveryCodes.form()}
+                            title="Regenerate your recovery codes?"
+                            consequence="New recovery codes replace the ones you have now. The old codes stop working at once."
                             onSuccess={fetchRecoveryCodes}
                         >
-                            {({ processing }) => (
-                                <Button
-                                    variant="secondary"
-                                    type="submit"
-                                    disabled={processing}
-                                    aria-describedby="regenerate-warning"
-                                >
-                                    <RefreshCw /> {t('Regenerate codes')}
-                                </Button>
-                            )}
-                        </Form>
+                            Regenerate
+                        </ConfirmButton>
                     )}
 
                     <Button
@@ -92,9 +78,7 @@ export default function TwoFactorRecoveryCodes({
                             className="size-4"
                             aria-hidden="true"
                         />
-                        {codesAreVisible
-                            ? t('Hide recovery codes')
-                            : t('View recovery codes')}
+                        {codesAreVisible ? 'Hide' : 'View'}
                     </Button>
                 </Actions>
                 <div
@@ -105,9 +89,7 @@ export default function TwoFactorRecoveryCodes({
                     <div className="mt-3 space-y-3">
                         {errors?.length ? (
                             <ErrorState
-                                message={t(
-                                    'Could not load your recovery codes.',
-                                )}
+                                message="Could not load your recovery codes."
                                 onRetry={() => void fetchRecoveryCodes()}
                             />
                         ) : (
@@ -116,7 +98,7 @@ export default function TwoFactorRecoveryCodes({
                                     ref={codesSectionRef}
                                     className="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
                                     role="list"
-                                    aria-label={t('Recovery codes')}
+                                    aria-label="Recovery codes"
                                 >
                                     {recoveryCodesList.length ? (
                                         recoveryCodesList.map((code, index) => (
@@ -132,9 +114,7 @@ export default function TwoFactorRecoveryCodes({
                                         <div
                                             className="space-y-2"
                                             role="status"
-                                            aria-label={t(
-                                                'Loading recovery codes',
-                                            )}
+                                            aria-label="Loading recovery codes"
                                         >
                                             {Array.from(
                                                 { length: 8 },
@@ -151,12 +131,14 @@ export default function TwoFactorRecoveryCodes({
                                 </div>
 
                                 <div className="text-xs text-muted-foreground select-none">
-                                    <p id="regenerate-warning">
-                                        {regenerateWarning[0]}
+                                    <p>
+                                        Each recovery code can be used once to
+                                        access your account and will be removed
+                                        after use. If you need more, press{' '}
                                         <span className="font-bold">
-                                            {t('Regenerate codes')}
-                                        </span>
-                                        {regenerateWarning[1]}
+                                            Regenerate
+                                        </span>{' '}
+                                        above.
                                     </p>
                                 </div>
                             </>

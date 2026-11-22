@@ -1,83 +1,31 @@
-import { Form } from '@inertiajs/react';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import Heading from '@/components/heading';
-import PasswordInput from '@/components/password-input';
-import FormField from '@/components/shared/form-field';
 import Actions from '@/components/shared/actions';
-import ConfirmDialog, {
-    ConfirmDialogActions,
-} from '@/components/shared/confirm-dialog';
-import { ResponsiveDialogBody } from '@/components/shared/responsive-dialog';
-import { Button } from '@/components/ui/button';
-import { t } from '@/lib/i18n';
+import ConfirmButton from '@/components/shared/confirm-button';
+import PasswordField from '@/components/shared/password-field';
+import Section from '@/components/shared/section';
+import { destroy } from '@/routes/profile';
 
 export default function DeleteUser() {
     return (
-        <div className="space-y-6">
-            <Heading variant="small" title={t('Delete account')} />
+        <Section title="Delete account">
             <Actions>
-                <ConfirmDialog
-                    trigger={
-                        <Button
-                            variant="destructive"
-                            data-test="delete-user-button"
-                        >
-                            {t('Delete account')}
-                        </Button>
-                    }
-                    title={t('Are you sure you want to delete your account?')}
-                    consequence={t(
-                        'Enter your password to permanently delete your account and all of its data.',
+                <ConfirmButton
+                    variant="destructive"
+                    form={destroy.form()}
+                    title="Delete your account?"
+                    consequence="Your account and all of its data will be deleted. This cannot be undone. Enter your password to confirm."
+                    fields={(errors) => (
+                        <PasswordField
+                            label="Password"
+                            id="password"
+                            name="password"
+                            autoComplete="current-password"
+                            error={errors.password}
+                        />
                     )}
                 >
-                    <Form
-                        noValidate
-                        {...ProfileController.destroy.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        resetOnSuccess
-                        className="flex min-h-0 flex-1 flex-col gap-6"
-                    >
-                        {({ resetAndClearErrors, processing, errors }) => (
-                            <>
-                                <ResponsiveDialogBody>
-                                    <FormField
-                                        label={t('Password')}
-                                        htmlFor="password"
-                                        hideLabel
-                                        error={errors.password}
-                                    >
-                                        <PasswordInput
-                                            id="password"
-                                            name="password"
-                                            placeholder={t('Password')}
-                                            autoComplete="current-password"
-                                        />
-                                    </FormField>
-                                </ResponsiveDialogBody>
-
-                                <ConfirmDialogActions
-                                    onCancel={() => resetAndClearErrors()}
-                                >
-                                    <Button
-                                        variant="destructive"
-                                        disabled={processing}
-                                        asChild
-                                    >
-                                        <button
-                                            type="submit"
-                                            data-test="confirm-delete-user-button"
-                                        >
-                                            {t('Delete account')}
-                                        </button>
-                                    </Button>
-                                </ConfirmDialogActions>
-                            </>
-                        )}
-                    </Form>
-                </ConfirmDialog>
+                    Delete
+                </ConfirmButton>
             </Actions>
-        </div>
+        </Section>
     );
 }

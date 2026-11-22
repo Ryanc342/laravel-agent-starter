@@ -1,5 +1,5 @@
 import { Ellipsis } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import IconButton from '@/components/shared/icon-button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,13 +7,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useRef } from 'react';
-import { t } from '@/lib/i18n';
 
 export type RowAction = {
     label: string;
@@ -25,11 +19,10 @@ export type RowAction = {
 
 /**
  * A row's own actions in a list whose records have no detail page
- * (patterns/list.md): one icon button with three dots that opens a menu. The
+ *: one icon button with three dots that opens a menu. The
  * other actions keep their order; the destructive ones come last, after a line.
  */
 export default function RowActions({ actions }: { actions: RowAction[] }) {
-    const label = t('More actions');
     // The chosen action runs once the menu has closed and focus is back on the
     // three-dot button, so a dialog it opens returns focus there when it closes.
     const chosen = useRef<(() => void) | null>(null);
@@ -39,22 +32,15 @@ export default function RowActions({ actions }: { actions: RowAction[] }) {
 
     return (
         <DropdownMenu>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            ref={trigger}
-                            variant="ghost"
-                            size="icon-sm"
-                            className="shrink-0"
-                            aria-label={label}
-                        >
-                            <Ellipsis />
-                        </Button>
-                    </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>{label}</TooltipContent>
-            </Tooltip>
+            <IconButton
+                ref={trigger}
+                label="More actions"
+                trigger={DropdownMenuTrigger}
+                size="icon-sm"
+                className="shrink-0"
+            >
+                <Ellipsis />
+            </IconButton>
             <DropdownMenuContent
                 align="end"
                 onCloseAutoFocus={(event) => {

@@ -4,9 +4,12 @@ import { cn } from "@/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
+    // A table wider than its box scrolls sideways: Tab reaches the box, so the
+    // keyboard can scroll it too.
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      tabIndex={0}
+      className="relative w-full overflow-x-auto rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
     >
       <table
         data-slot="table"

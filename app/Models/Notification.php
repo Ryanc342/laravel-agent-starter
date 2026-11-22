@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
+use UnexpectedValueException;
 
 /**
  * A message for one user, shown on the notifications page. Laravel writes the
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $type
  * @property string $notifiable_type
- * @property int $notifiable_id
+ * @property string $notifiable_id
  * @property array<string, mixed> $data
  * @property Carbon|null $read_at
  * @property Carbon|null $created_at
@@ -57,16 +58,18 @@ class Notification extends DatabaseNotification
 
     /**
      * The sentence the notification class stored in data.message (app/Notifications),
-     * translated into the reader's language with the values stored beside it. A row
-     * saved before values existed holds a finished sentence, which has no keys to
-     * translate and reads as it was.
+     * with its :placeholders filled from the values stored beside it.
      */
     public function message(): string
     {
-        $message = $this->data['message'] ?? '';
+        $message = $this->data['message'] ?? null;
         $values = $this->data['values'] ?? [];
 
-        return is_string($message) ? __($message, is_array($values) ? $values : []) : '';
+        if (! is_string($message) || ! is_array($values)) {
+            throw new UnexpectedValueException("Notification {$this->id} has no message.");
+        }
+
+        return __($message, $values);
     }
 
     /**
@@ -78,6 +81,18 @@ class Notification extends DatabaseNotification
     protected function ownedBy(Builder $query, User $user): void
     {
         $query->whereMorphedTo('notifiable', $user);
+    }
+
+    /**
+     * The notifications this user may see (prototype): the one place the list
+     * part and the Policy take "who sees what" from.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user): void
+    {
+        $query->ownedBy($user);
     }
 
     /**

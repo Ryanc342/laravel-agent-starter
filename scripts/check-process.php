@@ -3,10 +3,9 @@
 use Symfony\Component\Process\Process;
 
 /**
- * Runs a check (composer check or composer check:milestone): it forgets the last
- * pass, takes the fingerprint of the code, runs every command, and records the
- * pass when they all succeeded and the code is still the same
- * (scripts/hooks/finish-check.php).
+ * Runs composer check (scripts/check.php): it forgets the last pass, takes the
+ * fingerprint of the code, runs every command, and records the pass when they
+ * all succeeded and the code is still the same (scripts/workflow.php).
  *
  * @param  callable(): list<list<string>>  $commands
  */
@@ -14,12 +13,12 @@ function runValidation(callable $commands): int
 {
     try {
         // Installer and reference copies may not be git repositories: there the
-        // finish check prints nothing and records nothing.
-        $exit = validationCommand([PHP_BINARY, 'scripts/hooks/finish-check.php', 'revoke']);
+        // workflow tool prints nothing and records nothing.
+        $exit = validationCommand([PHP_BINARY, 'scripts/workflow.php', 'revoke']);
         if ($exit !== 0) {
             return $exit;
         }
-        $fingerprint = finishCheckOutput('fingerprint');
+        $fingerprint = workflowOutput('fingerprint');
         foreach ($commands() as $command) {
             $exit = validationCommand($command);
             if ($exit !== 0) {
@@ -27,7 +26,7 @@ function runValidation(callable $commands): int
             }
         }
 
-        return $fingerprint === '' ? 0 : validationCommand([PHP_BINARY, 'scripts/hooks/finish-check.php', 'passed', $fingerprint]);
+        return $fingerprint === '' ? 0 : validationCommand([PHP_BINARY, 'scripts/workflow.php', 'passed', $fingerprint]);
     } catch (Throwable $error) {
         fwrite(STDERR, $error->getMessage().PHP_EOL);
 
@@ -35,9 +34,9 @@ function runValidation(callable $commands): int
     }
 }
 
-function finishCheckOutput(string $mode): string
+function workflowOutput(string $command): string
 {
-    $process = new Process([PHP_BINARY, 'scripts/hooks/finish-check.php', $mode]);
+    $process = new Process([PHP_BINARY, 'scripts/workflow.php', $command]);
     $process->mustRun();
 
     return trim($process->getOutput());

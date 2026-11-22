@@ -14,9 +14,8 @@ import { cn } from '@/lib/utils';
 
 /**
  * The width on desktop, one of the two or neither (both at once does not
- * compile): `narrow` for a short content such as a QR code, `wide` for a long
- * form with a table of lines (an invoice). On a phone every dialog is the same
- * full-width sheet.
+ * compile): `narrow` for short content, `wide` for a long form with a table
+ * of lines. On a phone every dialog is the same full-width sheet.
  */
 type Width =
     | { narrow?: boolean; wide?: false }
@@ -111,7 +110,7 @@ export function ResponsiveDialogBody({
         <div
             className={cn(
                 // The body scrolls as a whole; its blocks keep their height (*:shrink-0),
-                // so a block that scrolls on its own, such as a table, is not squeezed.
+                // so a block that scrolls on its own is not squeezed.
                 '-mx-1 -my-1 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-1 py-1 *:shrink-0',
                 className,
             )}

@@ -1,10 +1,9 @@
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { t } from '@/lib/i18n';
 
 /**
  * A file field whose words are the app's own: a "Choose file" button and the
- * chosen file's name ("No file chosen" before), both translated. The browser's
+ * chosen file's name ("No file chosen" before). The browser's
  * own file input says them in the browser's language, so it stays hidden; it
  * still carries `name` into the form, and when a failed submit focuses the
  * field by that name, focus moves on to the button. `id` is the button's, so
@@ -52,13 +51,13 @@ export default function FilePicker({
                 aria-required={required || undefined}
                 onClick={() => input.current?.click()}
             >
-                {t('Choose file')}
+                Choose file
             </Button>
             <span
                 id={`${id}-chosen`}
                 className="min-w-0 truncate text-sm text-muted-foreground"
             >
-                {file ?? t('No file chosen')}
+                {file ?? 'No file chosen'}
             </span>
         </div>
     );

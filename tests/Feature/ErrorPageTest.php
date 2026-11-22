@@ -119,3 +119,24 @@ test('an error that is not one of the four keeps its own response', function () 
 
     $this->get('/teapot')->assertStatus(418);
 });
+
+test('an expired page or too many tries sends the user back with a message, not an error page', function (int $status, string $message) {
+    Route::middleware('web')->post('/refused', fn () => abort($status));
+
+    $this->from('/dashboard')
+        ->post('/refused')
+        ->assertRedirect('/dashboard')
+        ->assertSessionHas('inertia.flash_data', ['toast' => ['type' => 'error', 'message' => $message]]);
+})->with([
+    'expired page (419)' => [419, 'This page has expired. Please try again.'],
+    'too many tries (429)' => [429, 'Too many attempts. Please try again later.'],
+]);
+
+test('a JSON request for a record that does not exist gets a plain 404 that does not name the model', function () {
+    config(['app.debug' => false]);
+    Route::middleware('web')->get('/json-user/{user}', fn (User $user) => $user->name);
+
+    $this->getJson('/json-user/no-such-user')
+        ->assertNotFound()
+        ->assertExactJson(['message' => 'Not found.']);
+});

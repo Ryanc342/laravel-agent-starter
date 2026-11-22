@@ -3,32 +3,33 @@
 namespace App\Http\Resources;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * The signed-in user, shared with every page as `auth.user`
- * (HandleInertiaRequests). The data contract with the User type in
- * resources/js/types/auth.ts. Change both together.
- *
- * @mixin User
+ * (HandleInertiaRequests): only what the pages show.
  */
-class UserResource extends JsonResource
+#[TypeScript]
+final class UserResource extends ResourceData
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    public function __construct(
+        public string $id,
+        public string $name,
+        public string $email,
+        public string $initials,
+    ) {}
+
+    public static function from(Model $record, ?User $viewer): static
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'initials' => Str::initials($this->name, capitalize: true),
-            'email_verified_at' => $this->email_verified_at?->toIso8601String(),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
-        ];
+        assert($record instanceof User);
+
+        return new self(
+            id: $record->id,
+            name: $record->name,
+            email: $record->email,
+            initials: Str::initials($record->name, capitalize: true),
+        );
     }
 }

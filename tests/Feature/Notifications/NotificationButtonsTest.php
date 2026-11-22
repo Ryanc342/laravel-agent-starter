@@ -4,7 +4,6 @@ use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -44,10 +43,7 @@ function notificationCase(bool $own, bool $read): array
  */
 function notificationButtonsFor(User $user, Notification $notification): array
 {
-    $request = Request::create('/');
-    $request->setUserResolver(fn () => $user);
-
-    return NotificationResource::make($notification)->resolve($request)['can'];
+    return NotificationResource::from($notification, $user)->toArray()['can'];
 }
 
 test('the mark as read button is shown exactly when marking as read succeeds', function (bool $own, bool $read) {

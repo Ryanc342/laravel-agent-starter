@@ -2,12 +2,16 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\ReadsChoice;
+
 /**
  * The colour theme the user picked on the appearance settings page. The
  * browser stores it in the `appearance` cookie (resources/js/hooks/use-appearance.tsx).
  */
 enum Appearance: string
 {
+    use ReadsChoice;
+
     case Light = 'light';
     case Dark = 'dark';
     case System = 'system';
@@ -18,10 +22,6 @@ enum Appearance: string
      */
     public static function fromCookie(mixed $value): self
     {
-        if (! is_string($value)) {
-            return self::System;
-        }
-
-        return self::tryFrom($value) ?? self::System;
+        return self::fromValue($value) ?? self::System;
     }
 }

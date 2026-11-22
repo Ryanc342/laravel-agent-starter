@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
-import LanguageSwitch from '@/components/shared/language-switch';
+import IconButton from '@/components/shared/icon-button';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -10,27 +10,11 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { msg, t } from '@/lib/i18n';
 import { dashboard, home, login, register } from '@/routes';
 import type { NavItem } from '@/types';
 
 export type PublicLink = Pick<NavItem, 'title' | 'href'>;
-
-const defaultLabels = {
-    login: msg('Log in'),
-    getStarted: msg('Get started'),
-    dashboard: msg('Dashboard'),
-    openMenu: msg('Open menu'),
-    menu: msg('Menu'),
-};
-
-export type PublicHeaderLabels = typeof defaultLabels;
 
 /**
  * The top bar of a public page: the logo, the page links, and on the right
@@ -38,31 +22,31 @@ export type PublicHeaderLabels = typeof defaultLabels;
  * links and buttons wait in a `Sheet` that a menu button opens. A full-width
  * strip with a line under it, no shadow. `signedIn` comes in as a prop so a
  * demo can show both states; `PublicLayout` reads it from the page props.
+ * `label` names the page links.
  */
 export default function PublicHeader({
     links,
     signedIn,
-    labels = defaultLabels,
+    label,
 }: {
     links: PublicLink[];
     signedIn: boolean;
-    /** The words on the bar, for a project that is not in English. */
-    labels?: PublicHeaderLabels;
+    label: string;
 }) {
     const { name } = usePage().props;
     const isMobile = useIsMobile();
 
     const buttons = signedIn ? (
         <Button asChild>
-            <Link href={dashboard()}>{t(labels.dashboard)}</Link>
+            <Link href={dashboard()}>Dashboard</Link>
         </Button>
     ) : (
         <>
             <Button asChild variant={isMobile ? 'outline' : 'ghost'}>
-                <Link href={login()}>{t(labels.login)}</Link>
+                <Link href={login()}>Log in</Link>
             </Button>
             <Button asChild>
-                <Link href={register()}>{t(labels.getStarted)}</Link>
+                <Link href={register()}>Get started</Link>
             </Button>
         </>
     );
@@ -80,32 +64,21 @@ export default function PublicHeader({
 
                 {isMobile ? (
                     <>
-                        <LanguageSwitch className="ml-auto" />
                         <Sheet>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <SheetTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="shrink-0"
-                                            aria-label={t(labels.openMenu)}
-                                        >
-                                            <Menu />
-                                        </Button>
-                                    </SheetTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {t(labels.openMenu)}
-                                </TooltipContent>
-                            </Tooltip>
+                            <IconButton
+                                label="Open menu"
+                                trigger={SheetTrigger}
+                                className="ml-auto shrink-0"
+                            >
+                                <Menu />
+                            </IconButton>
                             <SheetContent side="right" className="gap-6 p-4">
                                 <SheetHeader className="p-0">
-                                    <SheetTitle>{t(labels.menu)}</SheetTitle>
+                                    <SheetTitle>Menu</SheetTitle>
                                 </SheetHeader>
                                 {links.length > 0 && (
                                     <nav
-                                        aria-label={t('Pages')}
+                                        aria-label={label}
                                         className="grid gap-1"
                                     >
                                         {links.map((link) => (
@@ -116,7 +89,7 @@ export default function PublicHeader({
                                                 className="justify-start"
                                             >
                                                 <Link href={link.href}>
-                                                    {t(link.title)}
+                                                    {link.title}
                                                 </Link>
                                             </Button>
                                         ))}
@@ -130,7 +103,7 @@ export default function PublicHeader({
                     <>
                         {links.length > 0 && (
                             <nav
-                                aria-label={t('Pages')}
+                                aria-label={label}
                                 className="flex items-center gap-1"
                             >
                                 {links.map((link) => (
@@ -140,14 +113,13 @@ export default function PublicHeader({
                                         variant="ghost"
                                     >
                                         <Link href={link.href}>
-                                            {t(link.title)}
+                                            {link.title}
                                         </Link>
                                     </Button>
                                 ))}
                             </nav>
                         )}
                         <div className="ml-auto flex items-center gap-2">
-                            <LanguageSwitch />
                             {buttons}
                         </div>
                     </>

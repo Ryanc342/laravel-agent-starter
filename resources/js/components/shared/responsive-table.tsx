@@ -16,7 +16,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { t } from '@/lib/i18n';
 
 export type TableColumn<Row> = {
     header: string;
@@ -30,7 +29,7 @@ export type TableColumn<Row> = {
 };
 
 /**
- * Ticking rows (patterns/bulk-actions.md): a checkbox column first on desktop,
+ * Ticking rows: a checkbox column first on desktop,
  * a checkbox on each card on a phone. The header checkbox ticks the rows of
  * this page; `useRowSelection` (hooks) holds the state.
  */
@@ -56,7 +55,7 @@ type Props<Row> = {
     error?: RegionError;
     selection?: TableSelection<Row>;
     /**
-     * A list whose records have no detail page (patterns/list.md): each row's
+     * A list whose records have no detail page: each row's
      * own actions, in one three-dot menu in the last column (on a phone, at the
      * top right of the card).
      */
@@ -127,7 +126,10 @@ export default function ResponsiveTable<Row>({
                             {others.map((column) =>
                                 column.hideLabelOnCard ? (
                                     <div key={column.header}>
-                                        {column.cell(row)}
+                                        <dt className="sr-only">
+                                            {column.header}
+                                        </dt>
+                                        <dd>{column.cell(row)}</dd>
                                     </div>
                                 ) : (
                                     <div
@@ -158,9 +160,7 @@ export default function ResponsiveTable<Row>({
                         {selection && (
                             <TableHead className="w-10">
                                 <Checkbox
-                                    aria-label={t(
-                                        'Select all rows on this page',
-                                    )}
+                                    aria-label="Select all rows on this page"
                                     checked={
                                         selection.pageState === 'all'
                                             ? true
@@ -186,7 +186,7 @@ export default function ResponsiveTable<Row>({
                         ))}
                         {rowActions && (
                             <TableHead className="w-12">
-                                <span className="sr-only">{t('Actions')}</span>
+                                <span className="sr-only">Actions</span>
                             </TableHead>
                         )}
                     </TableRow>

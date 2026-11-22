@@ -64,15 +64,18 @@ test('users can logout', function () {
     $this->assertGuest();
 });
 
-test('users are rate limited', function () {
+test('users are rate limited, and sent back to the login page with a message', function () {
     $user = User::factory()->create();
 
     RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
 
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'wrong-password',
-    ]);
+    $this->from(route('login'))
+        ->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ])
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('inertia.flash_data', ['toast' => ['type' => 'error', 'message' => 'Too many attempts. Please try again later.']]);
 
-    $response->assertTooManyRequests();
+    $this->assertGuest();
 });

@@ -1,19 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vite-plus/test';
 import NotificationRow from '@/components/notifications/notification-row';
-import type { AppNotification } from '@/types/notification';
 
 const visit = vi.hoisted(() => vi.fn());
 
 vi.mock('@inertiajs/react', () => ({ router: { visit } }));
 
 function notification(
-    overrides: Partial<AppNotification> = {},
-): AppNotification {
+    overrides: Partial<App.Http.Resources.NotificationResource> = {},
+): App.Http.Resources.NotificationResource {
     return {
         id: 'abc',
         message: 'Your password was changed.',
-        created_at: null,
         created_at_diff: '5 minutes ago',
         is_unread: true,
         can: { mark_read: true },

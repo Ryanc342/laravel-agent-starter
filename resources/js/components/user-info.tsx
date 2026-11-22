@@ -1,17 +1,15 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { User } from '@/types';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export function UserInfo({
     user,
     showEmail = false,
 }: {
-    user: User;
+    user: App.Http.Resources.UserResource;
     showEmail?: boolean;
 }) {
     return (
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg bg-muted text-foreground">
                     {user.initials}
                 </AvatarFallback>

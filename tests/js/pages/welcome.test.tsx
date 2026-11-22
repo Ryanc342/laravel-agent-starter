@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vite-plus/test';
 import Welcome from '@/pages/welcome/index';
 
 const page = vi.hoisted(() => ({
-    props: { name: 'Acme', auth: { user: null } as { user: unknown } },
+    props: { name: 'Acme', signedIn: false },
 }));
 
 vi.mock('@inertiajs/react', () => ({
@@ -22,7 +22,7 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 test('signed out, the hero offers Get started and Log in, and the page has no invented proof', () => {
-    page.props.auth = { user: null };
+    page.props.signedIn = false;
     const { container } = render(<Welcome />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy();
@@ -35,7 +35,7 @@ test('signed out, the hero offers Get started and Log in, and the page has no in
 });
 
 test('signed in, the hero and the closing line go to the dashboard', () => {
-    page.props.auth = { user: { id: 1 } };
+    page.props.signedIn = true;
     render(<Welcome />);
 
     expect(
@@ -46,7 +46,7 @@ test('signed in, the hero and the closing line go to the dashboard', () => {
 });
 
 test('three to six features are listed', () => {
-    page.props.auth = { user: null };
+    page.props.signedIn = false;
     render(<Welcome />);
 
     const count = screen.getAllByRole('listitem').length;

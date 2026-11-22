@@ -4,6 +4,11 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/*
+ * A status: `secondary` a neutral state (open, draft), `success` done or
+ * paid, `warning` needs attention, `destructive` failed, overdue or an error.
+ * The text is the label the backend sends, starting with a capital letter.
+ */
 const badgeVariants = cva(
   "inline-flex items-center justify-center rounded-md border text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-colors overflow-hidden",
   {

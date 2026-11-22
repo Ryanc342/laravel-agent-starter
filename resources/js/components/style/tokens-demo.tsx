@@ -1,7 +1,6 @@
 import Heading from '@/components/heading';
 import { Specimen } from '@/components/style/style-section';
 import { cn } from '@/lib/utils';
-import { t } from '@/lib/i18n';
 
 // Each swatch is a token and the text colour that goes on it.
 const surfaces = [
@@ -56,37 +55,31 @@ function FillSwatch({ name, classes }: { name: string; classes: string }) {
 export default function TokensDemo() {
     return (
         <div className="grid gap-8">
-            <Specimen label={t('Surfaces, with the text that goes on them')}>
+            <Specimen label="Surfaces, with the text that goes on them">
                 {surfaces.map((token) => (
                     <Swatch key={token.name} {...token} />
                 ))}
             </Specimen>
 
-            <Specimen
-                label={t(
-                    'Fills: a button, a badge, a status. The component sets the text on top',
-                )}
-            >
+            <Specimen label="Fills: a button, a badge, a status. The component sets the text on top">
                 {fills.map((token) => (
                     <FillSwatch key={token.name} {...token} />
                 ))}
             </Specimen>
 
-            <Specimen label={t('Text on a surface')}>
+            <Specimen label="Text on a surface">
                 <span className="text-sm text-foreground">{'foreground'}</span>
                 <span className="text-sm text-muted-foreground">
                     {'muted-foreground'}
                 </span>
                 <span className="text-sm text-destructive-foreground">
-                    {t('destructive-foreground: an error line')}
+                    destructive-foreground: an error line
                 </span>
                 <span className="text-sm text-success">{'success'}</span>
-                <span className="text-sm text-primary">
-                    {t('primary: a link')}
-                </span>
+                <span className="text-sm text-primary">primary: a link</span>
             </Specimen>
 
-            <Specimen label={t('Lines and focus')}>
+            <Specimen label="Lines and focus">
                 <div className="flex h-16 w-32 items-end rounded-lg border-2 border-border p-2 text-xs">
                     {'border'}
                 </div>
@@ -98,7 +91,7 @@ export default function TokensDemo() {
                 </div>
             </Specimen>
 
-            <Specimen label={t('Chart colours, in order')}>
+            <Specimen label="Chart colours, in order">
                 {charts.map((chart) => (
                     <div
                         key={chart}
@@ -107,11 +100,7 @@ export default function TokensDemo() {
                 ))}
             </Specimen>
 
-            <Specimen
-                label={t(
-                    'Radius: sm, md, lg. Nothing is rounder than lg except a dot or an avatar',
-                )}
-            >
+            <Specimen label="Radius: sm, md, lg. Nothing is rounder than lg except a dot or an avatar">
                 <div className="size-16 rounded-sm border bg-muted" />
                 <div className="size-16 rounded-md border bg-muted" />
                 <div className="size-16 rounded-lg border bg-muted" />
@@ -119,19 +108,16 @@ export default function TokensDemo() {
 
             <div className="grid gap-3">
                 <p className="text-sm text-muted-foreground">
-                    {t('Type: one family, four sizes')}
+                    Type: one family, four sizes
                 </p>
-                <Heading title={t('Page title: Heading, the largest text')} />
-                <Heading
-                    variant="small"
-                    title={t('Section title: Heading small')}
-                />
-                <p className="text-sm">{t('Body: text-sm')}</p>
+                <Heading title="Page title: Heading, the largest text" />
+                <Heading variant="small" title="Section title: Heading small" />
+                <p className="text-sm">Body: text-sm</p>
                 <p className="text-sm text-muted-foreground">
-                    {t('Secondary text: text-sm text-muted-foreground')}
+                    Secondary text: text-sm text-muted-foreground
                 </p>
                 <p className="text-xs text-muted-foreground">
-                    {t('Caption: text-xs')}
+                    Caption: text-xs
                 </p>
             </div>
         </div>

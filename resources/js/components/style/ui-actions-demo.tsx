@@ -9,7 +9,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { t } from '@/lib/i18n';
 import { NETWORK_ERROR_MESSAGE } from '@/hooks/use-network-error-toast';
 
 const variants = [
@@ -35,11 +34,7 @@ const badges = [
 export default function UiActionsDemo() {
     return (
         <div className="grid gap-8">
-            <Specimen
-                label={t(
-                    'Button variants: one default per area, outline for the rest',
-                )}
-            >
+            <Specimen label="Button variants: one default per area, outline for the rest">
                 {variants.map((variant) => (
                     <Button key={variant} variant={variant}>
                         {variant}
@@ -47,53 +42,42 @@ export default function UiActionsDemo() {
                 ))}
             </Specimen>
 
-            <Specimen label={t('Button sizes')}>
-                <Button size="sm">{t('Small')}</Button>
-                <Button>{t('Default')}</Button>
-                <Button size="lg">{t('Large')}</Button>
+            <Specimen label="Button sizes">
+                <Button size="sm">Small</Button>
+                <Button>Default</Button>
+                <Button size="lg">Large</Button>
                 <span className="text-sm text-muted-foreground">
-                    {t('or in a sentence:')}{' '}
+                    or in a sentence:{' '}
                     <Button variant="link" size="inline">
-                        {t('inline')}
+                        inline
                     </Button>
                 </span>
             </Specimen>
 
-            <Specimen
-                label={t(
-                    'Button states: disabled, and sending (disabled with a Spinner)',
-                )}
-            >
-                <Button disabled>{t('Disabled')}</Button>
+            <Specimen label="Button states: disabled, and sending (SubmitButton under Shared blocks does this itself)">
+                <Button disabled>Disabled</Button>
                 <Button disabled>
                     <Spinner />
-                    {t('Saving')}
+                    Saving
                 </Button>
                 <Button variant="outline" disabled>
-                    {t('Disabled')}
+                    Disabled
                 </Button>
             </Specimen>
 
-            <Specimen
-                label={t('Icon button: always a Tooltip and an aria-label')}
-            >
+            <Specimen label="Tooltip: a hint for a control, shown on hover and focus">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t('Notifications')}
-                        >
+                        <Button variant="outline">
                             <Bell />
+                            Hover me
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>{t('Notifications')}</TooltipContent>
+                    <TooltipContent>Notifications</TooltipContent>
                 </Tooltip>
             </Specimen>
 
-            <Specimen
-                label={t('Badge: a status, in the words the backend sends')}
-            >
+            <Specimen label="Badge: a status, in the words the backend sends">
                 {badges.map(({ variant, label }) => (
                     <Badge key={variant} variant={variant}>
                         {label}
@@ -101,20 +85,18 @@ export default function UiActionsDemo() {
                 ))}
             </Specimen>
 
-            <Specimen
-                label={t('Toasts: the result of an action and a network error')}
-            >
+            <Specimen label="Toasts: the result of an action and a network error">
                 <Button
                     variant="outline"
-                    onClick={() => toast.success(t('Task created.'))}
+                    onClick={() => toast.success('Task created.')}
                 >
-                    {t('Success toast')}
+                    Success toast
                 </Button>
                 <Button
                     variant="outline"
-                    onClick={() => toast.error(t(NETWORK_ERROR_MESSAGE))}
+                    onClick={() => toast.error(NETWORK_ERROR_MESSAGE)}
                 >
-                    {t('Error toast')}
+                    Error toast
                 </Button>
             </Specimen>
         </div>

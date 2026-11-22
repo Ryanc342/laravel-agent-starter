@@ -10,10 +10,9 @@ import {
 import { Fragment, useId, type ComponentProps, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import DatePicker from '@/components/shared/date-picker';
+import TextField from '@/components/shared/text-field';
 import UrlSearchInput from '@/components/shared/url-search-input';
-import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
@@ -22,7 +21,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useListQuery } from '@/hooks/use-list-query';
 import { useUrlParam } from '@/hooks/use-url-param';
-import { t } from '@/lib/i18n';
 import { listParam, listParams, type ParamChange } from '@/lib/list-query';
 import { cn } from '@/lib/utils';
 
@@ -165,7 +163,6 @@ function RangeEnd({
     param: string;
     type: 'date' | 'number';
 }) {
-    const id = useId();
     // A picked date asks at once; a typed amount waits for a pause.
     const { value, commit, inputProps } = useUrlParam(
         param,
@@ -174,19 +171,20 @@ function RangeEnd({
 
     return (
         <InputRow>
-            <Label htmlFor={id} className="w-10 shrink-0 font-normal">
-                {label}
-            </Label>
             {type === 'date' ? (
                 <DatePicker
-                    id={id}
-                    size="sm"
+                    label={label}
                     value={value}
                     onChange={commit}
                     className="min-w-0 flex-1"
                 />
             ) : (
-                <Input id={id} type="number" size="sm" {...inputProps} />
+                <TextField
+                    label={label}
+                    type="number"
+                    className="min-w-0 flex-1"
+                    {...inputProps}
+                />
             )}
         </InputRow>
     );
@@ -208,11 +206,11 @@ function TickList({ param, choices }: { param: string; choices: Choice[] }) {
                     }
                 >
                     <ListChecks />
-                    {t('Select all')}
+                    Select all
                 </MenuRow>
                 <MenuRow onClick={() => change({ [param]: [] })}>
                     <ListX />
-                    {t('Unselect all')}
+                    Unselect all
                 </MenuRow>
             </div>
             <MenuLine />
@@ -263,7 +261,7 @@ export function ColumnMenuContent({
 }) {
     const { url, change } = useListQuery();
     const { sorted, direction } = sortState(menu, url);
-    const name = t(header);
+    const name = header;
     const groups: ReactNode[] = [];
 
     if (menu.sortKey) {
@@ -279,9 +277,7 @@ export function ColumnMenuContent({
                         }
                     >
                         {way === 'asc' ? <ArrowUp /> : <ArrowDown />}
-                        {way === 'asc'
-                            ? t('Sort ascending')
-                            : t('Sort descending')}
+                        {way === 'asc' ? 'Sort ascending' : 'Sort descending'}
                     </MenuRow>
                 ))}
             </div>,
@@ -295,11 +291,8 @@ export function ColumnMenuContent({
                     <InputRow>
                         <UrlSearchInput
                             param={menu.search.param}
-                            aria-label={t('Search :header', { header: name })}
-                            placeholder={t('Search :header', {
-                                header: name.toLowerCase(),
-                            })}
-                            size="sm"
+                            label={`Search ${name.toLowerCase()}`}
+                            className="w-full"
                         />
                     </InputRow>
                 )}
@@ -312,12 +305,12 @@ export function ColumnMenuContent({
                 {menu.range && (
                     <>
                         <RangeEnd
-                            label={t('From')}
+                            label="From"
                             param={menu.range.fromParam}
                             type={menu.range.type}
                         />
                         <RangeEnd
-                            label={t('To')}
+                            label="To"
                             param={menu.range.toParam}
                             type={menu.range.type}
                         />
@@ -334,7 +327,7 @@ export function ColumnMenuContent({
                 onClick={() => change(clearedChanges(menu, url))}
             >
                 <X />
-                {t('Clear')}
+                Clear
             </MenuRow>,
         );
     }
@@ -377,7 +370,7 @@ export default function ColumnMenu({
                     size="sm"
                     className="-ml-3 font-medium"
                 >
-                    {t(header)}
+                    {header}
                     {!sorted && (
                         <ArrowUpDown
                             data-slot="sortable-indicator"
@@ -409,13 +402,11 @@ export default function ColumnMenu({
                     {sorted && (
                         <span className="sr-only">
                             {direction === 'asc'
-                                ? t(', sorted ascending')
-                                : t(', sorted descending')}
+                                ? ', sorted ascending'
+                                : ', sorted descending'}
                         </span>
                     )}
-                    {filtered && (
-                        <span className="sr-only">{t(', filtered')}</span>
-                    )}
+                    {filtered && <span className="sr-only">, filtered</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent align="start" className="p-1">

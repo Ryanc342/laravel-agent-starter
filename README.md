@@ -1,31 +1,29 @@
 # Laravel Agent Starter
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/tests.yml)
+[CI](https://github.com/Ryanc342/laravel-agent-starter/actions/workflows/tests.yml)
 
 A Laravel 13 + Inertia + React + TypeScript + Tailwind starter kit for projects where AI (Claude Code) writes the code.
 It is the official [Laravel React Starter Kit](https://github.com/laravel/react-starter-kit) plus three things:
 
-1. **Docs the AI reads.** A short `AGENTS.md` (under 100 lines) that works as a map, and `docs/` with the details: workflow, plans, rules per folder, a reference feature.
-2. **A fixed architecture.** Every business rule has one owner (an Action, a Policy, a model scope or method, an enum method). Layers only depend downwards. Every rule is written once, in the `.claude/rules/` file of the folders it is about, which Claude Code loads when the AI reads a matching file; `docs/golden-principles.md` holds the principles and the review lanes, and `ARCHITECTURE.md` explains them.
-3. **Machine checks for a skeleton, two AI reviewers for everything else.** Machines check a skeleton: the layers (PHPStan, the layer rules in `phpstan.neon`), the component boundaries, import cycles and no `t()` at import time (oxlint, with Ezdev's rules in `lint/oxlint/`), the folders of `app/`, where pages and components go, that no check is silenced or turned down, and the design spec's index and values (structure tests). One command runs them all: `composer check`. Every other rule needs reading, so two reviewer subagents on different models, `reviewer-opus` and `reviewer-haiku`, read every change for them, one review lane at a time. When the AI is about to stop after changing code that no check passed on, a finish check sends it back once to run the check.
+1. **A skeleton.** Every block of the app (pages, components, controllers, operations, policies, models...) has a fixed place and a card of rules, and so does every arrow between two blocks. The AI reads the overview (`.claude/rules/skeleton.md`) in every session, and Claude Code loads a card when the AI reads or changes a file in its place. Each rule says who guarantees it: a machine check, a test, a ready-made part of the template, or a reviewer.
+2. **Ready-made parts.** An operation part runs every change of data in a fixed order (permission, input, records, lock, save, what happens after); a listing part, a download part, a webhook part, a background job part, a file part and an outside-service part do the same for their jobs. Shared components (fields with floating labels, a submit button, a confirm button, icon buttons, page headers) give every page the same behaviour; `/style` shows them all.
+3. **A workflow tool.** Every change goes through one plan: the AI writes its questions and recommendations into the plan, you answer and say "开始" (or "start"), and only then can code change. The tool keeps the steps (build, `composer check`, review, report), sends the AI back once when it is about to stop with a step missing, and writes the report from the plan, its tests and the review.
 
-The starter kit's own auth and settings code is rewritten to follow the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation); Laravel Chisel is removed. To drop a feature in a project, ask the AI to plan its removal.
-
-In-app notifications are built in (a notifications page and an unread badge in the sidebar). They are also the live example of scopes, Policies, bulk operations and button consistency tests; `ARCHITECTURE.md` maps each pattern to its file.
+The starter kit's own auth and settings code follows the same rules, so the checks have no exceptions. Every auth feature is kept (registration, email verification, two-factor, passkeys, password confirmation). In-app notifications are built in (a notifications page and an unread badge in the sidebar).
 
 ## Requirements
 
 | Tool | Version or requirement |
 | ---- | ---------------------- |
-| PHP | 8.4.1 or later, with the extensions required by Composer, including PDO MySQL; this is the minimum required by the committed dependencies |
+| PHP | 8.4.1 or later, with the extensions required by Composer, including PDO MySQL |
 | Composer | 2.x |
 | Laravel Installer | 5.28.1 or later; verified with 5.28.1 and 5.32.0 |
 | Node.js | 22.22.2+ on the 22.x line, 24.15.0+ on the 24.x line, or 26+; CI uses Node 22 |
 | MySQL | 8.4 recommended, matching CI; running during setup, development and checks |
-| Git | Required for project initialization, plans, commits and the finish check |
-| Browser for the previews and the screen rounds | Google Chrome, for the `playwright` browser of `reviewer-opus` |
+| Git | Required for project initialization, plans and the workflow tool |
+| Chromium for the browser tests | `npx playwright install chromium`, once per machine |
 
-The development database user must be able to create the configured database and its test databases. Checks use `<DB_DATABASE>_test`; the reference check uses a separate `<DB_DATABASE>_reference_test` database, and the screen rounds `<DB_DATABASE>_review_opus`.
+The development database user must be able to create the configured database and its test database (`<DB_DATABASE>_test`).
 
 ## Start a new project
 
@@ -34,14 +32,15 @@ Start MySQL, then use the official Laravel CLI:
 ```sh
 laravel new my-project --using=ryanc342/laravel-agent-starter
 cd my-project
+npx playwright install chromium
 composer dev
 ```
 
-Keep the installer's default choices if it asks about Pest, Boost or frontend dependencies. The template prepares the environment, application key, project database, migrations, frontend assets and Git repository automatically. Open the URL printed by `composer dev` (normally `http://localhost:8000`) and register an account. Stop the development processes with Ctrl+C.
+Keep the installer's default choices if it asks about Pest, Boost or frontend dependencies. The template prepares the environment, application key, project database, migrations, frontend assets and Git repository automatically. Open the URL printed by `composer dev` (normally `http://localhost:8000`) and register an account. `composer dev` also runs the schedule. Stop the development processes with Ctrl+C.
 
-**MySQL is the default.** No database flag is needed. `my-project` gets the database `my_project`, with separate `my_project_test` and `my_project_reference_test` databases for checks. The default connection is `127.0.0.1:3306`, user `root`, with an empty password. An explicitly configured database or connection URL is preserved.
+**MySQL is the default.** No database flag is needed. `my-project` gets the database `my_project`, with a separate `my_project_test` database for checks. The default connection is `127.0.0.1:3306`, user `root`, with an empty password. An explicitly configured database or connection URL is preserved.
 
-Open the project in Claude Code and describe what you need. Claude Code is the supported tool: the review rounds need its subagents and the finish check its Stop hook (`.claude/settings.json`). The first time you open the project, Claude Code asks once whether you trust this folder: say yes. The project's settings, with its hooks, subagent settings and MCP servers, apply only in a folder you trust, and the check before the AI stops is that hook.
+Open the project in Claude Code and describe what you need. Claude Code is the supported tool: the workflow tool runs as its hooks and the review as its subagents (`.claude/settings.json`, `.claude/agents/`). The first time you open the project, Claude Code asks once whether you trust this folder: say yes. The project's settings, with its hooks, apply only in a folder you trust.
 
 ### If your MySQL credentials differ
 
@@ -58,86 +57,75 @@ The account needs permission to create the project's databases. Keep `.env` loca
 
 ### Maintaining this starter kit
 
-The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases. The short command follows the template’s main branch, as selected by Laravel Installer; updating the template does not change projects you already created: a project takes a new template release with Copier (below). To pin a stable snapshot, use `--using=ryanc342/laravel-agent-starter:v1.0.0` instead.
+The public Composer package is [ryanc342/laravel-agent-starter](https://packagist.org/packages/ryanc342/laravel-agent-starter). Stable Git tags identify its releases. The short command follows the template's main branch, as selected by Laravel Installer; updating the template does not change projects you already created: a project takes a new template release with Copier (below). To pin a stable snapshot, use `--using=ryanc342/laravel-agent-starter:v3.0.0` instead.
 
-To work on the template itself, clone this repository and run `composer setup` with MySQL running. `composer check` verifies the source, and `composer check:reference` also verifies the reference feature. The template's own files are in `template/`: its changelog, its plans, `template/scripts/check-installer` and the tests of its tools and checks, which `composer check` runs here. `laravel new` and Copier leave that folder out. In this repository's CI, `template/scripts/check-installer` creates two disposable projects with the actual Laravel Installer and checks their MySQL isolation, development servers and complete checks. Derived project repositories run the regular checks.
+To work on the template itself, clone this repository and run `composer setup` with MySQL running. `composer check` verifies it. The template's own files are in `template/`: its changelog, its plans, `template/scripts/check-installer` and the tests of its tools and checks, which `composer check` runs here. `laravel new` and Copier leave that folder out. In this repository's CI, `template/scripts/check-installer` creates two disposable projects with the actual Laravel Installer and checks their MySQL isolation, development servers and complete checks.
 
-## What happens when you ask for a feature
+## What happens when you ask for something
 
-1. **Questions.** The AI looks up what the code, the database and the rules answer, and asks only what they cannot: what to build, and every decision about money, permissions, who sees which data, or changing real data. It asks in rounds, each question with a recommended answer. Reply "yes", or answer by number ("1 yes 2 no, because..."). Questions come only now, before the plan.
-2. **Plan.** It writes the plan to `docs/exec-plans/active/<feature>.md`: the agreed decisions (a dependency, a check or a test assertion it changes is a decision of its own), the milestones and how they will be checked. A plan that adds or changes a page also shows a static preview of each page at desktop and phone size, in the template's design with example data. Say "开始" (or "start") when it is right: that approves the plan as it stands, previews included.
-3. **Build.** After "开始" the AI asks nothing. What the plan does not say follows the template's rules or keeps the current behaviour, and the report names it. For each milestone: tests first, code bottom-up, then `composer check:milestone -- <affected test paths>`, a commit and one Progress line. When every milestone is done, full `composer check`.
-4. **Review.** All review happens once, in the final review, after full `composer check`: no milestone has a review round. There are three review lanes, `backend`, `frontend` and `screens` (`docs/golden-principles.md`, Review lanes); a round runs both reviewers at the same time on the same commit, one run each for every lane the change touches, so at most six runs. A lane is done when, in its latest round, both report no finding on committed code and nothing in the lane's places changed since; the AI fixes the findings and starts the next round, with no cap on rounds, and writes each round as one Progress line of the plan. The screens come last: the lane `screens` starts when every other lane is done. `scripts/screen-round` prepares one copy of the app (`../<project folder>-review-opus`) with its own database and a free port; the project's own app and database are never touched, and `composer dev` need not run. Only `reviewer-opus` looks at pages, in the `playwright` browser: it walks the plan's flows through the forms and looks at every changed page at 1280px, 390px and in dark mode; `reviewer-haiku` reads the code for the same rules. A change to the reference feature (`docs/reference/tasks/`) is reviewed like app code: `scripts/screen-round --reference` installs the feature in the copy. A reviewer has no shell, only file reading, search and, for `reviewer-opus`, its browser: before each round `php scripts/hooks/finish-check.php round <plan path>` writes the plan's diff and a copy of the plan, and the request names both files.
-5. **Report.** In business words: what was built, the check results, the rule gaps and the decisions that differ from a rule, and what waits for you. Screenshots are temporary unless you ask to keep them. You approve the merge; CI runs `composer check` again.
+1. **Plan.** The AI looks up what the code, the database and the rules answer, and asks only what they cannot: what to build, and every decision about money, permissions, who sees which data, or changing real data. It writes a plan in `docs/exec-plans/active/` in your language: the purpose, its questions with a recommended answer each, the decisions, and each screen in words (its fields, actions and layout). It asks all the questions in one message; reply "yes", or answer by number ("1 yes 2 no, because...").
+2. **开始.** When the plan is right, say "开始" (or "start"). With a question still unanswered, "开始" is held back and you are told which. Until then the AI cannot change code: a file write is refused, and a command that changed code is caught and the AI is told to put it back. If the plan changes after "开始", you say "开始" again.
+3. **Build.** After "开始" the AI asks nothing. Each decision and each screen gets a test that names it; what is left is the tests still missing. What the plan does not say follows the rules or keeps the current behaviour, and waits for you in the report. Then `composer check`.
+4. **Review.** Reviewer subagents (`reviewer-haiku`, read-only) check the change against the reviewer rules of every card it touches, at most ten rules per run, plus one run for the rules of every block and the workflow. They report only what breaks a written rule. The AI fixes every finding, runs `composer check` again, and the next round reviews only what is still open, until every card has a run with no finding.
+5. **Report.** The workflow tool writes it from the plan: how each decision was proved, the screenshots of each screen, the cases no rule settled, what waits for you, and how many items of existing debt there are. Problems the reviewers found in older code are not fixed on the side: they go to `docs/exec-plans/tech-debt.md`, and at ten items the report brings a draft cleanup plan for you to answer. You approve the merge; CI runs `composer check` again.
 
-Whenever the AI is about to stop, the finish check (`scripts/hooks/finish-check.php`, Claude Code's Stop hook) checks one thing: the conversation changed code and no `composer check` or `composer check:milestone` passed on the code as it is now. Then it sends the AI back once, never twice in a row: if there is still no pass at the next stop, the AI stops and you see one line saying so. When the conversation changed a check file (`phpstan.neon`, `vite.config.ts`, `tsconfig.json`, `phpunit.xml`, `pint.json`, `lint/` or `tests/Structure/`), you also see one line naming it.
+When the AI is about to stop after changing code with a step missing, the workflow tool sends it back once, never twice in a row: if the step is still missing at the next stop, the AI stops and you see one line saying so. When a conversation changed a check file (`phpstan.neon`, `vite.config.ts`, `tsconfig.json`, `phpunit.xml`, `pint.json`, `lint/` or `tests/Structure/`), you also see one line naming it.
 
-The review rounds add time and model cost to every change: two reviewer runs per touched lane, again after each fix. Claude Code is the supported tool, because the rounds need its subagents and the finish check its Stop hook.
-
-When you want to, run `docs/prompts/cleanup.md` to find and fix drift. To update dependencies, take changes from the Laravel starter kit or move to a new Laravel version, run `docs/prompts/upgrade.md`.
+When you want to, ask for a cleanup (a plan from the existing debt) or an upgrade (a plan with one question per outdated package, security advisory or template merge conflict): `docs/workflow.md`.
 
 ## Where things are
 
-| Path                                      | What                                                                     |
-| ----------------------------------------- | ------------------------------------------------------------------------ |
-| `AGENTS.md` (`CLAUDE.md` points to it)    | The map the AI reads at every start                                      |
-| `ARCHITECTURE.md`                         | Layers, where each rule goes, which check enforces it                    |
-| `docs/workflow.md`                        | Questions, plan, build, review, report                                   |
-| `docs/PLANS.md`, `docs/exec-plans/`       | How to write a plan; active and completed plans; tech debt               |
-| `.claude/rules/`                          | Every rule, once, in the file of the folders it is about; Claude Code loads a file when the AI reads a matching file |
-| `DESIGN.md`, `docs/design/`               | How the app looks: the style, foundations, components and one file per page pattern |
-| `docs/reference/tasks/`                   | A complete reference feature the AI copies the structure from            |
-| `docs/golden-principles.md`               | The principles, the review lanes and how a rule names who checks it      |
-| `docs/prompts/review.md`                  | What a reviewer run reads and how it reports                              |
-| `phpstan.neon`, `lint/phpstan/`           | PHP linter: the layer rules (disallowed namespaces and functions)         |
-| `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter: component boundaries and import cycles                   |
-| `tests/Structure/`                        | Folder layout, code placement, silenced or turned-down checks, the design spec |
-| `.claude/`, `.mcp.json`                   | Subagents (explorer, reviewer-opus, reviewer-haiku), MCP servers (Boost, one Playwright browser) and the Stop hook |
-| `scripts/hooks/finish-check.php`          | The finish check: changed code with no passing check, when the AI is about to stop |
-| `scripts/screen-round`                    | Prepares a screen round: one copy of the app for `reviewer-opus`, its database reset, its app answering; `--reference` for the reference feature |
-| `template/`                               | The template's own files: changelog, plans, the installer check and the tests of its tools; not in projects |
-| `scripts/worktree-up`                     | A git worktree with its own .env, database and port for parallel work    |
+| Path | What |
+| ---- | ---- |
+| `AGENTS.md` (`CLAUDE.md` points to it) | The map the AI reads at every start |
+| `.claude/rules/skeleton.md` | The skeleton: every block, where its files live, the arrows, and the rules for every block and the workflow |
+| `.claude/rules/skeleton/` | One card per block and per arrow: its rules, each with who guarantees it, and how a reviewer checks it |
+| `docs/workflow.md` | What the workflow tool does not do: questions, build, review, report, cleanup, upgrades |
+| `docs/PLANS.md`, `docs/exec-plans/` | How to write a plan; the open and the reported plans; the existing debt |
+| `scripts/workflow.php` | The workflow tool and its hooks |
+| `phpstan.neon`, `lint/phpstan/` | PHP linter: the layer rules (disallowed namespaces and calls) |
+| `vite.config.ts` (`lint`), `lint/oxlint/` | Frontend linter: component boundaries, import cycles, only the submit button sends a form |
+| `tests/Structure/` | Folder layout, code placement, silenced or turned-down checks, `/style` shows every shared component |
+| `tests/Browser/` | Browser tests: every page on a computer and a phone, light and dark, with no sideways scrolling, page errors or accessibility issues |
+| `.claude/`, `.mcp.json` | Subagents (explorer, reviewer-haiku), the hooks, the Boost MCP server |
+| `template/` | The template's own files: changelog, plans, the installer check and the tests of its tools; not in projects |
+| `scripts/worktree-up` | A git worktree with its own .env, database and port for parallel work |
 
 ## Commands
 
-| Command                    | Does                                                                  |
-| -------------------------- | --------------------------------------------------------------------- |
-| `composer check`           | Pint, PHPStan, oxlint (in `vp check`), tsc, Vitest (`tests/js`), Pest on MySQL (Unit, Feature, Structure) |
-| `composer check:static` | Full PHP/frontend formatting, lint, static analysis and type checks |
-| `composer check:milestone -- <test paths>` | Full static checks, then the selected PHP/frontend tests |
-| `composer check:reference` | The same checks on a temporary copy that includes the reference feature |
-| `composer setup`           | Install dependencies, preserve or generate the app key, migrate and build |
-| `composer dev`             | Start the application's development processes together                  |
-| `composer lint`            | Format PHP                                                            |
-| `npm run check:fix`        | Format and lint the frontend                                          |
-| `scripts/worktree-up <name>` | Parallel workspace for one plan                                     |
+| Command | Does |
+| ------- | ---- |
+| `composer check` | Pint, PHPStan, the generated page types, oxlint (in `vp check`), tsc, Vitest (`tests/js`), the build, Pest on MySQL (Unit, Feature, Structure, Browser) |
+| `composer check:static` | The formatting, lint, static analysis and type checks only |
+| `php scripts/workflow.php status` | Where the plan is and the next step |
+| `composer setup` | Install dependencies, preserve or generate the app key, migrate and build |
+| `composer dev` | Start the application's development processes together, the schedule included |
+| `composer lint` | Format PHP |
+| `npm run check:fix` | Format and lint the frontend |
+| `scripts/worktree-up <name>` | Parallel workspace for one plan |
 
 ## Changing the rules
 
-The AI's report lists the cases no rule settled and the decisions that differ from a rule; you decide which become rules, in a plan of their own. Keep `AGENTS.md` under 100 lines: add details to `docs/`, not to the map. The machine checks are the skeleton; every other rule is a `[review:<lane>]` rule in `.claude/rules/` and stays with the reviewers. The cleanup (`docs/prompts/cleanup.md`), run when you want it, goes through the `[review:<lane>]` rules lane by lane and lists the gaps in the machine checks and the rules to merge or remove; you decide, and a check only ever gets stricter. After changing rules or tooling, run `composer check:reference`.
+The report lists the cases no rule settled; you decide which become rules, in a plan of their own. A rule lives on one card, and its tag says who guarantees it. Keep `AGENTS.md` under 100 lines. A machine check only ever gets stricter, and each is proven both ways in `template/tests/Lint/`: it rejects code that breaks its rule and accepts code that keeps it.
 
 ## Design: how the app looks
 
-The template ships a design for a clean and bright work tool, in four layers that the AI reads only as far as the task needs: `DESIGN.md` (the style, and an index of which file to read for which task), `docs/design/foundations.md` (colour, type, space, messages), `docs/design/components.md` (which component for which need) and `docs/design/patterns/` (one file per kind of page: list, detail, form, empty / error / loading states, dashboard, settings, feed, login and register, error pages, bulk actions, import and export, print, search results, wizard, approval, list and detail, report, calendar, kanban, and the customer pages: home / landing, pricing, product, customer area, checkout, help / FAQ and contact). The home page `/` is built in that style on the public layout (`resources/js/layouts/public-layout.tsx`: a top bar and a footer; the links are the pages the project has). The values are the theme in `resources/css/app.css`, not text in the documents. Every pattern has a demo: in development, open `/style` to see the tokens, the components and the pattern demos (it answers 404 outside the local environment). The AI follows the patterns; in the final review's screen rounds `reviewer-opus` opens each changed page at desktop and phone width and in dark mode, compares it with the style overview page and checks the `screens` rules (principle 10). For a project with its own brand, change `DESIGN.md` and the theme tokens in a plan of their own. Details: `.claude/rules/visual-design.md`.
-
-## Languages
-
-The app speaks English and Simplified Chinese. A first visit follows the browser's `Accept-Language` (any Chinese gives Chinese, anything else English); users switch on Settings → Appearance, and guests with the "EN / 中文" switch at the top right of the public bar and the sign-in pages. The choice is saved on the user (`users.locale`) and in the `locale` cookie, and `SetLocale` applies it to every request. There is one source, Laravel's language files and no package: a sentence is keyed by its English text (`lang/zh_CN.json`, `"Save changes": "保存更改"`), Laravel's own groups live in `lang/zh_CN/`, and React reads the current language's sentences through `t()` and `tChoice()` (`resources/js/lib/i18n.ts`). Write every sentence in English through `t()` or `__()` and add its Chinese in the same commit; the reviewers report a missing or unused translation and text written straight into JSX (lane `screens`), and oxlint fails on a `t()` that runs at import time: mark such a sentence with `msg()` and translate it where it is shown. What users type is never translated. Details: `.claude/rules/translations.md`.
+The template ships a design for a clean and bright work tool. Its values are the theme in `resources/css/app.css`; each shared component says at its top what it is for. In development, open `/style` to see the tokens, every shared component and a demo of every kind of page (it answers 404 outside the local environment): it is the one design reference. The browser tests keep the looks: each page's screenshot must match the one you approved. For a project with its own brand, change the theme in a plan of its own.
 
 ## Deploying
 
-A server that makes PDFs needs a PHP `memory_limit` of at least 256M. The PDF views draw every character with Noto Sans SC (`resources/fonts/`, about 10.6 MB per weight, SIL Open Font License) so Chinese text prints; DOMPDF reads the full font to cut out the characters a PDF uses, and one render peaks at 120 to 130 MB, over PHP's default 128M. `phpunit.xml` sets 256M for the tests. DOMPDF keeps its font files and metrics in `storage/fonts`, which must be writable.
+Before the app goes live, set `APP_ENV=production` and `APP_DEBUG=false` in the server's `.env`: with debug on, an error page shows the code and the settings.
 
 ## Based on
 
-- `laravel/react-starter-kit`, main branch, commit 98d9b82 (2026-10-29), auth and settings code rewritten (see `ARCHITECTURE.md`, "Starter kit code")
+- `laravel/react-starter-kit`, main branch, commit 98d9b82 (2026-10-29), auth and settings code rewritten to the skeleton
 - Laravel 13, Inertia 3, React 19, Vite+, Pest, Larastan, Laravel Boost
 
-To pick up later starter kit or Laravel changes, run `docs/prompts/upgrade.md`. The template's versions are in `template/CHANGELOG.md`.
+To take later starter kit or Laravel changes, ask for an upgrade (`docs/workflow.md`, Upgrades). The template's versions are in `template/CHANGELOG.md`.
 
 ## Taking a new template release
 
-A project takes a template release with [Copier](https://copier.readthedocs.io), which merges the template's changes between two releases into the project and keeps the project's own changes. Install it once with `pipx install copier` (or `uv tool install copier`, or `brew install copier`); it needs Python 3.9 or later and Git. Then ask the AI to sync the template to a release (`v1.6.0`): it follows `docs/prompts/upgrade.md`, "Projects made from this template", asks about each conflict in the plan, and after your "开始" resolves them, runs `composer check` and the review.
+A project takes a template release with [Copier](https://copier.readthedocs.io), which merges the template's changes between two releases into the project and keeps the project's own changes. Install it once with `pipx install copier` (or `uv tool install copier`, or `brew install copier`); it needs Python 3.9 or later and Git. Then ask the AI to take a release (`v3.0.0`): it follows `docs/workflow.md`, Upgrades, asks about each conflict in the plan, and after your "开始" resolves them, runs `composer check` and the review.
 
 ## Contributing and security
 
@@ -145,4 +133,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow. Report vul
 
 ## License
 
-The project's own additions are licensed under [MIT](LICENSE). Laravel, the bundled Laravel skills, and the shadcn/ui components retain their upstream notices; installed dependencies retain their respective licenses. The internal Ezdev rule names identify this template's architecture checks.
+The project's own additions are licensed under [MIT](LICENSE). Laravel, the bundled Laravel skills, and the shadcn/ui components retain their upstream notices; installed dependencies retain their respective licenses.

@@ -1,14 +1,15 @@
-import Heading from '@/components/heading';
 import Actions from '@/components/shared/actions';
-import FormField from '@/components/shared/form-field';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import Section from '@/components/shared/section';
+import StackedForm from '@/components/shared/stacked-form';
+import SubmitButton from '@/components/shared/submit-button';
+import TextField from '@/components/shared/text-field';
 import SettingsLayout from '@/layouts/settings/layout';
-import { t } from '@/lib/i18n';
+import { style } from '@/routes';
 
 /**
  * A settings page: the settings layout (the real one, with its nav) around a
- * form of the user's own data. Every settings page uses the same layout.
+ * form of the user's own data. Every settings page uses the same layout. The
+ * demo's form goes nowhere: it stops before it is sent.
  */
 export default function SettingsDemo({
     name,
@@ -19,32 +20,20 @@ export default function SettingsDemo({
 }) {
     return (
         <SettingsLayout>
-            <div className="space-y-6">
-                <Heading variant="small" title={t('Profile')} />
-
-                <form
-                    noValidate
-                    onSubmit={(event) => event.preventDefault()}
-                    className="space-y-6"
-                >
-                    <FormField label={t('Name')} htmlFor="settings-demo-name">
-                        <Input id="settings-demo-name" defaultValue={name} />
-                    </FormField>
-                    <FormField
-                        label={t('Email address')}
-                        htmlFor="settings-demo-email"
-                    >
-                        <Input
-                            id="settings-demo-email"
-                            type="email"
-                            defaultValue={email}
-                        />
-                    </FormField>
+            <Section title="Profile">
+                <StackedForm {...style.form()} onBefore={() => false}>
+                    <TextField label="Name" name="name" defaultValue={name} />
+                    <TextField
+                        label="Email address"
+                        name="email"
+                        type="email"
+                        defaultValue={email}
+                    />
                     <Actions>
-                        <Button type="submit">{t('Save')}</Button>
+                        <SubmitButton>Save</SubmitButton>
                     </Actions>
-                </form>
-            </div>
+                </StackedForm>
+            </Section>
         </SettingsLayout>
     );
 }

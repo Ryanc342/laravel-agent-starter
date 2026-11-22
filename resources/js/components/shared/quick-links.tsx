@@ -1,5 +1,4 @@
 import { Link } from '@inertiajs/react';
-import { t } from '@/lib/i18n';
 import type { NavItem } from '@/types';
 
 /**
@@ -19,7 +18,7 @@ export default function QuickLinks({ links }: { links: NavItem[] }) {
                         {item.icon && (
                             <item.icon className="size-4 text-muted-foreground" />
                         )}
-                        {t(item.title)}
+                        {item.title}
                     </Link>
                 </li>
             ))}

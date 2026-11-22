@@ -7,6 +7,7 @@ import { formatMoney } from '@/lib/format';
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({ props: { today: { date: '2026-11-20', year: 2026 } } }),
+    useFormContext: () => undefined,
 }));
 
 function openWide() {
@@ -81,7 +82,7 @@ test('a changed, removed or added line shows no amount and no total until saved,
     fireEvent.click(
         within(dialog).getByRole('button', { name: 'Remove line 2' }),
     );
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Add line' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
 
     expect(
         within(dialog).getByLabelText('Description of line 2'),

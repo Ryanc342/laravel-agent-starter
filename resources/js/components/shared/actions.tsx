@@ -1,11 +1,11 @@
 import { useLayoutEffect, useRef, useState, type ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
-/** The container width below which a row of actions stacks: 28rem, the same step as `FormField`'s `@md`. */
+/** The container width below which a row of actions stacks: 28rem. */
 const NARROW_WIDTH = 448;
 
 /**
- * Every row of action buttons (docs/design/components.md): at the right end of
+ * Every row of action buttons: at the right end of
  * its row with the main button last, and full width and stacked with the main
  * button on top when its container, the element it sits in, is narrow (a
  * phone, a narrow dialog). Put the buttons in reading order: Cancel and the

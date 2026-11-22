@@ -26,20 +26,3 @@ test('a date shows the same day in every time zone', () => {
     expect(formatDate('2026-11-04')).toBe('4 Nov 2026');
     expect(formatDate('2026-12-31')).toBe('31 Dec 2026');
 });
-
-test('dates, numbers and money follow the language the page is in', async () => {
-    const { setLanguage } = await import('@/lib/i18n');
-
-    setLanguage('zh_CN', {});
-
-    try {
-        expect(formatDate('2026-11-04')).toBe('2026年11月4日');
-        expect(formatQuantity(1000.125)).toBe('1,000.125');
-        expect(formatMoney(16400)).toContain('164.00');
-        expect(formatMoney(16400, 'CNY')).toBe('¥164.00');
-    } finally {
-        setLanguage('en', {});
-    }
-
-    expect(formatDate('2026-11-04')).toBe('4 Nov 2026');
-});

@@ -1,8 +1,5 @@
-import type { Auth } from '@/types/auth';
-import type {
-    AppNotification,
-    NotificationSummary,
-} from '@/types/notification';
+// A module, so the declarations below add to React's and Inertia's types.
+export {};
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -12,19 +9,16 @@ declare module 'react' {
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
+        // The keys every page receives (HandleInertiaRequests::share()); a test
+        // checks this list against the backend. The groups inside are generated
+        // from the backend (resources/js/types/generated.d.ts).
         sharedPageProps: {
             name: string;
-            /** `en` or `zh_CN` (app/Enums/Locale.php). */
-            locale: string;
-            /** The sentences of the current language, keyed by their English text; empty in English. */
-            translations: Record<string, string>;
-            /** The choices of both language switches (app/Enums/Locale.php `options()`). */
-            locales: { value: string; label: string; short: string }[];
-            auth: Auth;
-            notificationSummary: NotificationSummary | null;
-            latestNotifications?: AppNotification[];
-            /** Today in the app's timezone (HandleInertiaRequests). */
-            today: { date: string; year: number };
+            signedIn: boolean;
+            auth: App.Http.Resources.SharedAuth;
+            notificationSummary: App.Http.Resources.NotificationSummary | null;
+            latestNotifications?: App.Http.Resources.NotificationResource[];
+            today: App.Http.Resources.Today;
             perPageOptions: number[];
             sidebarOpen: boolean;
             [key: string]: unknown;

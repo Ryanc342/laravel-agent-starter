@@ -1,16 +1,16 @@
 <?php
 
 /*
-| Files go where the conventions say (docs/golden-principles.md, principles 6
-| and 7): the folders of app/, where pages and components live, and code lives
-| only where the checks read it. Each folder lists what it may hold, so a file
+| Files go where the skeleton says (.claude/rules/skeleton.md, the locations,
+| ALL-7 and ALL-8): the folders of app/, where pages and components live, and
+| code lives only where the checks read it. Each folder lists what it may hold, so a file
 | in a new place is a decision the user sees, not something the AI slips in.
 | The checks are in PlacementChecks.php.
 */
 
 use Tests\Structure\PlacementChecks;
 
-test('app/ holds only the folders Actions, Concerns, Console, Enums, Http, Integrations, Models, Notifications, Policies, Providers and Support', function () {
+test('app/ holds only the folders Actions, Concerns, Console, Enums, Http, Jobs, Models, Notifications, Policies, Providers and Support', function () {
     expect(PlacementChecks::appFolders())->toBe([]);
 });
 
@@ -22,6 +22,10 @@ test('components live in resources/js/components/{domain}/ or components/shared/
     expect(PlacementChecks::componentsRoot())->toBe([]);
 });
 
+test('the style page shows every shared component: show a new one in resources/js/components/style', function () {
+    expect(PlacementChecks::styleShowsSharedComponents())->toBe([]);
+});
+
 test('resources/js holds only TypeScript: every file is .ts or .tsx', function () {
     expect(PlacementChecks::typeScriptOnly())->toBe([]);
 });
@@ -30,7 +34,7 @@ test('resources/js holds only app.tsx and the folders components, hooks, layouts
     expect(PlacementChecks::resourcesJsFolders())->toBe([]);
 });
 
-test('docs/ holds only Markdown (.md) files, apart from the reference feature in docs/reference/', function () {
+test('docs/ holds only Markdown (.md) files', function () {
     expect(PlacementChecks::docsMarkdownOnly())->toBe([]);
 });
 

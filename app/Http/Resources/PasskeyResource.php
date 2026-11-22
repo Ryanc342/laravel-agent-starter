@@ -2,30 +2,36 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Laravel\Passkeys\Passkey;
+use App\Models\Passkey;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+use UnexpectedValueException;
 
 /**
- * One of the user's passkeys (the model comes from the laravel/passkeys
- * package). The data contract with the Passkey type in
- * resources/js/types/auth.ts. Change both together.
- *
- * @mixin Passkey
+ * One of the user's passkeys, as the security page lists it.
  */
-class PasskeyResource extends JsonResource
+#[TypeScript]
+final class PasskeyResource extends ResourceData
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    public function __construct(
+        public string $id,
+        public string $name,
+        public ?string $authenticator,
+        public string $created_at_diff,
+        public ?string $last_used_at_diff,
+    ) {}
+
+    public static function from(Model $record, ?User $viewer): static
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'authenticator' => $this->authenticator,
-            'created_at_diff' => $this->created_at->diffForHumans(),
-            'last_used_at_diff' => $this->last_used_at?->diffForHumans(),
-        ];
+        assert($record instanceof Passkey);
+
+        return new self(
+            id: $record->id,
+            name: $record->name,
+            authenticator: $record->authenticator,
+            created_at_diff: ($record->created_at ?? throw new UnexpectedValueException("Passkey {$record->id} has no creation time."))->diffForHumans(),
+            last_used_at_diff: $record->last_used_at?->diffForHumans(),
+        );
     }
 }

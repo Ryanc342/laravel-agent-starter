@@ -147,7 +147,10 @@ test('on a phone the month is a list ordered by date, without the days that have
         .getAllByRole('heading', { level: 2 })
         .map((heading) => heading.textContent);
 
-    expect(days).toEqual(['November 2026', '4 Nov 2026', '20 Nov 2026']);
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
+        'November 2026',
+    );
+    expect(days).toEqual(['4 Nov 2026', '20 Nov 2026']);
     expect(screen.queryByText('Sun')).toBeNull();
     expect(screen.queryByText('Year end')).toBeNull();
 });

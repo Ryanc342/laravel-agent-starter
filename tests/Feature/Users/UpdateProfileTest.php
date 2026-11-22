@@ -4,13 +4,14 @@ use App\Actions\Users\UpdateProfile;
 use App\Models\User;
 use App\Notifications\EmailChanged;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
 test('a changed email address becomes unverified', function () {
     $user = User::factory()->create();
 
-    app(UpdateProfile::class)->handle($user, ['name' => 'New Name', 'email' => 'new@example.com']);
+    app(UpdateProfile::class)->run($user, null, ['name' => 'New Name', 'email' => 'new@example.com']);
 
     $user->refresh();
     expect($user->name)->toBe('New Name')
@@ -21,7 +22,7 @@ test('a changed email address becomes unverified', function () {
 test('an unchanged email address stays verified', function () {
     $user = User::factory()->create();
 
-    app(UpdateProfile::class)->handle($user, ['name' => 'New Name', 'email' => $user->email]);
+    app(UpdateProfile::class)->run($user, null, ['name' => 'New Name', 'email' => $user->email]);
 
     $user->refresh();
     expect($user->name)->toBe('New Name')
@@ -31,17 +32,26 @@ test('an unchanged email address stays verified', function () {
 test('the user is notified when their email address changes', function () {
     $user = User::factory()->create();
 
-    app(UpdateProfile::class)->handle($user, ['name' => $user->name, 'email' => 'new@example.com']);
+    app(UpdateProfile::class)->run($user, null, ['name' => $user->name, 'email' => 'new@example.com']);
 
     $notification = $user->notifications()->sole();
     expect($notification->type)->toBe(EmailChanged::class)
         ->and($notification->message())->toContain('new@example.com');
 });
 
+test('an email address of another account is refused, and nothing changes', function () {
+    $user = User::factory()->create(['name' => 'Before']);
+    $other = User::factory()->create();
+
+    expect(fn () => app(UpdateProfile::class)->run($user, null, ['name' => 'After', 'email' => $other->email]))
+        ->toThrow(ValidationException::class);
+    expect($user->refresh()->name)->toBe('Before');
+});
+
 test('no notification is sent when the email address is unchanged', function () {
     $user = User::factory()->create();
 
-    app(UpdateProfile::class)->handle($user, ['name' => 'New Name', 'email' => $user->email]);
+    app(UpdateProfile::class)->run($user, null, ['name' => 'New Name', 'email' => $user->email]);
 
     expect($user->notifications()->count())->toBe(0);
 });

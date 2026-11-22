@@ -8,15 +8,19 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: vi.fn() }));
 vi.mock('@inertiajs/react', () => ({
+    // Only what reaches the DOM: Inertia's own options (preserveScroll) stay out, as the real Link keeps them.
     Link: ({
         href,
         children,
-        ...props
+        className,
+        'aria-current': current,
     }: {
         href: string;
         children: ReactNode;
+        className?: string;
+        'aria-current'?: 'true';
     }) => (
-        <a href={href} {...props}>
+        <a href={href} className={className} aria-current={current}>
             {children}
         </a>
     ),

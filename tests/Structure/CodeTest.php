@@ -2,7 +2,7 @@
 
 /*
 | Checks on the code that a linter does not do: they read files across folders.
-| .claude/rules/ tags them [Structure]. The checks are in
+| The cards name them as `machine` rules (Structure: ...). The checks are in
 | PlacementChecks.php and CheckSettings.php.
 */
 
@@ -27,4 +27,8 @@ test('PHP requires and includes only .php files: code in another kind of file es
 
 test('Blade views hold no PHP: no @php and no <?php in resources/views, the controller or Resource prepares the data', function () {
     expect(PlacementChecks::bladeNoPhp())->toBe([]);
+});
+
+test('every class in app/Actions/<Domain>/ is an operation: it extends App\Actions\Operation or App\Actions\UserlessOperation', function () {
+    expect(PlacementChecks::actionsAreOperations())->toBe([]);
 });

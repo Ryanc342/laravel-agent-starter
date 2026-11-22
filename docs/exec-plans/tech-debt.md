@@ -1,12 +1,8 @@
-# Tech debt
+# Existing debt
 
-Known debt, oldest first. Add a line when you defer something. Fixing a line is a request like any other (docs/workflow.md): the questions, the plan, the user's "开始". When it is fixed, remove the line.
+Problems in older code that a plan found and left as they were (FLOW-5), one item per line. The workflow tool adds the ones the reviewers list, counts them in every report, and at 10 brings a draft cleanup plan; `php scripts/workflow.php cleanup` drafts one any time. A fixed item leaves this list.
 
-| Added | Where | What | Why deferred |
-| ----- | ----- | ---- | ------------ |
-| 2026-11-20 | resources/js/pages/auth/register.tsx, reset-password.tsx, settings/security.tsx | Show the password requirements under the password fields (register, reset password, security). The explaining-text rule allows that one line. | Template 1.6.0 changes no page beyond the sidebar (decision 38). |
-| 2026-11-20 | scripts/screen-round.php, tests/Structure/DesignDocChecks.php, tests/Unit/Hooks/ScreenRoundTest.php and PlaywrightMcpTest.php | Reads, writes and removals behind `@`, or with an unchecked `file_put_contents`/`copy`/`touch`, and the `shell_exec` git call of the scripts/screen-round shim, can fail without a word (fixes.md, an error is never swallowed); the port probes that use a failure as their answer are the exception. Since 1.6.0 the two tests make their folders and write their fixtures through tests/Support/Workspace.php; their reads, the shutdown kills and ScreenRoundTest's `rename` of the project folder are still left. | Found by the 1.6.0 review in code from before that plan. |
-| 2026-11-20 | tests/Structure/ProjectFiles.php, `read()` | A missing or unreadable file reads as empty text; the structure checks built on it then fail rather than pass, but without naming the read. | Found by the 1.6.0 review in code from before that plan. |
-| 2026-11-20 | scripts/screen-round.php, `screenRoundGit()` | Reads git's answer with `(string) stream_get_contents`, so a failed read is no output (for `git status`: no uncommitted code), and reads stdout before stderr from two pipes, which a long git error can hang (the finish check's `gitRun` sends errors to a file instead). | Found by the 1.6.0 review in code from before that plan. |
-| 2026-11-20 | tests/Unit/Hooks/ReviewRoundTest.php, ScreenRoundTest.php | `(string) file_get_contents(...)` in assertions reads a failed read as empty text; the assertions after it still fail, so nothing passes silently, but the cause is not named. | Found by the 1.6.0 review in code from before that plan. |
-| 2026-11-20 | resources/js/components/style/checkout-demo.tsx, customer-examples.ts `priceCart` | The checkout demo prices its cart in React (line totals, subtotal, tax) as a stand-in for the server, which frontend.md's money rule forbids without an exception for demos. | Found by the 1.6.0 review in code from before that plan. |
+- resources/js/pages/auth/register.tsx, reset-password.tsx, settings/security.tsx: the password fields do not show the password requirements under them. (found while reviewing template-1.6.0)
+- tests/Structure/ProjectFiles.php:63 read(): a missing or unreadable file reads as empty text; the structure checks built on it then fail rather than pass, but without naming the read. (found while reviewing template-1.6.0)
+- resources/js/pages/auth/verify-email.tsx: the page does not say what to do (open the email and click its link); it shows only the title and the Resend button. (found while reviewing template-2.0.0)
+- resources/js/pages/auth/reset-password.tsx:28: the email field is labelled "Email" where every other page says "Email address". (found while reviewing template-2.0.0)

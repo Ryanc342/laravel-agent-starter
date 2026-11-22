@@ -1,7 +1,6 @@
 <?php
 
 use Tests\Structure\CheckSettings;
-use Tests\Structure\DesignDocChecks;
 use Tests\Structure\PlacementChecks;
 use Tests\Structure\ProjectFiles;
 
@@ -14,7 +13,7 @@ test('every structure check is proved on a broken fixture: no fixture can be dro
     $fixtures = ProjectFiles::read('template/tests/Lint/SkeletonChecksTest.php');
     $missing = [];
 
-    foreach ([PlacementChecks::class, CheckSettings::class, DesignDocChecks::class] as $class) {
+    foreach ([PlacementChecks::class, CheckSettings::class] as $class) {
         $short = (new ReflectionClass($class))->getShortName();
 
         foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
@@ -29,11 +28,11 @@ test('every structure check is proved on a broken fixture: no fixture can be dro
     expect($missing)->toBe([]);
 });
 
-test('PHPStan and oxlint are proved on broken fixtures for every kept rule family', function () {
+test('PHPStan, oxlint and the structure checks are proved on broken fixtures for every kept rule family, and on clean ones that they block nothing allowed', function () {
     $fixtures = ProjectFiles::read('template/tests/Lint/SkeletonChecksTest.php');
     $missing = [];
 
-    foreach (['skeletonPhpstanErrors()', 'skeletonOxlintErrors()', 'ezdev(component-boundaries)', 'ezdev(no-module-level-t)', 'import(no-cycle)'] as $proof) {
+    foreach (['skeletonPhpstanErrors()', 'skeletonOxlintErrors()', 'skeletonPhpstanCleanFiles()', 'skeletonOxlintCleanFiles()', 'skeletonStructureCleanFixture()', 'ezdev(component-boundaries)', 'ezdev(submit-button)', 'import(no-cycle)'] as $proof) {
         if (! str_contains($fixtures, $proof)) {
             $missing[] = "template/tests/Lint/SkeletonChecksTest.php: {$proof}";
         }

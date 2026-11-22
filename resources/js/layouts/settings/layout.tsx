@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
-import Heading from '@/components/heading';
+import PageHeader from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
@@ -9,21 +9,20 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
-import { msg, t } from '@/lib/i18n';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: msg('Profile'),
+        title: 'Profile',
         href: edit(),
         icon: null,
     },
     {
-        title: msg('Security'),
+        title: 'Security',
         href: editSecurity(),
         icon: null,
     },
     {
-        title: msg('Appearance'),
+        title: 'Appearance',
         href: editAppearance(),
         icon: null,
     },
@@ -33,15 +32,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <div className="flex flex-col gap-8 p-4 md:p-6">
-            <Heading title={t('Settings')} />
+        <>
+            <PageHeader title="Settings" />
 
             <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav
-                        className="flex flex-col gap-1"
-                        aria-label={t('Settings')}
-                    >
+                <div className="w-full max-w-xl lg:w-48">
+                    <nav className="flex flex-col gap-1" aria-label="Settings">
                         {sidebarNavItems.map((item, index) => (
                             <Button
                                 key={`${toUrl(item.href)}-${index}`}
@@ -58,12 +54,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {t(item.title)}
+                                    {item.title}
                                 </Link>
                             </Button>
                         ))}
                     </nav>
-                </aside>
+                </div>
 
                 <Separator className="lg:hidden" />
 
@@ -73,6 +69,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     </section>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

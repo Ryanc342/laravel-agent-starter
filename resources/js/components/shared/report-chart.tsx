@@ -28,7 +28,8 @@ export function seriesColor(index: number): string {
  * the theme's chart colours. Several series always show a legend; a single one
  * needs none. The exact figures are also in a table for screen readers. The
  * values arrive from the backend for the chosen range; nothing here adds up
- * or averages.
+ * or averages. The chart is drawn complete at once, with no animation, so
+ * every look at it (and every screenshot) shows the same figures.
  */
 export default function ReportChart({
     data,
@@ -88,6 +89,7 @@ export default function ReportChart({
                                 stroke={`var(--color-${item.key})`}
                                 strokeWidth={2}
                                 dot={false}
+                                isAnimationActive={false}
                             />
                         ) : (
                             <Bar
@@ -95,6 +97,7 @@ export default function ReportChart({
                                 dataKey={item.key}
                                 fill={`var(--color-${item.key})`}
                                 radius={4}
+                                isAnimationActive={false}
                             />
                         ),
                     )}

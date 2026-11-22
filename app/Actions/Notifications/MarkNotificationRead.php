@@ -2,19 +2,38 @@
 
 namespace App\Actions\Notifications;
 
+use App\Actions\Operation;
 use App\Models\Notification;
-use Illuminate\Validation\ValidationException;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
-final class MarkNotificationRead
+/**
+ * Marks one notification as read.
+ */
+final class MarkNotificationRead extends Operation
 {
-    public function handle(Notification $notification): void
+    public function ability(): string
     {
-        if (! $notification->canBeMarkedRead()) {
-            throw ValidationException::withMessages([
-                'notification' => __('This notification is already read.'),
-            ]);
-        }
+        return 'markRead';
+    }
 
-        $notification->markAsRead();
+    public function subjectClass(): string
+    {
+        return Notification::class;
+    }
+
+    public function refusal(User $user, ?Model $subject): ?array
+    {
+        return $subject instanceof Notification && $subject->canBeMarkedRead()
+            ? null
+            : ['notification' => __('This notification is already read.')];
+    }
+
+    protected function perform(User $user, ?Model $subject, array $input): mixed
+    {
+        assert($subject instanceof Notification);
+        $subject->markAsRead();
+
+        return null;
     }
 }

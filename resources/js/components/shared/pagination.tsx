@@ -1,27 +1,22 @@
 import { Link, router, usePage } from '@inertiajs/react';
+import SelectField from '@/components/shared/select-field';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { t } from '@/lib/i18n';
 import { withPerPage } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
 import type { ResourceCollection } from '@/types/resource';
 
 /**
  * Under a paginated list: the page links, and next to them how many rows a
- * page shows. The server sends the links and the sizes (`perPageOptions`); the
- * size lives only in the URL. The links show when the list has more than one
+ * page shows, named by `label` (what the pages are of). The server sends the
+ * links and the sizes (`perPageOptions`); the size lives only in the URL. The links show when the list has more than one
  * page, the size choice when it has more rows than the smallest size.
  */
 export default function Pagination({
     collection,
+    label,
 }: {
     collection: ResourceCollection<unknown>;
+    label: string;
 }) {
     const { links, meta } = collection;
     const { url, props } = usePage();
@@ -40,7 +35,7 @@ export default function Pagination({
 
     return (
         <nav
-            aria-label={t('Pagination')}
+            aria-label={label}
             className={cn(
                 'flex flex-wrap items-center gap-4',
                 hasPages ? 'justify-between' : 'justify-end',
@@ -48,51 +43,28 @@ export default function Pagination({
         >
             {hasPages && (
                 <span className="text-sm text-muted-foreground">
-                    {t('Page :current of :last', {
-                        current: meta.current_page,
-                        last: meta.last_page,
-                    })}
+                    {`Page ${meta.current_page} of ${meta.last_page}`}
                 </span>
             )}
 
             <div className="flex flex-wrap items-center gap-4">
                 {hasChoice && (
-                    <div className="flex items-center gap-2">
-                        <span
-                            className="text-sm text-muted-foreground"
-                            aria-hidden="true"
-                        >
-                            {t('Rows per page')}
-                        </span>
-                        <Select
-                            value={String(meta.per_page)}
-                            onValueChange={(value) =>
-                                router.get(
-                                    withPerPage(url, Number(value)),
-                                    {},
-                                    { preserveScroll: true },
-                                )
-                            }
-                        >
-                            <SelectTrigger
-                                size="sm"
-                                className="w-20"
-                                aria-label={t('Rows per page')}
-                            >
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {options.map((option) => (
-                                    <SelectItem
-                                        key={option}
-                                        value={String(option)}
-                                    >
-                                        {option}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <SelectField
+                        label="Rows per page"
+                        className="w-36"
+                        value={String(meta.per_page)}
+                        options={options.map((option) => ({
+                            value: String(option),
+                            label: String(option),
+                        }))}
+                        onValueChange={(value) =>
+                            router.get(
+                                withPerPage(url, Number(value)),
+                                {},
+                                { preserveScroll: true },
+                            )
+                        }
+                    />
                 )}
 
                 {hasPages && (
@@ -100,23 +72,23 @@ export default function Pagination({
                         {links.prev ? (
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={links.prev} preserveScroll>
-                                    {t('Previous')}
+                                    Previous
                                 </Link>
                             </Button>
                         ) : (
                             <Button variant="outline" size="sm" disabled>
-                                {t('Previous')}
+                                Previous
                             </Button>
                         )}
                         {links.next ? (
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={links.next} preserveScroll>
-                                    {t('Next')}
+                                    Next
                                 </Link>
                             </Button>
                         ) : (
                             <Button variant="outline" size="sm" disabled>
-                                {t('Next')}
+                                Next
                             </Button>
                         )}
                     </div>

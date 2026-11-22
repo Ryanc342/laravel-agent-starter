@@ -1,16 +1,13 @@
-import { useId } from 'react';
 import DatePicker from '@/components/shared/date-picker';
-import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useListQuery } from '@/hooks/use-list-query';
-import { msg, t } from '@/lib/i18n';
 import { listParam } from '@/lib/list-query';
 
 const presets = [
-    { value: '7d', label: msg('7 days') },
-    { value: '30d', label: msg('30 days') },
-    { value: '90d', label: msg('90 days') },
-    { value: 'custom', label: msg('Custom') },
+    { value: '7d', label: '7 days' },
+    { value: '30d', label: '30 days' },
+    { value: '90d', label: '90 days' },
+    { value: 'custom', label: 'Custom' },
 ] as const;
 
 export const defaultRange = '30d';
@@ -27,8 +24,6 @@ export default function ReportRange() {
     const range = presets.some((preset) => preset.value === asked)
         ? asked
         : defaultRange;
-    const fromId = useId();
-    const toId = useId();
 
     return (
         <div className="flex flex-wrap items-center gap-3">
@@ -36,7 +31,7 @@ export default function ReportRange() {
                 type="single"
                 variant="outline"
                 value={range}
-                aria-label={t('Range')}
+                aria-label="Range"
                 className="max-w-full overflow-x-auto"
                 onValueChange={(value) => {
                     if (value) {
@@ -46,32 +41,24 @@ export default function ReportRange() {
             >
                 {presets.map((preset) => (
                     <ToggleGroupItem key={preset.value} value={preset.value}>
-                        {t(preset.label)}
+                        {preset.label}
                     </ToggleGroupItem>
                 ))}
             </ToggleGroup>
             {range === 'custom' ? (
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <Label htmlFor={fromId} className="font-normal">
-                            {t('From')}
-                        </Label>
-                        <DatePicker
-                            id={fromId}
-                            value={listParam(url, 'from')}
-                            onChange={(value) => change({ from: value })}
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Label htmlFor={toId} className="font-normal">
-                            {t('To')}
-                        </Label>
-                        <DatePicker
-                            id={toId}
-                            value={listParam(url, 'to')}
-                            onChange={(value) => change({ to: value })}
-                        />
-                    </div>
+                    <DatePicker
+                        label="From"
+                        className="w-44"
+                        value={listParam(url, 'from')}
+                        onChange={(value) => change({ from: value })}
+                    />
+                    <DatePicker
+                        label="To"
+                        className="w-44"
+                        value={listParam(url, 'to')}
+                        onChange={(value) => change({ to: value })}
+                    />
                 </div>
             ) : null}
         </div>

@@ -1,7 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { tChoice } from '@/lib/i18n';
 
 /** How many error toasts one burst shows before "And N more errors". */
 const SHOWN_ERRORS = 5;
@@ -88,12 +87,13 @@ export function useValidationErrorToasts(): void {
                 toast.error(errors[name], { id: `field-error-${name}` });
             }
 
-            if (names.length > SHOWN_ERRORS) {
+            const more = names.length - SHOWN_ERRORS;
+
+            if (more > 0) {
                 toast.error(
-                    tChoice(
-                        'And :count more error.|And :count more errors.',
-                        names.length - SHOWN_ERRORS,
-                    ),
+                    more === 1
+                        ? 'And 1 more error.'
+                        : `And ${more} more errors.`,
                     { id: 'field-error-more' },
                 );
             }

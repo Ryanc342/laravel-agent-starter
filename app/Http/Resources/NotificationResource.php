@@ -2,34 +2,40 @@
 
 namespace App\Http\Resources;
 
+use App\Actions\Notifications\MarkNotificationRead;
+use App\Http\OperationGate;
 use App\Models\Notification;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * The data contract with resources/js/types/notification.ts. Change both together.
+ * One notification as a page receives it.
  * Every flag and every can.* calls an existing owner; none writes a condition.
- *
- * @mixin Notification
  */
-class NotificationResource extends JsonResource
+#[TypeScript]
+final class NotificationResource extends ResourceData
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
-    {
-        $user = $request->user();
+    public function __construct(
+        public string $id,
+        public string $message,
+        public ?string $created_at_diff,
+        public bool $is_unread,
+        public NotificationCan $can,
+    ) {}
 
-        return [
-            'id' => $this->id,
-            'message' => $this->message(),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'created_at_diff' => $this->created_at?->diffForHumans(),
-            'is_unread' => $this->isUnread(),
-            'can' => [
-                'mark_read' => (bool) $user?->can('markRead', $this->resource) && $this->canBeMarkedRead(),
-            ],
-        ];
+    public static function from(Model $record, ?User $viewer): static
+    {
+        assert($record instanceof Notification);
+
+        return new self(
+            id: $record->id,
+            message: $record->message(),
+            created_at_diff: $record->created_at?->diffForHumans(),
+            is_unread: $record->isUnread(),
+            can: new NotificationCan(
+                mark_read: $viewer !== null && OperationGate::allows($viewer, MarkNotificationRead::class, $record),
+            ),
+        );
     }
 }
